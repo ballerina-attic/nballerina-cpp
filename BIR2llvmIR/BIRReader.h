@@ -24,7 +24,16 @@ class BIRReader {
 
     string name()  { return filename; }
     char readByte();
-    void deserialize();
+    void deserialize(istream *dataInStream) {
+
+        // Read import packages.
+        readPackages(dataInStream);
+
+    }
+
+    void readPackages(istream *dataInStream) {
+
+    }
 
   private:
     BIRFunction readFunction();
@@ -34,6 +43,19 @@ class BIRReader {
     VarDecl readVarDecl();
     Param readParam();
     Symbol readSymbol();
+};
+
+struct BinBIRPackage {
+    string org;
+    string name;
+    string version;
+    string sourceFileName;
+
+    vector<BIRFunction> functions;
+    friend istream &operator >> (istream &s, struct BinBIRPackage &readBIRPackage) {
+        is >> readBIRPackage.org >> readBIRPackage.name >> readBIRPackage.version;
+        return is;
+    }
 };
 
 #endif // BIRREADER_H
