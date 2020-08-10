@@ -3,10 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <list>
 
-use namespace std;
-use std::string;
-use std::vector;
+using namespace std;
 
 // Forward Declarations
 class TypeDecl;
@@ -41,11 +41,11 @@ class PackageID {
     string        version = DEFAULT_VERSION;
     bool          isUnnamed = false;
     string        sourceFileName = NULL;
-    List<string>  nameComps;
+    list<string>  nameComps;
 
   public:
     PackageID();
-    PackageID(string orgName, List<string> nameComps, string version);
+    PackageID(string orgName, list<string> nameComps, string version);
     PackageID(string orgName, string name, string version);
     PackageID(string orgName, string sourceFileName, string version);
     PackageID(string sourceFileName);

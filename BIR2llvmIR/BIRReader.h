@@ -2,14 +2,7 @@
 #define BIRREADER_H
 
 #include <istream>
-#include <string>
-#include <vector>
-#include "bir.h"
-
-use namespace std;
-use std::string;
-use std::vec;
-
+#include "BIR.h"
 
 class BIRReader {
   private:
@@ -29,10 +22,38 @@ class BIRReader {
         // Read import packages.
         readPackages(dataInStream);
 
+	// Read constants.
+        readConstants(dataInStream);
+
+        // Read typeDescRef definitions.
+        readtypeDescRef(dataInStream);
+
+        // Read package level variables.
+        readVariables(dataInStream);
+
+        readTypeDefBodies(dataInStream);
+
+        // Read functions.
+        readFunctions(dataInStream);
+
+        // Read annotations.
+        readAnnotations(dataInStream);
     }
 
     void readPackages(istream *dataInStream) {
+      int symbolCount;
+      dataInStream >> symbolCount;
+      for (int i = 0; i < symbolCount; i++) {
+            dataInStream >> BinBIRPackage;
+      }
+    }
 
+    void readFunctions(istream *dataInStream) {
+      int symbolCount;
+      dataInStream >> symbolCount;
+      for (int i = 0; i < symbolCount; i++) {
+            dataInStream >> BinBIRFunction;
+      }
     }
 
   private:
