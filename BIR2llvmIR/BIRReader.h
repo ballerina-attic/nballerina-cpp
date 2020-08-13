@@ -6,7 +6,6 @@
 
 class BIRReader {
   private:
-  istream *is;
   string   filename;
 
   public:
@@ -20,27 +19,27 @@ class BIRReader {
     void deserialize(istream *dataInStream) {
 
         // Read import packages.
-        readPackages(dataInStream);
+        void readPackages(dataInStream);
 
 	// Read constants.
-        readConstants(dataInStream);
+        void readConstants(dataInStream) {}
 
         // Read typeDescRef definitions.
-        readtypeDescRef(dataInStream);
+        void readtypeDescRef(dataInStream) {}
 
         // Read package level variables.
-        readVariables(dataInStream);
+        void readVariables(dataInStream) {}
 
-        readTypeDefBodies(dataInStream);
+        void readTypeDefBodies(dataInStream) {}
 
         // Read functions.
-        readFunctions(dataInStream);
+        void readFunctions(dataInStream) {}
 
         // Read annotations.
-        readAnnotations(dataInStream);
+        void readAnnotations(dataInStream) {}
     }
 
-    void readPackages(istream *dataInStream) {
+    void readPackages(istream dataInStream) {
       int symbolCount;
       dataInStream >> symbolCount;
       for (int i = 0; i < symbolCount; i++) {
@@ -48,13 +47,13 @@ class BIRReader {
       }
     }
 
-    void readFunctions(istream *dataInStream) {
+    /*void readFunctions(istream *dataInStream) {
       int symbolCount;
       dataInStream >> symbolCount;
       for (int i = 0; i < symbolCount; i++) {
             dataInStream >> BinBIRFunction;
       }
-    }
+    }*/
 
   private:
     BIRFunction readFunction();
@@ -65,7 +64,7 @@ class BIRReader {
     Param readParam();
     Symbol readSymbol();
 };
-
+/*
 struct BinTypeDecl {
     int                    tag;
     struct BinTypeSymbol   typeSym;
@@ -125,7 +124,7 @@ struct BinBIRFunction {
         is >> readBIRFunction.name >> readBIRFunction.workerName >> readBIRFunction.flags >> readBIRFunction.type;
         return is;
     }
-};
+};*/
 
 struct BinBIRPackage {
     string org;
@@ -133,9 +132,11 @@ struct BinBIRPackage {
     string version;
     string sourceFileName;
 
-    vector<struct BinBIRFunction> functions;
-    friend istream &operator >> (istream &is, struct BinBIRPackage &readBIRPackage) {
-        is >> readBIRPackage.org >> readBIRPackage.name >> readBIRPackage.version;
+    //vector<struct BinBIRFunction> functions;
+    friend ifstream &operator >> (ifstream &is, struct BinBIRPackage &readBIRPackage) {
+        is >> readBIRPackage.org;
+	is >> readBIRPackage.name;
+	is >> readBIRPackage.version;
         return is;
     }
 };

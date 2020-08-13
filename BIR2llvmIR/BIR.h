@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define DEFAULT_VERSION 0;
+
 // Forward Declarations
 class TypeDecl;
 class BasicBlock;
