@@ -2,6 +2,7 @@
 #define BIRREADER_H
 
 #include <istream>
+#include<string>
 #include "BIR.h"
 
 class BIRReader {
