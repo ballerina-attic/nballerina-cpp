@@ -1,4 +1,4 @@
-//#include "BIRReader.h"
+#include "BIR.h"
 #include<iostream>
 #include<string>
 #include<fstream>
