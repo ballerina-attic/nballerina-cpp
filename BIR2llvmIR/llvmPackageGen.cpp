@@ -19,17 +19,18 @@ BIRPackage::BIRPackage(string orgName, string pkgName, string verName,
   sourceFileName = srcFileName;
 }
 
-void BIRPackage::translate (string modRef) // change to LLVMModuleRef type Arg
+void BIRPackage::translate () // change to LLVMModuleRef type Arg
 {
   BIRFunction *birFunc1 = new BIRFunction();
   
   functions.push_back(birFunc1);
   string ModuleName = org + name + version;
-  //LLVMModuleRef mod = LLVMModuleCreateWithName(moduleID);
+  char * cstr = new char [ModuleName.length()+1];
+  LLVMModuleRef mod = LLVMModuleCreateWithName(cstr);
   for (int i = 0; i < functions.size(); i++)
   {
     BIRFunction *birFunc = functions[i];
-    birFunc->translate(ModuleName);  // we have to pass LLVMModuleRef to translate Function.
+    birFunc->translate(mod);  // we have to pass LLVMModuleRef to translate Function.
   }
 
 }
