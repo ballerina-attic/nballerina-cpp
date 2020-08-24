@@ -196,17 +196,39 @@ struct BinBIRFunction {
     vector<struct BinBasicBlock> basicBlocks;
 
     map<FuncParam, vector<BasicBlock>>   params;
-    friend istream &operator >> (istream &is, struct BinBIRFunction &readBIRFunction) {
-        is >> readBIRFunction.name >> readBIRFunction.workerName >> readBIRFunction.flags >> readBIRFunction.type;
-        return is;
     }
 };*/
 
+struct BinBIRFunction {
+    uint32_t sLine;
+    uint32_t eLine;
+    uint32_t sCol;
+    uint32_t eCol;
+    uint32_t sourceFileCpIndex;
+    uint32_t nameCpIndex;
+    uint32_t workdernameCpIndex;
+    uint32_t flags;
+    uint32_t typeCpIndex;
+    uint64_t annotation_length;
+    uint32_t annotationAttachments;
+    uint32_t requiredParamCount;
+    uint8_t hasRestParam;
+    uint8_t hasReceiver;
+    uint64_t taintTableLength;
+    uint16_t rowCount;
+    uint16_t columnCount;
+    uint32_t docLength;
+    uint8_t hasDoc;
+    uint64_t functionBodyLength;
+};
+
 struct BinBIRPackage {
-    std::string org;
-    std::string name;
-    std::string version;
-    std::string sourceFileName;
+    int32_t idCpIndex;
+    int32_t importCount;
+    int32_t constCount;
+    int32_t typeDefCount;
+    int32_t globalVarCount;
+    int32_t funcCount;
 
     //vector<struct BinBIRFunction> functions;
 };
@@ -232,6 +254,15 @@ class BIRReader {
             cout << "\nConstant pool entry = " << i;
             read_constant_pool ();
         }
+
+        // Read module
+
+	readBIRPackage.idCpIndex = read_s4be();
+	readBIRPackage.importCount = read_s4be();
+	readBIRPackage.constCount = read_s4be();
+	readBIRPackage.typeDefCount = read_s4be();
+	readBIRPackage.globalVarCount = read_s4be();
+	readBIRPackage.funcCount = read_s4be();
 
         }
         /*void readPackages(dataInStream);
