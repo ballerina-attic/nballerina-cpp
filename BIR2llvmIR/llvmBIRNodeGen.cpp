@@ -8,7 +8,7 @@ BIRNode::BIRNode (Location  location)
 {
 }
 
-void BIRNode::translate (string modRef) 
+void BIRNode::translate (LLVMModuleRef modRef) 
 {
   cout << "Value of ary is: " << endl;  
 }

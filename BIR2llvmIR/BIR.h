@@ -17,6 +17,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm-c/Core.h"
 
 #define DEFAULT_VERSION 0
 using namespace std;
@@ -52,7 +53,7 @@ class BIRNode {
     BIRNode ();
     BIRNode (Location  local);
     ~BIRNode ();
-    virtual void translate(string modRef);
+    virtual void translate(LLVMModuleRef modRef);
 };
 
 class PackageID {
@@ -286,7 +287,7 @@ class BIRFunction: public BIRNode {
                 string pworkerName);
     BIRFunction(const BIRFunction&);
     ~BIRFunction();
-    void translate(string modRef);
+    void translate(LLVMModuleRef modRef);
 };
 
 class BIRPackage: public BIRNode {
@@ -303,7 +304,7 @@ class BIRPackage: public BIRNode {
     BIRPackage(string orgName, string pkgName, string verName,
                string srcFileName);
     ~BIRPackage();
-    void translate(string modRef); // We have to Pass ModuleRef
+    void translate(); // We have to Pass ModuleRef
 };
 
 #endif // BIR_H

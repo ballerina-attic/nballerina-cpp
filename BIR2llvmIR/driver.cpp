@@ -17,4 +17,6 @@ int main()
         dataInStream.seekg (0, ios::beg);
 
 	//Reader.deserialize(Reader->dataInStream);
+        BIRPackage pkg;
+	pkg.translate();
 }
