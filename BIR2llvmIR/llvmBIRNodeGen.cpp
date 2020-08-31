@@ -4,7 +4,7 @@ BIRNode::BIRNode ()
 {
 }
 
-BIRNode::BIRNode (Location  location)
+BIRNode::BIRNode (Location  location):loc(location)
 {
 }
 

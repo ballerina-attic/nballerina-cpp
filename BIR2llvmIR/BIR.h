@@ -26,6 +26,49 @@ using namespace llvm;
 class TypeDecl;
 class BasicBlock1;
 class VarDecl;
+class BIRFunction;
+class NonTerminatorInsn;
+
+enum VarKind {
+	LocalVarKind=1,
+	TempVarKind=2, 
+	ReturnVarKind=3, 
+	ArgVarKind=4, 
+	GlobalVarKind=5, 
+	SelfVarKind=6, 
+	ConstantVarKind=7};
+
+enum InstructionKind {
+	BINARY_ADD = 1;
+	BINARY_SUB = 2;
+	BINARY_MUL = 3;
+	BINARY_DIV = 4;
+	BINARY_MOD = 5;
+	BINARY_EQUAL = 6;
+	BINARY_NOT_EQUAL = 7;
+	BINARY_GREATER_THAN = 8;
+	BINARY_GREATER_EQUAL = 9;
+	BINARY_LESS_THAN = 10;
+	BINARY_LESS_EQUAL = 11;
+	BINARY_REF_EQUAL = 12;
+	BINARY_REF_NOT_EQUAL = 13;
+	BINARY_CLOSED_RANGE = 14;
+	BINARY_HALF_OPEN_RANGE = 15;
+	BINARY_ANNOT_ACCESS = 16;
+	BINARY_BITWISE_AND = 17;
+	BINARY_BITWISE_OR = 18;
+	BINARY_BITWISE_XOR = 19;
+	BINARY_BITWISE_LEFT_SHIFT = 20;
+	BINARY_BITWISE_RIGHT_SHIFT = 21;
+	BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT = 22;
+	INS_KIND_MOVE=23, 
+	INS_KIND_CONST_LOAD=24, 
+	INS_KIND_NEW_MAP=25, 
+	INS_KIND_NEW_INST=26 }; // we have to add more from bir-model.bal file
+
+enum VarScope {
+	VAR_SCOPE_GLOBAL=1, 
+	VAR_SCOPE_FUNCTION=2};
 
 class Location {
   private:
@@ -150,49 +193,84 @@ class TypeDecl {
     TypeDecl(int tag, TypeSymbol tsymbol, int flags);
     TypeDecl(int tag, TypeSymbol tsymbol, string name, int flags);
     ~TypeDecl();
-
+    int getTypeTag();
+    string getTypeDeclName();
     virtual void translate();
 };
 
 class Operand: public BIRNode {
   private:
-    //VarDecl   varDecl;
+    VarDecl   *varDecl;
 
   public:
-    Operand();//VarDecl vDecl);
+    Operand();
+    Operand(VarDecl *vDecl);
     ~Operand();
+    VarDecl* getvarDecl();
     void translate();
 };
 
 class AbstractInsn: public BIRNode {
   private:
-    //InstructionKind   kind;
+    InstructionKind   kind;
     Operand           lhsOp;
 
   public:
     AbstractInsn();
-    AbstractInsn(Location pos);//, InstructionKind kind);
+    AbstractInsn(Location pos, InstructionKind kind);
+    AbstractInsn(Operand lOp);
     ~AbstractInsn();
+    InstructionKind getInstKind();
+    Operand getlhsOperand();
     void translate();
 };
 
 class NonTerminatorInsn: public AbstractInsn {
+  private:
+    BIRFunction       *BFunc;
   public:
     NonTerminatorInsn();
-    NonTerminatorInsn(Location posi);//, InstructionKind kind);
+    NonTerminatorInsn(Location posi, InstructionKind kind);
+    NonTerminatorInsn(BIRFunction *bFunc);
+    NonTerminatorInsn(Operand lOp);
+    BIRFunction* getFunction();
     ~NonTerminatorInsn();
+    void translate();
 };
 
 class TerminatorInsn: public AbstractInsn {
   private:
-   // InstructionKind   kind;
-   // BasicBlock1        thenBB;
+    InstructionKind   kind;
+    BasicBlock1        *thenBB;
 
   public:
     TerminatorInsn();
-    TerminatorInsn(Location pos);//, InstructionKind kind);
+    TerminatorInsn(Location pos, InstructionKind kind);
     ~TerminatorInsn();
     void translate();
+};
+
+class Move: public NonTerminatorInsn {
+  private:
+    Operand       rhsOp;
+  public:
+  Move();
+  Move(Operand lOp, Operand rOp);
+  Move(BIRFunction *bFun);  
+  Operand getrhsOp();
+  ~Move();
+  void translate();
+};
+
+class ConstantLoad : public NonTerminatorInsn {
+  private:
+    unsigned long long value;
+  public:
+    ConstantLoad (unsigned long long val, Operand lOp);
+    ConstantLoad (BIRFunction *bFun);
+    ~ConstantLoad();
+    void translate();
+    
 };
 
 class BasicBlock1: public BIRNode {
@@ -200,12 +278,15 @@ class BasicBlock1: public BIRNode {
     string                    id;
     vector<NonTerminatorInsn> instructions;
     TerminatorInsn            terminator;
-
+    LLVMBuilderRef 	      BRef;
+    BIRFunction               *BFunc;
+    BasicBlock1               *bb;
   public:
     BasicBlock1();
     BasicBlock1(string id);
     ~BasicBlock1();
-    void translate();
+    BasicBlock1(LLVMBuilderRef buildRef, BIRFunction *birFunc, BasicBlock1 *bb1);
+    void translate(LLVMModuleRef modRef);
 };
 
 class VarDecl: public BIRNode {
@@ -213,8 +294,8 @@ class VarDecl: public BIRNode {
     TypeDecl      type;
     string        name;
     string        metaVarName;
-    //VarKind       kind;
-    //VarScope      scope;
+    VarKind       kind;
+    VarScope      scope;
     bool          ignoreVariable;
     BasicBlock1    endBB;
     BasicBlock1    startBB;
@@ -224,18 +305,27 @@ class VarDecl: public BIRNode {
     VarDecl();
     VarDecl(string name, string metaVarName);
     ~VarDecl();
+    TypeDecl gettypeDecl();
+    string getvarName();
     void translate();
+    int getinsOffset();
+    bool getignoreVar();
+    VarKind getvarKind();
 };
 
 class Param: public BIRNode {
   private:
     string    name;
     int       flags;
+    TypeDecl  type;
 
   public:
     Param();
     Param(Location pos, string name, int flags);
     ~Param();
+    int getParamFlag();
+    string getParamName();
+    TypeDecl gettypeDecl();
     void translate();
 };
 
@@ -245,8 +335,8 @@ class FuncParam: public VarDecl {
 
   public:
     FuncParam();
-    FuncParam(Location pos, TypeDecl type, string name, //VarScope scope,
-              /*VarKind kind,*/ string metaVarName, bool hasDefExp);
+    FuncParam(Location pos, TypeDecl type, string name, VarScope scope,
+              VarKind kind, string metaVarName, bool hasDefExp);
     ~FuncParam();
 
 };
@@ -262,6 +352,7 @@ class InvokableType: public TypeDecl {
     InvokableType(vector<TypeDecl> paramTy, TypeDecl restTy, TypeDecl retTy,
                   TypeSymbol tSymbol);
     InvokableType(vector<TypeDecl> paramTy, TypeDecl retTy, TypeSymbol tSymbol);
+    TypeDecl getreturnType();
     ~InvokableType();
 };
 
@@ -276,17 +367,24 @@ class BIRFunction: public BIRNode {
     int                 paramCount;
     vector<VarDecl>     localVars;
     VarDecl             returnVar;
-    vector<BasicBlock1>  basicBlocks;
+    vector<BasicBlock1*>  basicBlocks;
     string              workerName;
 
     map<FuncParam, vector<BasicBlock1>>   params;
-
+    LLVMBuilderRef builder;
   public:
     BIRFunction();
     BIRFunction(Location pos, string pname, int pflags, InvokableType ptype,
                 string pworkerName);
     BIRFunction(const BIRFunction&);
+    vector<VarDecl> getLocalVars();
+    void translateFunctionBody(LLVMModuleRef modRef);
+    LLVMTypeRef getllvmTypeRefOfType(TypeDecl typeD);
+    LLVMValueRef getnewFunctionRef();
+    LLVMValueRef getlocalVarRefusingId(string locVar);
+    LLVMValueRef getLocalToTempVar(Operand oprand);
     ~BIRFunction();
+    LLVMBuilderRef getllvmBuilder();
     void translate(LLVMModuleRef modRef);
 };
 
@@ -304,7 +402,7 @@ class BIRPackage: public BIRNode {
     BIRPackage(string orgName, string pkgName, string verName,
                string srcFileName);
     ~BIRPackage();
-    void translate(); // We have to Pass ModuleRef
+    void translate();
 };
 
 #endif // BIR_H
