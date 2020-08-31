@@ -1,23 +1,140 @@
 #ifndef BIRREADER_H
 #define BIRREADER_H
 
-#include<iostream>
-#include<string>
 #include<fstream>
-#include<vector>
-using namespace std;
-//#include "BIR.h"
+#include "BIR.h"
 
-enum tag_enum_t {
-    TAG_ENUM_CP_ENTRY_INTEGER = 1,
-    TAG_ENUM_CP_ENTRY_FLOAT = 2,
-    TAG_ENUM_CP_ENTRY_BOOLEAN = 3,
-    TAG_ENUM_CP_ENTRY_STRING = 4,
-    TAG_ENUM_CP_ENTRY_PACKAGE = 5,
-    TAG_ENUM_CP_ENTRY_BYTE = 6,
-    TAG_ENUM_CP_ENTRY_SHAPE = 7
+class module_t;
+class instruction_t;
+class function_t;
+class golbal_var_t;
+class basic_block_t;
+class constant_pool_set_t;
+class constant_pool_entry_t;
+class package_cp_info_t;
+class shape_cp_info_t;
+class string_cp_info_t;
+
+enum type_tag_enum_t {
+        TYPE_TAG_ENUM_TYPE_TAG_INT = 1,
+        TYPE_TAG_ENUM_TYPE_TAG_BYTE = 2,
+        TYPE_TAG_ENUM_TYPE_TAG_FLOAT = 3,
+        TYPE_TAG_ENUM_TYPE_TAG_DECIMAL = 4,
+        TYPE_TAG_ENUM_TYPE_TAG_STRING = 5,
+        TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN = 6,
+        TYPE_TAG_ENUM_TYPE_TAG_JSON = 7,
+        TYPE_TAG_ENUM_TYPE_TAG_XML = 8,
+        TYPE_TAG_ENUM_TYPE_TAG_TABLE = 9,
+        TYPE_TAG_ENUM_TYPE_TAG_NIL = 10,
+        TYPE_TAG_ENUM_TYPE_TAG_ANYDATA = 11,
+        TYPE_TAG_ENUM_TYPE_TAG_RECORD = 12,
+        TYPE_TAG_ENUM_TYPE_TAG_TYPEDESC = 13,
+        TYPE_TAG_ENUM_TYPE_TAG_STREAM = 14,
+        TYPE_TAG_ENUM_TYPE_TAG_MAP = 15,
+        TYPE_TAG_ENUM_TYPE_TAG_INVOKABLE = 16,
+        TYPE_TAG_ENUM_TYPE_TAG_ANY = 17,
+        TYPE_TAG_ENUM_TYPE_TAG_ENDPOINT = 18,
+        TYPE_TAG_ENUM_TYPE_TAG_ARRAY = 19,
+        TYPE_TAG_ENUM_TYPE_TAG_UNION = 20,
+        TYPE_TAG_ENUM_TYPE_TAG_INTERSECTION = 21,
+        TYPE_TAG_ENUM_TYPE_TAG_PACKAGE = 22,
+        TYPE_TAG_ENUM_TYPE_TAG_NONE = 23,
+        TYPE_TAG_ENUM_TYPE_TAG_VOID = 24,
+        TYPE_TAG_ENUM_TYPE_TAG_XMLNS = 25,
+        TYPE_TAG_ENUM_TYPE_TAG_ANNOTATION = 26,
+        TYPE_TAG_ENUM_TYPE_TAG_SEMANTIC_ERROR = 27,
+        TYPE_TAG_ENUM_TYPE_TAG_ERROR = 28,
+        TYPE_TAG_ENUM_TYPE_TAG_ITERATOR = 29,
+        TYPE_TAG_ENUM_TYPE_TAG_TUPLE = 30,
+        TYPE_TAG_ENUM_TYPE_TAG_FUTURE = 31,
+        TYPE_TAG_ENUM_TYPE_TAG_FINITE = 32,
+        TYPE_TAG_ENUM_TYPE_TAG_OBJECT = 33,
+        TYPE_TAG_ENUM_TYPE_TAG_SERVICE = 34,
+        TYPE_TAG_ENUM_TYPE_TAG_BYTE_ARRAY = 35,
+        TYPE_TAG_ENUM_TYPE_TAG_FUNCTION_POINTER = 36,
+        TYPE_TAG_ENUM_TYPE_TAG_HANDLE = 37,
+        TYPE_TAG_ENUM_TYPE_TAG_READONLY = 38,
+        TYPE_TAG_ENUM_TYPE_TAG_SIGNED32_INT = 39,
+        TYPE_TAG_ENUM_TYPE_TAG_SIGNED16_INT = 40,
+        TYPE_TAG_ENUM_TYPE_TAG_SIGNED8_INT = 41,
+        TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED32_INT = 42,
+        TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED16_INT = 43,
+        TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED8_INT = 44,
+        TYPE_TAG_ENUM_TYPE_TAG_CHAR_STRING = 45,
+        TYPE_TAG_ENUM_TYPE_TAG_XML_ELEMENT = 46,
+        TYPE_TAG_ENUM_TYPE_TAG_XML_PI = 47,
+        TYPE_TAG_ENUM_TYPE_TAG_XML_COMMENT = 48,
+        TYPE_TAG_ENUM_TYPE_TAG_XML_TEXT = 49,
+        TYPE_TAG_ENUM_TYPE_TAG_NEVER = 50,
+        TYPE_TAG_ENUM_TYPE_TAG_NULL_SET = 51,
+        TYPE_TAG_ENUM_TYPE_TAG_PARAMETERIZED_TYPE = 52
+    };
+
+
+class position_t {
+public:
+        int32_t m_s_line;
+        int32_t m_e_line;
+        int32_t m_s_col;
+        int32_t m_e_col;
+        int32_t m_source_file_cp_index;
 };
 
+class module_t {
+public:
+        int32_t m_id_cp_index;
+        int32_t m_import_count;
+        int32_t m_const_count;
+        int32_t m_type_definition_count;
+        int32_t m_golbal_var_count;
+        int32_t m_type_definition_bodies_count;
+        int32_t m_function_count;
+        int32_t m_annotations_size;
+std::vector<function_t> m_functions;
+};
+
+class golbal_var_t {
+        int8_t m_kind;
+        int32_t m_name_cp_index;
+        int32_t m_flags;
+        int32_t markdown_length;
+        int32_t m_type_cp_index;
+};
+
+std::vector<golbal_var_t> m_golbal_vars;
+
+class function_t {
+public:
+        int32_t m_s_line;
+        int32_t m_e_line;
+        int32_t m_s_col;
+        int32_t m_e_col;
+        int32_t m_source_file_cp_index;
+        int32_t m_name_cp_index;
+        int32_t m_worker_name_cp_index;
+        int32_t m_flags;
+        int32_t m_type_cp_index;
+        int64_t m_annotation_attachments_content_length;
+        std::string m_annotation_attachments;
+        int32_t m_required_param_count;
+        uint8_t m_has_rest_param;
+        int32_t m_rest_param_name_cp_index;
+        bool n_rest_param_name_cp_index;
+        uint8_t m_has_receiver;
+        bool n_reciever;
+        int64_t m_taint_table_length;
+        int64_t m_function_body_length;
+        std::string m__raw_taint_table;
+        std::string m__raw_function_body;
+std::vector<basic_block_t> basic_blocks;;
+};
+
+class basic_block_t {
+public:
+        int32_t m_name_cp_index;
+        int32_t m_instructions_count;
+std::vector<instruction_t> m_instructions;
+};
 enum instruction_kind_enum_t {
     INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_GOTO = 1,
     INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_CALL = 2,
@@ -98,6 +215,17 @@ enum instruction_kind_enum_t {
     INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_BITWISE_UNSIGNED_RIGHT_SHIFT = 88,
     INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_PLATFORM = 128
 };
+class instruction_t {
+public:
+        int32_t m_s_line;
+        int32_t m_e_line;
+        int32_t m_s_col;
+        int32_t m_e_col;
+        int32_t m_source_file_cp_index;
+        instruction_kind_enum_t m_instruction_kind;
+        bool n_instruction_structure;
+};
+
 
 std::ifstream is;
 
@@ -171,55 +299,124 @@ uint64_t read_s8be ()
     return result;
 }
 
-void read_shape ()
-{
-    int32_t length = read_s4be();
-    cout << "\nReading shape pool and shape length, STRLEN = " << length;
-    std::vector<char> result(length);
-    is.read(&result[0], length);
-    cout << "\nData = " << std::string(result.begin(), result.end());
-}
+class string_cp_info_t {
 
-void read_package ()
-{
-  int32_t org = read_s4be();
-  int32_t name = read_s4be();
-  int32_t version = read_s4be();
-  cout << "\nReading package\n";
-  cout << "\nOrg = " << org;
-  cout << "\nName = " << name;
-  cout << "\nVersion = " << version;
-}
+    public:
 
-void read_string ()
-{
-    uint32_t length = read_s4be();
-    cout << "\nReading string pool, STRLEN = " << length;
-    std::vector<char> result(length);
-    is.read(&result[0], length);
-    cout << "\nData = " << std::string(result.begin(), result.end());
-}
+        string_cp_info_t() { _read(); }
 
-void read_constant_pool() {
-    uint8_t ch = read_u1();
-    if (ch == TAG_ENUM_CP_ENTRY_STRING)
-        cout << "\nReading the constant pool tag = " << (tag_enum_t)ch;
+    private:
+        void _read();
 
-    switch ((tag_enum_t)ch) {
-      case TAG_ENUM_CP_ENTRY_STRING: {
-          read_string();
-          break;
-      }
-      case TAG_ENUM_CP_ENTRY_PACKAGE: {
-          read_package();
-          break;
-      }
-      case TAG_ENUM_CP_ENTRY_SHAPE: {
-          read_shape();
-          break;
-      }
-    }
-}
+    public:
+        ~string_cp_info_t();
+
+    private:
+        int32_t m_str_len;
+        std::string m_value;
+
+    public:
+        int32_t str_len() const { return m_str_len; }
+        std::string value() const { return m_value; }
+    };
+
+
+class shape_cp_info_t {
+
+    public:
+
+        shape_cp_info_t() { _read(); }
+
+    private:
+        void _read();
+
+    public:
+        ~shape_cp_info_t();
+
+    private:
+        int32_t m_shape_lenght;
+        std::string m_value;
+
+    public:
+        int32_t shape_lenght() const { return m_shape_lenght; }
+        std::string value() const { return m_value; }
+    };
+
+
+class package_cp_info_t {
+
+    public:
+
+        package_cp_info_t() { _read(); }
+
+    private:
+        void _read();
+
+    public:
+        ~package_cp_info_t();
+
+    private:
+        int32_t m_org_index;
+        int32_t m_name_index;
+        int32_t m_version_index;
+
+    public:
+        int32_t org_index() const { return m_org_index; }
+        int32_t name_index() const { return m_name_index; }
+        int32_t version_index() const { return m_version_index; }
+    };
+
+
+class constant_pool_entry_t {
+
+    public:
+
+        enum tag_enum_t {
+            TAG_ENUM_CP_ENTRY_INTEGER = 1,
+            TAG_ENUM_CP_ENTRY_FLOAT = 2,
+            TAG_ENUM_CP_ENTRY_BOOLEAN = 3,
+            TAG_ENUM_CP_ENTRY_STRING = 4,
+            TAG_ENUM_CP_ENTRY_PACKAGE = 5,
+            TAG_ENUM_CP_ENTRY_BYTE = 6,
+            TAG_ENUM_CP_ENTRY_SHAPE = 7
+        };
+
+        constant_pool_entry_t() { _read(); }
+
+    private:
+        void _read();
+
+    public:
+        ~constant_pool_entry_t();
+
+    private:
+        tag_enum_t m_tag;
+        bool n_cp_info;
+
+    public:
+        tag_enum_t tag() const { return m_tag; }
+    };
+
+    class constant_pool_set_t {
+
+    public:
+
+        constant_pool_set_t() { _read(); }
+
+    public:
+        void _read();
+
+    public:
+        ~constant_pool_set_t();
+
+    private:
+        int32_t m_constant_pool_count;
+        std::vector<constant_pool_entry_t*>* m_constant_pool_entries;
+
+    public:
+        int32_t constant_pool_count() const { return m_constant_pool_count; }
+        std::vector<constant_pool_entry_t*>* constant_pool_entries() const { return m_constant_pool_entries; }
+    };
 
 void read_typedesc ()
 {
@@ -299,7 +496,8 @@ void read_goto ()
 
 void read_function (int i)
 {
-  uint32_t sLine = read_s4be();
+  class function_t function;
+  function.m_s_line = read_s4be();
   uint32_t eLine = read_s4be();
   uint32_t sCol = read_s4be();
   uint32_t eCol = read_s4be();
@@ -309,7 +507,7 @@ void read_function (int i)
   uint32_t flags = read_s4be();
   uint32_t typeCpIndex = read_s4be();
   cout << "\nReading function body\n";
-  cout << "\nsLine = " << sLine;
+  cout << "\nfunction.m_position.m_s_line = " << function.m_s_line;
   cout << "\neLine = " << eLine;
   cout << "\nsCol = " << sCol;
   cout << "\neCol = " << eCol;
@@ -453,116 +651,71 @@ void read_function (int i)
 
   uint32_t channelsLength = read_s4be();
   cout << "\nchannelsLength = " << channelsLength;
+
 }
 
+void string_cp_info_t::_read() {
+    cout << "\n\nReading String\n\n";
+    m_str_len = read_s4be();
+    cout << "\nReading string pool, STRLEN = " << m_str_len;
+    std::vector<char> result(m_str_len);
+    is.read(&result[0], m_str_len);
+    m_value = std::string(result.begin(), result.end());
+    cout << "\nm_value = " << m_value;
+}
 
-/*
-struct BinTypeDecl {
-    int                    tag;
-    struct BinTypeSymbol   typeSym;
-    string                 name;
-    int                    flags;
-};
+void shape_cp_info_t::_read() {
+    cout << "\n\nReading Shape\n\n";
+    m_shape_lenght = read_s4be();
+    cout << "\n\nShape length " << m_shape_lenght;
+    cout << "\nReading shape pool and shape length, STRLEN = " << m_shape_lenght;
+    std::vector<char> result(m_shape_lenght);
+    is.read(&result[0], m_shape_lenght);
+    cout << "\nData = " << std::string(result.begin(), result.end());
+}
 
-struct BinTerminatorInsn {
-    struct BinInstructionKind   kind;
-    struct BinBasicBlock        thenBB;
-};
+void package_cp_info_t::_read() {
+    cout << "\n\nReading Package\n\n";
+    m_org_index = read_s4be();
+    cout << "m_org_index = " << m_org_index;
+    m_name_index = read_s4be();
+    cout << "m_name_index = " << m_name_index;
+    m_version_index = read_s4be();
+    cout << "m_version_index " << m_version_index;
+}
 
-struct BinBasicBlock {
-    string                                id;
-    vector<struct BinNonTerminatorInsn>   instructions;
-    struct BinTerminatorInsn              terminator;
-};
-
-struct BinVarDecl {
-    struct BinTypeDecl     type;
-    string                 name;
-    string                 metaVarName;
-    struct BinVarKind      kind;
-    struct BinVarScope     scope;
-    bool                   ignoreVariable;
-    struct BinBasicBlock   endBB;
-    struct BinBasicBlock   startBB;
-    int                    insOffset;
-};
-
-struct BinParam {
-    string   name;
-    int      flags;
-};
-
-struct BinInvokableType {
-    vector<struct BinTypeDecl> paramTypes;
-    TypeDecl                   restType;
-    TypeDecl                   returnType;
-};
-
-struct BinBIRFunction {
-    string                       name;
-    string                       workerName;
-    int                          flags;
-    InvokableType                type;
-    vector<struct BinParam>      requiredParams;
-    VarDecl                      receiver;
-    Param                        restParam;
-    int                          paramCount;
-    vector<struct BinVarDecl>    localVars;
-    VarDecl                      returnVar;
-    vector<struct BinBasicBlock> basicBlocks;
-
-    map<FuncParam, vector<BasicBlock>>   params;
+void constant_pool_entry_t::_read() {
+    m_tag = static_cast<constant_pool_entry_t::tag_enum_t>(read_u1());
+    n_cp_info = true;
+    switch (tag()) {
+    case TAG_ENUM_CP_ENTRY_PACKAGE: {
+        n_cp_info = false;
+        package_cp_info_t *m_cp_info = new package_cp_info_t();
+        break;
     }
-};*/
+    case TAG_ENUM_CP_ENTRY_SHAPE: {
+        n_cp_info = false;
+        shape_cp_info_t *m_cp_info = new shape_cp_info_t();
+        break;
+    }
+    case TAG_ENUM_CP_ENTRY_STRING: {
+        n_cp_info = false;
+        string_cp_info_t *m_cp_info = new string_cp_info_t();
+        break;
+    }
+    }
+}
 
-struct BinBIRFunction {
-    uint32_t sLine;
-    uint32_t eLine;
-    uint32_t sCol;
-    uint32_t eCol;
-    uint32_t sourceFileCpIndex;
-    uint32_t nameCpIndex;
-    uint32_t workdernameCpIndex;
-    uint32_t flags;
-    uint32_t typeCpIndex;
-    uint64_t annotation_length;
-    uint32_t annotationAttachments;
-    uint32_t requiredParamCount;
-    uint8_t hasRestParam;
-    uint8_t hasReceiver;
-    uint64_t taintTableLength;
-    uint16_t rowCount;
-    uint16_t columnCount;
-    uint32_t docLength;
-    uint8_t hasDoc;
-    uint64_t functionBodyLength;
-    uint32_t argsCount;
-    uint8_t m_has_return_var;
-    uint8_t m_kind;
-    uint32_t m_typeCpIndex;
-    uint32_t m_nameCpIndex;
-    uint32_t defaultParamValue;
-    uint32_t localVarCount;
-    //vector<struct BinVarDecl> local_vars;
-    uint8_t hasDefaultParamBB;
-    uint32_t BBCount;
-    //vector<struct BinBasicBlock> basic_blocks;
-    uint32_t errorEntriesCount;
-    uint32_t channelsLength;
-};
-
-struct BinBIRPackage {
-    int32_t idCpIndex;
-    int32_t importCount;
-    int32_t constCount;
-    int32_t typeDefCount;
-    int32_t globalVarCount;
-    int32_t funcCount;
-
-    vector<struct BinBIRFunction> functions;
-};
-
-struct BinBIRPackage readBIRPackage;
+void constant_pool_set_t::_read() {
+    m_constant_pool_count = read_s4be();
+    int l_constant_pool_entries = constant_pool_count();
+    m_constant_pool_entries = new std::vector<constant_pool_entry_t*>();
+    m_constant_pool_entries->reserve(l_constant_pool_entries);
+    for (int i = 0; i < l_constant_pool_entries; i++) {
+        m_constant_pool_entries->push_back(new constant_pool_entry_t());
+        cout << "\nRead Constant Pool entry = " << i;
+    }
+}
 
 class BIRReader {
   private:
@@ -575,23 +728,16 @@ class BIRReader {
 
 	is.open("main-bir-dump", ifstream::binary);
 
-        int32_t constant_pool_count;
-        constant_pool_count = read_s4be();
-        cout << "\nConstant Pool count = " << constant_pool_count;
-
-        for (int i = 0; i < constant_pool_count; i++) {
-            cout << "\nConstant pool entry = " << i;
-            read_constant_pool ();
-        }
+        constant_pool_set_t *m_constant_pool = new constant_pool_set_t();
 
         // Read module
-
-	readBIRPackage.idCpIndex = read_s4be();
-	readBIRPackage.importCount = read_s4be();
-	readBIRPackage.constCount = read_s4be();
-	readBIRPackage.typeDefCount = read_s4be();
-	readBIRPackage.globalVarCount = read_s4be();
-	if (readBIRPackage.globalVarCount > 0)
+        class module_t readBIRPackage;// = new module_t();
+	readBIRPackage.m_id_cp_index = read_s4be();
+	readBIRPackage.m_import_count = read_s4be();
+	readBIRPackage.m_const_count = read_s4be();
+	readBIRPackage.m_type_definition_count = read_s4be();
+	readBIRPackage.m_golbal_var_count = read_s4be();
+	if (readBIRPackage.m_golbal_var_count > 0)
 	{
             //Read and ignore Global Var Data i.e. 18 bytes
 	    std::vector<char> result(18);
@@ -599,19 +745,25 @@ class BIRReader {
 	    cout << "\nData = " << std::string(result.begin(), result.end());
         }
 
-	int32_t typeDefBodyCount = read_s4be();
-	cout << "\ntypeDefBodyCount = " << typeDefBodyCount;
-	readBIRPackage.funcCount = read_s4be();
+	readBIRPackage.m_type_definition_bodies_count = read_s4be();
+	cout << "\ntypeDefBodyCount = " << readBIRPackage.m_type_definition_bodies_count;
+	readBIRPackage.m_function_count = read_s4be();
 
-	cout << "\nFunc count =" << readBIRPackage.funcCount;
+	cout << "\nFunc count =" << readBIRPackage.m_function_count;
 
-	for (int i = 0; i < readBIRPackage.funcCount; i++) {
+        /*readBIRPackage.m_functions = new std::vector<function_t*>();
+        readBIRPackage.m_functions.reserve(readBIRPackage.m_function_count);
+        for (int i = 0; i < readBIRPackage.m_function_count; i++) {
+          readBIRPackage.m_functions.push_back(new function_t);
+        }*/
+
+	for (int i = 0; i < readBIRPackage.m_function_count; i++) {
 	    cout << "\nReading Function = " << i;
 	    read_function (i);
         }
 
-	int32_t annotationLength = read_s4be();
-	cout << "\nannotationLength = " << annotationLength;
+	readBIRPackage.m_annotations_size = read_s4be();
+	cout << "\nannotationLength = " << readBIRPackage.m_annotations_size;
 
         }
         /*void readPackages(dataInStream);
@@ -659,5 +811,4 @@ class BIRReader {
     Param readParam();
     Symbol readSymbol();*/
 };
-
 #endif // BIRREADER_H
