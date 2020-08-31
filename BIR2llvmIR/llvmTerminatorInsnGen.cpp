@@ -2,7 +2,7 @@
 
 TerminatorInsn::TerminatorInsn() {}
 
-TerminatorInsn::TerminatorInsn(Location pos) {}
+TerminatorInsn::TerminatorInsn(Location pos, InstructionKind kind) {}
 
 TerminatorInsn::~TerminatorInsn() {}
 
