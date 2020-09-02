@@ -2,8 +2,10 @@
 
 TerminatorInsn::TerminatorInsn() {}
 
-TerminatorInsn::TerminatorInsn(Location pos, InstructionKind kind) {}
+TerminatorInsn::TerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp, 
+				BasicBlockT *then):AbstractInsn(pos, kind,lOp),
+					thenBB(then) {}
 
 TerminatorInsn::~TerminatorInsn() {}
 
-void TerminatorInsn::translate() {}
+void TerminatorInsn::translate(LLVMModuleRef &modRef) {}

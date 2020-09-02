@@ -10,4 +10,4 @@ PackageID::PackageID(string sourceFileName) {}
 
 PackageID::~PackageID() {}
 
-void PackageID::translate() { }
+void PackageID::translate(LLVMModuleRef &modRef) { }

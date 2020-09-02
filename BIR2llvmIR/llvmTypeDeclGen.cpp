@@ -2,21 +2,15 @@
 
 TypeDecl::TypeDecl() {}
 
-TypeDecl::TypeDecl(int tag, TypeSymbol tsymbol) {}
+TypeDecl::TypeDecl(TypeSymbol *tsymbol):typeSym(tsymbol) {
+}
 
-TypeDecl::TypeDecl(int tag, TypeSymbol tsymbol, int flags) { }
+TypeDecl::TypeDecl(int tagp, TypeSymbol *tsymbol, int flagsp):
+			tag(tagp), typeSym(tsymbol), flags(flagsp) { }
 
-TypeDecl::TypeDecl(int tag, TypeSymbol tsymbol, string name, int flags) { }
+TypeDecl::TypeDecl(int tagp, TypeSymbol *tsymbol, string namep, int flagsp):
+		    tag(tagp), typeSym(tsymbol), name(namep), flags(flagsp) { }
 
 TypeDecl::~TypeDecl() { }
 
-void TypeDecl::translate() { }
-
-int TypeDecl::getTypeTag() {
-  return tag;
-}
-
-string TypeDecl::getTypeDeclName() 
-{
-  return name;
-}
+void TypeDecl::translate(LLVMModuleRef &modRef) { }

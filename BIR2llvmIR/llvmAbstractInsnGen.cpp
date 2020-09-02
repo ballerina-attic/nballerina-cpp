@@ -2,19 +2,9 @@
 
 AbstractInsn::AbstractInsn() {}
 
-AbstractInsn::AbstractInsn(Location pos, InstructionKind kindP):BIRNode(pos), kind(kindP){}
-
-AbstractInsn::AbstractInsn(Operand lOp):lhsOp(lOp) {
-}
+AbstractInsn::AbstractInsn(Location *pos, InstructionKind kindP, Operand *lOp):
+				BIRNode(pos), kind(kindP), lhsOp(lOp){}
 
 AbstractInsn::~AbstractInsn() {}
 
-void AbstractInsn::translate() { }
-
-InstructionKind AbstractInsn::getInstKind() {
-  return kind;
-}
-
-Operand AbstractInsn::getlhsOperand(){
-  return lhsOp;
-}
+void AbstractInsn::translate(LLVMModuleRef &modRef) { }

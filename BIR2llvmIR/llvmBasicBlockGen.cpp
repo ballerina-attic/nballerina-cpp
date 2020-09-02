@@ -1,37 +1,46 @@
 #include "BIR.h"
 
-BasicBlock1::BasicBlock1() {}
+BasicBlockT::BasicBlockT() {}
 
-BasicBlock1::BasicBlock1(string pid) {
+BasicBlockT::BasicBlockT(string pid):id(pid) {
 }
 
-BasicBlock1::BasicBlock1(LLVMBuilderRef buildRef, BIRFunction *birFunc, BasicBlock1 *bb1)
+BasicBlockT::BasicBlockT(Location *loc, string pid):BIRNode(loc), id(pid)
 {
-  BRef       = buildRef;
-  BFunc      = birFunc;
-  bb         = bb1;
 }
-BasicBlock1::~BasicBlock1() {}
+BasicBlockT::~BasicBlockT() {}
 
-void BasicBlock1::translate(LLVMModuleRef modRef)
+void BasicBlockT::translate(LLVMModuleRef &modRef)
 {
-  LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(BFunc->getnewFunctionRef(), (bb->id).c_str());
+  LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(BFunc->getNewFunctionRef(),
+						 (id).c_str());
   LLVMPositionBuilderAtEnd(BRef, bbRef);
   
   for(int i=0; i < instructions.size(); i++)
   {
-    NonTerminatorInsn insn = instructions[i];
-    switch (insn.getInstKind()) {
+    NonTerminatorInsn *insn = instructions[i];
+    insn->setFunction(BFunc);
+    switch (insn->getInstKind()) {
       case INS_KIND_MOVE:
       {
-        //Move moveInsn = static_cast<Move>insn;
-	Move *moveInsn = new Move(BFunc);
-        moveInsn->translate();
+        MoveInsn *moveInsn = static_cast<MoveInsn*>(insn);
+        moveInsn->translate(modRef);
+      }
+
+      case BINARY_ADD:
+      case BINARY_SUB:
+      case BINARY_MUL:
+      case BINARY_DIV:
+      case BINARY_EQUAL:
+      {
+	BinaryOpInsn *binOpInsn = static_cast<BinaryOpInsn*>(insn);
+	binOpInsn->translate(modRef);
       }
 
       case INS_KIND_CONST_LOAD: 
       {
-	
+	ConstantLoadInsn *constL = static_cast<ConstantLoadInsn*>(insn);
+	constL->translate(modRef);
       }
     } 
   }
