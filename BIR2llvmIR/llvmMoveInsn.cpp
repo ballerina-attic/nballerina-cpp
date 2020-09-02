@@ -1,30 +1,22 @@
 #include "BIR.h"
 
-Move::Move(){
+MoveInsn::MoveInsn(){
 }
 
-Move::Move(Operand lOp,Operand rOp):
-	NonTerminatorInsn(lOp),rhsOp(rOp){
+MoveInsn::MoveInsn(Location *pos, InstructionKind kind,Operand *lOp, Operand *rOp):
+	NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {
 }
 
-Move::Move(BIRFunction *bFun):
-		NonTerminatorInsn(bFun) {
+MoveInsn::~MoveInsn(){
 }
 
-Operand Move::getrhsOp(){
-  return rhsOp;
-}
+void MoveInsn::translate(LLVMModuleRef &modRef){
+  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
 
-Move::~Move(){
-}
-
-void Move::translate(){
-  LLVMBuilderRef builder = getFunction()->getllvmBuilder();
-
-  LLVMValueRef lhsRef = getFunction()->getlocalVarRefusingId(
-			getlhsOperand().getvarDecl()->getvarName());
+  LLVMValueRef lhsRef = getFunction()->getLocalVarRefUsingId(
+			getLhsOperand()->getVarDecl()->getVarName());
 
   LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
 
-  LLVMBuildStore(builder, rhsVarOpRef, lhsRef);  
+  LLVMValueRef loaded = LLVMBuildStore(builder, rhsVarOpRef, lhsRef);  
 }

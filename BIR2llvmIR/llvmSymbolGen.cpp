@@ -2,9 +2,11 @@
 
 Symbol::Symbol() {}
 
-Symbol::Symbol(int tag, int flags, string name, PackageID pkgID,// TypeDecl type,
-           Symbol owner) {}
+Symbol::Symbol(int tagp, int flagsp, string namep, PackageID *pkgIDp, SymbolKind *kindp,
+	       TypeDecl *typep, Symbol *ownerp, Scope *scopep): tag(tagp), flags(flagsp),
+		name(namep), pkgID(pkgIDp), kind(kindp), type(typep), owner(ownerp),
+		  scope(scopep) {}
 Symbol::~Symbol() {}
 
-void Symbol::translate() { }
+void Symbol::translate(LLVMModuleRef &modRef) { }
 

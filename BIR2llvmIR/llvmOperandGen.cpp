@@ -11,10 +11,6 @@ Operand::~Operand()
 {
 }
 
-void Operand::translate()
+void Operand::translate(LLVMModuleRef &modRef)
 {
-}
-
-VarDecl* Operand::getvarDecl() {
-  return varDecl;
 }

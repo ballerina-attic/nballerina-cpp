@@ -2,22 +2,9 @@
 
 Param::Param() {}
 
-Param::Param(Location pos, string name, int flags) {}
+Param::Param(Location *pos, string namep, int flagsp, TypeDecl *typep):
+		BIRNode(pos), name(namep), flags(flagsp), type(typep) {}
 
 Param::~Param() {}
 
-void Param::translate() {}
-
-int Param::getParamFlag() {
-  return flags;
-}
-
-string Param::getParamName()
-{
-  return name;
-}
-
-TypeDecl Param::gettypeDecl()
-{
-  return type;
-}
+void Param::translate(LLVMModuleRef &modRef) {}
