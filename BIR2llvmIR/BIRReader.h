@@ -15,6 +15,7 @@ class package_cp_info_t;
 class shape_cp_info_t;
 class string_cp_info_t;
 
+
 enum type_tag_enum_t {
         TYPE_TAG_ENUM_TYPE_TAG_INT = 1,
         TYPE_TAG_ENUM_TYPE_TAG_BYTE = 2,
@@ -101,7 +102,6 @@ class golbal_var_t {
         int32_t m_type_cp_index;
 };
 
-std::vector<golbal_var_t> m_golbal_vars;
 
 class function_t {
 public:
@@ -229,7 +229,6 @@ public:
 };
 
 
-extern std::ifstream is;
 
 class constant_pool_entry_t {
 
@@ -267,9 +266,9 @@ class string_cp_info_t : public constant_pool_entry_t {
 
     public:
 
-        string_cp_info_t() { _read(); }
+        string_cp_info_t() {  }
 
-    private:
+    public:
         void _read();
 
     public:
@@ -289,9 +288,9 @@ class shape_cp_info_t : public constant_pool_entry_t {
 
     public:
 
-        shape_cp_info_t() { _read(); }
+        shape_cp_info_t() {  }
 
-    private:
+    public:
         void _read();
 
     public:
@@ -311,9 +310,9 @@ class package_cp_info_t : public constant_pool_entry_t {
 
     public:
 
-        package_cp_info_t() { m_org_index=0; m_name_index=0; m_version_index=0; _read(); }
+        package_cp_info_t() { m_org_index=0; m_name_index=0; m_version_index=0; }
 
-    private:
+    public:
         void _read();
 
     public:
