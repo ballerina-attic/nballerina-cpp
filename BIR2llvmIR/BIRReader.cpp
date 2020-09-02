@@ -1,6 +1,5 @@
-#include <BIR.h>
-#include <BIRReader.h>
-
+#include "BIRReader.h"
+using namespace std;
 
 std::ifstream is;
 
@@ -8,6 +7,13 @@ std::ifstream is;
 uint8_t read_u1() {
     uint8_t value;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
+    return value;
+}
+
+// Read 1 byte from the stream but do not move pointer
+uint8_t peek_read_u1() {
+    uint8_t value;
+    value = is.peek();
     return value;
 }
 
@@ -150,7 +156,7 @@ void read_goto ()
     cout << "\ntargetBBNameCpIndex = " << targetBBNameCpIndex;
 }
 
-void read_function (int i)
+void read_function (int i, constant_pool_set_t *m_constant_pool)
 {
   class function_t function;
   function.m_s_line = read_s4be();
@@ -159,8 +165,20 @@ void read_function (int i)
   uint32_t eCol = read_s4be();
   uint32_t sourceFileCpIndex = read_s4be();
   uint32_t nameCpIndex = read_s4be();
+  if (i == 3)
+  {
+	constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(nameCpIndex);
+	string_cp_info_t *version_pointer2 = static_cast<string_cp_info_t *> (entry_pointer);
+	cout << "\nFunction name = " << version_pointer2->value(); 
+  }
   uint32_t workdernameCpIndex = read_s4be();
   uint32_t flags = read_s4be();
+  if (i == 3)
+  {
+        constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(flags);
+        string_cp_info_t *version_pointer2 = static_cast<string_cp_info_t *> (entry_pointer);
+        cout << "\nflags = " << version_pointer2->value();
+  }
   uint32_t typeCpIndex = read_s4be();
   cout << "\nReading function body\n";
   cout << "\nfunction.m_position.m_s_line = " << function.m_s_line;
@@ -170,6 +188,12 @@ void read_function (int i)
   cout << "\nsourceFileCpIndex = " << sourceFileCpIndex;
   cout << "\nnameCpIndex = " << nameCpIndex;
   cout << "\nworkdernameCpIndex = " << workdernameCpIndex;
+  if (i == 3)
+  {
+        constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(workdernameCpIndex);
+        string_cp_info_t *version_pointer2 = static_cast<string_cp_info_t *> (entry_pointer);
+        cout << "\nWorker name = " << version_pointer2->value();
+  }
   cout << "\nflags = " << flags;
   cout << "\ntypeCpIndex = " << typeCpIndex;
 
@@ -350,26 +374,20 @@ void /*constant_pool_entry_t**/ constant_pool_entry_t::_read()
     switch (tag()) {
         case TAG_ENUM_CP_ENTRY_PACKAGE: {
             n_cp_info = false;
-            m_constant_pool_entries.push_back(new package_cp_info_t());
-            /*package_cp_info_t *m_cp_info = new package_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            //m_constant_pool_entries.push_back(pointer);//return pointer;*/
+    	    package_cp_info_t *m_cp_info = static_cast<package_cp_info_t *> (this);
+     	    m_cp_info->_read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_SHAPE: {
             n_cp_info = false;
-            m_constant_pool_entries.push_back(new shape_cp_info_t());
-            /*shape_cp_info_t *m_cp_info = new shape_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            //m_constant_pool_entries.push_back(pointer);//return pointer;*/
+            shape_cp_info_t *m_cp_info = static_cast<shape_cp_info_t *> (this);
+            m_cp_info->_read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_STRING: {
             n_cp_info = false;
-            m_constant_pool_entries.push_back(new string_cp_info_t());
-            /*string_cp_info_t *m_cp_info = new string_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            //m_constant_pool_entries.push_back(pointer);//return pointer;*/
+            string_cp_info_t *m_cp_info = static_cast<string_cp_info_t *> (this);
+            m_cp_info->_read();
             break;
         }
     }
@@ -382,10 +400,30 @@ void constant_pool_set_t::_read()
     m_constant_pool_entries = new std::vector<constant_pool_entry_t*>();
     m_constant_pool_entries->reserve(l_constant_pool_entries);
     for (int i = 0; i < l_constant_pool_entries; i++) {
-        constant_pool_entry_t *pointer = new constant_pool_entry_t();
-        pointer->_read();
-	//m_constant_pool_entries.push_back(pointer);
-        //m_constant_pool_entries->push_back(new constant_pool_entry_t());
+        constant_pool_entry_t::tag_enum_t m_tag = static_cast<constant_pool_entry_t::tag_enum_t>(peek_read_u1());
+    switch (m_tag) {
+        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_PACKAGE: {
+            package_cp_info_t *m_cp_info = new package_cp_info_t();
+            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
+            pointer->_read();
+            m_constant_pool_entries->push_back(pointer);
+            break;
+        }
+        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_SHAPE: {
+            shape_cp_info_t *m_cp_info = new shape_cp_info_t();
+            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
+            pointer->_read();
+            m_constant_pool_entries->push_back(pointer);
+            break;
+        }
+        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_STRING: {
+            string_cp_info_t *m_cp_info = new string_cp_info_t();
+            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
+            pointer->_read();
+            m_constant_pool_entries->push_back(pointer);
+            break;
+        }
+    }
         cout << "\nRead Constant Pool entry = " << i << "\nNow next entry";
     }
 }
@@ -400,21 +438,35 @@ void BIRReader::deserialize()
     class module_t readBIRPackage;// = new module_t();
     readBIRPackage.m_id_cp_index = read_s4be();
     constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(readBIRPackage.m_id_cp_index);
-    switch (entry_pointer->tag()) {
-      case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_PACKAGE: {
-        package_cp_info_t *pointer = static_cast<package_cp_info_t *> (entry_pointer);
-        cout << "\nPointer->m_org_index" << pointer->org_index();
-        break;
-      }
-      case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_SHAPE: {
-        shape_cp_info_t *pointer = static_cast<shape_cp_info_t *> (entry_pointer);
-        break;
-      }
-      case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_STRING: {
-        string_cp_info_t *pointer = static_cast<string_cp_info_t *> (entry_pointer);
-        break;
-      }
-    }
+        switch (entry_pointer->tag()) {
+       	    case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_PACKAGE: {
+	    package_cp_info_t *pointer = static_cast<package_cp_info_t *> (entry_pointer);
+	    cout << "\nPointer->m_org_index" << pointer->org_index();
+	    constant_pool_entry_t *org_pointer = m_constant_pool->constant_pool_entries()->at(pointer->org_index());
+	    string_cp_info_t *org_pointer2 = static_cast<string_cp_info_t *> (org_pointer);
+	    cout << "\nOrg name = " << org_pointer2->value();
+	    cout << "\nPointer->m_org_index" << pointer->name_index();
+
+            constant_pool_entry_t *name_pointer = m_constant_pool->constant_pool_entries()->at(pointer->name_index());
+            string_cp_info_t *name_pointer2 = static_cast<string_cp_info_t *> (name_pointer);
+            cout << "\nName name = " << name_pointer2->value();
+
+	    cout << "\nPointer->m_org_index" << pointer->version_index();
+            constant_pool_entry_t *version_pointer = m_constant_pool->constant_pool_entries()->at(pointer->version_index());
+            string_cp_info_t *version_pointer2 = static_cast<string_cp_info_t *> (version_pointer);
+            cout << "\nVersion name = " << version_pointer2->value();
+	    break;
+	  }
+	  case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_SHAPE: {
+	    shape_cp_info_t *pointer = static_cast<shape_cp_info_t *> (entry_pointer);
+	    break;
+	  }
+	  case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_STRING: {
+	    string_cp_info_t *pointer = static_cast<string_cp_info_t *> (entry_pointer);
+	    break;
+	  }
+	}
+
     readBIRPackage.m_import_count = read_s4be();
     readBIRPackage.m_const_count = read_s4be();
     readBIRPackage.m_type_definition_count = read_s4be();
@@ -433,22 +485,16 @@ void BIRReader::deserialize()
 
     cout << "\nFunc count =" << readBIRPackage.m_function_count;
 
-    /*readBIRPackage.m_functions = new std::vector<function_t*>();
-    readBIRPackage.m_functions.reserve(readBIRPackage.m_function_count);
-    for (int i = 0; i < readBIRPackage.m_function_count; i++) {
-      readBIRPackage.m_functions.push_back(new function_t);
-    }*/
-
     for (int i = 0; i < readBIRPackage.m_function_count; i++) {
         cout << "\nReading Function = " << i;
-        read_function (i);
+        read_function (i, m_constant_pool);
     }
 
     readBIRPackage.m_annotations_size = read_s4be();
     cout << "\nannotationLength = " << readBIRPackage.m_annotations_size;
 
 }
-
+/*
 void BIRReader::readPackages(ifstream dataInStream) 
 {
   int symbolCount;
@@ -466,4 +512,4 @@ void BIRReader::readFunctions(istream *dataInStream)
       dataInStream >> BinBIRFunction;
   }
 }
-
+*/
