@@ -2,33 +2,19 @@
 
 VarDecl::VarDecl (){}
 
-VarDecl::VarDecl(string pname, string pmetaVarName) {
+VarDecl::VarDecl(Location *loc, string pname, string pmetaVarName):
+		BIRNode(loc), varName(pname), metaVarName(pmetaVarName) {
 }
 
-VarDecl::~VarDecl() {}
+VarDecl::VarDecl(Location *loc, TypeDecl *ty, string name, string metaName,
+                 VarKind k, VarScope sc, int offset) : BIRNode(loc), type(ty),
+	varName(name), metaVarName(metaName), kind(k), scope(sc), insOffset(offset){
+}
 
-void VarDecl::translate() {}
-
-int VarDecl::getinsOffset()
+VarDecl::~VarDecl()
 {
-  return insOffset;
 }
 
-TypeDecl VarDecl::gettypeDecl() {
-  return type;
-}
-
-string VarDecl::getvarName()
+void VarDecl::translate(LLVMModuleRef &modRef) 
 {
-  return name;
-}
-
-bool VarDecl::getignoreVar() 
-{
-  return ignoreVariable;
-}
-
-VarKind VarDecl::getvarKind()
-{
-  return kind;
 }

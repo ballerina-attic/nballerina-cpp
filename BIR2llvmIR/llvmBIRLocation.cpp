@@ -11,7 +11,7 @@ Location::Location(string name, int line, int col)
   columnNum   = col;
 }
 
-void Location::translate () 
+void Location::translate (LLVMModuleRef &modRef) 
 { 
 }
 
