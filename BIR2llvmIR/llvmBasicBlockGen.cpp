@@ -12,11 +12,12 @@ BasicBlockT::~BasicBlockT() {}
 
 void BasicBlockT::translate(LLVMModuleRef &modRef)
 {
+  BRef = BFunc->getLLVMBuilder();
   LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(BFunc->getNewFunctionRef(),
 						 (id).c_str());
   LLVMPositionBuilderAtEnd(BRef, bbRef);
   
-  for(int i=0; i < instructions.size(); i++)
+  for(unsigned int i=0; i < instructions.size(); i++)
   {
     NonTerminatorInsn *insn = instructions[i];
     insn->setFunction(BFunc);
@@ -25,6 +26,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
       {
         MoveInsn *moveInsn = static_cast<MoveInsn*>(insn);
         moveInsn->translate(modRef);
+	break;
       }
 
       case BINARY_ADD:
@@ -35,13 +37,17 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
       {
 	BinaryOpInsn *binOpInsn = static_cast<BinaryOpInsn*>(insn);
 	binOpInsn->translate(modRef);
+	break;
       }
 
       case INS_KIND_CONST_LOAD: 
       {
 	ConstantLoadInsn *constL = static_cast<ConstantLoadInsn*>(insn);
 	constL->translate(modRef);
+	break;
       }
+      default:
+        break;
     } 
   }
 }

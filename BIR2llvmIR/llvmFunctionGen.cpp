@@ -73,7 +73,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
   LLVMPositionBuilderAtEnd(builder, BbRef);
 
   // iterate through all local vars.
-  for (int i=0; i < localVars.size(); i++)
+  for (unsigned int i=0; i < localVars.size(); i++)
   {
     VarDecl *locVar = localVars[i];
     const char *varName = (locVar->getVarName()).c_str();
@@ -83,16 +83,15 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
    
     if (isParamter(locVar)){
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
-      LLVMValueRef loaded = LLVMBuildStore(builder, parmRef, localVarRef);
+      LLVMBuildStore(builder, parmRef, localVarRef);
       paramIndex++;
     }   
   }
   
   // iterate through with each basic block in the function
-  for (int i=0; i < basicBlocks.size(); i++)
+  for (unsigned int i=0; i < basicBlocks.size(); i++)
   {
     BasicBlockT *bb = basicBlocks[i];
-    //BasicBlock1 *bbnew = new BasicBlock1(builder, this, bb);
     bb->setBIRFunction(this);
     bb->setLLVMBuilderRef(builder);
     bb->translate(modRef);
@@ -101,13 +100,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
 
 void BIRFunction::translate (LLVMModuleRef &modRef)
 {
-  cout <<"I am inside BIRFunction Translate Function\n";
-  LLVMContext ctx;
-  Module *M = new Module("MyModule", ctx);
-  FunctionType *FT =
-    FunctionType::get(Type::getInt32Ty(ctx), false);
-  Function *F = Function::Create(FT, Function::ExternalLinkage, "main", M);
-
+  builder = LLVMCreateBuilder();
   LLVMTypeRef   funcType;
   LLVMTypeRef   retType;
   LLVMTypeRef  *paramTypes;
@@ -115,17 +108,21 @@ void BIRFunction::translate (LLVMModuleRef &modRef)
   bool          isVarArg = false;
   if (getRestParam())
     isVarArg = true;
-  
-  retType = getLLVMTypeRefOfType(returnVar->getTypeDecl());
+
+  if (returnVar)  
+    retType = getLLVMTypeRefOfType(returnVar->getTypeDecl());
   paramTypes = new LLVMTypeRef[numParams];;
   for (unsigned i = 0;  i < numParams;  i++)
   {
     Param *funcParam = requiredParams[i];
-    paramTypes[i] = getLLVMTypeRefOfType(funcParam->getTypeDecl()); 
+    if (funcParam)
+      paramTypes[i] = getLLVMTypeRefOfType(funcParam->getTypeDecl()); 
   }
-  funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
+  if (retType)
+    funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
   const char *newFuncName = name.c_str();
-  newFunction = LLVMAddFunction(modRef, newFuncName, funcType);
+  if (funcType) 
+    newFunction = LLVMAddFunction(modRef, newFuncName, funcType);
   translateFunctionBody(modRef); 
 }
 

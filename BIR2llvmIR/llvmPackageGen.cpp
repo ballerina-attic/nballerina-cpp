@@ -22,7 +22,7 @@ void BIRPackage::translate ()
   LLVMModuleRef mod = LLVMModuleCreateWithName(cstr);
 
   // iterating through each function from current package.
-  for (int i = 0; i < functions.size(); i++)
+  for (unsigned int i = 0; i < functions.size(); i++)
   {
     BIRFunction *birFunc = functions[i];
     birFunc->translate(mod);

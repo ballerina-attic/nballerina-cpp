@@ -2,9 +2,9 @@
 
 Symbol::Symbol() {}
 
-Symbol::Symbol(int tagp, int flagsp, string namep, PackageID *pkgIDp, SymbolKind *kindp,
+Symbol::Symbol(int tagp, int flagsp, string namep,/* PackageID *pkgIDp,*/ SymbolKind *kindp,
 	       TypeDecl *typep, Symbol *ownerp, Scope *scopep): tag(tagp), flags(flagsp),
-		name(namep), pkgID(pkgIDp), kind(kindp), type(typep), owner(ownerp),
+		name(namep), kind(kindp), type(typep), owner(ownerp),
 		  scope(scopep) {}
 Symbol::~Symbol() {}
 
