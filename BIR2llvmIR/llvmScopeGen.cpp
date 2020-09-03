@@ -14,8 +14,10 @@ ScopeEntry* Scope::getScopeEntry(string name) {
   map<string, ScopeEntry*>::iterator it;
   it = entries.find(name);
 
-  if(it == entries.end())
+  if(it == entries.end()) {
     cout<<"ScopeEntry is Not Present in Map";
+    return NULL;
+  }
   else
     return it->second;
 }
