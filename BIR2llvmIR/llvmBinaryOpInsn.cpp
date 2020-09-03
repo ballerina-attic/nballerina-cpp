@@ -21,27 +21,31 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef){
     case BINARY_ADD:
     {
       LLVMValueRef addRet = LLVMBuildAdd(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-      LLVMValueRef loaded = LLVMBuildStore(builder, addRet, lhsRef);
+      LLVMBuildStore(builder, addRet, lhsRef);
+      break;
     }
     case BINARY_SUB:
     {
       LLVMValueRef subRet = LLVMBuildSub(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-      LLVMValueRef loaded = LLVMBuildStore(builder, subRet, lhsRef);
+      LLVMBuildStore(builder, subRet, lhsRef);
+      break;
     }
     case BINARY_MUL:
     {
       LLVMValueRef mulRet = LLVMBuildMul(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-      LLVMValueRef loaded = LLVMBuildStore(builder, mulRet, lhsRef);
+      LLVMBuildStore(builder, mulRet, lhsRef);
     }
     case BINARY_DIV:
     {
       LLVMValueRef divRet = LLVMBuildSDiv(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-      LLVMValueRef loaded = LLVMBuildStore(builder, divRet, lhsRef);
+      LLVMBuildStore(builder, divRet, lhsRef);
     }
     case BINARY_EQUAL:
     {
       LLVMValueRef equalRet = LLVMBuildICmp(builder, LLVMIntEQ, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-      LLVMValueRef loaded = LLVMBuildStore(builder, equalRet, lhsRef);
+      LLVMBuildStore(builder, equalRet, lhsRef);
     }
+    default:
+      break;
   }
 }

@@ -17,5 +17,5 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
 
   LLVMValueRef constRef  = LLVMConstInt(LLVMInt64Type(), value, 0);
 
-  LLVMValueRef loaded  = LLVMBuildStore(builder, constRef, lhsRef);
+  LLVMBuildStore(builder, constRef, lhsRef);
 }

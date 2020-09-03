@@ -80,7 +80,6 @@ enum VarScope {
 };
 
 // Forward Declarations
-class TypeDecl;
 class Scope;
 
 class Location {
@@ -161,7 +160,7 @@ class Symbol {
 
   public:
     Symbol();
-    Symbol(int tag, int flags, string name, PackageID *pkgID, SymbolKind *kind,
+    Symbol(int tag, int flags, string name, SymbolKind *kind,
 	   TypeDecl *type, Symbol *owner, Scope *scope);
     ~Symbol();
 
@@ -223,8 +222,8 @@ class TypeSymbol: public Symbol {
 
   public:
     TypeSymbol();
-    TypeSymbol(int symTag, int flags, string name, PackageID pkgID,
-               TypeDecl type, Symbol owner);
+    TypeSymbol(int symTag, int flags, string name, SymbolKind *kind,
+		TypeDecl *type, Symbol *owner, Scope *scope, bool isLab);
     ~TypeSymbol();
 
     bool getIsLabel() { return isLabel; }
@@ -244,11 +243,16 @@ class TypeDecl {
     TypeDecl(int tag, TypeSymbol *tsymbol, string name, int flags);
     ~TypeDecl();
 
+    void    setTypeDeclName(string namep)    { name = namep; }
+    void    setTypeTag (int tagp)            { tag = tagp; }
+    void    setTypeSymbol(TypeSymbol *tySym) { typeSym = tySym; }
+    void    setFlags(int flag)               { flags = flag; }
+
     int          getTypeTag()           { return tag; }
     string       getTypeDeclName()      { return name; }
     TypeSymbol * getTypeSymbol()        { return typeSym; }
     int          getFlags()             { return flags; }
-
+    
     virtual void translate(LLVMModuleRef &modRef);
 };
 
@@ -393,6 +397,8 @@ class BasicBlockT: public BIRNode {
     void setLLVMBuilderRef(LLVMBuilderRef buildRef) {BRef = buildRef; } 
     void setBIRFunction(BIRFunction *func)       { BFunc = func; }
     void setNextBB(BasicBlockT *bb)               { nextBB = bb; }
+    void addNonTermInsn(NonTerminatorInsn *insn)  { 
+			instructions.push_back(insn); }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -484,9 +490,9 @@ class InvokableType: public TypeDecl {
 
   public:
     InvokableType();
-    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDecl *retTy,
-                  TypeSymbol *tSymbol);
-    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy, TypeSymbol *tSymbol);
+    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDecl *retTy);
+                  /*TypeSymbol *tSymbol);*/
+    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy);/* TypeSymbol *tSymbol);*/
     ~InvokableType();
 
     TypeDecl * getReturnType()          { return returnType; }
