@@ -1,5 +1,8 @@
 #include "BIR.h"
 
+ConstantLoadInsn::ConstantLoadInsn () {
+}
+
 ConstantLoadInsn::ConstantLoadInsn (Location *pos, InstructionKind kind,
 			Operand *lOp, unsigned long long val):
 		NonTerminatorInsn(pos, kind, lOp), value(val) {
