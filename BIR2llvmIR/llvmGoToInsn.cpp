@@ -11,6 +11,10 @@ GoToInsn::~GoToInsn() {
 }
 
 void GoToInsn::translate(LLVMModuleRef &modRef) {
-  LLVMBasicBlockRef bummyBBRef;
-  LLVMBuildBr(LLVMBuilderRef, bummyBBRef);  
+  if (thenBB->getLLVMBasicBlock())
+    LLVMBuildBr(LLVMBuilderRef, thenBB->getLLVMBasicBlock());  
+  else {
+    fprintf(stderr, "%s:%d LLVM Basic Block not found for GOTO instruction.\n",
+            __FILE__, __LINE__);
+  }
 }

@@ -85,12 +85,23 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
     }   
   }
   
-  // iterate through with each basic block in the function
+  // iterate through with each basic block in the function and create them
+  // first.
   for (unsigned int i=0; i < basicBlocks.size(); i++)
   {
     BasicBlockT *bb = basicBlocks[i];
+    LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(this->getNewFunctionRef(),
+                                                   bb->getId().c_str());
+    bb->setLLVMBBRef(bbRef);
     bb->setBIRFunction(this);
     bb->setLLVMBuilderRef(builder);
+  }
+
+  // Now translate the basic blocks (essentially add the instructions in them)
+  for (unsigned int i=0; i < basicBlocks.size(); i++)
+  {
+    BasicBlockT *bb = basicBlocks[i];
+    LLVMPositionBuilderAtEnd(builder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
 }

@@ -1,5 +1,8 @@
 #include "BIR.h"
 #include "BIRReader.h"
+#include <libgen.h>
+#include <stdlib.h>
+#include <stdio.h>
 using namespace std;
 
 std::ifstream is;
@@ -96,7 +99,22 @@ TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool)
         shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
         class TypeDecl *typeDecl = new TypeDecl();
         typeDecl->setTypeDeclName(get_string_cp(shape_cp->name_index(), m_constant_pool));
+	if (typeDecl->getTypeDeclName() == "")
+        {
+	  char  newName[20];
+	  char *p;
+	  p = stpcpy(newName, "anon-");
+	  sprintf(p,  "%5d", random() % 100000);
+	  typeDecl->setTypeDeclName(newName);
+	  cout << "\n\nUsed tempnam for TypeDecl with value newName = " << newName << endl;
+	  /*char temp[] = "$anon";
+          std::string altName = mkstemp(temp);
+	  typeDecl->setTypeDeclName(altName);
+	  cout << "\n\nUsed tempnam for TypeDecl with value altName = " << altName << endl;*/
+        }
         typeDecl->setTypeTag(shape_cp->type_tag());
+	if (shape_cp->type_tag() == TYPE_TAG_ENUM_TYPE_TAG_NIL)
+	  typeDecl->setTypeTag(TYPE_TAG_ENUM_TYPE_TAG_INT);
         typeDecl->setFlags(shape_cp->type_flag());
     return typeDecl;
 }
@@ -204,180 +222,6 @@ BasicBlockT* search_bb_by_name(vector<BasicBlockT *>   basicBlocks, std::string 
     return NULL;
 }
 
-// Reads functions such as init, start, stop
-void read_function ()
-{
-  uint32_t sLine = read_s4be();
-  uint32_t eLine = read_s4be();
-  uint32_t sCol = read_s4be();
-  uint32_t eCol = read_s4be();
-  uint32_t sourceFileCpIndex = read_s4be();
-  uint32_t nameCpIndex = read_s4be();
-  uint32_t workdernameCpIndex = read_s4be();
-  uint32_t flags = read_s4be();
-  uint32_t typeCpIndex = read_s4be();
-  cout << "\nReading function body\n";
-  cout << "\nfunction.m_position.m_s_line = " << sLine;
-  cout << "\neLine = " << eLine;
-  cout << "\nsCol = " << sCol;
-  cout << "\neCol = " << eCol;
-  cout << "\nsourceFileCpIndex = " << sourceFileCpIndex;
-  cout << "\nnameCpIndex = " << nameCpIndex;
-  cout << "\nworkdernameCpIndex = " << workdernameCpIndex;
-  cout << "\nflags = " << flags;
-  cout << "\ntypeCpIndex = " << typeCpIndex;
-
-  uint64_t annotation_length = read_s8be();
-  cout << "\nannotation_length = " << annotation_length;
-
-  uint32_t annotationAttachments = read_s4be();
-  cout << "\nannotationAttachments = " << annotationAttachments;
-
-  uint32_t requiredParamCount = read_s4be();
-  cout << "\nrequiredParamCount = " << requiredParamCount;
-
-  uint8_t hasRestParam = read_u1();
-  cout << "\nhasRestParam = " << (bool)hasRestParam;
-
-  uint8_t hasReceiver = read_u1();
-  cout << "\nhasReceiver = " << (bool)hasReceiver;
-
-  uint64_t taintTableLength = read_s8be();
-  cout << "\ntaintTableLength = " << taintTableLength;
-
-  std::vector<char> result(taintTableLength);
-  is.read(&result[0], taintTableLength);
-  cout << "\nData = " << std::string(result.begin(), result.end());
-
-  uint32_t docLength = read_s4be();
-  cout << "\ndocLength = " << docLength;
-
-  std::vector<char> result1(docLength);
-  is.read(&result1[0], docLength);
-  cout << "\nData = " << std::string(result1.begin(), result1.end());
-
-  uint64_t functionBodyLength = read_s8be();
-  cout << "\nfunctionBodyLength = " << functionBodyLength;
-
-  uint32_t argsCount = read_s4be();
-  cout << "\nargsCount = " << argsCount;
-
-  uint8_t m_has_return_var = read_u1();
-  cout << "\nm_has_return_var = " << (bool)m_has_return_var;
-
-  if (m_has_return_var)
-  {
-      uint8_t kind = read_u1();
-      cout << "\nkind = " << (int)kind;
-
-      uint32_t typeCpIndex = read_s4be();
-      cout << "\ntypeCpIndex = " << typeCpIndex;
-
-      uint32_t nameCpIndex = read_s4be();
-      cout << "\nnameCpIndex = " << nameCpIndex;
-  }
-
-  uint32_t defaultParamValue = read_s4be();
-  cout << "\ndefaultParamValue = " << defaultParamValue;
-
-  uint32_t localVarCount = read_s4be();
-  cout << "\nlocalVarCount = " << localVarCount;
-
-  for (unsigned int i = 0; i < localVarCount; i++)
-  {
-      cout << "\nLocal variable " << i;
-      uint8_t kind = read_u1();
-      cout << "\nkind = " << (int)kind;
-
-      uint32_t typeCpIndex = read_s4be();
-      cout << "\ntypeCpIndex = " << typeCpIndex;
-
-      uint32_t nameCpIndex = read_s4be();
-      cout << "\nnameCpIndex = " << nameCpIndex;
-  }
-
-  uint8_t hasDefaultParamBB = read_u1();
-  cout << "\nhasDefaultParamBB = " << (int)hasDefaultParamBB;
-
-  uint32_t BBCount = read_s4be();
-  cout << "\nBBCount = " << BBCount;
-
-  for (unsigned int i = 0; i < BBCount; i++)
-  {
-    cout << "\nReading " << i << "th basic block\n";
-    uint32_t nameCpIndex2 = read_s4be();
-    cout << "\nnameCpIndex2 = " << nameCpIndex2;
-
-    uint32_t insnCount = read_s4be();
-    cout << "\ninsnCount = " << insnCount;
-    cout << "\nReading instructions from BB\n";
-    for (unsigned int i = 0; i < insnCount; i++)
-    {
-      cout << "\nReading " << i << "th instruction\n";
-      uint32_t sLine = read_s4be();
-      uint32_t eLine = read_s4be();
-      uint32_t sCol = read_s4be();
-      uint32_t eCol = read_s4be();
-      uint32_t sourceFileCpIndex = read_s4be();
-
-      cout << "\nsLine = " << sLine;
-      cout << "\neLine = " << eLine;
-      cout << "\nsCol = " << sCol;
-      cout << "\neCol = " << eCol;
-      cout << "\nsourceFileCpIndex = " << sourceFileCpIndex;
-
-      uint8_t insnkind = read_u1();
-      cout << "\ninsnkind = " << (InstructionKind)insnkind;
-
-
-      switch ((InstructionKind)insnkind) {
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_TYPEDESC: {
-            read_typedesc();
-            break;
-        }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_STRUCTURE: {
-            read_structure();
-            break;
-        }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_CONST_LOAD: {
-	    uint32_t typeCpIndex1 = read_s4be();
-	    cout << "\ntypeCpIndex1 = " << typeCpIndex1;
-
-	    uint8_t ignoredVar = read_u1();
-	    cout << "\nignoredVar = " << ignoredVar;
-
-	    uint8_t kind = read_u1();
-	    cout << "\nkind = " << (int)kind;
-
-	    uint8_t scope = read_u1();
-	    cout << "\nscope = " << (int)scope;
-
-	    uint32_t varDclNameCpIndex = read_s4be();
-	    cout << "\nvarDclNameCpIndex = " << varDclNameCpIndex;
-            break;
-        }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_GOTO: {
-            uint32_t targetBBNameCpIndex = read_s4be();
-            cout << "\ntargetBBNameCpIndex = " << targetBBNameCpIndex;
-            break;
-        }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN: {
-            //read_return();
-            break;
-        }
-	default:
-            break;
-      }
-    }
-  }
-
-  uint32_t errorEntriesCount = read_s4be();
-  cout << "\nerrorEntriesCount = " << errorEntriesCount;
-
-  uint32_t channelsLength = read_s4be();
-  cout << "\nchannelsLength = " << channelsLength;
-}
-
 // Read NonTerminatorInsn from the BIR
 NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, int i, BasicBlockT *basicBlock, NonTerminatorInsn *nonTerminatorInsn, constant_pool_set_t *m_constant_pool)
 {
@@ -421,6 +265,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, int i, BasicBlockT *basic
 	    class BasicBlockT *dummybasicBlock = new BasicBlockT(get_string_cp(nameid, m_constant_pool));
 	    terminatorInsn->setNextBB(dummybasicBlock);
 	    terminatorInsn->setPatchStatus(true);
+            terminatorInsn->setInstKind((InstructionKind)insnkind);
             basicBlock->setTerminatorInsn(terminatorInsn);
 	    nonTerminatorInsn = NULL;
             break;
@@ -471,17 +316,17 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
       if (terminator->getPatchStatus())
       {
           BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
-          //remove dangling pointer
-          //BasicBlockT *danglingBB = terminator->getNextBB();
-          //free(danglingBB);
+          BasicBlockT *danglingBB = terminator->getNextBB();
+          free(danglingBB);
           terminator->setNextBB(destBB);
       }
   }
 }
 
 // Reads main function 
-BIRFunction* read_main_function (int i, constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
+BIRFunction* read_function (int i, constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
+  cout << "\n\nReading from the read_main_function\n\n";
   class BIRFunction *BIRfunction = new BIRFunction();
   uint32_t m_s_line = read_s4be();
   uint32_t eLine = read_s4be();
@@ -624,6 +469,13 @@ BIRFunction* read_main_function (int i, constant_pool_set_t *m_constant_pool, BI
   vector<BasicBlockT *>   basicBlocks = BIRfunction->getBasicBlocks();
   patchInsn(basicBlocks);
 
+  //Create links between Basic Block
+  for (unsigned int i = 0; i < BBCount - 1; i++)
+  {
+    class BasicBlockT *basicBlock = BIRfunction->getBasicBlock(i);
+    basicBlock->setNextBB(BIRfunction->getBasicBlock(i + 1));
+  }
+
   uint32_t errorEntriesCount = read_s4be();
   cout << "\nerrorEntriesCount = " << errorEntriesCount;
 
@@ -714,7 +566,7 @@ void package_cp_info_t::_read()
     cout << "m_version_index " << m_version_index;
 }
 
-void /*constant_pool_entry_t**/ constant_pool_entry_t::_read() 
+void constant_pool_entry_t::_read() 
 {
     m_tag = static_cast<constant_pool_entry_t::tag_enum_t>(read_u1());
     n_cp_info = true;
@@ -818,36 +670,28 @@ BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
     constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(m_id_cp_index);
         switch (entry_pointer->tag()) {
        	    case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_PACKAGE: {
-	    package_cp_info_t *pointer = static_cast<package_cp_info_t *> (entry_pointer);
-	    cout << "\nPointer->m_org_index" << pointer->org_index();
-	    constant_pool_entry_t *org_pointer = m_constant_pool->constant_pool_entries()->at(pointer->org_index());
-	    string_cp_info_t *org_pointer2 = static_cast<string_cp_info_t *> (org_pointer);
-	    cout << "\nOrg name = " << org_pointer2->value();
-	    BIRpackage->setOrgName(org_pointer2->value());
-	    cout << "\nPointer->m_org_index" << pointer->name_index();
+		 package_cp_info_t *pointer = static_cast<package_cp_info_t *> (entry_pointer);
+		 cout << "\nPointer->m_org_index" << pointer->org_index();
+		 constant_pool_entry_t *org_pointer = m_constant_pool->constant_pool_entries()->at(pointer->org_index());
+		 string_cp_info_t *org_pointer2 = static_cast<string_cp_info_t *> (org_pointer);
+		 cout << "\nOrg name = " << org_pointer2->value();
+		 BIRpackage->setOrgName(org_pointer2->value());
+		 cout << "\nPointer->m_org_index" << pointer->name_index();
 
-            constant_pool_entry_t *name_pointer = m_constant_pool->constant_pool_entries()->at(pointer->name_index());
-            string_cp_info_t *name_pointer2 = static_cast<string_cp_info_t *> (name_pointer);
-            cout << "\nName name = " << name_pointer2->value();
-            BIRpackage->setPackageName(name_pointer2->value());
+		 constant_pool_entry_t *name_pointer = m_constant_pool->constant_pool_entries()->at(pointer->name_index());
+		 string_cp_info_t *name_pointer2 = static_cast<string_cp_info_t *> (name_pointer);
+		 cout << "\nName name = " << name_pointer2->value();
+		 BIRpackage->setPackageName(name_pointer2->value());
 
-	    cout << "\nPointer->m_org_index" << pointer->version_index();
-            constant_pool_entry_t *version_pointer = m_constant_pool->constant_pool_entries()->at(pointer->version_index());
-            string_cp_info_t *version_pointer2 = static_cast<string_cp_info_t *> (version_pointer);
-            cout << "\nVersion name = " << version_pointer2->value();
-            BIRpackage->setVersion(version_pointer2->value());
-	    break;
-	  }
-	  case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_SHAPE: {
-	    shape_cp_info_t *pointer = static_cast<shape_cp_info_t *> (entry_pointer);
-	    break;
-	  }
-	  case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_STRING: {
-	    string_cp_info_t *pointer = static_cast<string_cp_info_t *> (entry_pointer);
-	    break;
-	  }
-	  default:
-            break;
+ 	         cout << "\nPointer->m_org_index" << pointer->version_index();
+		 constant_pool_entry_t *version_pointer = m_constant_pool->constant_pool_entries()->at(pointer->version_index());
+		 string_cp_info_t *version_pointer2 = static_cast<string_cp_info_t *> (version_pointer);
+		 cout << "\nVersion name = " << version_pointer2->value();
+		 BIRpackage->setVersion(version_pointer2->value());
+		 break;
+	   }
+	   default:
+             break;
 	}
 
 
@@ -869,15 +713,14 @@ BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
 
     cout << "\nFunc count =" << m_function_count;
 
+    std::string funcName = "main";
     for (int i = 0; i < m_function_count; i++) {
         cout << "\nReading Function = " << i;
-        if (i == 3)  //For stage 1 function, only main () is required
-        {
-          BIRFunction *BIRfunction = read_main_function (i, m_constant_pool, BIRpackage);
-          BIRpackage->addFunction(BIRfunction);
-        }
-        else
-	  read_function ();
+        BIRFunction *BIRfunction = read_function (i, m_constant_pool, BIRpackage);
+	if (funcName.compare (BIRfunction->getName()) == 0)
+           BIRpackage->addFunction(BIRfunction);
+	else
+	   delete(BIRfunction);
     }
 
     int32_t m_annotations_size = read_s4be();
