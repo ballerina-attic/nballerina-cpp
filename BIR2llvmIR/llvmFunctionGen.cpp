@@ -17,14 +17,12 @@ BIRFunction::BIRFunction(const BIRFunction&)
 
 LLVMValueRef BIRFunction::getLocalVarRefUsingId(string locVar)
 {
-  const char* locvarChar = locVar.c_str();
-  for(std::map<const char*, LLVMValueRef>::iterator iter = localVarRefs.begin();
-	 iter != localVarRefs.end(); ++iter)
+  for(std::map<string, LLVMValueRef>::iterator iter = localVarRefs.begin();
+	 iter != localVarRefs.end(); iter++)
   {
-    if (iter->first == locvarChar)
+    if (iter->first == locVar)
       return iter->second;
   }
-  cout<< "Local var by name '"<< locVar <<"' dosn't exist";
   exit(0);
 }
 
@@ -69,9 +67,8 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
 {
   LLVMBasicBlockRef BbRef;
   int paramIndex = 0;
-  BbRef = LLVMAppendBasicBlock(newFunction, "var_allloc");
+  BbRef = LLVMAppendBasicBlock(newFunction, "entry");
   LLVMPositionBuilderAtEnd(builder, BbRef);
-
   // iterate through all local vars.
   for (unsigned int i=0; i < localVars.size(); i++)
   {
@@ -79,7 +76,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
     const char *varName = (locVar->getVarName()).c_str();
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef = LLVMBuildAlloca(builder, varType, varName);
-    localVarRefs.insert({varName, localVarRef});
+    localVarRefs.insert({locVar->getVarName(), localVarRef});
    
     if (isParamter(locVar)){
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
@@ -123,7 +120,7 @@ void BIRFunction::translate (LLVMModuleRef &modRef)
   const char *newFuncName = name.c_str();
   if (funcType) 
     newFunction = LLVMAddFunction(modRef, newFuncName, funcType);
-  translateFunctionBody(modRef); 
+  translateFunctionBody(modRef);
 }
 
 BIRFunction::~BIRFunction()

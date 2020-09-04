@@ -30,7 +30,7 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef){
       LLVMBuildStore(builder, subRet, lhsRef);
       break;
     }
-    case BINARY_MUL:
+    /*case BINARY_MUL:
     {
       LLVMValueRef mulRet = LLVMBuildMul(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
       LLVMBuildStore(builder, mulRet, lhsRef);
@@ -44,7 +44,7 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef){
     {
       LLVMValueRef equalRet = LLVMBuildICmp(builder, LLVMIntEQ, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
       LLVMBuildStore(builder, equalRet, lhsRef);
-    }
+    }*/
     default:
       break;
   }

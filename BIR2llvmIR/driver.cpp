@@ -1,4 +1,5 @@
 #include "BIR.h"
+#include "BIRReader.h"
 #include<iostream>
 #include<string>
 #include<fstream>
@@ -7,6 +8,11 @@ using namespace std;
 
 int main()
 {
+  class BIRReader *Reader = new BIRReader("main-bir-dump");
+  class BIRPackage *BIRpackage = new BIRPackage ();
+  BIRpackage = Reader->deserialize(BIRpackage);
+  BIRpackage->translate();  
+#if 0
   Location *loc1 = new Location("newFile",2,9);
   VarDecl *vDecllhs = new VarDecl(loc1, "1stVarLhs", "1metanameLhs");
   TypeDecl *tyDecl11 = new TypeDecl();
@@ -41,4 +47,5 @@ int main()
   BIRPackage *pkg = new BIRPackage ("$anon", ".", "0.0.0", "sourceFile");
   pkg->addFunction(func);
   pkg->translate();
+#endif
 }
