@@ -11,7 +11,18 @@ int main()
   class BIRReader *Reader = new BIRReader("main-bir-dump");
   class BIRPackage *BIRpackage = new BIRPackage ();
   BIRpackage = Reader->deserialize(BIRpackage);
-  BIRpackage->translate();  
+  char* Message = "My Message";
+  bool dumpllvm = true; //temp value
+  bool patchPassLevel = false;
+  string ModuleName = BIRpackage->getOrgName() + BIRpackage->getPackageName()
+			 + BIRpackage->getVersion();
+  LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
+  BIRpackage->translate(mod);
+  if(dumpllvm)
+  {
+    string targetFineName = "foo.ll";
+    LLVMPrintModuleToFile(mod, targetFineName.c_str(), &Message);
+  }
 #if 0
   Location *loc1 = new Location("newFile",2,9);
   VarDecl *vDecllhs = new VarDecl(loc1, "1stVarLhs", "1metanameLhs");
