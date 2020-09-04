@@ -46,32 +46,36 @@ enum VarKind {
 };
 
 enum InstructionKind {
-	BINARY_ADD = 1,
-	BINARY_SUB,
-	BINARY_MUL,
-	BINARY_DIV,
-	BINARY_MOD,
-	BINARY_EQUAL,
-	BINARY_NOT_EQUAL,
-	BINARY_GREATER_THAN,
-	BINARY_GREATER_EQUAL,
-	BINARY_LESS_THAN,
-	BINARY_LESS_EQUAL,
-	BINARY_REF_EQUAL,
-	BINARY_REF_NOT_EQUAL,
-	BINARY_CLOSED_RANGE,
-	BINARY_HALF_OPEN_RANGE,
-	BINARY_ANNOT_ACCESS,
-	BINARY_BITWISE_AND,
-	BINARY_BITWISE_OR,
-	BINARY_BITWISE_XOR,
-	BINARY_BITWISE_LEFT_SHIFT,
-	BINARY_BITWISE_RIGHT_SHIFT,
-	BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT,
-	INS_KIND_MOVE, 
-	INS_KIND_CONST_LOAD, 
-	INS_KIND_NEW_MAP, 
-	INS_KIND_NEW_INST
+        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_GOTO = 1,
+        BINARY_SUB,
+        BINARY_MUL,
+        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN,
+        BINARY_MOD,
+        BINARY_EQUAL,
+        BINARY_NOT_EQUAL,
+        BINARY_GREATER_THAN,
+        BINARY_GREATER_EQUAL,
+        BINARY_LESS_THAN,
+        BINARY_LESS_EQUAL,
+        BINARY_REF_EQUAL,
+        BINARY_REF_NOT_EQUAL,
+        BINARY_CLOSED_RANGE,
+        BINARY_HALF_OPEN_RANGE,
+        BINARY_ANNOT_ACCESS,
+        BINARY_BITWISE_AND,
+        BINARY_BITWISE_OR,
+        BINARY_BITWISE_XOR,
+        BINARY_BITWISE_LEFT_SHIFT,
+        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_CONST_LOAD,
+        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_STRUCTURE,
+        BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT,
+        INS_KIND_MOVE, 
+        INS_KIND_CONST_LOAD,
+        INS_KIND_NEW_MAP, 
+        INS_KIND_NEW_INST,
+        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_TYPEDESC = 52,
+        BINARY_ADD,
+        BINARY_DIV
 }; // we have to add more from bir-model.bal file
 
 enum VarScope {
@@ -209,7 +213,6 @@ class Scope {
     void     addNewScopeEntry(string name, ScopeEntry *entry)
              { entries.insert(std::pair<string, ScopeEntry *>(name, entry)); }
 
-    // Implement using std::map::find() 
     ScopeEntry * getScopeEntry(string name);
 
     virtual void translate(LLVMModuleRef &modRef);
@@ -275,6 +278,7 @@ class AbstractInsn: public BIRNode {
   private:
     InstructionKind   kind;
     Operand          *lhsOp;
+    BIRFunction       *BFunc;
 
   public:
     AbstractInsn();
@@ -284,6 +288,9 @@ class AbstractInsn: public BIRNode {
     InstructionKind getInstKind()   { return kind; }
     Operand *       getLhsOperand() { return lhsOp; }
 
+    void          setFunction(BIRFunction *func) { BFunc = func; }
+    BIRFunction * getFunction()                  { return BFunc; }
+
     void setInstKind(InstructionKind newKind)   { kind = newKind; }
     void setLhsOperand(Operand *lOp)            { lhsOp = lOp; }
 
@@ -292,15 +299,15 @@ class AbstractInsn: public BIRNode {
 
 class NonTerminatorInsn: public AbstractInsn {
   private:
-    BIRFunction       *BFunc;
+   // BIRFunction       *BFunc;
 
   public:
     NonTerminatorInsn();
     NonTerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp);
     ~NonTerminatorInsn();
 
-    void          setFunction(BIRFunction *func) { BFunc = func; }
-    BIRFunction * getFunction()                  { return BFunc; }
+   // void          setFunction(BIRFunction *func) { BFunc = func; }
+   // BIRFunction * getFunction()                  { return BFunc; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -308,7 +315,7 @@ class NonTerminatorInsn: public AbstractInsn {
 class TerminatorInsn: public AbstractInsn {
   private:
     BasicBlockT  *thenBB;
-
+    bool         patchRequire;
   public:
     TerminatorInsn();
     TerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp,
@@ -316,6 +323,9 @@ class TerminatorInsn: public AbstractInsn {
     ~TerminatorInsn();
 
     BasicBlockT * getNextBB()                    { return thenBB; }
+    bool getPatchStatus()                      { return patchRequire; }
+
+    void setPatchStatus(bool patchrequire)     { patchRequire = patchrequire; }
     void         setNextBB(BasicBlockT *block) { thenBB = block; }
 
     void translate(LLVMModuleRef &modRef);
@@ -371,6 +381,28 @@ class BinaryOpInsn : public NonTerminatorInsn {
     void translate(LLVMModuleRef &modRef);
 };
 
+class GoToInsn : public NonTerminatorInsn {
+  private:
+
+  public:
+    GoToInsn();
+    ~GoToInsn();
+
+    void translate(LLVMModuleRef &modRef);
+};
+
+class ReturnInsn : public TerminatorInsn {
+  private:
+
+  public:
+    ReturnInsn();
+    ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
+		 BasicBlockT *nextBB);
+    ~ReturnInsn();
+
+    void translate(LLVMModuleRef &modRef);
+};
+
 class BasicBlockT: public BIRNode {
   private:
     string                       id;
@@ -391,6 +423,8 @@ class BasicBlockT: public BIRNode {
     LLVMBuilderRef   getLLVMBuilderRef() { return BRef; }
     BIRFunction    * getBIRFunction()    { return BFunc; }
     BasicBlockT     * getNextBB()         { return nextBB; }
+    vector<NonTerminatorInsn *> getNonTerminatorInsn()       { return instructions; }
+    NonTerminatorInsn *         getInsn(int i) { return instructions[i]; }
 
     void setId(string newId)                     { id = newId; }
     void setTerminatorInsn(TerminatorInsn *insn) { terminator = insn; }
@@ -490,9 +524,9 @@ class InvokableType: public TypeDecl {
 
   public:
     InvokableType();
-    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDecl *retTy,
-                  TypeSymbol *tSymbol);
-    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy, TypeSymbol *tSymbol);
+    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDecl *retTy);
+                  /*TypeSymbol *tSymbol);*/
+    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy);/* TypeSymbol *tSymbol);*/
     ~InvokableType();
 
     TypeDecl * getReturnType()          { return returnType; }
@@ -522,7 +556,7 @@ class BIRFunction: public BIRNode {
     LLVMBuilderRef         builder;
     LLVMValueRef           newFunction;
     map<FuncParam *, vector<BasicBlockT *>>  params;
-    map<const char*, LLVMValueRef>          localVarRefs;
+    map<string, LLVMValueRef>          localVarRefs;
 
   public:
     BIRFunction();
@@ -547,7 +581,7 @@ class BIRFunction: public BIRNode {
     LLVMBuilderRef       getLLVMBuilder()       { return builder; }
     int                  getNumParams()            { return paramCount; }
     LLVMValueRef         getNewFunctionRef()    { return newFunction; }
-    map<const char*, LLVMValueRef>  getLocalVarRefs()  { return localVarRefs; }
+    map<string , LLVMValueRef>  getLocalVarRefs()  { return localVarRefs; }
 
     void setName(string newName)            { name = newName; }
     void setFlags(int newFlags)             { flags = newFlags; }
@@ -557,13 +591,14 @@ class BIRFunction: public BIRNode {
     void setReceiver(VarDecl *var)          { receiver = var; }
     void setRestParam(Param *param)         { restParam = param; }
     void setLocalVars(vector<VarDecl *> l)  { localVars = l; }
+    void setNumParams(int paramcount)       { paramCount = paramcount; }
     void setLocalVar(VarDecl *var)          { localVars.push_back(var); }
     void setReturnVar(VarDecl *var)         { returnVar = var; }
     void setBasicBlockTs(vector<BasicBlockT *> b) { basicBlocks = b; }
     void setBasicBlockT(BasicBlockT *bb)      { basicBlocks.push_back(bb); }
     void setWorkerName(string newName)      { workerName = newName; }
     void setLLVMBuilder(LLVMBuilderRef b)  { builder = b; }
-    void setLocalVarRefs(map<const char*, LLVMValueRef> newLocalVarRefs)  {
+    void setLocalVarRefs(map<string, LLVMValueRef> newLocalVarRefs)  {
 					localVarRefs = newLocalVarRefs; } 
     void setNewFunctionRef(LLVMValueRef newFuncRef) { newFunction = newFuncRef; }
 
@@ -593,6 +628,11 @@ class BIRPackage: public BIRNode {
     string getPackageName()     { return name; }
     string getVersion()         { return version; }
     string getSrcFileName()     { return sourceFileName; }
+
+    void setOrgName(string orgName)         {  org = orgName; }
+    void setPackageName(string pkgName)     { name = pkgName; }
+    void setVersion(string verName)         { version = verName; }
+    void setSrcFileName(string srcFileName) { sourceFileName = srcFileName; }
 
     vector<BIRFunction *> getFunctions()     { return functions; }
     size_t                numFunctions()     { return functions.size(); }
