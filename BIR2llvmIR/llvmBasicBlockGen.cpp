@@ -13,10 +13,7 @@ BasicBlockT::~BasicBlockT() {}
 void BasicBlockT::translate(LLVMModuleRef &modRef)
 {
   BRef = BFunc->getLLVMBuilder();
-  LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(BFunc->getNewFunctionRef(),
-						 (id).c_str());
-  LLVMPositionBuilderAtEnd(BRef, bbRef);
-  
+
   for(unsigned int i=0; i < instructions.size(); i++)
   {
     NonTerminatorInsn *insn = instructions[i];
@@ -26,19 +23,19 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
       {
         MoveInsn *moveInsn = static_cast<MoveInsn*>(insn);
         moveInsn->translate(modRef);
-	break;
+        break;
       }
-
       case BINARY_ADD:
       case BINARY_SUB:
       case BINARY_MUL:
       case BINARY_DIV:
       case BINARY_EQUAL:
       {
-	BinaryOpInsn *binOpInsn = static_cast<BinaryOpInsn*>(insn);
-	binOpInsn->translate(modRef);
-	break;
+        BinaryOpInsn *binOpInsn = static_cast<BinaryOpInsn*>(insn);
+        binOpInsn->translate(modRef);
+        break;
       }
+
       case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_CONST_LOAD:
       {
         ConstantLoadInsn *constL = static_cast<ConstantLoadInsn*>(insn);
@@ -49,6 +46,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
         break;
     } 
   }
+
   if(terminator) 
   {
     terminator->setFunction(BFunc);
@@ -59,8 +57,14 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
         gotoInsn->translate(modRef);
         break;
       }
+      case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN:
+      {
+        ReturnInsn *returnInsn = static_cast<ReturnInsn*>(terminator);
+        returnInsn->translate(modRef);
+        break;
+      }
       default:
-	break;
+        break;
     }
   }
 }
