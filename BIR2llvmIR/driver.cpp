@@ -13,11 +13,11 @@ int main()
   BIRpackage = Reader->deserialize(BIRpackage);
   char* Message = "My Message";
   bool dumpllvm = true; //temp value
-  bool patchPassLevel = false;
   string ModuleName = BIRpackage->getOrgName() + BIRpackage->getPackageName()
 			 + BIRpackage->getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
   BIRpackage->translate(mod);
+  
   if(dumpllvm)
   {
     string targetFineName = "foo.ll";
@@ -47,7 +47,7 @@ int main()
   invokT->setReturnType(tyDecl);
   
   BIRFunction *func = new BIRFunction(loc1, "myFunc", 10, invokT, "MyWorker");
-  func->setBasicBlockT(bb);
+  func->addBasicBlockT(bb);
   func->setLocalVar(vDecllhs);
   func->setLocalVar(vDeclrhs);
   VarDecl *retVar = new VarDecl(loc1, "void", "metaName");
@@ -57,6 +57,12 @@ int main()
   func->setReturnVar(retVar);
   BIRPackage *pkg = new BIRPackage ("$anon", ".", "0.0.0", "sourceFile");
   pkg->addFunction(func);
-  pkg->translate();
+  pkg->translate(mod);
+
+  if(dumpllvm)
+  {
+    string targetFineName = "foo.ll";
+    LLVMPrintModuleToFile(mod, targetFineName.c_str(), &Message);
+  }
 #endif
 }

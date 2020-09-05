@@ -60,6 +60,17 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
   else if (typeName == "double")
     return LLVMDoubleType();
   else
+    return LLVMInt32Type();
+}
+
+LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(TypeDecl *typeD)
+{
+  string typeName = typeD->getTypeDeclName();
+  if (typeName == "bool" || typeName == "char")
+    return LLVMInt1Type();
+  else if (typeName == "int")
+    return LLVMInt32Type();
+  else
     return LLVMVoidType();
 }
 
@@ -67,7 +78,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
 {
   LLVMBasicBlockRef BbRef;
   int paramIndex = 0;
-  BbRef = LLVMAppendBasicBlock(newFunction, "entry");
+  BbRef = LLVMAppendBasicBlock(newFunction, "allloca_var");
   LLVMPositionBuilderAtEnd(builder, BbRef);
   // iterate through all local vars.
   for (unsigned int i=0; i < localVars.size(); i++)
@@ -118,7 +129,7 @@ void BIRFunction::translate (LLVMModuleRef &modRef)
     isVarArg = true;
 
   if (returnVar)  
-    retType = getLLVMTypeRefOfType(returnVar->getTypeDecl());
+    retType = getLLVMFuncRetTypeRefOfType(returnVar->getTypeDecl());
   paramTypes = new LLVMTypeRef[numParams];;
   for (unsigned i = 0;  i < numParams;  i++)
   {

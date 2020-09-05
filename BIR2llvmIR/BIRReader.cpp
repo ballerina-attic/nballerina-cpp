@@ -272,6 +272,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, int i, BasicBlockT *basic
         }
         case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN: {
             class TerminatorInsn *terminatorInsn = new TerminatorInsn();
+	    terminatorInsn->setInstKind((InstructionKind)insnkind);
             basicBlock->setTerminatorInsn(terminatorInsn);
 	    nonTerminatorInsn = NULL;
             //read_return();
@@ -462,7 +463,7 @@ BIRFunction* read_function (int i, constant_pool_set_t *m_constant_pool, BIRPack
   {
     class BasicBlockT *basicBlock = new BasicBlockT();
     basicBlock = readBasicBlock(i, BIRfunction, basicBlock, m_constant_pool);
-    BIRfunction->setBasicBlockT(basicBlock);
+    BIRfunction->addBasicBlockT(basicBlock);
   }
 
   //Patching the insn
