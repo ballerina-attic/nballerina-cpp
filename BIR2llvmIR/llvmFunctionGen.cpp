@@ -78,8 +78,9 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
 {
   LLVMBasicBlockRef BbRef;
   int paramIndex = 0;
-  BbRef = LLVMAppendBasicBlock(newFunction, "allloca_var");
+  BbRef = LLVMAppendBasicBlock(newFunction, "entry");
   LLVMPositionBuilderAtEnd(builder, BbRef);
+
   // iterate through all local vars.
   for (unsigned int i=0; i < localVars.size(); i++)
   {
@@ -91,7 +92,8 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
    
     if (isParamter(locVar)){
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
-      LLVMBuildStore(builder, parmRef, localVarRef);
+      if (parmRef)
+        LLVMBuildStore(builder, parmRef, localVarRef);
       paramIndex++;
     }   
   }
@@ -101,12 +103,18 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
   for (unsigned int i=0; i < basicBlocks.size(); i++)
   {
     BasicBlockT *bb = basicBlocks[i];
+    char label[20];                                     
+    sprintf(label, "<label>:%d", i);
     LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(this->getNewFunctionRef(),
                                                    bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
     bb->setBIRFunction(this);
     bb->setLLVMBuilderRef(builder);
   }
+
+  // creating branch to next basic block.
+  if (basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
+    LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
   for (unsigned int i=0; i < basicBlocks.size(); i++)
