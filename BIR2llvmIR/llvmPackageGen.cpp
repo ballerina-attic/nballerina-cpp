@@ -17,10 +17,7 @@ BIRPackage::BIRPackage(string orgName, string pkgName, string verName,
 
 void BIRPackage::translate (LLVMModuleRef &modRef)
 {
-  //string ModuleName = org + name + version;
-  //LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
-
-  // iterating through each function from current package.
+  // iterating over each function inside the package.
   for (unsigned int i = 0; i < functions.size(); i++)
   {
     BIRFunction *birFunc = functions[i];
