@@ -11,17 +11,24 @@ int main()
   class BIRReader *Reader = new BIRReader("main-bir-dump");
   class BIRPackage *BIRpackage = new BIRPackage ();
   BIRpackage = Reader->deserialize(BIRpackage);
-  char* Message = "My Message";
+  char* Message;
   bool dumpllvm = true; //temp value
   string ModuleName = BIRpackage->getOrgName() + BIRpackage->getPackageName()
 			 + BIRpackage->getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
+  LLVMSetSourceFileName(mod, BIRpackage->getSrcFileName().c_str(),
+                        BIRpackage->getSrcFileName().length());
+  LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
+  LLVMSetTarget(mod, "x86_64-pc-linux-gnu");
   BIRpackage->translate(mod);
   
   if(dumpllvm)
   {
     string targetFineName = "foo.ll";
-    LLVMPrintModuleToFile(mod, targetFineName.c_str(), &Message);
+    if (LLVMPrintModuleToFile(mod, targetFineName.c_str(), &Message))
+    {
+      std::cerr << Message;
+    }  
   }
 #if 0
   Location *loc1 = new Location("newFile",2,9);
