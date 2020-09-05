@@ -13,7 +13,7 @@ ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind,
 ReturnInsn::~ReturnInsn() {
 }
 
-void ReturnInsn::translate(LLVMModuleRef &modRef) {
+void ReturnInsn::translat(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
   if(getLhsOperand())
   {

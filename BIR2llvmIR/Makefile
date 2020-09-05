@@ -73,6 +73,7 @@ SRCS = llvmPackageGen.cpp \
        llvmScopeGen.cpp \
        llvmScopeEntryGen.cpp \
        llvmReturnInsn.cpp \
+       llvmGoToInsn.cpp \
        BIRReader.cpp \
        driver.cpp
 

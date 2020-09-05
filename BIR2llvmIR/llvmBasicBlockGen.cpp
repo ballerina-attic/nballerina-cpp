@@ -12,8 +12,6 @@ BasicBlockT::~BasicBlockT() {}
 
 void BasicBlockT::translate(LLVMModuleRef &modRef)
 {
-  BRef = BFunc->getLLVMBuilder();
-
   for(unsigned int i=0; i < instructions.size(); i++)
   {
     NonTerminatorInsn *insn = instructions[i];
@@ -54,13 +52,13 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
       case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_GOTO:
       {
         GoToInsn *gotoInsn = static_cast<GoToInsn*>(terminator);
-        gotoInsn->translate(modRef);
+        gotoInsn->translat(modRef);
         break;
       }
       case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN:
       {
         ReturnInsn *returnInsn = static_cast<ReturnInsn*>(terminator);
-        returnInsn->translate(modRef);
+        returnInsn->translat(modRef);
         break;
       }
       default:

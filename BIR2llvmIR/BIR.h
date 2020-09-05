@@ -36,7 +36,7 @@ enum SymbolKind {
 };
 
 enum VarKind {
-	LOCAL_VAR_KIND = 1,
+	LOCAL_VAR_KIND,
 	TEMP_VAR_KIND, 
 	RETURN_VAR_KIND, 
 	ARG_VAR_KIND, 
@@ -354,15 +354,11 @@ class AbstractInsn: public BIRNode {
 
 class NonTerminatorInsn: public AbstractInsn {
   private:
-   // BIRFunction       *BFunc;
 
   public:
     NonTerminatorInsn();
     NonTerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp);
     ~NonTerminatorInsn();
-
-   // void          setFunction(BIRFunction *func) { BFunc = func; }
-   // BIRFunction * getFunction()                  { return BFunc; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -448,8 +444,7 @@ class GoToInsn : public TerminatorInsn {
 
     LLVMValueRef getLLVMInsn()           { return llvmInsn; }
     void setLLVMInsn(LLVMValueRef insn)  { llvmInsn = insn; }
-
-    void translate(LLVMModuleRef &modRef);
+    void translat(LLVMModuleRef &modRef);
 };
 
 class ReturnInsn : public TerminatorInsn {
@@ -461,7 +456,7 @@ class ReturnInsn : public TerminatorInsn {
 		 BasicBlockT *nextBB);
     ~ReturnInsn();
 
-    void translate(LLVMModuleRef &modRef);
+    void translat(LLVMModuleRef &modRef);
 };
 
 class BasicBlockT: public BIRNode {
@@ -659,7 +654,7 @@ class BIRFunction: public BIRNode {
     void setLocalVar(VarDecl *var)          { localVars.push_back(var); }
     void setReturnVar(VarDecl *var)         { returnVar = var; }
     void setBasicBlockTs(vector<BasicBlockT *> b) { basicBlocks = b; }
-    void setBasicBlockT(BasicBlockT *bb)      { basicBlocks.push_back(bb); }
+    void addBasicBlockT(BasicBlockT *bb)    { basicBlocks.push_back(bb); }
     void setWorkerName(string newName)      { workerName = newName; }
     void setLLVMBuilder(LLVMBuilderRef b)  { builder = b; }
     void setLocalVarRefs(map<string, LLVMValueRef> newLocalVarRefs)  {
@@ -671,7 +666,7 @@ class BIRFunction: public BIRNode {
     LLVMValueRef  getLocalToTempVar(Operand *operand);
     void          translateFunctionBody(LLVMModuleRef &modRef);
     void	  patchInsn(Function* llvnFun);
-
+    LLVMTypeRef   getLLVMFuncRetTypeRefOfType(TypeDecl *typeD);
     void translate(LLVMModuleRef &modRef);
 };
 
