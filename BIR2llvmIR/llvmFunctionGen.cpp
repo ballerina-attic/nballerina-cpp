@@ -60,6 +60,17 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
   else if (typeName == "double")
     return LLVMDoubleType();
   else
+    return LLVMInt32Type();
+}
+
+LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(TypeDecl *typeD)
+{
+  string typeName = typeD->getTypeDeclName();
+  if (typeName == "bool" || typeName == "char")
+    return LLVMInt1Type();
+  else if (typeName == "int")
+    return LLVMInt32Type();
+  else
     return LLVMVoidType();
 }
 
@@ -81,17 +92,35 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
    
     if (isParamter(locVar)){
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
-      LLVMBuildStore(builder, parmRef, localVarRef);
+      if (parmRef)
+        LLVMBuildStore(builder, parmRef, localVarRef);
       paramIndex++;
     }   
   }
   
-  // iterate through with each basic block in the function
+  // iterate through with each basic block in the function and create them
+  // first.
   for (unsigned int i=0; i < basicBlocks.size(); i++)
   {
     BasicBlockT *bb = basicBlocks[i];
+    char label[20];                                     
+    sprintf(label, "<label>:%d", i);
+    LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(this->getNewFunctionRef(),
+                                                   bb->getId().c_str());
+    bb->setLLVMBBRef(bbRef);
     bb->setBIRFunction(this);
     bb->setLLVMBuilderRef(builder);
+  }
+
+  // creating branch to next basic block.
+  if (basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
+    LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
+
+  // Now translate the basic blocks (essentially add the instructions in them)
+  for (unsigned int i=0; i < basicBlocks.size(); i++)
+  {
+    BasicBlockT *bb = basicBlocks[i];
+    LLVMPositionBuilderAtEnd(builder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
 }
@@ -108,7 +137,7 @@ void BIRFunction::translate (LLVMModuleRef &modRef)
     isVarArg = true;
 
   if (returnVar)  
-    retType = getLLVMTypeRefOfType(returnVar->getTypeDecl());
+    retType = getLLVMFuncRetTypeRefOfType(returnVar->getTypeDecl());
   paramTypes = new LLVMTypeRef[numParams];;
   for (unsigned i = 0;  i < numParams;  i++)
   {
@@ -122,7 +151,6 @@ void BIRFunction::translate (LLVMModuleRef &modRef)
   if (funcType) 
     newFunction = LLVMAddFunction(modRef, newFuncName, funcType);
   translateFunctionBody(modRef);
-  //LLVMDumpModule(modRef);
 }
 
 BIRFunction::~BIRFunction()

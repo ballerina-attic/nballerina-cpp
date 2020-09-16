@@ -1,8 +1,8 @@
 # Define these parameters to reflect the proper directories.
-TOP=/home/ramakota/workspace
-LLVM_INCLUDES_DIR=$(TOP)/wso2/nballerina/llvm-project-master/llvm/include
-LLVM_BUILD_INCLUDES_DIR=$(TOP)/wso2/build/include
-LLVM_BUILD_LIB_DIR=$(TOP)/wso2/build/lib
+TOP=/home/shubham/merging-nballerina/nballerina
+LLVM_INCLUDES_DIR=$(TOP)/llvm-project-master/llvm/include
+LLVM_BUILD_INCLUDES_DIR=$(TOP)/build/llvm/include
+LLVM_BUILD_LIB_DIR=$(TOP)/build/llvm/lib
 
 # No user definable parameters below.
 PARALLEL_MAKE=make -j 20
@@ -73,6 +73,7 @@ SRCS = llvmPackageGen.cpp \
        llvmScopeGen.cpp \
        llvmScopeEntryGen.cpp \
        llvmReturnInsn.cpp \
+       llvmGoToInsn.cpp \
        BIRReader.cpp \
        driver.cpp
 

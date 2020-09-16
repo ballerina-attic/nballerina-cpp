@@ -18,29 +18,29 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef){
   LLVMValueRef rhsOp2ref = getFunction()->getLocalToTempVar(rhsOp2);
 
   switch (getInstKind()) {
-    case BINARY_ADD:
+    case INSTRUCTION_KIND_BINARY_ADD:
     {
       LLVMValueRef addRet = LLVMBuildAdd(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
       LLVMBuildStore(builder, addRet, lhsRef);
       break;
     }
-    case BINARY_SUB:
+    case INSTRUCTION_KIND_BINARY_SUB:
     {
       LLVMValueRef subRet = LLVMBuildSub(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
       LLVMBuildStore(builder, subRet, lhsRef);
       break;
     }
-    /*case BINARY_MUL:
+    /*case INSTRUCTION_KIND_BINARY_MUL:
     {
       LLVMValueRef mulRet = LLVMBuildMul(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
       LLVMBuildStore(builder, mulRet, lhsRef);
     }
-    case BINARY_DIV:
+    case INSTRUCTION_KIND_BINARY_DIV:
     {
       LLVMValueRef divRet = LLVMBuildSDiv(builder, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
       LLVMBuildStore(builder, divRet, lhsRef);
     }
-    case BINARY_EQUAL:
+    case INSTRUCTION_KIND_BINARY_EQUAL:
     {
       LLVMValueRef equalRet = LLVMBuildICmp(builder, LLVMIntEQ, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
       LLVMBuildStore(builder, equalRet, lhsRef);

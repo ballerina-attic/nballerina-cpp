@@ -15,25 +15,14 @@ BIRPackage::BIRPackage(string orgName, string pkgName, string verName,
 	org(orgName), name(pkgName), version(verName), sourceFileName(srcFileName) {
 }
 
-void BIRPackage::translate ()
+void BIRPackage::translate (LLVMModuleRef &modRef)
 {
-  bool dumpllvm = true; //temp value
-  string ModuleName = org + name + version;
-  LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
-
-  // iterating through each function from current package.
+  // iterating over each function inside the package.
   for (unsigned int i = 0; i < functions.size(); i++)
   {
-    char* Message = "My Message";
     BIRFunction *birFunc = functions[i];
     
-    birFunc->translate(mod);
-
-    // print the LLVMIR using BIR.
-    if(dumpllvm) {
-      string targetFineName = sourceFileName+".ll";
-      LLVMPrintModuleToFile(mod, targetFineName.c_str(), &Message);
-    }
+    birFunc->translate(modRef);
   }
 }
 

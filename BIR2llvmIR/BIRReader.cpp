@@ -226,15 +226,15 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
 
       uint8_t insnkind = read_u1();
       switch ((InstructionKind)insnkind) {
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_TYPEDESC: {
+        case INSTRUCTION_KIND_NEW_TYPEDESC: {
             read_typedesc();
             break;
         }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_STRUCTURE: {
+        case INSTRUCTION_KIND_NEW_STRUCTURE: {
             read_structure();
             break;
         }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_CONST_LOAD: {
+        case INSTRUCTION_KIND_CONST_LOAD: {
             class ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn();
             constantloadInsn->setFunction(BIRfunction);
             constantloadInsn->setInstKind((InstructionKind)insnkind);
@@ -244,7 +244,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (constantloadInsn));
             break;
         }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_GOTO: {
+        case INSTRUCTION_KIND_GOTO: {
             class TerminatorInsn *terminatorInsn = new TerminatorInsn();
             uint32_t nameid = read_goto();
             class BasicBlockT *dummybasicBlock = new BasicBlockT(get_string_cp(nameid, m_constant_pool));
@@ -255,7 +255,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             nonTerminatorInsn = NULL;
             break;
         }
-        case INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN: {
+        case INSTRUCTION_KIND_RETURN: {
             class TerminatorInsn *terminatorInsn = new TerminatorInsn();
 	    terminatorInsn->setInstKind((InstructionKind)insnkind);
             basicBlock->setTerminatorInsn(terminatorInsn);
