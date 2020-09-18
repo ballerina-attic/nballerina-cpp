@@ -39,43 +39,43 @@ enum VarKind {
 	LOCAL_VAR_KIND,
 	TEMP_VAR_KIND, 
 	RETURN_VAR_KIND, 
-	ARG_VAR_KIND, 
 	GLOBAL_VAR_KIND, 
 	SELF_VAR_KIND, 
-	CONSTANT_VAR_KIND
+	CONSTANT_VAR_KIND,
+	ARG_VAR_KIND
 };
 
 enum InstructionKind {
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_GOTO = 1,
-        BINARY_SUB,
-        BINARY_MUL,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN,
-        BINARY_MOD,
-        BINARY_EQUAL,
-        BINARY_NOT_EQUAL,
-        BINARY_GREATER_THAN,
-        BINARY_GREATER_EQUAL,
-        BINARY_LESS_THAN,
-        BINARY_LESS_EQUAL,
-        BINARY_REF_EQUAL,
-        BINARY_REF_NOT_EQUAL,
-        BINARY_CLOSED_RANGE,
-        BINARY_HALF_OPEN_RANGE,
-        BINARY_ANNOT_ACCESS,
-        BINARY_BITWISE_AND,
-        BINARY_BITWISE_OR,
-        BINARY_BITWISE_XOR,
-        BINARY_BITWISE_LEFT_SHIFT,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_CONST_LOAD,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_STRUCTURE,
-        BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT,
-        INS_KIND_MOVE, 
-        INS_KIND_CONST_LOAD,
-        INS_KIND_NEW_MAP, 
-        INS_KIND_NEW_INST,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_TYPEDESC = 52,
-        BINARY_ADD,
-        BINARY_DIV
+        INSTRUCTION_KIND_GOTO = 1,
+        INSTRUCTION_KIND_BINARY_SUB,
+        INSTRUCTION_KIND_BINARY_MUL,
+        INSTRUCTION_KIND_RETURN,
+        INSTRUCTION_KIND_BINARY_MOD,
+        INSTRUCTION_KIND_BINARY_EQUAL,
+        INSTRUCTION_KIND_BINARY_NOT_EQUAL,
+        INSTRUCTION_KIND_BINARY_GREATER_THAN,
+        INSTRUCTION_KIND_BINARY_GREATER_EQUAL,
+        INSTRUCTION_KIND_BINARY_LESS_THAN,
+        INSTRUCTION_KIND_BINARY_LESS_EQUAL,
+        INSTRUCTION_KIND_BINARY_REF_EQUAL,
+        INSTRUCTION_KIND_BINARY_REF_NOT_EQUAL,
+        INSTRUCTION_KIND_BINARY_CLOSED_RANGE,
+        INSTRUCTION_KIND_BINARY_HALF_OPEN_RANGE,
+        INSTRUCTION_KIND_BINARY_ANNOT_ACCESS,
+        INSTRUCTION_KIND_BINARY_BITWISE_AND,
+        INSTRUCTION_KIND_BINARY_BITWISE_OR,
+        INSTRUCTION_KIND_BINARY_BITWISE_XOR,
+        INSTRUCTION_KIND_BINARY_BITWISE_LEFT_SHIFT,
+        INSTRUCTION_KIND_CONST_LOAD,
+        INSTRUCTION_KIND_NEW_STRUCTURE,
+        INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT,
+        INSTRUCTION_KIND_MOVE,
+        INSTRUCTION_KIND_NEW_MAP, 
+        INSTRUCTION_KIND_NEW_TYPEDESC = 52,
+        INSTRUCTION_KIND_BINARY_ADD = 61,
+        INSTRUCTION_KIND_BINARY_DIV,
+	INSTRUCTION_KIND_UNARY_NOT,
+        INSTRUCTION_KIND_UNARY_NEG
 }; // we have to add more from bir-model.bal file
 
 enum type_tag_enum_t {
@@ -428,6 +428,21 @@ class BinaryOpInsn : public NonTerminatorInsn {
     Operand * getRhsOp2()            { return rhsOp2; }
     void      setRhsOp1(Operand *op) { rhsOp1 = op; }
     void      setRhsOp2(Operand *op) { rhsOp2 = op; }
+
+    void translate(LLVMModuleRef &modRef);
+};
+
+class UnaryOpInsn : public NonTerminatorInsn {
+  private:
+    Operand *rhsOp;
+
+  public:
+    UnaryOpInsn();
+    UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
+    ~UnaryOpInsn();
+    Operand * getRhsOp()           { return rhsOp; }
+
+    void      setRhsOp(Operand *op) { rhsOp = op; }
 
     void translate(LLVMModuleRef &modRef);
 };

@@ -4,15 +4,85 @@
 #include<string>
 #include<fstream>
 #include<vector>
+#include <unistd.h>
+
 using namespace std;
 
-int main()
+int main(int argc, char** argv)
 {
-  class BIRReader *Reader = new BIRReader("main-bir-dump");
+  int opt;
+  string inFileName = "";
+  string outFileName = "";
+  string exeName = "";
+  if (argc <= 1 ) {
+     printf("Need input file name \n");
+     exit(0);
+  }
+  // put ':' in the starting of the 
+  // string so that program can  
+  //distinguish between '?' and ':'  
+  while((opt = getopt(argc, argv, "co:")) != -1)
+  {
+    switch(opt)
+    {
+      case 'c':
+	//exeName = optarg;
+        break;
+      case 'o':
+	outFileName = optarg;
+        break;
+      case ':':
+        break;
+      case '?':
+        break;
+    }
+  }
+  // optind is for the extra arguments 
+  // which are not parsed 
+  for(; optind < argc; optind++){
+    inFileName = argv[optind];
+  }
+  // if output file name is empty from command line options.
+  if (outFileName == "") {
+    for (unsigned int i = 0; i < inFileName.length(); i++) {
+      char tmpstr = inFileName[i];
+      if (tmpstr == '.')
+        break;
+      outFileName = outFileName + inFileName[i];
+    }
+  outFileName = outFileName + ".ll";
+  }
+#if 0
+  string inFileName = "";
+  string outFileName = "";
+  string exeFileName = "";
+  if( argv[1] != "") {
+    inFileName = argv[1];
+  }
+  for (int i=0; i < argc; i++) {
+    string argcArg = argv[i];
+    if (argcArg == "-o") {
+      outFileName = argv[i+1];
+    }
+    if (argv[i] == "-c") {
+      exeFileName = argv[i+1];
+    }
+  }
+  if (outFileName == "") {
+    for (unsigned int i = 0; i < inFileName.length(); i++) {
+      char tmpstr = inFileName[i];
+      if (tmpstr == '.')
+	break;
+      outFileName = outFileName + inFileName[i];
+     }
+     outFileName = outFileName + ".ll";
+  }
+#endif
+  class BIRReader *Reader = new BIRReader(inFileName);
   class BIRPackage *BIRpackage = new BIRPackage ();
   BIRpackage = Reader->deserialize(BIRpackage);
   char* Message;
-  bool dumpllvm = true; //temp value
+  bool dumpllvm = true; //temp valuea
   string ModuleName = BIRpackage->getOrgName() + BIRpackage->getPackageName()
 			 + BIRpackage->getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
@@ -24,8 +94,7 @@ int main()
   
   if(dumpllvm)
   {
-    string targetFineName = "foo.ll";
-    if (LLVMPrintModuleToFile(mod, targetFineName.c_str(), &Message))
+    if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &Message))
     {
       std::cerr << Message;
     }  

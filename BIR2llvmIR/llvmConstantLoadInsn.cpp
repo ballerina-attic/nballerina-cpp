@@ -1,6 +1,7 @@
 #include "BIR.h"
 
 ConstantLoadInsn::ConstantLoadInsn () {
+  value = 0;
 }
 
 ConstantLoadInsn::ConstantLoadInsn (Location *pos, InstructionKind kind,
