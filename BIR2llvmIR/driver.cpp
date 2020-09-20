@@ -81,6 +81,7 @@ int main(int argc, char** argv)
   class BIRReader *Reader = new BIRReader(inFileName);
   class BIRPackage *BIRpackage = new BIRPackage ();
   BIRpackage = Reader->deserialize(BIRpackage);
+  cout << "\nRead successfull\n";
   char* Message;
   bool dumpllvm = true; //temp valuea
   string ModuleName = BIRpackage->getOrgName() + BIRpackage->getPackageName()

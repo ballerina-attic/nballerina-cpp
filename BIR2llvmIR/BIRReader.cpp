@@ -92,6 +92,14 @@ std::string get_string_cp (int32_t index, constant_pool_set_t *m_constant_pool)
         return string_cp->value();
 }
 
+// Search string from the constant pool based on index
+int32_t get_int_cp (int32_t index, constant_pool_set_t *m_constant_pool)
+{
+        constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
+        int_cp_info_t *int_cp = static_cast<int_cp_info_t *> (entry_pointer);
+        return int_cp->value();
+}
+
 // Search type from the constant pool based on index
 TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool)
 {
@@ -112,6 +120,28 @@ TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool)
           typeDecl->setTypeTag(TYPE_TAG_ENUM_TYPE_TAG_INT);
         typeDecl->setFlags(shape_cp->type_flag());
     return typeDecl;
+}
+
+type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool)
+{
+    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
+    shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
+    return shape_cp->type_tag();
+}
+
+VarDecl* read_variable (VarDecl *varDecl, constant_pool_set_t *m_constant_pool)
+{
+      uint8_t ignoredVar = read_u1();
+      varDecl->setIgnore((bool)ignoredVar);
+
+      uint8_t kind = read_u1();
+      varDecl->setVarKind((VarKind)kind);
+
+      uint8_t scope = read_u1();
+      varDecl->setVarScope((VarScope)scope);
+
+      uint32_t varDclNameCpIndex = read_s4be();
+      varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
 }
 
 void read_typedesc ()
@@ -187,6 +217,15 @@ void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_cons
       uint32_t varDclNameCpIndex = read_s4be();
       lhsOperand->getVarDecl()->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
 
+      type_tag_enum_t m_type_tag = get_type_tag(typeCpIndex1, m_constant_pool);
+      if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_INT)
+      {
+        uint32_t valueCpIndex = read_s4be();
+        constantloadInsn->setValue(get_int_cp(valueCpIndex, m_constant_pool));
+        //get int from int_cp_info_t pool entry and set it to  const obj value
+        //Be careful, above one will change NULL values to INT also
+      }
+
       constantloadInsn->setLhsOperand(lhsOperand);
 }
 
@@ -194,6 +233,31 @@ uint32_t read_goto ()
 {
     uint32_t targetBBNameCpIndex = read_s4be();
     return targetBBNameCpIndex;
+}
+
+BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_constant_pool)
+{
+    class VarDecl *varDecl1 = new VarDecl();
+    varDecl1 = read_variable (varDecl1, m_constant_pool);
+
+    class VarDecl *varDecl2 = new VarDecl();
+    varDecl2 = read_variable (varDecl2, m_constant_pool);
+
+    class VarDecl *varDecl3 = new VarDecl();
+    varDecl3 = read_variable (varDecl3, m_constant_pool);
+
+    Operand  *rhsOp1 = new Operand();
+    rhsOp1->setVarDecl(varDecl1);
+
+    Operand  *rhsOp2 = new Operand();
+    rhsOp2->setVarDecl(varDecl2);
+
+    Operand  *lhsOp = new Operand();
+    lhsOp->setVarDecl(varDecl3);
+
+    binaryOpInsn->setRhsOp1(rhsOp1);
+    binaryOpInsn->setRhsOp2(rhsOp2);
+    binaryOpInsn->setLhsOperand(lhsOp);
 }
 
 // Search basic block based on the basic block ID
@@ -240,7 +304,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             constantloadInsn->setInstKind((InstructionKind)insnkind);
 
             read_const(constantloadInsn, m_constant_pool);
-            constantloadInsn->setValue(0);
+            //constantloadInsn->setValue(0);
             nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (constantloadInsn));
             break;
         }
@@ -262,6 +326,14 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             nonTerminatorInsn = NULL;
             break;
         }
+        case INSTRUCTION_KIND_ADD: {
+            class BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
+            binaryOpInsn->setInstKind((InstructionKind)insnkind);
+	    binaryOpInsn = read_binaryOp(binaryOpInsn, m_constant_pool);
+            nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (binaryOpInsn));
+            break;
+        }
+
         default:
             break;
       }
@@ -406,11 +478,19 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
       varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
       localvars.push_back(varDecl);
 
+      if (kind == 1)
+      {
+	uint32_t metaVarNameCpIndex = read_s4be();
+	uint32_t endBbIdCpIndex = read_s4be();
+	uint32_t startBbIdCpIndex = read_s4be();
+	uint32_t instructionOffset = read_s4be();
+      }
+
   }
   BIRfunction->setLocalVars(localvars);
 
-  uint8_t hasDefaultParamBB __attribute__((unused));
-  hasDefaultParamBB = read_u1();
+  //uint8_t hasDefaultParamBB __attribute__((unused));
+  //hasDefaultParamBB = read_u1();
 
   uint32_t BBCount = read_s4be();
 
@@ -502,6 +582,10 @@ void package_cp_info_t::_read()
     m_version_index = read_s4be();
 }
 
+void int_cp_info_t::_read() {
+    m_value = read_s8be();
+}
+
 void constant_pool_entry_t::_read() 
 {
     m_tag = static_cast<constant_pool_entry_t::tag_enum_t>(read_u1());
@@ -522,6 +606,12 @@ void constant_pool_entry_t::_read()
         case TAG_ENUM_CP_ENTRY_STRING: {
             n_cp_info = false;
             string_cp_info_t *m_cp_info = static_cast<string_cp_info_t *> (this);
+            m_cp_info->_read();
+            break;
+        }
+        case TAG_ENUM_CP_ENTRY_INTEGER: {
+            n_cp_info = false;
+            int_cp_info_t *m_cp_info = static_cast<int_cp_info_t *> (this);
             m_cp_info->_read();
             break;
         }
@@ -555,6 +645,13 @@ void constant_pool_set_t::_read()
         }
         case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_STRING: {
             string_cp_info_t *m_cp_info = new string_cp_info_t();
+            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
+            pointer->_read();
+            m_constant_pool_entries->push_back(pointer);
+            break;
+        }
+        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_INTEGER: {
+            int_cp_info_t *m_cp_info = new int_cp_info_t();
             constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
             pointer->_read();
             m_constant_pool_entries->push_back(pointer);
