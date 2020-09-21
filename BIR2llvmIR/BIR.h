@@ -47,11 +47,7 @@ enum VarKind {
 
 enum InstructionKind {
         INSTRUCTION_KIND_GOTO = 1,
-        INSTRUCTION_KIND_BINARY_SUB,
-        INSTRUCTION_KIND_BINARY_MUL,
-        INSTRUCTION_KIND_RETURN,
-        INSTRUCTION_KIND_BINARY_MOD,
-        INSTRUCTION_KIND_BINARY_EQUAL,
+        INSTRUCTION_KIND_RETURN = 4,
         INSTRUCTION_KIND_BINARY_NOT_EQUAL,
         INSTRUCTION_KIND_BINARY_GREATER_THAN,
         INSTRUCTION_KIND_BINARY_GREATER_EQUAL,
@@ -64,17 +60,22 @@ enum InstructionKind {
         INSTRUCTION_KIND_BINARY_ANNOT_ACCESS,
         INSTRUCTION_KIND_BINARY_BITWISE_AND,
         INSTRUCTION_KIND_BINARY_BITWISE_OR,
-        INSTRUCTION_KIND_BINARY_BITWISE_XOR,
         INSTRUCTION_KIND_BINARY_BITWISE_LEFT_SHIFT,
-        INSTRUCTION_KIND_CONST_LOAD,
+        INSTRUCTION_KIND_CONST_LOAD = 21,
         INSTRUCTION_KIND_NEW_STRUCTURE,
-        INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT,
         INSTRUCTION_KIND_MOVE,
         INSTRUCTION_KIND_NEW_MAP, 
         INSTRUCTION_KIND_NEW_TYPEDESC = 52,
-        INSTRUCTION_KIND_ADD = 61,
-        INSTRUCTION_KIND_BINARY_ADD,
-        INSTRUCTION_KIND_BINARY_DIV
+        INSTRUCTION_KIND_BINARY_ADD = 61,
+        INSTRUCTION_KIND_BINARY_SUB,
+        INSTRUCTION_KIND_BINARY_MUL,
+        INSTRUCTION_KIND_BINARY_DIV,
+        INSTRUCTION_KIND_BINARY_MOD,
+        INSTRUCTION_KIND_BINARY_EQUAL,
+	INSTRUCTION_KIND_UNARY_NOT = 81,
+        INSTRUCTION_KIND_UNARY_NEG,
+        INSTRUCTION_KIND_BINARY_BITWISE_XOR = 85,
+        INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
 }; // we have to add more from bir-model.bal file
 
 enum type_tag_enum_t {
@@ -427,6 +428,21 @@ class BinaryOpInsn : public NonTerminatorInsn {
     Operand * getRhsOp2()            { return rhsOp2; }
     void      setRhsOp1(Operand *op) { rhsOp1 = op; }
     void      setRhsOp2(Operand *op) { rhsOp2 = op; }
+
+    void translate(LLVMModuleRef &modRef);
+};
+
+class UnaryOpInsn : public NonTerminatorInsn {
+  private:
+    Operand *rhsOp;
+
+  public:
+    UnaryOpInsn();
+    UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
+    ~UnaryOpInsn();
+    Operand * getRhsOp()           { return rhsOp; }
+
+    void      setRhsOp(Operand *op) { rhsOp = op; }
 
     void translate(LLVMModuleRef &modRef);
 };

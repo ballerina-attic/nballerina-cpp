@@ -129,8 +129,9 @@ type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool
     return shape_cp->type_tag();
 }
 
-VarDecl* read_variable (VarDecl *varDecl, constant_pool_set_t *m_constant_pool)
+VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
 {
+      class VarDecl *varDecl = new VarDecl();
       uint8_t ignoredVar = read_u1();
       varDecl->setIgnore((bool)ignoredVar);
 
@@ -142,6 +143,7 @@ VarDecl* read_variable (VarDecl *varDecl, constant_pool_set_t *m_constant_pool)
 
       uint32_t varDclNameCpIndex = read_s4be();
       varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+      return varDecl;
 }
 
 void read_typedesc ()
@@ -225,6 +227,13 @@ void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_cons
         //get int from int_cp_info_t pool entry and set it to  const obj value
         //Be careful, above one will change NULL values to INT also
       }
+      if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN)
+      {
+        uint8_t valueCpIndex = read_u1();
+        constantloadInsn->setValue(valueCpIndex);
+        //get int from int_cp_info_t pool entry and set it to  const obj value
+        //Be careful, above one will change NULL values to INT also
+      }
 
       constantloadInsn->setLhsOperand(lhsOperand);
 }
@@ -235,16 +244,30 @@ uint32_t read_goto ()
     return targetBBNameCpIndex;
 }
 
+UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_constant_pool)
+{
+    VarDecl *varDecl1 = read_variable (m_constant_pool);
+
+    VarDecl *varDecl2 = read_variable (m_constant_pool);
+
+    Operand  *rhsOp = new Operand();
+    rhsOp->setVarDecl(varDecl1);
+
+    Operand  *lhsOp = new Operand();
+    lhsOp->setVarDecl(varDecl2);
+
+    unaryOpInsn->setRhsOp(rhsOp);
+    unaryOpInsn->setLhsOperand(lhsOp);
+
+}
+
 BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_constant_pool)
 {
-    class VarDecl *varDecl1 = new VarDecl();
-    varDecl1 = read_variable (varDecl1, m_constant_pool);
+    VarDecl *varDecl1 = read_variable (m_constant_pool);
 
-    class VarDecl *varDecl2 = new VarDecl();
-    varDecl2 = read_variable (varDecl2, m_constant_pool);
+    VarDecl *varDecl2 = read_variable (m_constant_pool);
 
-    class VarDecl *varDecl3 = new VarDecl();
-    varDecl3 = read_variable (varDecl3, m_constant_pool);
+    VarDecl *varDecl3 = read_variable (m_constant_pool);
 
     Operand  *rhsOp1 = new Operand();
     rhsOp1->setVarDecl(varDecl1);
@@ -326,11 +349,29 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             nonTerminatorInsn = NULL;
             break;
         }
-        case INSTRUCTION_KIND_ADD: {
+        case INSTRUCTION_KIND_BINARY_ADD:
+        case INSTRUCTION_KIND_BINARY_SUB:
+        case INSTRUCTION_KIND_BINARY_MUL:
+        case INSTRUCTION_KIND_BINARY_DIV:
+        case INSTRUCTION_KIND_BINARY_EQUAL:
+        case INSTRUCTION_KIND_BINARY_NOT_EQUAL:
+        case INSTRUCTION_KIND_BINARY_GREATER_THAN:
+        case INSTRUCTION_KIND_BINARY_GREATER_EQUAL:
+        case INSTRUCTION_KIND_BINARY_LESS_THAN:
+        case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
+	case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
+        case INSTRUCTION_KIND_BINARY_MOD: {
             class BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
             binaryOpInsn->setInstKind((InstructionKind)insnkind);
 	    binaryOpInsn = read_binaryOp(binaryOpInsn, m_constant_pool);
             nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (binaryOpInsn));
+            break;
+        }
+        case INSTRUCTION_KIND_UNARY_NOT: {
+            class UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
+            unaryOpInsn->setInstKind((InstructionKind)insnkind);
+            unaryOpInsn = read_unaryOp(unaryOpInsn, m_constant_pool);
+            nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (unaryOpInsn));
             break;
         }
 

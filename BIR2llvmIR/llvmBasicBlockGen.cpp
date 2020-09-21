@@ -15,6 +15,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
   for(unsigned int i=0; i < instructions.size(); i++)
   {
     NonTerminatorInsn *insn = instructions[i];
+
     insn->setFunction(BFunc);
     switch (insn->getInstKind()) {
       case INSTRUCTION_KIND_MOVE:
@@ -28,6 +29,12 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
       case INSTRUCTION_KIND_BINARY_MUL:
       case INSTRUCTION_KIND_BINARY_DIV:
       case INSTRUCTION_KIND_BINARY_EQUAL:
+      case INSTRUCTION_KIND_BINARY_MOD:
+      case INSTRUCTION_KIND_BINARY_GREATER_THAN:
+      case INSTRUCTION_KIND_BINARY_GREATER_EQUAL:
+      case INSTRUCTION_KIND_BINARY_LESS_THAN:
+      case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
+      case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
       {
         BinaryOpInsn *binOpInsn = static_cast<BinaryOpInsn*>(insn);
         binOpInsn->translate(modRef);
@@ -39,6 +46,13 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
         ConstantLoadInsn *constL = static_cast<ConstantLoadInsn*>(insn);
         constL->translate(modRef);
         break;
+      }
+      case INSTRUCTION_KIND_UNARY_NEG:
+      case INSTRUCTION_KIND_UNARY_NOT:
+      {
+	UnaryOpInsn *unaryOpIn = static_cast<UnaryOpInsn*>(insn);
+	unaryOpIn->translate(modRef);
+	break;
       }
       default:
         break;
