@@ -29,11 +29,13 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
       case INSTRUCTION_KIND_BINARY_MUL:
       case INSTRUCTION_KIND_BINARY_DIV:
       case INSTRUCTION_KIND_BINARY_EQUAL:
+      case INSTRUCTION_KIND_BINARY_NOT_EQUAL:
       case INSTRUCTION_KIND_BINARY_MOD:
       case INSTRUCTION_KIND_BINARY_GREATER_THAN:
       case INSTRUCTION_KIND_BINARY_GREATER_EQUAL:
       case INSTRUCTION_KIND_BINARY_LESS_THAN:
       case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
+      case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
       {
         BinaryOpInsn *binOpInsn = static_cast<BinaryOpInsn*>(insn);
         binOpInsn->translate(modRef);

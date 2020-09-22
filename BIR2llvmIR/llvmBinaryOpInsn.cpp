@@ -98,6 +98,11 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
                                         rhsOp2ref, lhstmpName.c_str());
 	break;
       }
+      case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
+      {
+        ifReturn = LLVMBuildXor(builder, rhsOp1ref, rhsOp2ref,
+                                        lhstmpName.c_str());
+      }
       default:
         break;
     }

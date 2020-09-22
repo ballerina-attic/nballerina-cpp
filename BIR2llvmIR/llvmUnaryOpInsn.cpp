@@ -1,5 +1,8 @@
 #include "BIR.h"
 
+UnaryOpInsn::UnaryOpInsn() {
+}
+
 UnaryOpInsn::UnaryOpInsn (Location *pos, InstructionKind kind,
 				Operand *lOp, Operand *rOp):
 		NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {
