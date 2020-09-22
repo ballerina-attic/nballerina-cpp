@@ -52,32 +52,7 @@ int main(int argc, char** argv)
     }
   outFileName = outFileName + ".ll";
   }
-#if 0
-  string inFileName = "";
-  string outFileName = "";
-  string exeFileName = "";
-  if( argv[1] != "") {
-    inFileName = argv[1];
-  }
-  for (int i=0; i < argc; i++) {
-    string argcArg = argv[i];
-    if (argcArg == "-o") {
-      outFileName = argv[i+1];
-    }
-    if (argv[i] == "-c") {
-      exeFileName = argv[i+1];
-    }
-  }
-  if (outFileName == "") {
-    for (unsigned int i = 0; i < inFileName.length(); i++) {
-      char tmpstr = inFileName[i];
-      if (tmpstr == '.')
-	break;
-      outFileName = outFileName + inFileName[i];
-     }
-     outFileName = outFileName + ".ll";
-  }
-#endif
+
   class BIRReader *Reader = new BIRReader(inFileName);
   class BIRPackage *BIRpackage = new BIRPackage ();
   BIRpackage = Reader->deserialize(BIRpackage);
