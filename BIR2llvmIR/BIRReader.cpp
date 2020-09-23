@@ -247,7 +247,6 @@ uint32_t read_goto ()
 UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_constant_pool)
 {
     VarDecl *varDecl1 = read_variable (m_constant_pool);
-
     VarDecl *varDecl2 = read_variable (m_constant_pool);
 
     Operand  *rhsOp = new Operand();
@@ -264,9 +263,7 @@ UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_const
 BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_constant_pool)
 {
     VarDecl *varDecl1 = read_variable (m_constant_pool);
-
     VarDecl *varDecl2 = read_variable (m_constant_pool);
-
     VarDecl *varDecl3 = read_variable (m_constant_pool);
 
     Operand  *rhsOp1 = new Operand();
@@ -282,6 +279,45 @@ BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_c
     binaryOpInsn->setRhsOp2(rhsOp2);
     binaryOpInsn->setLhsOperand(lhsOp);
 }
+
+
+ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_pool_set_t *m_constant_pool)
+{
+    VarDecl *varDecl = read_variable (m_constant_pool);
+    Operand  *lhsOp = new Operand();
+    lhsOp->setVarDecl(varDecl);
+    conditionBrInsn->setLhsOperand(lhsOp);
+    uint32_t trueBbIdNameCpIndex = read_s4be();
+    uint32_t falseBbIdNameCpIndex = read_s4be();
+
+    class BasicBlockT *trueDummybasicBlock = new BasicBlockT(get_string_cp(trueBbIdNameCpIndex, m_constant_pool));
+    conditionBrInsn->setifThenBB(trueDummybasicBlock);
+
+    class BasicBlockT *falseDummybasicBlock = new BasicBlockT(get_string_cp(falseBbIdNameCpIndex, m_constant_pool));
+    conditionBrInsn->setelseBB(falseDummybasicBlock);
+
+    conditionBrInsn->setPatchStatus(true);
+    conditionBrInsn->setNextBB(NULL);
+//It required patching, in the case: set patch status as true
+//when you will search if it is terminator insn and kind branch
+//then set true and false bb respectively
+}
+
+MoveInsn* read_move(MoveInsn *moveInsn, constant_pool_set_t *m_constant_pool)
+{
+    VarDecl *varDecl1 = read_variable (m_constant_pool);
+    VarDecl *varDecl2 = read_variable (m_constant_pool);
+
+    Operand  *rhsOp = new Operand();
+    rhsOp->setVarDecl(varDecl1);
+
+    Operand  *lhsOp = new Operand();
+    lhsOp->setVarDecl(varDecl2);
+
+    moveInsn->setRhsOp(rhsOp);
+    moveInsn->setLhsOperand(lhsOp);
+}
+
 
 // Search basic block based on the basic block ID
 BasicBlockT* search_bb_by_name(vector<BasicBlockT *>   basicBlocks, std::string name)
@@ -374,7 +410,21 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (unaryOpInsn));
             break;
         }
-
+	case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
+            class ConditionBrInsn *conditionBrInsn = new ConditionBrInsn();
+            conditionBrInsn->setInstKind((InstructionKind)insnkind);
+            conditionBrInsn = read_conditionalBr(conditionBrInsn, m_constant_pool);
+	    basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (conditionBrInsn));
+            nonTerminatorInsn = NULL;
+            break;
+        }
+        case INSTRUCTION_KIND_MOVE: {
+            class MoveInsn *moveInsn = new MoveInsn();
+            moveInsn->setInstKind((InstructionKind)insnkind);
+            moveInsn = read_move(moveInsn, m_constant_pool);
+            nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (moveInsn));
+            break;
+        }
         default:
             break;
       }
@@ -409,10 +459,28 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
       TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
       if (terminator->getPatchStatus())
       {
-          BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
-          BasicBlockT *danglingBB = terminator->getNextBB();
-          delete danglingBB;
-          terminator->setNextBB(destBB);
+      //switch (terminator->getInstKind())
+      //case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
+	  if (terminator->getNextBB() == NULL)
+	  {
+              ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *> (terminator));
+              BasicBlockT *trueBB = search_bb_by_name(basicBlocks, Terminator->getifThenBB()->getId());
+              BasicBlockT *falseBB = search_bb_by_name(basicBlocks, Terminator->getelseBB()->getId());
+              BasicBlockT *danglingTrueBB = Terminator->getifThenBB();
+              BasicBlockT *danglingFalseBB = Terminator->getelseBB();
+              delete danglingTrueBB;
+              delete danglingFalseBB;
+              Terminator->setifThenBB(trueBB);
+              Terminator->setelseBB(falseBB);
+	  }
+	//case INSTRUCTION_KIND_GOTO :
+	  else
+	  {
+              BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
+              BasicBlockT *danglingBB = terminator->getNextBB();
+              delete danglingBB;
+              terminator->setNextBB(destBB);
+          }
       }
   }
 }

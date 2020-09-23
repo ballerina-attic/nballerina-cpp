@@ -47,8 +47,8 @@ enum VarKind {
 
 enum InstructionKind {
         INSTRUCTION_KIND_GOTO = 1,
+        INSTRUCTION_KIND_CONDITIONAL_BRANCH = 3,
         INSTRUCTION_KIND_RETURN = 4,
-        INSTRUCTION_KIND_BINARY_NOT_EQUAL,
         INSTRUCTION_KIND_BINARY_GREATER_THAN,
         INSTRUCTION_KIND_BINARY_GREATER_EQUAL,
         INSTRUCTION_KIND_BINARY_LESS_THAN,
@@ -61,9 +61,9 @@ enum InstructionKind {
         INSTRUCTION_KIND_BINARY_BITWISE_AND,
         INSTRUCTION_KIND_BINARY_BITWISE_OR,
         INSTRUCTION_KIND_BINARY_BITWISE_LEFT_SHIFT,
+        INSTRUCTION_KIND_MOVE = 20,
         INSTRUCTION_KIND_CONST_LOAD = 21,
         INSTRUCTION_KIND_NEW_STRUCTURE,
-        INSTRUCTION_KIND_MOVE,
         INSTRUCTION_KIND_NEW_MAP, 
         INSTRUCTION_KIND_NEW_TYPEDESC = 52,
         INSTRUCTION_KIND_BINARY_ADD = 61,
@@ -71,8 +71,9 @@ enum InstructionKind {
         INSTRUCTION_KIND_BINARY_MUL,
         INSTRUCTION_KIND_BINARY_DIV,
         INSTRUCTION_KIND_BINARY_MOD,
-        INSTRUCTION_KIND_BINARY_EQUAL,
-	INSTRUCTION_KIND_UNARY_NOT = 81,
+        INSTRUCTION_KIND_BINARY_EQUAL = 66,
+        INSTRUCTION_KIND_BINARY_NOT_EQUAL,
+        INSTRUCTION_KIND_UNARY_NOT = 81,
         INSTRUCTION_KIND_UNARY_NEG,
         INSTRUCTION_KIND_BINARY_BITWISE_XOR = 85,
         INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
@@ -151,6 +152,9 @@ class Location {
     Location();
     Location(string name, int line, int col);
     ~Location();
+    void setfileName(string fname)   { fileName = fname; }
+    void setlineNum (int lnum)       { lineNum = lnum; }
+    void setcolumnNum (int cnum)     { columnNum = cnum; }
 
     string getFileName();
     int    getLineNum();
@@ -331,10 +335,10 @@ class Operand: public BIRNode {
 
 class AbstractInsn: public BIRNode {
   private:
-    InstructionKind   kind;
+    InstructionKind  kind;
     Operand          *lhsOp;
-    BIRFunction       *BFunc;
-
+    BIRFunction      *BFunc;
+    BasicBlockT      *currentBB;
   public:
     AbstractInsn();
     AbstractInsn(Location *pos, InstructionKind kind, Operand *lOp);
@@ -342,13 +346,14 @@ class AbstractInsn: public BIRNode {
 
     InstructionKind getInstKind()   { return kind; }
     Operand *       getLhsOperand() { return lhsOp; }
-
-    void          setFunction(BIRFunction *func) { BFunc = func; }
     BIRFunction * getFunction()                  { return BFunc; }
-
+    BasicBlockT * getcurrentBB()                 { return currentBB; }
+    
+    void setFunction(BIRFunction *func) { BFunc = func; }
     void setInstKind(InstructionKind newKind)   { kind = newKind; }
     void setLhsOperand(Operand *lOp)            { lhsOp = lOp; }
-
+    void setcurrentBB (BasicBlockT *currB)      { currentBB = currB; }
+    
     void translate(LLVMModuleRef &modRef);
 };
 
@@ -374,10 +379,10 @@ class TerminatorInsn: public AbstractInsn {
     ~TerminatorInsn();
 
     BasicBlockT * getNextBB()           { return thenBB; }
-    bool getPatchStatus()                      { return patchRequire; }
+    bool getPatchStatus()               { return patchRequire; }
 
-    void setNextBB(BasicBlockT *block)  { thenBB = block; }
-    void setPatchStatus(bool patchrequire)     { patchRequire = patchrequire; }
+    void setNextBB(BasicBlockT *block)      { thenBB = block; }
+    void setPatchStatus(bool patchrequire)  { patchRequire = patchrequire; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -408,7 +413,7 @@ class ConstantLoadInsn : public NonTerminatorInsn {
     ~ConstantLoadInsn();
 
     unsigned long long getValue()                       { return value; }
-    void               setValue(unsigned long long val) { value = val; }
+    void   setValue(unsigned long long val) { value = val; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -443,6 +448,25 @@ class UnaryOpInsn : public NonTerminatorInsn {
     Operand * getRhsOp()           { return rhsOp; }
 
     void      setRhsOp(Operand *op) { rhsOp = op; }
+
+    void translate(LLVMModuleRef &modRef);
+};
+
+class ConditionBrInsn : public TerminatorInsn {
+  private:
+    BasicBlockT  *ifThenBB;
+    BasicBlockT  *elseBB;
+
+  public:
+    ConditionBrInsn();
+    ConditionBrInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                        BasicBlockT  *nextB);
+    ~ConditionBrInsn();
+    void setifThenBB (BasicBlockT *ifBB)  { ifThenBB = ifBB; }
+    void setelseBB   (BasicBlockT *elseB) { elseBB = elseB; }
+
+    BasicBlockT* getifThenBB() { return ifThenBB; }
+    BasicBlockT* getelseBB()   { return elseBB; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -483,6 +507,7 @@ class BasicBlockT: public BIRNode {
     BIRFunction                 *BFunc;
     BasicBlockT                 *nextBB;
     LLVMBasicBlockRef            bbRefObj;
+    map <string, LLVMValueRef>   branchComplist;
 
   public:
     BasicBlockT();
@@ -490,6 +515,7 @@ class BasicBlockT: public BIRNode {
     ~BasicBlockT();
     BasicBlockT(Location *pos, string id);
 
+    map <string, LLVMValueRef>  getbranchComplist() { return branchComplist; }
     string           getId()             { return id; }
     TerminatorInsn * getTerminatorInsn() { return terminator; }
     LLVMBuilderRef   getLLVMBuilderRef() { return BRef; }
@@ -498,6 +524,7 @@ class BasicBlockT: public BIRNode {
     vector<NonTerminatorInsn *> getNonTerminatorInsn()       { return instructions; }
     NonTerminatorInsn *         getInsn(int i) { return instructions[i]; }
     LLVMBasicBlockRef getLLVMBBRef()     { return bbRefObj; }
+    LLVMValueRef getValueRefBasedOnName (string lhsName);
 
     void setId(string newId)                        { id = newId; }
     void setTerminatorInsn(TerminatorInsn *insn)    { terminator = insn; }
@@ -508,6 +535,10 @@ class BasicBlockT: public BIRNode {
     void addNonTermInsn(NonTerminatorInsn *insn)    { 
 			instructions.push_back(insn); }
 
+    void setbranchComplist (map <string, LLVMValueRef> brCompl) {
+  				branchComplist = brCompl; }
+    void addNewbranchComp(string name, LLVMValueRef compRef)
+             { branchComplist.insert(std::pair<string, LLVMValueRef >(name, compRef)); }
     void translate(LLVMModuleRef &modRef);
 };
 

@@ -13,14 +13,15 @@ BinaryOpInsn::~BinaryOpInsn() {
 
 void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
-  string lhstmpName;
+  string lhsName, lhstmpName;
   LLVMValueRef lhsRef;
   LLVMValueRef rhsOp1ref;
   LLVMValueRef rhsOp2ref;
   LLVMValueRef ifReturn;
   if (getFunction() && getLhsOperand() && getLhsOperand()->getVarDecl()) {
     builder = getFunction()->getLLVMBuilder();
-    lhstmpName = getLhsOperand()->getVarDecl()->getVarName() + "_temp" ;
+    lhsName = getLhsOperand()->getVarDecl()->getVarName();
+    lhstmpName = lhsName + "_temp" ;
     lhsRef = getFunction()->getLocalVarRefUsingId(
                                 getLhsOperand()->getVarDecl()->getVarName());
   }
@@ -66,37 +67,60 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntUGT, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
+        if (ifReturn && getcurrentBB()) {
+	  getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+	}  
 	break;
       }
       case INSTRUCTION_KIND_BINARY_GREATER_EQUAL:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntUGE, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
+        if (ifReturn && getcurrentBB()) {
+          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+	}
 	break;
       }
       case INSTRUCTION_KIND_BINARY_LESS_THAN:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntULT, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
+        if (ifReturn && getcurrentBB()) {
+          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+	}
 	break;
       }
       case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntULE, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
+        if (ifReturn && getcurrentBB()) {
+          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+	}
 	break;
       }
       case INSTRUCTION_KIND_BINARY_EQUAL:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntEQ, rhsOp1ref,
                                         rhsOp2ref, lhstmpName.c_str());
+        if (ifReturn && getcurrentBB()) {
+          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+	}
 	break;
       }
       case INSTRUCTION_KIND_BINARY_NOT_EQUAL:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntNE, rhsOp1ref,
                                         rhsOp2ref, lhstmpName.c_str());
+        if (ifReturn && getcurrentBB()) {
+          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+	}
 	break;
+      }
+      case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
+      {
+        ifReturn = LLVMBuildXor(builder, rhsOp1ref, rhsOp2ref,
+                                        lhstmpName.c_str());
       }
       default:
         break;

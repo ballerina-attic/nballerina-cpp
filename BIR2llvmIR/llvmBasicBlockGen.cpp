@@ -8,6 +8,18 @@ BasicBlockT::BasicBlockT(string pid):id(pid) {
 BasicBlockT::BasicBlockT(Location *loc, string pid):BIRNode(loc), id(pid)
 {
 }
+
+LLVMValueRef BasicBlockT::getValueRefBasedOnName (string lhsName) {
+  map<string, LLVMValueRef>::iterator it;
+  it = branchComplist.find(lhsName);
+
+  if(it == branchComplist.end()) {
+    return NULL;
+  }
+  else
+    return it->second;
+}
+
 BasicBlockT::~BasicBlockT() {}
 
 void BasicBlockT::translate(LLVMModuleRef &modRef)
@@ -17,6 +29,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
     NonTerminatorInsn *insn = instructions[i];
 
     insn->setFunction(BFunc);
+    insn->setcurrentBB(this);
     switch (insn->getInstKind()) {
       case INSTRUCTION_KIND_MOVE:
       {
@@ -29,6 +42,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
       case INSTRUCTION_KIND_BINARY_MUL:
       case INSTRUCTION_KIND_BINARY_DIV:
       case INSTRUCTION_KIND_BINARY_EQUAL:
+      case INSTRUCTION_KIND_BINARY_NOT_EQUAL:
       case INSTRUCTION_KIND_BINARY_MOD:
       case INSTRUCTION_KIND_BINARY_GREATER_THAN:
       case INSTRUCTION_KIND_BINARY_GREATER_EQUAL:
@@ -62,7 +76,14 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
   if(terminator) 
   {
     terminator->setFunction(BFunc);
+    terminator->setcurrentBB(this);
     switch (terminator->getInstKind()) {
+      case INSTRUCTION_KIND_CONDITIONAL_BRANCH:
+      {
+	ConditionBrInsn *condBr = static_cast<ConditionBrInsn*>(terminator);
+	condBr->translate(modRef);
+	break;
+      }
       case INSTRUCTION_KIND_GOTO:
       {
         GoToInsn *gotoInsn = static_cast<GoToInsn*>(terminator);
