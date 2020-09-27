@@ -6,7 +6,6 @@
 using namespace std;
 
 std::ifstream is;
-std::vector<VarDecl *> GlobalVars;
 
 // Read 1 byte from the stream
 uint8_t read_u1() {
@@ -123,6 +122,7 @@ TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool, bool 
     return typeDecl;
 }
 
+// Get the Type tag from the constant pool based on the index passed
 type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool)
 {
     constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
@@ -130,7 +130,8 @@ type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool
     return shape_cp->type_tag();
 }
 
-void read_global_var(constant_pool_set_t *m_constant_pool)
+// Read Global Variable and push it to BIRPackage
+void read_global_var(constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
       class VarDecl *varDecl = new VarDecl();
       uint8_t kind = read_u1();
@@ -139,21 +140,22 @@ void read_global_var(constant_pool_set_t *m_constant_pool)
       uint32_t varDclNameCpIndex = read_s4be();
       varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
 
-      uint32_t flags = read_s4be();
-      uint32_t length = read_s4be();
+      uint32_t flags __attribute__((unused)) = read_s4be();
+      uint32_t length __attribute__((unused)) = read_s4be();
       uint8_t hasDoc = read_u1();
       if (hasDoc)
       {
-          uint32_t description_cp_index = read_s4be();
-          uint32_t return_value_description_cp_index = read_s4be();
-          uint32_t parameters_count = read_s4be();
+          uint32_t description_cp_index __attribute__((unused)) = read_s4be();
+          uint32_t return_value_description_cp_index __attribute__((unused)) = read_s4be();
+          uint32_t parameters_count __attribute__((unused)) = read_s4be();
       }
       uint32_t typeCpIndex = read_s4be();
       TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
       varDecl->setTypeDecl(typeDecl);
-      GlobalVars.push_back(varDecl);
+      BIRpackage->addGlobalVar(varDecl);
 }
 
+// Read Local Variable and return VarDecl pointer
 VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
 {
       class VarDecl *varDecl = new VarDecl();
@@ -171,12 +173,13 @@ VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
 
       if (varDecl->getVarKind() == GLOBAL_VAR_KIND)
       {
-              uint32_t m_package_index = read_s4be();
-	      uint32_t m_type_cp_index = read_s4be();
+              uint32_t m_package_index __attribute__((unused)) = read_s4be();
+	      uint32_t m_type_cp_index __attribute__((unused)) = read_s4be();
       }
       return varDecl;
 }
 
+// Read TYPEDESC Insn
 void read_typedesc ()
 {
       uint8_t ignoredVar __attribute__((unused));
@@ -195,6 +198,7 @@ void read_typedesc ()
       typeCpIndex = read_s4be();
 }
 
+// Read STRUCTURE Insn
 void read_structure ()
 {
       uint8_t ignoredVar __attribute__((unused));
@@ -228,6 +232,7 @@ void read_structure ()
       typeCpIndex1 = read_s4be();
 }
 
+// Read CONST_LOAD Insn
 void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_constant_pool)
 {
       class Operand *lhsOperand = new Operand();
@@ -252,8 +257,8 @@ void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_cons
 
       if (lhsOperand->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND)
       {
-	  uint32_t packageIndex = read_s4be();
-	  uint32_t typeCpIndex = read_s4be();
+	  uint32_t packageIndex __attribute__((unused)) = read_s4be();
+	  uint32_t typeCpIndex __attribute__((unused)) = read_s4be();
       }
 
       type_tag_enum_t m_type_tag = get_type_tag(typeCpIndex1, m_constant_pool);
@@ -261,26 +266,24 @@ void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_cons
       {
         uint32_t valueCpIndex = read_s4be();
         constantloadInsn->setValue(get_int_cp(valueCpIndex, m_constant_pool));
-        //get int from int_cp_info_t pool entry and set it to  const obj value
-        //Be careful, above one will change NULL values to INT also
       }
       if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN)
       {
         uint8_t valueCpIndex = read_u1();
         constantloadInsn->setValue(valueCpIndex);
-        //get int from int_cp_info_t pool entry and set it to  const obj value
-        //Be careful, above one will change NULL values to INT also
       }
 
       constantloadInsn->setLhsOperand(lhsOperand);
 }
 
+// Read GOTO Insn
 uint32_t read_goto ()
 {
     uint32_t targetBBNameCpIndex = read_s4be();
     return targetBBNameCpIndex;
 }
 
+// Read Unary Operand
 UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_constant_pool)
 {
     VarDecl *varDecl1 = read_variable (m_constant_pool);
@@ -297,6 +300,7 @@ UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_const
     return unaryOpInsn;
 }
 
+// Read Binary Operand
 BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_constant_pool)
 {
     VarDecl *varDecl1 = read_variable (m_constant_pool);
@@ -318,7 +322,7 @@ BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_c
     return binaryOpInsn;
 }
 
-
+// Read BRANCH Insn
 ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_pool_set_t *m_constant_pool)
 {
     VarDecl *varDecl = read_variable (m_constant_pool);
@@ -337,11 +341,9 @@ ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_p
     conditionBrInsn->setPatchStatus(true);
     conditionBrInsn->setNextBB(NULL);
     return conditionBrInsn;
-//It required patching, in the case: set patch status as true
-//when you will search if it is terminator insn and kind branch
-//then set true and false bb respectively
 }
 
+// Read MOV Insn
 MoveInsn* read_move(MoveInsn *moveInsn, constant_pool_set_t *m_constant_pool)
 {
     VarDecl *varDecl1 = read_variable (m_constant_pool);
@@ -401,7 +403,6 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             constantloadInsn->setInstKind((InstructionKind)insnkind);
 
             read_const(constantloadInsn, m_constant_pool);
-            //constantloadInsn->setValue(0);
             nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (constantloadInsn));
             break;
         }
@@ -419,18 +420,6 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
         case INSTRUCTION_KIND_RETURN: {
             class TerminatorInsn *terminatorInsn = new TerminatorInsn();
 	    terminatorInsn->setInstKind((InstructionKind)insnkind);
-            std::vector<VarDecl *>::iterator itr;
-	    std::string returnVar = "_bal_result";
-	    for (itr = GlobalVars.begin(); itr != GlobalVars.end(); itr++)
-	    {
-	        VarDecl *varDecl = (*itr);
-	        if (returnVar.compare (varDecl->getVarName()) == 0)
-		{
-		    class Operand *lhsOperand = new Operand();
-		    lhsOperand->setVarDecl(varDecl);
-		    terminatorInsn->setLhsOperand(lhsOperand);
-		}
-	    }
             basicBlock->setTerminatorInsn(terminatorInsn);
             nonTerminatorInsn = NULL;
             break;
@@ -540,7 +529,7 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
   }
 }
 
-// Reads main function 
+// Reads BIR function 
 BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
   class BIRFunction *BIRfunction = new BIRFunction();
@@ -643,17 +632,14 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
 
       if (kind == 1)
       {
-	uint32_t metaVarNameCpIndex = read_s4be();
-	uint32_t endBbIdCpIndex = read_s4be();
-	uint32_t startBbIdCpIndex = read_s4be();
-	uint32_t instructionOffset = read_s4be();
+	uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
+	uint32_t endBbIdCpIndex __attribute__((unused)) = read_s4be();
+	uint32_t startBbIdCpIndex __attribute__((unused)) = read_s4be();
+	uint32_t instructionOffset __attribute__((unused)) = read_s4be();
       }
 
   }
   BIRfunction->setLocalVars(localvars);
-
-  //uint8_t hasDefaultParamBB __attribute__((unused));
-  //hasDefaultParamBB = read_u1();
 
   uint32_t BBCount = read_s4be();
 
@@ -828,7 +814,6 @@ void constant_pool_set_t::_read()
 
 BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
 {
-    //is.open("main-bir-dump", ifstream::binary);
     is.open(filename, ifstream::binary);
 
     constant_pool_set_t *m_constant_pool = new constant_pool_set_t();
@@ -870,10 +855,9 @@ BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
     uint32_t m_golbal_var_count = read_s4be();
     if (m_golbal_var_count > 0)
     {
-        //Read and ignore Global Var Data i.e. 18 bytes
 	for (unsigned int i = 0; i < m_golbal_var_count; i++)
 	{
-	    read_global_var(m_constant_pool);
+	    read_global_var(m_constant_pool, BIRpackage);
 	}
     }
 

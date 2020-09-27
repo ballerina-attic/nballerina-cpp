@@ -729,6 +729,7 @@ class BIRPackage: public BIRNode {
     string                version;
     string                sourceFileName;
     vector<BIRFunction *> functions;
+    vector<VarDecl *>     GlobalVars;
 
   public:
     BIRPackage();
@@ -752,6 +753,7 @@ class BIRPackage: public BIRNode {
 
     void setFunctions(vector<BIRFunction *> f)  { functions = f; }
     void addFunction(BIRFunction * f)           { functions.push_back(f); }
+    void addGlobalVar(VarDecl * g)           { GlobalVars.push_back(g); }
 
     void translate(LLVMModuleRef &modRef);
 };
