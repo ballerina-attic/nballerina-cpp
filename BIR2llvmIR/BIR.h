@@ -145,20 +145,26 @@ class Scope;
 class Location {
   private:
     string  fileName;
-    int     lineNum;
-    int     columnNum;
+    int     sLine;
+    int     eLine;
+    int     sCol;
+    int     eCol;
 
   public:
     Location();
-    Location(string name, int line, int col);
+    Location(string name, int sline, int scol, int eline, int ecol);
     ~Location();
-    void setfileName(string fname)   { fileName = fname; }
-    void setlineNum (int lnum)       { lineNum = lnum; }
-    void setcolumnNum (int cnum)     { columnNum = cnum; }
+    void    setFileName(string fname)         { fileName = fname; }
+    void    setStartLineNum(int sline)        { sLine = sline; }
+    void    setStartColumnNum(int scol)      { sCol = scol; }
+    void    setEndLineNum(int eline)          { eLine = eline; }
+    void    setEndColumnNum(int ecol)        { eCol = ecol; }
 
-    string getFileName();
-    int    getLineNum();
-    int    getColumnNum();
+    string getFileName()            { return fileName; }
+    int    getStartLineNum()        { return sLine; }
+    int    getStartColumnNum()      { return sCol; }
+    int    getEndLineNum()          { return eLine; }
+    int    getEndColumnNum()        { return eCol; }
 
     virtual void translate(LLVMModuleRef &modRef);
 };

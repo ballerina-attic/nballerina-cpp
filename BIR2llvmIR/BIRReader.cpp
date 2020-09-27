@@ -113,7 +113,7 @@ TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool, bool 
           char  newName[20];
           char *p;
           p = stpcpy(newName, "anon-");
-          sprintf(p,  "%5d", random() % 100000);
+          sprintf(p,  "%5ld", random() % 100000);
           typeDecl->setTypeDeclName(newName);
         }
         typeDecl->setTypeTag(shape_cp->type_tag());
@@ -376,16 +376,14 @@ BasicBlockT* search_bb_by_name(vector<BasicBlockT *>   basicBlocks, std::string 
 // Read NonTerminatorInsn from the BIR
 NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, NonTerminatorInsn *nonTerminatorInsn, constant_pool_set_t *m_constant_pool)
 {
-      uint32_t sLine __attribute__((unused));
-      sLine = read_s4be();
-      uint32_t eLine __attribute__((unused));
-      eLine = read_s4be();
-      uint32_t sCol __attribute__((unused));
-      sCol = read_s4be();
-      uint32_t eCol __attribute__((unused));
-      eCol = read_s4be();
-      uint32_t sourceFileCpIndex __attribute__((unused));
-      sourceFileCpIndex = read_s4be();
+      uint32_t sLine = read_s4be();
+      uint32_t eLine = read_s4be();
+      uint32_t sCol = read_s4be();
+      uint32_t eCol = read_s4be();
+      uint32_t sourceFileCpIndex = read_s4be();
+
+      class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+      nonTerminatorInsn->setLocation(location);
 
       uint8_t insnkind = read_u1();
       switch ((InstructionKind)insnkind) {
@@ -546,17 +544,16 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
 BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
   class BIRFunction *BIRfunction = new BIRFunction();
-  uint32_t sLine __attribute__((unused));
-  sLine = read_s4be();
-  uint32_t eLine __attribute__((unused));
-  eLine = read_s4be();
-  uint32_t sCol __attribute__((unused));
-  sCol = read_s4be();
-  uint32_t eCol __attribute__((unused));
-  eCol = read_s4be();
+  uint32_t sLine = read_s4be();
+  uint32_t eLine = read_s4be();
+  uint32_t sCol = read_s4be();
+  uint32_t eCol = read_s4be();
 
   uint32_t sourceFileCpIndex = read_s4be();
   BIRpackage->setSrcFileName(get_string_cp(sourceFileCpIndex, m_constant_pool));
+
+  class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+  BIRfunction->setLocation(location);
 
   uint32_t nameCpIndex = read_s4be();
   BIRfunction->setName(get_string_cp(nameCpIndex, m_constant_pool));
