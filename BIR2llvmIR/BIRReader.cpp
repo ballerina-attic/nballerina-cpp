@@ -817,6 +817,7 @@ BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
     is.open(filename, ifstream::binary);
 
     constant_pool_set_t *m_constant_pool = new constant_pool_set_t();
+    m_constant_pool->_read();
 
     // Read module
     int32_t m_id_cp_index = read_s4be();
