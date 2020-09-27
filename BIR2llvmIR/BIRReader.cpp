@@ -6,6 +6,7 @@
 using namespace std;
 
 std::ifstream is;
+std::vector<VarDecl *> GlobalVars;
 
 // Read 1 byte from the stream
 uint8_t read_u1() {
@@ -101,7 +102,7 @@ int32_t get_int_cp (int32_t index, constant_pool_set_t *m_constant_pool)
 }
 
 // Search type from the constant pool based on index
-TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool)
+TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool, bool voidToInt)
 {
         constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
         shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
@@ -116,7 +117,7 @@ TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool)
           typeDecl->setTypeDeclName(newName);
         }
         typeDecl->setTypeTag(shape_cp->type_tag());
-        if (shape_cp->type_tag() == TYPE_TAG_ENUM_TYPE_TAG_NIL)
+        if (shape_cp->type_tag() == TYPE_TAG_ENUM_TYPE_TAG_NIL && voidToInt)
           typeDecl->setTypeTag(TYPE_TAG_ENUM_TYPE_TAG_INT);
         typeDecl->setFlags(shape_cp->type_flag());
     return typeDecl;
@@ -127,6 +128,32 @@ type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool
     constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
     shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
     return shape_cp->type_tag();
+}
+
+void read_global_var(constant_pool_set_t *m_constant_pool)
+{
+      class VarDecl *varDecl = new VarDecl();
+      uint8_t kind = read_u1();
+      varDecl->setVarKind((VarKind)kind);
+
+      uint32_t varDclNameCpIndex = read_s4be();
+      varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+
+      uint32_t flags = read_s4be();
+      uint32_t length = read_s4be();
+      //std::vector<char> result(length);
+      //is.read(&result[0], length);
+      uint8_t hasDoc = read_u1();
+      if (hasDoc)
+      {
+          uint32_t description_cp_index = read_s4be();
+          uint32_t return_value_description_cp_index = read_s4be();
+          uint32_t parameters_count = read_s4be();
+      }
+      uint32_t typeCpIndex = read_s4be();
+      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
+      varDecl->setTypeDecl(typeDecl);
+      GlobalVars.push_back(varDecl);
 }
 
 VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
@@ -143,6 +170,12 @@ VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
 
       uint32_t varDclNameCpIndex = read_s4be();
       varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+
+      if (varDecl->getVarKind() == GLOBAL_VAR_KIND)
+      {
+              uint32_t m_package_index = read_s4be();
+	      uint32_t m_type_cp_index = read_s4be();
+      }
       return varDecl;
 }
 
@@ -204,7 +237,7 @@ void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_cons
       lhsOperand->setVarDecl(varDecl);
 
       uint32_t typeCpIndex1 = read_s4be();
-      TypeDecl *typeDecl = get_type_cp(typeCpIndex1, m_constant_pool);
+      TypeDecl *typeDecl = get_type_cp(typeCpIndex1, m_constant_pool, false);
       varDecl->setTypeDecl(typeDecl);
 
       uint8_t ignoredVar = read_u1();
@@ -218,6 +251,12 @@ void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_cons
 
       uint32_t varDclNameCpIndex = read_s4be();
       lhsOperand->getVarDecl()->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+
+      if (lhsOperand->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND)
+      {
+	  uint32_t packageIndex = read_s4be();
+	  uint32_t typeCpIndex = read_s4be();
+      }
 
       type_tag_enum_t m_type_tag = get_type_tag(typeCpIndex1, m_constant_pool);
       if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_INT)
@@ -257,7 +296,7 @@ UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_const
 
     unaryOpInsn->setRhsOp(rhsOp);
     unaryOpInsn->setLhsOperand(lhsOp);
-
+    return unaryOpInsn;
 }
 
 BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_constant_pool)
@@ -278,6 +317,7 @@ BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_c
     binaryOpInsn->setRhsOp1(rhsOp1);
     binaryOpInsn->setRhsOp2(rhsOp2);
     binaryOpInsn->setLhsOperand(lhsOp);
+    return binaryOpInsn;
 }
 
 
@@ -298,6 +338,7 @@ ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_p
 
     conditionBrInsn->setPatchStatus(true);
     conditionBrInsn->setNextBB(NULL);
+    return conditionBrInsn;
 //It required patching, in the case: set patch status as true
 //when you will search if it is terminator insn and kind branch
 //then set true and false bb respectively
@@ -316,6 +357,7 @@ MoveInsn* read_move(MoveInsn *moveInsn, constant_pool_set_t *m_constant_pool)
 
     moveInsn->setRhsOp(rhsOp);
     moveInsn->setLhsOperand(lhsOp);
+    return moveInsn;
 }
 
 
@@ -381,6 +423,18 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
         case INSTRUCTION_KIND_RETURN: {
             class TerminatorInsn *terminatorInsn = new TerminatorInsn();
 	    terminatorInsn->setInstKind((InstructionKind)insnkind);
+            std::vector<VarDecl *>::iterator itr;
+	    std::string returnVar = "_bal_result";
+	    for (itr = GlobalVars.begin(); itr != GlobalVars.end(); itr++)
+	    {
+	        VarDecl *varDecl = (*itr);
+	        if (returnVar.compare (varDecl->getVarName()) == 0)
+		{
+		    class Operand *lhsOperand = new Operand();
+		    lhsOperand->setVarDecl(varDecl);
+		    terminatorInsn->setLhsOperand(lhsOperand);
+		}
+	    }
             basicBlock->setTerminatorInsn(terminatorInsn);
             nonTerminatorInsn = NULL;
             break;
@@ -403,6 +457,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
             nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (binaryOpInsn));
             break;
         }
+	case INSTRUCTION_KIND_UNARY_NEG:
         case INSTRUCTION_KIND_UNARY_NOT: {
             class UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
             unaryOpInsn->setInstKind((InstructionKind)insnkind);
@@ -459,9 +514,9 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
       TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
       if (terminator->getPatchStatus())
       {
-      //switch (terminator->getInstKind())
-      //case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
-	  if (terminator->getNextBB() == NULL)
+        switch (terminator->getInstKind()) {
+          case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
+	  //if (terminator->getNextBB() == NULL)
 	  {
               ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *> (terminator));
               BasicBlockT *trueBB = search_bb_by_name(basicBlocks, Terminator->getifThenBB()->getId());
@@ -472,16 +527,22 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
               delete danglingFalseBB;
               Terminator->setifThenBB(trueBB);
               Terminator->setelseBB(falseBB);
+	      break;
 	  }
-	//case INSTRUCTION_KIND_GOTO :
-	  else
+	  case INSTRUCTION_KIND_GOTO :
+	  //else
 	  {
               BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
               BasicBlockT *danglingBB = terminator->getNextBB();
               delete danglingBB;
               terminator->setNextBB(destBB);
+	      break;
           }
+	  default:
+	      fprintf(stderr, "%s:%d Invalid Insn Kind for Instruction Patching.\n", __FILE__, __LINE__);
+	      break;
       }
+    }
   }
 }
 
@@ -557,7 +618,7 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
       varDecl->setVarKind ((VarKind)kind);
 
       uint32_t typeCpIndex = read_s4be();
-      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool);
+      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, true);
       varDecl->setTypeDecl(typeDecl);
 
       uint32_t nameCpIndex = read_s4be();
@@ -580,7 +641,7 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
       varDecl->setVarKind ((VarKind)kind);
 
       uint32_t typeCpIndex = read_s4be();
-      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool);
+      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
       varDecl->setTypeDecl(typeDecl);
 
       uint32_t nameCpIndex = read_s4be();
@@ -817,8 +878,12 @@ BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
     if (m_golbal_var_count > 0)
     {
         //Read and ignore Global Var Data i.e. 18 bytes
-        std::vector<char> result(18);
-        is.read(&result[0], 18);
+	for (unsigned int i = 0; i < m_golbal_var_count; i++)
+	{
+	    read_global_var(m_constant_pool);
+            //std::vector<char> result(18);
+            //is.read(&result[0], 18);
+	}
     }
 
     uint32_t m_type_definition_bodies_count __attribute__((unused));
