@@ -87,38 +87,38 @@ uint64_t read_s8be ()
 // Search string from the constant pool based on index
 std::string get_string_cp (int32_t index, constant_pool_set_t *m_constant_pool)
 {
-        constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-        string_cp_info_t *string_cp = static_cast<string_cp_info_t *> (entry_pointer);
-        return string_cp->value();
+    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
+    string_cp_info_t *string_cp = static_cast<string_cp_info_t *> (entry_pointer);
+    return string_cp->value();
 }
 
 // Search string from the constant pool based on index
 int32_t get_int_cp (int32_t index, constant_pool_set_t *m_constant_pool)
 {
-        constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-        int_cp_info_t *int_cp = static_cast<int_cp_info_t *> (entry_pointer);
-        return int_cp->value();
+    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
+    int_cp_info_t *int_cp = static_cast<int_cp_info_t *> (entry_pointer);
+    return int_cp->value();
 }
 
 // Search type from the constant pool based on index
 TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool, bool voidToInt)
 {
-        constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-        shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
-        class TypeDecl *typeDecl = new TypeDecl();
-        typeDecl->setTypeDeclName(get_string_cp(shape_cp->name_index(), m_constant_pool));
-        if (typeDecl->getTypeDeclName() == "")
-        {
-          char  newName[20];
-          char *p;
-          p = stpcpy(newName, "anon-");
-          sprintf(p,  "%5ld", random() % 100000);
-          typeDecl->setTypeDeclName(newName);
-        }
-        typeDecl->setTypeTag(shape_cp->type_tag());
-        if (shape_cp->type_tag() == TYPE_TAG_ENUM_TYPE_TAG_NIL && voidToInt)
-          typeDecl->setTypeTag(TYPE_TAG_ENUM_TYPE_TAG_INT);
-        typeDecl->setFlags(shape_cp->type_flag());
+    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
+    shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
+    class TypeDecl *typeDecl = new TypeDecl();
+    typeDecl->setTypeDeclName(get_string_cp(shape_cp->name_index(), m_constant_pool));
+    if (typeDecl->getTypeDeclName() == "")
+    {
+      char  newName[20];
+      char *p;
+      p = stpcpy(newName, "anon-");
+      sprintf(p,  "%5ld", random() % 100000);
+      typeDecl->setTypeDeclName(newName);
+    }
+    typeDecl->setTypeTag(shape_cp->type_tag());
+    if (shape_cp->type_tag() == TYPE_TAG_ENUM_TYPE_TAG_NIL && voidToInt)
+      typeDecl->setTypeTag(TYPE_TAG_ENUM_TYPE_TAG_INT);
+    typeDecl->setFlags(shape_cp->type_flag());
     return typeDecl;
 }
 
@@ -133,147 +133,147 @@ type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool
 // Read Global Variable and push it to BIRPackage
 void read_global_var(constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
-      class VarDecl *varDecl = new VarDecl();
-      uint8_t kind = read_u1();
-      varDecl->setVarKind((VarKind)kind);
+    class VarDecl *varDecl = new VarDecl();
+    uint8_t kind = read_u1();
+    varDecl->setVarKind((VarKind)kind);
 
-      uint32_t varDclNameCpIndex = read_s4be();
-      varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+    uint32_t varDclNameCpIndex = read_s4be();
+    varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
 
-      uint32_t flags __attribute__((unused)) = read_s4be();
-      uint32_t length __attribute__((unused)) = read_s4be();
-      uint8_t hasDoc = read_u1();
-      if (hasDoc)
-      {
-          uint32_t description_cp_index __attribute__((unused)) = read_s4be();
-          uint32_t return_value_description_cp_index __attribute__((unused)) = read_s4be();
-          uint32_t parameters_count __attribute__((unused)) = read_s4be();
-      }
-      uint32_t typeCpIndex = read_s4be();
-      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
-      varDecl->setTypeDecl(typeDecl);
-      BIRpackage->addGlobalVar(varDecl);
+    uint32_t flags __attribute__((unused)) = read_s4be();
+    uint32_t length __attribute__((unused)) = read_s4be();
+    uint8_t hasDoc = read_u1();
+    if (hasDoc)
+    {
+        uint32_t description_cp_index __attribute__((unused)) = read_s4be();
+        uint32_t return_value_description_cp_index __attribute__((unused)) = read_s4be();
+        uint32_t parameters_count __attribute__((unused)) = read_s4be();
+    }
+    uint32_t typeCpIndex = read_s4be();
+    TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
+    varDecl->setTypeDecl(typeDecl);
+    BIRpackage->addGlobalVar(varDecl);
 }
 
 // Read Local Variable and return VarDecl pointer
 VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
 {
-      class VarDecl *varDecl = new VarDecl();
-      uint8_t ignoredVar = read_u1();
-      varDecl->setIgnore((bool)ignoredVar);
+    class VarDecl *varDecl = new VarDecl();
+    uint8_t ignoredVar = read_u1();
+    varDecl->setIgnore((bool)ignoredVar);
 
-      uint8_t kind = read_u1();
-      varDecl->setVarKind((VarKind)kind);
+    uint8_t kind = read_u1();
+    varDecl->setVarKind((VarKind)kind);
 
-      uint8_t scope = read_u1();
-      varDecl->setVarScope((VarScope)scope);
+    uint8_t scope = read_u1();
+    varDecl->setVarScope((VarScope)scope);
 
-      uint32_t varDclNameCpIndex = read_s4be();
-      varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+    uint32_t varDclNameCpIndex = read_s4be();
+    varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
 
-      if (varDecl->getVarKind() == GLOBAL_VAR_KIND)
-      {
-              uint32_t m_package_index __attribute__((unused)) = read_s4be();
-	      uint32_t m_type_cp_index __attribute__((unused)) = read_s4be();
-      }
-      return varDecl;
+    if (varDecl->getVarKind() == GLOBAL_VAR_KIND)
+    {
+            uint32_t m_package_index __attribute__((unused)) = read_s4be();
+      uint32_t m_type_cp_index __attribute__((unused)) = read_s4be();
+    }
+    return varDecl;
 }
 
 // Read TYPEDESC Insn
 void read_typedesc ()
 {
-      uint8_t ignoredVar __attribute__((unused));
-      ignoredVar = read_u1();
+    uint8_t ignoredVar __attribute__((unused));
+    ignoredVar = read_u1();
 
-      uint8_t kind __attribute__((unused));
-      kind = read_u1();
+    uint8_t kind __attribute__((unused));
+    kind = read_u1();
 
-      uint8_t scope __attribute__((unused));
-      scope = read_u1();
+    uint8_t scope __attribute__((unused));
+    scope = read_u1();
 
-      uint32_t varDclNameCpIndex __attribute__((unused));
-      varDclNameCpIndex = read_s4be();
+    uint32_t varDclNameCpIndex __attribute__((unused));
+    varDclNameCpIndex = read_s4be();
 
-      uint32_t typeCpIndex __attribute__((unused));
-      typeCpIndex = read_s4be();
+    uint32_t typeCpIndex __attribute__((unused));
+    typeCpIndex = read_s4be();
 }
 
 // Read STRUCTURE Insn
 void read_structure ()
 {
-      uint8_t ignoredVar __attribute__((unused));
-      ignoredVar = read_u1();
+    uint8_t ignoredVar __attribute__((unused));
+    ignoredVar = read_u1();
 
-      uint8_t kind __attribute__((unused));
-      kind = read_u1();
+    uint8_t kind __attribute__((unused));
+    kind = read_u1();
 
-      uint8_t scope __attribute__((unused));
-      scope = read_u1();
+    uint8_t scope __attribute__((unused));
+    scope = read_u1();
 
-      uint32_t varDclNameCpIndex __attribute__((unused));
-      varDclNameCpIndex = read_s4be();
+    uint32_t varDclNameCpIndex __attribute__((unused));
+    varDclNameCpIndex = read_s4be();
 
-      uint8_t ignoredVar1 __attribute__((unused));
-      ignoredVar1 = read_u1();
+    uint8_t ignoredVar1 __attribute__((unused));
+    ignoredVar1 = read_u1();
 
-      uint8_t kind1 __attribute__((unused));
-      kind1 = read_u1();
+    uint8_t kind1 __attribute__((unused));
+    kind1 = read_u1();
 
-      uint8_t scope1 __attribute__((unused));
-      scope1 = read_u1();
+    uint8_t scope1 __attribute__((unused));
+    scope1 = read_u1();
 
-      uint32_t varDclNameCpIndex1 __attribute__((unused));
-      varDclNameCpIndex1 = read_s4be();
+    uint32_t varDclNameCpIndex1 __attribute__((unused));
+    varDclNameCpIndex1 = read_s4be();
 
-      uint32_t packageIndex1 __attribute__((unused));
-      packageIndex1 = read_s4be();
+    uint32_t packageIndex1 __attribute__((unused));
+    packageIndex1 = read_s4be();
 
-      uint32_t typeCpIndex1 __attribute__((unused));
-      typeCpIndex1 = read_s4be();
+    uint32_t typeCpIndex1 __attribute__((unused));
+    typeCpIndex1 = read_s4be();
 }
 
 // Read CONST_LOAD Insn
 void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_constant_pool)
 {
-      class Operand *lhsOperand = new Operand();
-      class VarDecl *varDecl = new VarDecl();
-      lhsOperand->setVarDecl(varDecl);
+    class Operand *lhsOperand = new Operand();
+    class VarDecl *varDecl = new VarDecl();
+    lhsOperand->setVarDecl(varDecl);
 
-      uint32_t typeCpIndex1 = read_s4be();
-      TypeDecl *typeDecl = get_type_cp(typeCpIndex1, m_constant_pool, false);
-      varDecl->setTypeDecl(typeDecl);
+    uint32_t typeCpIndex1 = read_s4be();
+    TypeDecl *typeDecl = get_type_cp(typeCpIndex1, m_constant_pool, false);
+    varDecl->setTypeDecl(typeDecl);
 
-      uint8_t ignoredVar = read_u1();
-      lhsOperand->getVarDecl()->setIgnore((bool)ignoredVar);
+    uint8_t ignoredVar = read_u1();
+    lhsOperand->getVarDecl()->setIgnore((bool)ignoredVar);
 
-      uint8_t kind = read_u1();
-      lhsOperand->getVarDecl()->setVarKind((VarKind)kind);
+    uint8_t kind = read_u1();
+    lhsOperand->getVarDecl()->setVarKind((VarKind)kind);
 
-      uint8_t scope = read_u1();
-      lhsOperand->getVarDecl()->setVarScope((VarScope)scope);
+    uint8_t scope = read_u1();
+    lhsOperand->getVarDecl()->setVarScope((VarScope)scope);
 
-      uint32_t varDclNameCpIndex = read_s4be();
-      lhsOperand->getVarDecl()->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+    uint32_t varDclNameCpIndex = read_s4be();
+    lhsOperand->getVarDecl()->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
 
-      if (lhsOperand->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND)
-      {
-	  uint32_t packageIndex __attribute__((unused)) = read_s4be();
-	  uint32_t typeCpIndex __attribute__((unused)) = read_s4be();
-      }
+    if (lhsOperand->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND)
+    {
+        uint32_t packageIndex __attribute__((unused)) = read_s4be();
+        uint32_t typeCpIndex __attribute__((unused)) = read_s4be();
+    }
 
-      type_tag_enum_t m_type_tag = get_type_tag(typeCpIndex1, m_constant_pool);
-      if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_INT)
-      {
-        uint32_t valueCpIndex = read_s4be();
-        constantloadInsn->setValue(get_int_cp(valueCpIndex, m_constant_pool));
-      }
-      if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN)
-      {
-        uint8_t valueCpIndex = read_u1();
-        constantloadInsn->setValue(valueCpIndex);
-      }
+    type_tag_enum_t m_type_tag = get_type_tag(typeCpIndex1, m_constant_pool);
+    if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_INT)
+    {
+      uint32_t valueCpIndex = read_s4be();
+      constantloadInsn->setValue(get_int_cp(valueCpIndex, m_constant_pool));
+    }
+    if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN)
+    {
+      uint8_t valueCpIndex = read_u1();
+      constantloadInsn->setValue(valueCpIndex);
+    }
 
-      constantloadInsn->setLhsOperand(lhsOperand);
+    constantloadInsn->setLhsOperand(lhsOperand);
 }
 
 // Read GOTO Insn
@@ -378,97 +378,97 @@ BasicBlockT* search_bb_by_name(vector<BasicBlockT *>   basicBlocks, std::string 
 // Read NonTerminatorInsn from the BIR
 NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, NonTerminatorInsn *nonTerminatorInsn, constant_pool_set_t *m_constant_pool)
 {
-      uint32_t sLine = read_s4be();
-      uint32_t eLine = read_s4be();
-      uint32_t sCol = read_s4be();
-      uint32_t eCol = read_s4be();
-      uint32_t sourceFileCpIndex = read_s4be();
+    uint32_t sLine = read_s4be();
+    uint32_t eLine = read_s4be();
+    uint32_t sCol = read_s4be();
+    uint32_t eCol = read_s4be();
+    uint32_t sourceFileCpIndex = read_s4be();
 
-      class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
-      nonTerminatorInsn->setLocation(location);
+    class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+    nonTerminatorInsn->setLocation(location);
 
-      uint8_t insnkind = read_u1();
-      switch ((InstructionKind)insnkind) {
-        case INSTRUCTION_KIND_NEW_TYPEDESC: {
-            read_typedesc();
-            break;
-        }
-        case INSTRUCTION_KIND_NEW_STRUCTURE: {
-            read_structure();
-            break;
-        }
-        case INSTRUCTION_KIND_CONST_LOAD: {
-            class ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn();
-            constantloadInsn->setFunction(BIRfunction);
-            constantloadInsn->setInstKind((InstructionKind)insnkind);
-
-            read_const(constantloadInsn, m_constant_pool);
-            nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (constantloadInsn));
-            break;
-        }
-        case INSTRUCTION_KIND_GOTO: {
-            class TerminatorInsn *terminatorInsn = new TerminatorInsn();
-            uint32_t nameid = read_goto();
-            class BasicBlockT *dummybasicBlock = new BasicBlockT(get_string_cp(nameid, m_constant_pool));
-            terminatorInsn->setNextBB(dummybasicBlock);
-            terminatorInsn->setPatchStatus(true);
-            terminatorInsn->setInstKind((InstructionKind)insnkind);
-            basicBlock->setTerminatorInsn(terminatorInsn);
-            nonTerminatorInsn = NULL;
-            break;
-        }
-        case INSTRUCTION_KIND_RETURN: {
-            class TerminatorInsn *terminatorInsn = new TerminatorInsn();
-	    terminatorInsn->setInstKind((InstructionKind)insnkind);
-            basicBlock->setTerminatorInsn(terminatorInsn);
-            nonTerminatorInsn = NULL;
-            break;
-        }
-        case INSTRUCTION_KIND_BINARY_ADD:
-        case INSTRUCTION_KIND_BINARY_SUB:
-        case INSTRUCTION_KIND_BINARY_MUL:
-        case INSTRUCTION_KIND_BINARY_DIV:
-        case INSTRUCTION_KIND_BINARY_EQUAL:
-        case INSTRUCTION_KIND_BINARY_NOT_EQUAL:
-        case INSTRUCTION_KIND_BINARY_GREATER_THAN:
-        case INSTRUCTION_KIND_BINARY_GREATER_EQUAL:
-        case INSTRUCTION_KIND_BINARY_LESS_THAN:
-        case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
-	case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
-        case INSTRUCTION_KIND_BINARY_MOD: {
-            class BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
-            binaryOpInsn->setInstKind((InstructionKind)insnkind);
-	    binaryOpInsn = read_binaryOp(binaryOpInsn, m_constant_pool);
-            nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (binaryOpInsn));
-            break;
-        }
-	case INSTRUCTION_KIND_UNARY_NEG:
-        case INSTRUCTION_KIND_UNARY_NOT: {
-            class UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
-            unaryOpInsn->setInstKind((InstructionKind)insnkind);
-            unaryOpInsn = read_unaryOp(unaryOpInsn, m_constant_pool);
-            nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (unaryOpInsn));
-            break;
-        }
-	case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
-            class ConditionBrInsn *conditionBrInsn = new ConditionBrInsn();
-            conditionBrInsn->setInstKind((InstructionKind)insnkind);
-            conditionBrInsn = read_conditionalBr(conditionBrInsn, m_constant_pool);
-	    basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (conditionBrInsn));
-            nonTerminatorInsn = NULL;
-            break;
-        }
-        case INSTRUCTION_KIND_MOVE: {
-            class MoveInsn *moveInsn = new MoveInsn();
-            moveInsn->setInstKind((InstructionKind)insnkind);
-            moveInsn = read_move(moveInsn, m_constant_pool);
-            nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (moveInsn));
-            break;
-        }
-        default:
-            break;
+    uint8_t insnkind = read_u1();
+    switch ((InstructionKind)insnkind) {
+      case INSTRUCTION_KIND_NEW_TYPEDESC: {
+          read_typedesc();
+          break;
       }
-      return nonTerminatorInsn;
+      case INSTRUCTION_KIND_NEW_STRUCTURE: {
+          read_structure();
+          break;
+      }
+      case INSTRUCTION_KIND_CONST_LOAD: {
+          class ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn();
+          constantloadInsn->setFunction(BIRfunction);
+          constantloadInsn->setInstKind((InstructionKind)insnkind);
+
+          read_const(constantloadInsn, m_constant_pool);
+          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (constantloadInsn));
+          break;
+      }
+      case INSTRUCTION_KIND_GOTO: {
+          class TerminatorInsn *terminatorInsn = new TerminatorInsn();
+          uint32_t nameid = read_goto();
+          class BasicBlockT *dummybasicBlock = new BasicBlockT(get_string_cp(nameid, m_constant_pool));
+          terminatorInsn->setNextBB(dummybasicBlock);
+          terminatorInsn->setPatchStatus(true);
+          terminatorInsn->setInstKind((InstructionKind)insnkind);
+          basicBlock->setTerminatorInsn(terminatorInsn);
+          nonTerminatorInsn = NULL;
+          break;
+      }
+      case INSTRUCTION_KIND_RETURN: {
+          class TerminatorInsn *terminatorInsn = new TerminatorInsn();
+          terminatorInsn->setInstKind((InstructionKind)insnkind);
+          basicBlock->setTerminatorInsn(terminatorInsn);
+          nonTerminatorInsn = NULL;
+          break;
+      }
+      case INSTRUCTION_KIND_BINARY_ADD:
+      case INSTRUCTION_KIND_BINARY_SUB:
+      case INSTRUCTION_KIND_BINARY_MUL:
+      case INSTRUCTION_KIND_BINARY_DIV:
+      case INSTRUCTION_KIND_BINARY_EQUAL:
+      case INSTRUCTION_KIND_BINARY_NOT_EQUAL:
+      case INSTRUCTION_KIND_BINARY_GREATER_THAN:
+      case INSTRUCTION_KIND_BINARY_GREATER_EQUAL:
+      case INSTRUCTION_KIND_BINARY_LESS_THAN:
+      case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
+      case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
+      case INSTRUCTION_KIND_BINARY_MOD: {
+          class BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
+          binaryOpInsn->setInstKind((InstructionKind)insnkind);
+          binaryOpInsn = read_binaryOp(binaryOpInsn, m_constant_pool);
+          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (binaryOpInsn));
+          break;
+      }
+      case INSTRUCTION_KIND_UNARY_NEG:
+      case INSTRUCTION_KIND_UNARY_NOT: {
+          class UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
+          unaryOpInsn->setInstKind((InstructionKind)insnkind);
+          unaryOpInsn = read_unaryOp(unaryOpInsn, m_constant_pool);
+          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (unaryOpInsn));
+          break;
+      }
+      case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
+          class ConditionBrInsn *conditionBrInsn = new ConditionBrInsn();
+          conditionBrInsn->setInstKind((InstructionKind)insnkind);
+          conditionBrInsn = read_conditionalBr(conditionBrInsn, m_constant_pool);
+          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (conditionBrInsn));
+          nonTerminatorInsn = NULL;
+          break;
+      }
+      case INSTRUCTION_KIND_MOVE: {
+          class MoveInsn *moveInsn = new MoveInsn();
+          moveInsn->setInstKind((InstructionKind)insnkind);
+          moveInsn = read_move(moveInsn, m_constant_pool);
+          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (moveInsn));
+          break;
+      }
+      default:
+          break;
+    }
+    return nonTerminatorInsn;
 }
 
 // Read Basic Block from the BIR
@@ -493,181 +493,181 @@ BasicBlockT* readBasicBlock (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
 // Patches the Terminator Insn with destination Basic Block
 void patchInsn(vector<BasicBlockT *>   basicBlocks)
 {
-  for (unsigned int i = 0; i < basicBlocks.size(); i++)
-  {
-      BasicBlockT *basicBlock = basicBlocks[i];
-      TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
-      if (terminator->getPatchStatus())
-      {
-        switch (terminator->getInstKind()) {
-          case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
-	  {
-              ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *> (terminator));
-              BasicBlockT *trueBB = search_bb_by_name(basicBlocks, Terminator->getifThenBB()->getId());
-              BasicBlockT *falseBB = search_bb_by_name(basicBlocks, Terminator->getelseBB()->getId());
-              BasicBlockT *danglingTrueBB = Terminator->getifThenBB();
-              BasicBlockT *danglingFalseBB = Terminator->getelseBB();
-              delete danglingTrueBB;
-              delete danglingFalseBB;
-              Terminator->setifThenBB(trueBB);
-              Terminator->setelseBB(falseBB);
-	      break;
-	  }
-	  case INSTRUCTION_KIND_GOTO :
-	  {
-              BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
-              BasicBlockT *danglingBB = terminator->getNextBB();
-              delete danglingBB;
-              terminator->setNextBB(destBB);
-	      break;
-          }
-	  default:
-	      fprintf(stderr, "%s:%d Invalid Insn Kind for Instruction Patching.\n", __FILE__, __LINE__);
-	      break;
-      }
+    for (unsigned int i = 0; i < basicBlocks.size(); i++)
+    {
+        BasicBlockT *basicBlock = basicBlocks[i];
+        TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
+        if (terminator->getPatchStatus())
+        {
+          switch (terminator->getInstKind()) {
+            case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
+            {
+                ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *> (terminator));
+                BasicBlockT *trueBB = search_bb_by_name(basicBlocks, Terminator->getifThenBB()->getId());
+                BasicBlockT *falseBB = search_bb_by_name(basicBlocks, Terminator->getelseBB()->getId());
+                BasicBlockT *danglingTrueBB = Terminator->getifThenBB();
+                BasicBlockT *danglingFalseBB = Terminator->getelseBB();
+                delete danglingTrueBB;
+                delete danglingFalseBB;
+                Terminator->setifThenBB(trueBB);
+                Terminator->setelseBB(falseBB);
+                break;
+            }
+            case INSTRUCTION_KIND_GOTO :
+            {
+                BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
+                BasicBlockT *danglingBB = terminator->getNextBB();
+                delete danglingBB;
+                terminator->setNextBB(destBB);
+                break;
+            }
+            default:
+                fprintf(stderr, "%s:%d Invalid Insn Kind for Instruction Patching.\n", __FILE__, __LINE__);
+                break;
+           }
+        }
     }
-  }
 }
 
 // Reads BIR function 
 BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
-  class BIRFunction *BIRfunction = new BIRFunction();
-  uint32_t sLine = read_s4be();
-  uint32_t eLine = read_s4be();
-  uint32_t sCol = read_s4be();
-  uint32_t eCol = read_s4be();
+    class BIRFunction *BIRfunction = new BIRFunction();
+    uint32_t sLine = read_s4be();
+    uint32_t eLine = read_s4be();
+    uint32_t sCol = read_s4be();
+    uint32_t eCol = read_s4be();
 
-  uint32_t sourceFileCpIndex = read_s4be();
-  BIRpackage->setSrcFileName(get_string_cp(sourceFileCpIndex, m_constant_pool));
+    uint32_t sourceFileCpIndex = read_s4be();
+    BIRpackage->setSrcFileName(get_string_cp(sourceFileCpIndex, m_constant_pool));
 
-  class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
-  BIRfunction->setLocation(location);
+    class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+    BIRfunction->setLocation(location);
 
-  uint32_t nameCpIndex = read_s4be();
-  BIRfunction->setName(get_string_cp(nameCpIndex, m_constant_pool));
+    uint32_t nameCpIndex = read_s4be();
+    BIRfunction->setName(get_string_cp(nameCpIndex, m_constant_pool));
 
-  uint32_t workdernameCpIndex = read_s4be();
-  BIRfunction->setWorkerName(get_string_cp(workdernameCpIndex, m_constant_pool));
+    uint32_t workdernameCpIndex = read_s4be();
+    BIRfunction->setWorkerName(get_string_cp(workdernameCpIndex, m_constant_pool));
 
-  uint32_t flags = read_s4be();
-  BIRfunction->setFlags(flags);
+    uint32_t flags = read_s4be();
+    BIRfunction->setFlags(flags);
 
-  uint32_t typeCpIndex __attribute__((unused));
-  typeCpIndex = read_s4be();
+    uint32_t typeCpIndex __attribute__((unused));
+    typeCpIndex = read_s4be();
 
-  uint64_t annotation_length __attribute__((unused));
-  annotation_length = read_s8be();
+    uint64_t annotation_length __attribute__((unused));
+    annotation_length = read_s8be();
 
-  uint32_t annotationAttachments __attribute__((unused));
-  annotationAttachments = read_s4be();
+    uint32_t annotationAttachments __attribute__((unused));
+    annotationAttachments = read_s4be();
 
-  uint32_t requiredParamCount = read_s4be();
-  BIRfunction->setNumParams(requiredParamCount);
+    uint32_t requiredParamCount = read_s4be();
+    BIRfunction->setNumParams(requiredParamCount);
 
-  uint8_t hasRestParam = read_u1();
-  if (!((bool)hasRestParam))
-    BIRfunction->setRestParam(NULL);
+    uint8_t hasRestParam = read_u1();
+    if (!((bool)hasRestParam))
+      BIRfunction->setRestParam(NULL);
 
-  uint8_t hasReceiver = read_u1();
-  if (!((bool)hasReceiver))
-    BIRfunction->setReceiver(NULL);
+    uint8_t hasReceiver = read_u1();
+    if (!((bool)hasReceiver))
+      BIRfunction->setReceiver(NULL);
 
-  uint64_t taintTableLength = read_s8be();
+    uint64_t taintTableLength = read_s8be();
 
-  std::vector<char> result(taintTableLength);
-  is.read(&result[0], taintTableLength);
+    std::vector<char> result(taintTableLength);
+    is.read(&result[0], taintTableLength);
 
-  uint32_t docLength __attribute__((unused));
-  docLength = read_s4be();
+    uint32_t docLength __attribute__((unused));
+    docLength = read_s4be();
 
-  std::vector<char> result1(docLength);
-  is.read(&result1[0], docLength);
+    std::vector<char> result1(docLength);
+    is.read(&result1[0], docLength);
 
-  uint64_t functionBodyLength __attribute__((unused));
-  functionBodyLength = read_s8be();
+    uint64_t functionBodyLength __attribute__((unused));
+    functionBodyLength = read_s8be();
 
-  uint32_t argsCount __attribute__((unused));
-  argsCount = read_s4be();
+    uint32_t argsCount __attribute__((unused));
+    argsCount = read_s4be();
 
-  uint8_t m_has_return_var = read_u1();
+    uint8_t m_has_return_var = read_u1();
 
-  if (m_has_return_var)
-  {
-      class VarDecl *varDecl = new VarDecl();
+    if (m_has_return_var)
+    {
+        class VarDecl *varDecl = new VarDecl();
 
-      uint8_t kind = read_u1();
-      varDecl->setVarKind ((VarKind)kind);
+        uint8_t kind = read_u1();
+        varDecl->setVarKind ((VarKind)kind);
 
-      uint32_t typeCpIndex = read_s4be();
-      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, true);
-      varDecl->setTypeDecl(typeDecl);
+        uint32_t typeCpIndex = read_s4be();
+        TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, true);
+        varDecl->setTypeDecl(typeDecl);
 
-      uint32_t nameCpIndex = read_s4be();
-      varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
+        uint32_t nameCpIndex = read_s4be();
+        varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
 
-      BIRfunction->setReturnVar(varDecl);
-  }
+        BIRfunction->setReturnVar(varDecl);
+    }
 
-  uint32_t defaultParamValue __attribute__((unused));
-  defaultParamValue = read_s4be();
+    uint32_t defaultParamValue __attribute__((unused));
+    defaultParamValue = read_s4be();
 
-  uint32_t localVarCount = read_s4be();
+    uint32_t localVarCount = read_s4be();
 
-  std::vector<VarDecl *> localvars;
-  for (unsigned int i = 0; i < localVarCount; i++)
-  {
-      class VarDecl *varDecl = new VarDecl();
+    std::vector<VarDecl *> localvars;
+    for (unsigned int i = 0; i < localVarCount; i++)
+    {
+        class VarDecl *varDecl = new VarDecl();
 
-      uint8_t kind = read_u1();
-      varDecl->setVarKind ((VarKind)kind);
+        uint8_t kind = read_u1();
+        varDecl->setVarKind ((VarKind)kind);
 
-      uint32_t typeCpIndex = read_s4be();
-      TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
-      varDecl->setTypeDecl(typeDecl);
+        uint32_t typeCpIndex = read_s4be();
+        TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
+        varDecl->setTypeDecl(typeDecl);
 
-      uint32_t nameCpIndex = read_s4be();
-      varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
-      localvars.push_back(varDecl);
+        uint32_t nameCpIndex = read_s4be();
+        varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
+        localvars.push_back(varDecl);
 
-      if (kind == 1)
-      {
-	uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
-	uint32_t endBbIdCpIndex __attribute__((unused)) = read_s4be();
-	uint32_t startBbIdCpIndex __attribute__((unused)) = read_s4be();
-	uint32_t instructionOffset __attribute__((unused)) = read_s4be();
-      }
+        if (kind == 1)
+        {
+	    uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
+	    uint32_t endBbIdCpIndex __attribute__((unused)) = read_s4be();
+	    uint32_t startBbIdCpIndex __attribute__((unused)) = read_s4be();
+	    uint32_t instructionOffset __attribute__((unused)) = read_s4be();
+        }
 
-  }
-  BIRfunction->setLocalVars(localvars);
+    }
+    BIRfunction->setLocalVars(localvars);
 
-  uint32_t BBCount = read_s4be();
+    uint32_t BBCount = read_s4be();
 
-  for (unsigned int i = 0; i < BBCount; i++)
-  {
-    class BasicBlockT *basicBlock = new BasicBlockT();
-    basicBlock = readBasicBlock(BIRfunction, basicBlock, m_constant_pool);
-    BIRfunction->addBasicBlockT(basicBlock);
-  }
+    for (unsigned int i = 0; i < BBCount; i++)
+    {
+      class BasicBlockT *basicBlock = new BasicBlockT();
+      basicBlock = readBasicBlock(BIRfunction, basicBlock, m_constant_pool);
+      BIRfunction->addBasicBlockT(basicBlock);
+    }
 
-  //Patching the insn
-  vector<BasicBlockT *>   basicBlocks = BIRfunction->getBasicBlocks();
-  patchInsn(basicBlocks);
+    //Patching the insn
+    vector<BasicBlockT *>   basicBlocks = BIRfunction->getBasicBlocks();
+    patchInsn(basicBlocks);
 
-  //Create links between Basic Block
-  for (unsigned int i = 0; i < BBCount - 1; i++)
-  {
-    class BasicBlockT *basicBlock = BIRfunction->getBasicBlock(i);
-    basicBlock->setNextBB(BIRfunction->getBasicBlock(i + 1));
-  }
+    //Create links between Basic Block
+    for (unsigned int i = 0; i < BBCount - 1; i++)
+    {
+      class BasicBlockT *basicBlock = BIRfunction->getBasicBlock(i);
+      basicBlock->setNextBB(BIRfunction->getBasicBlock(i + 1));
+    }
 
-  uint32_t errorEntriesCount __attribute__((unused));
-  errorEntriesCount = read_s4be();
+    uint32_t errorEntriesCount __attribute__((unused));
+    errorEntriesCount = read_s4be();
 
-  uint32_t channelsLength __attribute__((unused));
-  channelsLength = read_s4be();
+    uint32_t channelsLength __attribute__((unused));
+    channelsLength = read_s4be();
 
-  return BIRfunction;
+    return BIRfunction;
 }
 
 void string_cp_info_t::_read() 
@@ -777,7 +777,7 @@ void constant_pool_set_t::_read()
     m_constant_pool_entries->reserve(l_constant_pool_entries);
     for (int i = 0; i < l_constant_pool_entries; i++) {
         constant_pool_entry_t::tag_enum_t m_tag = static_cast<constant_pool_entry_t::tag_enum_t>(peek_read_u1());
-    switch (m_tag) {
+        switch (m_tag) {
         case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_PACKAGE: {
             package_cp_info_t *m_cp_info = new package_cp_info_t();
             constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
@@ -808,7 +808,7 @@ void constant_pool_set_t::_read()
         }
         default:
             break;
-    }
+       }
     }
 }
 
