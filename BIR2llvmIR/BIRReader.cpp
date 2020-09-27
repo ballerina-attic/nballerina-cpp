@@ -141,8 +141,6 @@ void read_global_var(constant_pool_set_t *m_constant_pool)
 
       uint32_t flags = read_s4be();
       uint32_t length = read_s4be();
-      //std::vector<char> result(length);
-      //is.read(&result[0], length);
       uint8_t hasDoc = read_u1();
       if (hasDoc)
       {
@@ -516,7 +514,6 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
       {
         switch (terminator->getInstKind()) {
           case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
-	  //if (terminator->getNextBB() == NULL)
 	  {
               ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *> (terminator));
               BasicBlockT *trueBB = search_bb_by_name(basicBlocks, Terminator->getifThenBB()->getId());
@@ -530,7 +527,6 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
 	      break;
 	  }
 	  case INSTRUCTION_KIND_GOTO :
-	  //else
 	  {
               BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
               BasicBlockT *danglingBB = terminator->getNextBB();
@@ -881,8 +877,6 @@ BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
 	for (unsigned int i = 0; i < m_golbal_var_count; i++)
 	{
 	    read_global_var(m_constant_pool);
-            //std::vector<char> result(18);
-            //is.read(&result[0], 18);
 	}
     }
 
