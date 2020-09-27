@@ -176,7 +176,7 @@ class BIRNode {
   public:
     BIRNode ();
     BIRNode (Location  *pos);
-    ~BIRNode ();
+    virtual ~BIRNode ();
 
     Location * getLocation()                 { return loc; }
     void       setLocation(Location *newLoc) { loc = newLoc; }
