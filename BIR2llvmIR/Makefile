@@ -75,6 +75,7 @@ SRCS = llvmPackageGen.cpp \
        llvmReturnInsn.cpp \
        llvmGoToInsn.cpp \
        llvmUnaryOpInsn.cpp \
+       llvmConditionBrInsn.cpp \
        BIRReader.cpp \
        driver.cpp
 
