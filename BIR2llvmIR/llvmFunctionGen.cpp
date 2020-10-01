@@ -23,7 +23,7 @@ LLVMValueRef BIRFunction::getLocalVarRefUsingId(string locVar)
     if (iter->first == locVar)
       return iter->second;
   }
-  exit(0);
+  return NULL;
 }
 
 LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand)
@@ -40,6 +40,9 @@ static bool isParamter (VarDecl *locVar)
     case LOCAL_VAR_KIND:
     case TEMP_VAR_KIND:
     case RETURN_VAR_KIND:
+    case GLOBAL_VAR_KIND:
+    case SELF_VAR_KIND:
+    case CONSTANT_VAR_KIND:
       return false;
     case ARG_VAR_KIND:
       return true;
@@ -50,7 +53,7 @@ static bool isParamter (VarDecl *locVar)
 
 LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
 {
-  string typeName = typeD->getTypeDeclName();
+/*  string typeName = typeD->getTypeDeclName();
   if (typeName == "bool" || typeName == "char")
     return LLVMInt1Type();
   else if (typeName == "int")
@@ -60,18 +63,33 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
   else if (typeName == "double")
     return LLVMDoubleType();
   else
-    return LLVMInt32Type();
+    return LLVMInt32Type();*/
+  int typeTag = typeD->getTypeTag();
+  switch (typeTag) {
+    case TYPE_TAG_ENUM_TYPE_TAG_INT:
+      return LLVMInt32Type();
+    case TYPE_TAG_ENUM_TYPE_TAG_BYTE:
+    case TYPE_TAG_ENUM_TYPE_TAG_FLOAT:
+    case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN:
+      return LLVMInt8Type();
+    default:
+      return LLVMInt32Type();
+  }
 }
 
 LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(TypeDecl *typeD)
 {
-  string typeName = typeD->getTypeDeclName();
-  if (typeName == "bool" || typeName == "char")
-    return LLVMInt1Type();
-  else if (typeName == "int")
-    return LLVMInt32Type();
-  else
-    return LLVMVoidType();
+  int typeTag = typeD->getTypeTag();
+  switch (typeTag) {
+    case TYPE_TAG_ENUM_TYPE_TAG_INT:
+      return LLVMInt32Type();
+    case TYPE_TAG_ENUM_TYPE_TAG_BYTE:
+    case TYPE_TAG_ENUM_TYPE_TAG_FLOAT:
+    case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN:
+      return LLVMInt8Type();
+    default:
+      return LLVMVoidType();
+  }
 }
 
 void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
@@ -110,6 +128,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
     bb->setLLVMBBRef(bbRef);
     bb->setBIRFunction(this);
     bb->setLLVMBuilderRef(builder);
+    bb->setpkgAddress(getpkgAddress());
   }
 
   // creating branch to next basic block.

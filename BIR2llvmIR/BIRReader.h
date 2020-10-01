@@ -117,7 +117,7 @@ class int_cp_info_t : public constant_pool_entry_t {
 class constant_pool_set_t {
 
   public:
-      constant_pool_set_t() {  _read(); }
+      constant_pool_set_t() { }
       void _read();
       ~constant_pool_set_t();
 
