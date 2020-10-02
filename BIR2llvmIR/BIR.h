@@ -80,7 +80,7 @@ enum InstructionKind {
         INSTRUCTION_KIND_UNARY_NEG,
         INSTRUCTION_KIND_BINARY_BITWISE_XOR = 85,
         INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
-}; // we have to add more from bir-model.bal file
+}; // Enums are referred from bir-model.bal file
 
 enum type_tag_enum_t {
         TYPE_TAG_ENUM_TYPE_TAG_INT = 1,
@@ -138,12 +138,9 @@ enum type_tag_enum_t {
 };
 
 enum VarScope {
-	VAR_SCOPE_GLOBAL=1, 
-	VAR_SCOPE_FUNCTION
+       VAR_SCOPE_GLOBAL=1,
+       VAR_SCOPE_FUNCTION
 };
-
-// Forward Declarations
-class Scope;
 
 class Location {
   private:
@@ -175,10 +172,11 @@ class Location {
 class BIRNode {
   private:
     Location  *loc;
+
   public:
     BIRNode ();
     BIRNode (Location  *pos);
-    ~BIRNode ();
+    virtual ~BIRNode ();
 
     Location * getLocation()                 { return loc; }
     void       setLocation(Location *newLoc) { loc = newLoc; }
@@ -186,141 +184,24 @@ class BIRNode {
     virtual void translate(LLVMModuleRef &modRef);
 };
 
-class PackageID {
-  private:
-    string        orgName;
-    string        sourceFileName;   // name is actually the source file name
-    string        version;
-    bool          isUnnamed = false;
-    list<string>  nameComps;
-
-  public:
-    PackageID();
-    PackageID(string orgName, list<string> nameComps, string version);
-    PackageID(string orgName, string name, string version);
-    PackageID(string sourceFileName);
-    ~PackageID();
-    
-    string getOrgName()                 { return orgName; }
-    string getSourceFileName()          { return sourceFileName; }
-    string getVersion()                 { return version; }
-    bool   getIsUnnamed()                  { return isUnnamed; }
-    void   addNameComps(string name)    { nameComps.push_back(name); }
-    string getFirstNameComp()           { return nameComps.front(); }
-    string getLastNameComp()            { return nameComps.back(); }
-    bool   nameCompExists(string name);
-
-    typename list<string>::iterator getCompName(string name);  // Return the iterator to the entry matching name
-
-    virtual void translate(LLVMModuleRef &modRef);
-};
-
-class Symbol {
-  private:
-    int         tag;
-    int         flags;
-    string      name;
-    PackageID  *pkgID;
-    SymbolKind *kind;
-    TypeDecl   *type;
-    Symbol     *owner;
-    bool        tainted;
-    bool        closure;
-    // MarkdownDocAttachment markdownDocumentation;
-    Scope      *scope;
-
-  public:
-    Symbol();
-    Symbol(int tag, int flags, string name, SymbolKind *kind,
-	   TypeDecl *type, Symbol *owner, Scope *scope);
-    ~Symbol();
-
-    int          getTag()               { return tag; }
-    int          getFlags()             { return flags; }
-    string       getName()              { return name; }
-    PackageID *  getPackageID()         { return pkgID; }
-    SymbolKind * getSymbolKind()        { return kind; }
-    TypeDecl *   getTypeDecl()          { return type; }
-    Symbol *     getOwner()             { return owner; }
-    bool         isTainted()            { return tainted; }
-    bool         isClosure()            { return closure; }
-    Scope *      getScope()             { return scope; }
-
-    virtual void translate(LLVMModuleRef &modRef);
-};
-
-class ScopeEntry {
-  private:
-    Symbol     *symbol;
-    ScopeEntry *next;
-
-  public:
-    ScopeEntry();
-    ScopeEntry(Symbol *sym, ScopeEntry *next);
-    ~ScopeEntry();
-
-    Symbol *     getSymbol()    { return symbol; }
-    ScopeEntry * getNextScope() { return next; }
-};
-
-class Scope {
-  private:
-    static const int        DEFAULT_SIZE = 10;
-    //static final ScopeEntry NOT_FOUND_ENTRY = new ScopeEntry(NULL, NULL);
-    Symbol                  *owner;
-    map<string, ScopeEntry *>  entries;
-
-  public:
-    Scope();
-    Scope(Symbol *owner);
-    Scope(Symbol *owner, map<string, ScopeEntry*> entries);
-    ~Scope();
-
-    Symbol * getOwner() { return owner; }
-    void     addNewScopeEntry(string name, ScopeEntry *entry)
-             { entries.insert(std::pair<string, ScopeEntry *>(name, entry)); }
-
-    ScopeEntry * getScopeEntry(string name);
-
-    virtual void translate(LLVMModuleRef &modRef);
-};
-
-
-class TypeSymbol: public Symbol {
-  private:
-    bool        isLabel;
-
-  public:
-    TypeSymbol();
-    TypeSymbol(int symTag, int flags, string name, SymbolKind *kind,
-		TypeDecl *type, Symbol *owner, Scope *scope, bool isLab);
-    ~TypeSymbol();
-
-    bool getIsLabel() { return isLabel; }
-};
-
 class TypeDecl {
   private:
     int         tag;
-    TypeSymbol *typeSym;
     string      name;
     int         flags;
 
   public:
     TypeDecl();
-    TypeDecl(TypeSymbol *tsymbol);
-    TypeDecl(int tag, TypeSymbol *tsymbol, int flags);
-    TypeDecl(int tag, TypeSymbol *tsymbol, string name, int flags);
+    TypeDecl(int tag, int flags);
+    TypeDecl(int tag, string name, int flags);
     ~TypeDecl();
 
     void    setTypeDeclName(string namep)    { name = namep; }
     void    setTypeTag (int tagp)            { tag = tagp; }
-    void    setTypeSymbol(TypeSymbol *tySym) { typeSym = tySym; }
     void    setFlags(int flag)               { flags = flag; }
 
     int          getTypeTag()           { return tag; }
     string       getTypeDeclName()      { return name; }
-    TypeSymbol * getTypeSymbol()        { return typeSym; }
     int          getFlags()             { return flags; }
     
     virtual void translate(LLVMModuleRef &modRef);
@@ -416,16 +297,16 @@ class MoveInsn: public NonTerminatorInsn {
 
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
-    unsigned long long value;
+    int value;
 
   public:
     ConstantLoadInsn();
     ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                     unsigned long long val);
+                     int val);
     ~ConstantLoadInsn();
 
-    unsigned long long getValue()                       { return value; }
-    void   setValue(unsigned long long val) { value = val; }
+    int getValue()                       { return value; }
+    void   setValue(int val) { value = val; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -559,11 +440,11 @@ class BasicBlockT: public BIRNode {
 
 class VarDecl: public BIRNode {
   private:
-    TypeDecl      *type;
+    TypeDecl       *type;
     string         varName;
     string         metaVarName;
     VarKind        kind;
-    VarScope      scope;
+    VarScope       scope;
     bool           ignoreVariable;
     BasicBlockT    *endBB;
     BasicBlockT    *startBB;

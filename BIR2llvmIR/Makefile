@@ -61,17 +61,12 @@ SRCS = llvmPackageGen.cpp \
        llvmFuncParamGen.cpp \
        llvmParamGen.cpp \
        llvmTypeDeclGen.cpp \
-       llvmTypeSymbolGen.cpp \
-       llvmSymbolGen.cpp \
-       llvmPackageIDGen.cpp \
        llvmNonTerminatorInsnGen.cpp \
        llvmAbstractInsnGen.cpp \
        llvmTerminatorInsnGen.cpp \
        llvmMoveInsn.cpp \
        llvmConstantLoadInsn.cpp \
        llvmBinaryOpInsn.cpp \
-       llvmScopeGen.cpp \
-       llvmScopeEntryGen.cpp \
        llvmReturnInsn.cpp \
        llvmGoToInsn.cpp \
        llvmUnaryOpInsn.cpp \

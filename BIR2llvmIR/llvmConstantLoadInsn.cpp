@@ -5,7 +5,7 @@ ConstantLoadInsn::ConstantLoadInsn () {
 }
 
 ConstantLoadInsn::ConstantLoadInsn (Location *pos, InstructionKind kind,
-			Operand *lOp, unsigned long long val):
+			Operand *lOp, int val):
 		NonTerminatorInsn(pos, kind, lOp), value(val) {
 
 }

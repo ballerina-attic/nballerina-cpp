@@ -2,14 +2,11 @@
 
 TypeDecl::TypeDecl() {}
 
-TypeDecl::TypeDecl(TypeSymbol *tsymbol):typeSym(tsymbol) {
-}
+TypeDecl::TypeDecl(int tagp, int flagsp):
+			tag(tagp), flags(flagsp) { }
 
-TypeDecl::TypeDecl(int tagp, TypeSymbol *tsymbol, int flagsp):
-			tag(tagp), typeSym(tsymbol), flags(flagsp) { }
-
-TypeDecl::TypeDecl(int tagp, TypeSymbol *tsymbol, string namep, int flagsp):
-		    tag(tagp), typeSym(tsymbol), name(namep), flags(flagsp) { }
+TypeDecl::TypeDecl(int tagp, string namep, int flagsp):
+		    tag(tagp), name(namep), flags(flagsp) { }
 
 TypeDecl::~TypeDecl() { }
 
