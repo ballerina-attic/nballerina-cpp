@@ -105,7 +105,7 @@ TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool, bool 
 {
     constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
     shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
-    class TypeDecl *typeDecl = new TypeDecl();
+    TypeDecl *typeDecl = new TypeDecl();
     typeDecl->setTypeDeclName(get_string_cp(shape_cp->name_index(), m_constant_pool));
     if (typeDecl->getTypeDeclName() == "")
     {
@@ -133,7 +133,7 @@ type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool
 // Read Global Variable and push it to BIRPackage
 void read_global_var(constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
-    class VarDecl *varDecl = new VarDecl();
+    VarDecl *varDecl = new VarDecl();
     uint8_t kind = read_u1();
     varDecl->setVarKind((VarKind)kind);
 
@@ -158,7 +158,7 @@ void read_global_var(constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackag
 // Read Local Variable and return VarDecl pointer
 VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
 {
-    class VarDecl *varDecl = new VarDecl();
+    VarDecl *varDecl = new VarDecl();
     uint8_t ignoredVar = read_u1();
     varDecl->setIgnore((bool)ignoredVar);
 
@@ -235,8 +235,8 @@ void read_structure ()
 // Read CONST_LOAD Insn
 void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_constant_pool)
 {
-    class Operand *lhsOperand = new Operand();
-    class VarDecl *varDecl = new VarDecl();
+    Operand *lhsOperand = new Operand();
+    VarDecl *varDecl = new VarDecl();
     lhsOperand->setVarDecl(varDecl);
 
     uint32_t typeCpIndex1 = read_s4be();
@@ -332,10 +332,10 @@ ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_p
     uint32_t trueBbIdNameCpIndex = read_s4be();
     uint32_t falseBbIdNameCpIndex = read_s4be();
 
-    class BasicBlockT *trueDummybasicBlock = new BasicBlockT(get_string_cp(trueBbIdNameCpIndex, m_constant_pool));
+    BasicBlockT *trueDummybasicBlock = new BasicBlockT(get_string_cp(trueBbIdNameCpIndex, m_constant_pool));
     conditionBrInsn->setifThenBB(trueDummybasicBlock);
 
-    class BasicBlockT *falseDummybasicBlock = new BasicBlockT(get_string_cp(falseBbIdNameCpIndex, m_constant_pool));
+    BasicBlockT *falseDummybasicBlock = new BasicBlockT(get_string_cp(falseBbIdNameCpIndex, m_constant_pool));
     conditionBrInsn->setelseBB(falseDummybasicBlock);
 
     conditionBrInsn->setPatchStatus(true);
@@ -384,7 +384,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
     uint32_t eCol = read_s4be();
     uint32_t sourceFileCpIndex = read_s4be();
 
-    class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+    Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
     nonTerminatorInsn->setLocation(location);
 
     uint8_t insnkind = read_u1();
@@ -398,7 +398,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
           break;
       }
       case INSTRUCTION_KIND_CONST_LOAD: {
-          class ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn();
+          ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn();
           constantloadInsn->setFunction(BIRfunction);
           constantloadInsn->setInstKind((InstructionKind)insnkind);
 
@@ -407,9 +407,9 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
           break;
       }
       case INSTRUCTION_KIND_GOTO: {
-          class TerminatorInsn *terminatorInsn = new TerminatorInsn();
+          TerminatorInsn *terminatorInsn = new TerminatorInsn();
           uint32_t nameid = read_goto();
-          class BasicBlockT *dummybasicBlock = new BasicBlockT(get_string_cp(nameid, m_constant_pool));
+          BasicBlockT *dummybasicBlock = new BasicBlockT(get_string_cp(nameid, m_constant_pool));
           terminatorInsn->setNextBB(dummybasicBlock);
           terminatorInsn->setPatchStatus(true);
           terminatorInsn->setInstKind((InstructionKind)insnkind);
@@ -418,7 +418,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
           break;
       }
       case INSTRUCTION_KIND_RETURN: {
-          class TerminatorInsn *terminatorInsn = new TerminatorInsn();
+          TerminatorInsn *terminatorInsn = new TerminatorInsn();
           terminatorInsn->setInstKind((InstructionKind)insnkind);
           basicBlock->setTerminatorInsn(terminatorInsn);
           nonTerminatorInsn = NULL;
@@ -436,7 +436,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
       case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
       case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
       case INSTRUCTION_KIND_BINARY_MOD: {
-          class BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
+          BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
           binaryOpInsn->setInstKind((InstructionKind)insnkind);
           binaryOpInsn = read_binaryOp(binaryOpInsn, m_constant_pool);
           nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (binaryOpInsn));
@@ -444,14 +444,14 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
       }
       case INSTRUCTION_KIND_UNARY_NEG:
       case INSTRUCTION_KIND_UNARY_NOT: {
-          class UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
+          UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
           unaryOpInsn->setInstKind((InstructionKind)insnkind);
           unaryOpInsn = read_unaryOp(unaryOpInsn, m_constant_pool);
           nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (unaryOpInsn));
           break;
       }
       case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
-          class ConditionBrInsn *conditionBrInsn = new ConditionBrInsn();
+          ConditionBrInsn *conditionBrInsn = new ConditionBrInsn();
           conditionBrInsn->setInstKind((InstructionKind)insnkind);
           conditionBrInsn = read_conditionalBr(conditionBrInsn, m_constant_pool);
           basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (conditionBrInsn));
@@ -459,7 +459,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
           break;
       }
       case INSTRUCTION_KIND_MOVE: {
-          class MoveInsn *moveInsn = new MoveInsn();
+          MoveInsn *moveInsn = new MoveInsn();
           moveInsn->setInstKind((InstructionKind)insnkind);
           moveInsn = read_move(moveInsn, m_constant_pool);
           nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (moveInsn));
@@ -481,7 +481,7 @@ BasicBlockT* readBasicBlock (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
     uint32_t insnCount = read_s4be();
     for (unsigned int i = 0; i < insnCount; i++)
     {
-      class NonTerminatorInsn *nonTerminatorInsn = new NonTerminatorInsn();
+      NonTerminatorInsn *nonTerminatorInsn = new NonTerminatorInsn();
       nonTerminatorInsn->setFunction(BIRfunction);
       nonTerminatorInsn = readInsn(BIRfunction, basicBlock, nonTerminatorInsn, m_constant_pool);
       if (nonTerminatorInsn)
@@ -532,7 +532,7 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
 // Reads BIR function 
 BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
-    class BIRFunction *BIRfunction = new BIRFunction();
+    BIRFunction *BIRfunction = new BIRFunction();
     uint32_t sLine = read_s4be();
     uint32_t eLine = read_s4be();
     uint32_t sCol = read_s4be();
@@ -541,7 +541,7 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
     uint32_t sourceFileCpIndex = read_s4be();
     BIRpackage->setSrcFileName(get_string_cp(sourceFileCpIndex, m_constant_pool));
 
-    class Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+    Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
     BIRfunction->setLocation(location);
 
     uint32_t nameCpIndex = read_s4be();
@@ -594,13 +594,13 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
 
     if (m_has_return_var)
     {
-        class VarDecl *varDecl = new VarDecl();
+        VarDecl *varDecl = new VarDecl();
 
         uint8_t kind = read_u1();
         varDecl->setVarKind ((VarKind)kind);
 
         uint32_t typeCpIndex = read_s4be();
-        TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, true);
+        TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
         varDecl->setTypeDecl(typeDecl);
 
         uint32_t nameCpIndex = read_s4be();
@@ -617,7 +617,7 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
     std::vector<VarDecl *> localvars;
     for (unsigned int i = 0; i < localVarCount; i++)
     {
-        class VarDecl *varDecl = new VarDecl();
+        VarDecl *varDecl = new VarDecl();
 
         uint8_t kind = read_u1();
         varDecl->setVarKind ((VarKind)kind);
@@ -645,7 +645,7 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
 
     for (unsigned int i = 0; i < BBCount; i++)
     {
-      class BasicBlockT *basicBlock = new BasicBlockT();
+      BasicBlockT *basicBlock = new BasicBlockT();
       basicBlock = readBasicBlock(BIRfunction, basicBlock, m_constant_pool);
       BIRfunction->addBasicBlockT(basicBlock);
     }
@@ -657,7 +657,7 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
     //Create links between Basic Block
     for (unsigned int i = 0; i < BBCount - 1; i++)
     {
-      class BasicBlockT *basicBlock = BIRfunction->getBasicBlock(i);
+      BasicBlockT *basicBlock = BIRfunction->getBasicBlock(i);
       basicBlock->setNextBB(BIRfunction->getBasicBlock(i + 1));
     }
 
@@ -812,7 +812,7 @@ void constant_pool_set_t::_read()
     }
 }
 
-BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
+void BIRReader::deserialize(BIRPackage *BIRpackage)
 {
     is.open(filename, ifstream::binary);
 
@@ -877,6 +877,4 @@ BIRPackage* BIRReader::deserialize(BIRPackage *BIRpackage)
 
     uint32_t m_annotations_size __attribute__((unused));
     m_annotations_size = read_s4be();
-
-    return BIRpackage;
 }

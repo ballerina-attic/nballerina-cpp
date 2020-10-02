@@ -30,6 +30,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
 
     insn->setFunction(BFunc);
     insn->setcurrentBB(this);
+    insn->setpkgAddress(getpkgAddress());
     switch (insn->getInstKind()) {
       case INSTRUCTION_KIND_MOVE:
       {
@@ -77,6 +78,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
   {
     terminator->setFunction(BFunc);
     terminator->setcurrentBB(this);
+    terminator->setpkgAddress(getpkgAddress());
     switch (terminator->getInstKind()) {
       case INSTRUCTION_KIND_CONDITIONAL_BRANCH:
       {

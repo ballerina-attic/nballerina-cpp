@@ -15,12 +15,28 @@ ReturnInsn::~ReturnInsn() {
 
 void ReturnInsn::translat(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
+  VarDecl* returnVarDecl = NULL;
   if (getFunction())
     builder = getFunction()->getLLVMBuilder();
-  if(builder && getFunction() && getLhsOperand() && 
-		getLhsOperand()->getVarDecl()) {
+
+  vector<VarDecl *> globalVarList = getpkgAddress()->getGlobalVars();
+  for (unsigned int i = 0; i < globalVarList.size(); i++)
+  {
+    VarDecl * varDeclLoc = globalVarList[i];
+    string varDeclName = varDeclLoc->getVarName();
+    if (varDeclName == "_bal_result") {
+      returnVarDecl = varDeclLoc;
+      break;
+    }
+  }
+ 
+  if(builder && getFunction() && returnVarDecl) {
     LLVMValueRef lhsRef = getFunction()->getLocalVarRefUsingId(
-                        getLhsOperand()->getVarDecl()->getVarName());
+                        returnVarDecl->getVarName());
+    if (!lhsRef)
+      lhsRef = getpkgAddress()->getGlobalVarRefUsingId(
+			returnVarDecl->getVarName());
+    
     LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
     if (retValRef)
       LLVMBuildRet(builder, retValRef);

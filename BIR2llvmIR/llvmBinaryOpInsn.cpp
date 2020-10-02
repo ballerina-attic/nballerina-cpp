@@ -37,30 +37,46 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
       {
         ifReturn = LLVMBuildAdd(builder, rhsOp1ref, rhsOp2ref, 
 					lhstmpName.c_str());
+    	if (ifReturn) {
+      	  LLVMBuildStore(builder, ifReturn, lhsRef);
+    	}
         break;
       }
       case INSTRUCTION_KIND_BINARY_SUB:
       {
         ifReturn = LLVMBuildSub(builder, rhsOp1ref, rhsOp2ref, 
 					lhstmpName.c_str());
-        break;
+        if (ifReturn) {
+          LLVMBuildStore(builder, ifReturn, lhsRef);
+        }
+
+	break;
       }
       case INSTRUCTION_KIND_BINARY_MUL:
       {
         ifReturn = LLVMBuildMul(builder, rhsOp1ref, rhsOp2ref, 
 					lhstmpName.c_str());
+        if (ifReturn) {
+          LLVMBuildStore(builder, ifReturn, lhsRef);
+        }
         break;
       }
       case INSTRUCTION_KIND_BINARY_DIV:
       {
         ifReturn = LLVMBuildUDiv(builder, rhsOp1ref, rhsOp2ref, 
 					lhstmpName.c_str());
+        if (ifReturn) {
+          LLVMBuildStore(builder, ifReturn, lhsRef);
+        }
         break;
       }
       case INSTRUCTION_KIND_BINARY_MOD:
       {
         ifReturn = LLVMBuildURem(builder, rhsOp1ref, rhsOp2ref, 
 					lhstmpName.c_str());
+        if (ifReturn) {
+          LLVMBuildStore(builder, ifReturn, lhsRef);
+        }
         break;
       }
       case INSTRUCTION_KIND_BINARY_GREATER_THAN:
@@ -121,16 +137,13 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
       {
         ifReturn = LLVMBuildXor(builder, rhsOp1ref, rhsOp2ref,
                                         lhstmpName.c_str());
+        if (ifReturn) {
+          LLVMBuildStore(builder, ifReturn, lhsRef);
+        }
+	break;
       }
       default:
         break;
-    }
-    if (ifReturn) {
-      LLVMBuildStore(builder, ifReturn, lhsRef);
-    }
-    else {
-      // Need to modify logic for if both types are mismatch.
-      printf("Variable Types are different\n");
     }
   }
 }
