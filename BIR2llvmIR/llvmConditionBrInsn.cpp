@@ -31,7 +31,6 @@ void ConditionBrInsn::translate(LLVMModuleRef &modRef) {
     elseLLVMBB = getelseBB()->getLLVMBBRef();
   }
   if (builder && brCondition && ifLLVMBB && elseLLVMBB) {
-    LLVMValueRef condBrRes = LLVMBuildCondBr(builder, brCondition,
-					ifLLVMBB, elseLLVMBB);
+    LLVMBuildCondBr(builder, brCondition, ifLLVMBB, elseLLVMBB);
   }
 }

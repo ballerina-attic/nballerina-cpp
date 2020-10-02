@@ -40,13 +40,15 @@ void BIRPackage::translate (LLVMModuleRef &modRef)
     LLVMTypeRef varTyperef = funcObj->getLLVMTypeRefOfType (
                                 globVar->getTypeDecl());
     string varName = globVar->getVarName();
-    if (varTyperef && modRef)
-      globVarRef = LLVMAddGlobal(modRef, varTyperef, varName.c_str());
-
-    //wrap(new GlobalVariable(*unwrap(modRef), unwrap(varTyperef), false,
-     //                            GlobalValue::AppendingLinkage, nullptr, varName.c_str()));
-    //unwrap(modRef)->getOrInsertGlobal("__new_global", unwrap(varTyperef));
-    LLVMGetNamedGlobal(modRef,varName.c_str());
+    if (varTyperef && modRef) {
+      // emit/adding the global variable.
+      Constant* init_value  = Constant::getNullValue(unwrap(varTyperef));
+      GlobalVariable *gVar = new GlobalVariable(*unwrap(modRef), 
+		unwrap(varTyperef), false, GlobalValue::ExternalLinkage,
+                      init_value, varName.c_str(),0);
+      gVar->setAlignment(Align(4));
+      globVarRef = wrap(gVar);
+    }
     if (globVarRef)
       globalVarRefs.insert({globVar->getVarName(), globVarRef});
   }

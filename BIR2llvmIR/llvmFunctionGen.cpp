@@ -51,35 +51,26 @@ static bool isParamter (VarDecl *locVar)
   }
 }
 
-LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
+LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl)
 {
-/*  string typeName = typeD->getTypeDeclName();
-  if (typeName == "bool" || typeName == "char")
-    return LLVMInt1Type();
-  else if (typeName == "int")
-    return LLVMInt32Type();
-  else if (typeName == "float")
-    return LLVMFloatType();
-  else if (typeName == "double")
-    return LLVMDoubleType();
-  else
-    return LLVMInt32Type();*/
-  int typeTag = typeD->getTypeTag();
-  switch (typeTag) {
-    case TYPE_TAG_ENUM_TYPE_TAG_INT:
-      return LLVMInt32Type();
-    case TYPE_TAG_ENUM_TYPE_TAG_BYTE:
-    case TYPE_TAG_ENUM_TYPE_TAG_FLOAT:
-    case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN:
-      return LLVMInt8Type();
-    default:
-      return LLVMInt32Type();
+  int typeTag = 0;
+  if (vDecl->getTypeDecl())
+    typeTag = vDecl->getTypeDecl()->getTypeTag();
+  // if main function return type is void, but user wants to return some 
+  // value using _bal_result (global variable from BIR), change main function 
+  // return type from void to global variable (_bal_result) type. 
+  if (typeTag == TYPE_TAG_ENUM_TYPE_TAG_NIL ||
+      typeTag == TYPE_TAG_ENUM_TYPE_TAG_VOID) {
+    vector<VarDecl *>  globVars = getpkgAddress()->getGlobalVars();
+    for (unsigned int i = 0; i < globVars.size(); i++) {
+      VarDecl* globVar = globVars[i];
+      if (globVar->getVarName() == "_bal_result") {
+	typeTag = globVar->getTypeDecl()->getTypeTag();
+	break;
+      }
+    }
   }
-}
-
-LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(TypeDecl *typeD)
-{
-  int typeTag = typeD->getTypeTag();
+  
   switch (typeTag) {
     case TYPE_TAG_ENUM_TYPE_TAG_INT:
       return LLVMInt32Type();
@@ -156,7 +147,7 @@ void BIRFunction::translate (LLVMModuleRef &modRef)
     isVarArg = true;
 
   if (returnVar)  
-    retType = getLLVMFuncRetTypeRefOfType(returnVar->getTypeDecl());
+    retType = getLLVMFuncRetTypeRefOfType(returnVar);
   paramTypes = new LLVMTypeRef[numParams];;
   for (unsigned i = 0;  i < numParams;  i++)
   {
@@ -175,3 +166,19 @@ void BIRFunction::translate (LLVMModuleRef &modRef)
 BIRFunction::~BIRFunction()
 {
 }
+
+LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
+{
+  int typeTag = typeD->getTypeTag();
+  switch (typeTag) {
+    case TYPE_TAG_ENUM_TYPE_TAG_INT:
+      return LLVMInt32Type();
+    case TYPE_TAG_ENUM_TYPE_TAG_BYTE:
+    case TYPE_TAG_ENUM_TYPE_TAG_FLOAT:
+    case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN:
+      return LLVMInt8Type();
+    default: 
+      return LLVMInt32Type();
+  }
+}
+

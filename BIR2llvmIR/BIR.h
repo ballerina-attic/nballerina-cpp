@@ -645,8 +645,7 @@ class InvokableType: public TypeDecl {
   public:
     InvokableType();
     InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDecl *retTy);
-                  /*TypeSymbol *tSymbol);*/
-    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy);/* TypeSymbol *tSymbol);*/
+    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy);
     ~InvokableType();
 
     TypeDecl * getReturnType()          { return returnType; }
@@ -730,7 +729,7 @@ class BIRFunction: public BIRNode {
     LLVMValueRef  getLocalToTempVar(Operand *operand);
     void          translateFunctionBody(LLVMModuleRef &modRef);
     void	  patchInsn(Function* llvnFun);
-    LLVMTypeRef   getLLVMFuncRetTypeRefOfType(TypeDecl *typeD);
+    LLVMTypeRef   getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
     void translate(LLVMModuleRef &modRef);
 };
 
