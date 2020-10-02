@@ -53,19 +53,19 @@ int main(int argc, char** argv)
   outFileName = outFileName + ".ll";
   }
 
-  class BIRReader *Reader = new BIRReader(inFileName);
-  class BIRPackage *BIRpackage = new BIRPackage ();
-  BIRpackage = Reader->deserialize(BIRpackage);
+  BIRReader *Reader = new BIRReader(inFileName);
+  BIRPackage *bIRPackage = new BIRPackage ();
+  Reader->deserialize(bIRPackage);
   char* Message;
-  bool dumpllvm = true; //temp valuea
-  string ModuleName = BIRpackage->getOrgName() + BIRpackage->getPackageName()
-			 + BIRpackage->getVersion();
+  bool dumpllvm = true; //temp value
+  string ModuleName = bIRPackage->getOrgName() + bIRPackage->getPackageName()
+			 + bIRPackage->getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
-  LLVMSetSourceFileName(mod, BIRpackage->getSrcFileName().c_str(),
-                        BIRpackage->getSrcFileName().length());
+  LLVMSetSourceFileName(mod, bIRPackage->getSrcFileName().c_str(),
+                        bIRPackage->getSrcFileName().length());
   LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
   LLVMSetTarget(mod, "x86_64-pc-linux-gnu");
-  BIRpackage->translate(mod);
+  bIRPackage->translate(mod);
   
   if(dumpllvm)
   {

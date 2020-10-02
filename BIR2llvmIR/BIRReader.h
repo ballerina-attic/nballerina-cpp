@@ -138,7 +138,7 @@ class BIRReader {
     BIRReader(std::string FileName) { filename = FileName; }
     void setFileName(std::string FileName) { filename = FileName; }
     std::string name()  { return filename; }
-    BIRPackage* deserialize(BIRPackage *);
+    void deserialize(BIRPackage *);
 };
 
 extern uint8_t read_u1();
