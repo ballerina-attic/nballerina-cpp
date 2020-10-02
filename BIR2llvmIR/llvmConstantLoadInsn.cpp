@@ -17,13 +17,25 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;   
   LLVMValueRef   lhsRef;
   LLVMValueRef   constRef;
-  if (getFunction() && getLhsOperand() && 
+  if (getLhsOperand() && 
 	getLhsOperand()->getVarDecl()) {
     builder = getFunction()->getLLVMBuilder();
-
-    lhsRef  = getFunction()->getLocalVarRefUsingId(
+    if (getpkgAddress() && 
+	  getLhsOperand()->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
+      lhsRef = getpkgAddress()->getGlobalVarRefUsingId(
+                        getLhsOperand()->getVarDecl()->getVarName());
+    }
+    else if (getFunction() && 
+		(getLhsOperand()->getVarDecl()->getVarKind() == LOCAL_VAR_KIND ||
+                getLhsOperand()->getVarDecl()->getVarKind() == TEMP_VAR_KIND ||
+		getLhsOperand()->getVarDecl()->getVarKind() == RETURN_VAR_KIND ||
+		getLhsOperand()->getVarDecl()->getVarKind() == SELF_VAR_KIND ||
+		getLhsOperand()->getVarDecl()->getVarKind() == CONSTANT_VAR_KIND)) {
+      lhsRef  = getFunction()->getLocalVarRefUsingId(
                             getLhsOperand()->getVarDecl()->getVarName());
+    }
   }
+  
 
   if (getLhsOperand() && getLhsOperand()->getVarDecl() &&
        getLhsOperand()->getVarDecl()->getTypeDecl()) {
@@ -45,6 +57,6 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         constRef = LLVMConstInt(LLVMInt32Type(), value, 0);
     }
   }
-
-  LLVMBuildStore(builder, constRef, lhsRef);
+  if (builder && constRef && lhsRef)
+    LLVMBuildStore(builder, constRef, lhsRef);
 }
