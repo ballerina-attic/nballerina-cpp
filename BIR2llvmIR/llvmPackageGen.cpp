@@ -32,10 +32,10 @@ LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar)
 void BIRPackage::translate (LLVMModuleRef &modRef)
 {
   // iterate over all global variables and translate
-  for (unsigned int i = 0; i < GlobalVars.size(); i++)
+  for (unsigned int i = 0; i < globalVars.size(); i++)
   {
     LLVMValueRef globVarRef;
-    VarDecl* globVar = GlobalVars[i];
+    VarDecl* globVar = globalVars[i];
     BIRFunction *funcObj = new BIRFunction();
     LLVMTypeRef varTyperef = funcObj->getLLVMTypeRefOfType (
                                 globVar->getTypeDecl());

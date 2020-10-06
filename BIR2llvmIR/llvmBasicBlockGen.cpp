@@ -28,7 +28,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
   {
     NonTerminatorInsn *insn = instructions[i];
 
-    insn->setFunction(BFunc);
+    insn->setFunction(bFunc);
     insn->setcurrentBB(this);
     insn->setpkgAddress(getpkgAddress());
     switch (insn->getInstKind()) {
@@ -76,7 +76,7 @@ void BasicBlockT::translate(LLVMModuleRef &modRef)
 
   if(terminator) 
   {
-    terminator->setFunction(BFunc);
+    terminator->setFunction(bFunc);
     terminator->setcurrentBB(this);
     terminator->setpkgAddress(getpkgAddress());
     switch (terminator->getInstKind()) {
