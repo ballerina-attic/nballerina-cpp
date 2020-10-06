@@ -226,7 +226,7 @@ class AbstractInsn: public BIRNode {
   private:
     InstructionKind  kind;
     Operand          *lhsOp;
-    BIRFunction      *BFunc;
+    BIRFunction      *bFunc;
     BasicBlockT      *currentBB;
     BIRPackage       *pkgAddress;
 
@@ -237,11 +237,11 @@ class AbstractInsn: public BIRNode {
 
     InstructionKind getInstKind()   { return kind; }
     Operand *       getLhsOperand() { return lhsOp; }
-    BIRFunction * getFunction()                  { return BFunc; }
+    BIRFunction * getFunction()                  { return bFunc; }
     BasicBlockT * getcurrentBB()                 { return currentBB; }
     BIRPackage  * getpkgAddress()        { return pkgAddress; }
 
-    void setFunction(BIRFunction *func) { BFunc = func; }
+    void setFunction(BIRFunction *func) { bFunc = func; }
     void setInstKind(InstructionKind newKind)   { kind = newKind; }
     void setLhsOperand(Operand *lOp)            { lhsOp = lOp; }
     void setcurrentBB (BasicBlockT *currB)      { currentBB = currB; }
@@ -396,8 +396,8 @@ class BasicBlockT: public BIRNode {
     string                       id;
     vector<NonTerminatorInsn *>  instructions;
     TerminatorInsn              *terminator;
-    LLVMBuilderRef 	         BRef;
-    BIRFunction                 *BFunc;
+    LLVMBuilderRef 	         bRef;
+    BIRFunction                 *bFunc;
     BasicBlockT                 *nextBB;
     LLVMBasicBlockRef            bbRefObj;
     map <string, LLVMValueRef>   branchComplist;
@@ -412,8 +412,8 @@ class BasicBlockT: public BIRNode {
     map <string, LLVMValueRef>  getbranchComplist() { return branchComplist; }
     string           getId()             { return id; }
     TerminatorInsn * getTerminatorInsn() { return terminator; }
-    LLVMBuilderRef   getLLVMBuilderRef() { return BRef; }
-    BIRFunction    * getBIRFunction()    { return BFunc; }
+    LLVMBuilderRef   getLLVMBuilderRef() { return bRef; }
+    BIRFunction    * getBIRFunction()    { return bFunc; }
     BasicBlockT     * getNextBB()        { return nextBB; }
     vector<NonTerminatorInsn *> getNonTerminatorInsn()       { return instructions; }
     NonTerminatorInsn *         getInsn(int i) { return instructions[i]; }
@@ -423,8 +423,8 @@ class BasicBlockT: public BIRNode {
 
     void setId(string newId)                        { id = newId; }
     void setTerminatorInsn(TerminatorInsn *insn)    { terminator = insn; }
-    void setLLVMBuilderRef(LLVMBuilderRef buildRef) { BRef = buildRef; } 
-    void setBIRFunction(BIRFunction *func)          { BFunc = func; }
+    void setLLVMBuilderRef(LLVMBuilderRef buildRef) { bRef = buildRef; } 
+    void setBIRFunction(BIRFunction *func)          { bFunc = func; }
     void setNextBB(BasicBlockT *bb)                 { nextBB = bb; }
     void setLLVMBBRef(LLVMBasicBlockRef bbRef)      { bbRefObj = bbRef; }
     void addNonTermInsn(NonTerminatorInsn *insn)    { 
@@ -621,7 +621,7 @@ class BIRPackage: public BIRNode {
     string                version;
     string                sourceFileName;
     vector<BIRFunction *> functions;
-    vector<VarDecl *>     GlobalVars;
+    vector<VarDecl *>     globalVars;
     map<string, LLVMValueRef>          globalVarRefs;
 
   public:
@@ -643,12 +643,12 @@ class BIRPackage: public BIRNode {
     vector<BIRFunction *> getFunctions()     { return functions; }
     size_t                numFunctions()     { return functions.size(); }
     BIRFunction *         getFunction(int i) { return functions[i]; }
-    vector<VarDecl *>     getGlobalVars()    { return GlobalVars; }
+    vector<VarDecl *>     getGlobalVars()    { return globalVars; }
     map<string , LLVMValueRef>  getglobalVarRefs()  { return globalVarRefs; }
 
     void setFunctions(vector<BIRFunction *> f)  { functions = f; }
     void addFunction(BIRFunction * f)           { functions.push_back(f); }
-    void addGlobalVar(VarDecl * g)           { GlobalVars.push_back(g); }
+    void addGlobalVar(VarDecl * g)           { globalVars.push_back(g); }
 
     LLVMValueRef  getGlobalVarRefUsingId(string globVar);
     void translate(LLVMModuleRef &modRef);
