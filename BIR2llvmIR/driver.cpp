@@ -57,7 +57,7 @@ int main(int argc, char** argv)
   BIRPackage *bIRPackage = new BIRPackage ();
   Reader->deserialize(bIRPackage);
   char* Message;
-  bool dumpllvm = true; //temp valuea
+  bool dumpllvm = true; //temp value
   string ModuleName = bIRPackage->getOrgName() + bIRPackage->getPackageName()
 			 + bIRPackage->getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());

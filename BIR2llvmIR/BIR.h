@@ -142,8 +142,6 @@ enum VarScope {
        VAR_SCOPE_FUNCTION
 };
 
-// Forward Declarations
-
 class Location {
   private:
     string  fileName;
@@ -182,35 +180,6 @@ class BIRNode {
 
     Location * getLocation()                 { return loc; }
     void       setLocation(Location *newLoc) { loc = newLoc; }
-
-    virtual void translate(LLVMModuleRef &modRef);
-};
-
-class PackageID {
-  private:
-    string        orgName;
-    string        sourceFileName;   // name is actually the source file name
-    string        version;
-    bool          isUnnamed = false;
-    list<string>  nameComps;
-
-  public:
-    PackageID();
-    PackageID(string orgName, list<string> nameComps, string version);
-    PackageID(string orgName, string name, string version);
-    PackageID(string sourceFileName);
-    ~PackageID();
-    
-    string getOrgName()                 { return orgName; }
-    string getSourceFileName()          { return sourceFileName; }
-    string getVersion()                 { return version; }
-    bool   getIsUnnamed()                  { return isUnnamed; }
-    void   addNameComps(string name)    { nameComps.push_back(name); }
-    string getFirstNameComp()           { return nameComps.front(); }
-    string getLastNameComp()            { return nameComps.back(); }
-    bool   nameCompExists(string name);
-
-    typename list<string>::iterator getCompName(string name);  // Return the iterator to the entry matching name
 
     virtual void translate(LLVMModuleRef &modRef);
 };
@@ -328,16 +297,16 @@ class MoveInsn: public NonTerminatorInsn {
 
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
-    unsigned long long value;
+    int value;
 
   public:
     ConstantLoadInsn();
     ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                     unsigned long long val);
+                     int val);
     ~ConstantLoadInsn();
 
-    unsigned long long getValue()                       { return value; }
-    void   setValue(unsigned long long val) { value = val; }
+    int getValue()                       { return value; }
+    void   setValue(int val) { value = val; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -471,11 +440,11 @@ class BasicBlockT: public BIRNode {
 
 class VarDecl: public BIRNode {
   private:
-    TypeDecl      *type;
+    TypeDecl       *type;
     string         varName;
     string         metaVarName;
     VarKind        kind;
-    VarScope      scope;
+    VarScope       scope;
     bool           ignoreVariable;
     BasicBlockT    *endBB;
     BasicBlockT    *startBB;

@@ -61,7 +61,6 @@ SRCS = llvmPackageGen.cpp \
        llvmFuncParamGen.cpp \
        llvmParamGen.cpp \
        llvmTypeDeclGen.cpp \
-       llvmPackageIDGen.cpp \
        llvmNonTerminatorInsnGen.cpp \
        llvmAbstractInsnGen.cpp \
        llvmTerminatorInsnGen.cpp \

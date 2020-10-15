@@ -3,12 +3,12 @@
 InvokableType::InvokableType() {}
 
 InvokableType::InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDecl *retTy)
-                  /*TypeSymbol *tSymbol)*/:paramTypes(paramTy),restType(restTy),
-			returnType(retTy)/*,TypeDecl(tSymbol)*/ {}
+                  :paramTypes(paramTy),restType(restTy),
+			returnType(retTy) {}
 
 InvokableType::InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy)
-		 /*TypeSymbol *tSymbol)*/:paramTypes(paramTy),returnType(retTy)
-			/*TypeDecl(tSymbol)*/ {}
+		 :paramTypes(paramTy),returnType(retTy) {
+}
 
 InvokableType::~InvokableType() {}
 
