@@ -16,7 +16,7 @@ void MoveInsn::translate(LLVMModuleRef &modRef){
   LLVMValueRef lhsRef;
   if (getLhsOperand() && getLhsOperand()->getVarDecl()) {
     if (getLhsOperand()->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
-      lhsRef = getpkgAddress()->getGlobalVarRefUsingId(
+      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
                         getLhsOperand()->getVarDecl()->getVarName());
       LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
       LLVMBuildStore(builder, rhsVarOpRef, lhsRef);

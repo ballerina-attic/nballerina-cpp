@@ -83,8 +83,8 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntUGT, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
-        if (ifReturn && getcurrentBB()) {
-	  getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+        if (ifReturn && getFunction()) {
+	  getFunction()->addNewbranchComparison(lhsName, ifReturn);
 	}  
 	break;
       }
@@ -92,8 +92,8 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntUGE, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
-        if (ifReturn && getcurrentBB()) {
-          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
+	if (ifReturn && getFunction()) {
+          getFunction()->addNewbranchComparison(lhsName, ifReturn);
 	}
 	break;
       }
@@ -101,36 +101,36 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntULT, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
-        if (ifReturn && getcurrentBB()) {
-          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
-	}
+        if (ifReturn && getFunction()) {
+          getFunction()->addNewbranchComparison(lhsName, ifReturn);
+        }
 	break;
       }
       case INSTRUCTION_KIND_BINARY_LESS_EQUAL:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntULE, rhsOp1ref, 
                                         rhsOp2ref, lhstmpName.c_str());
-        if (ifReturn && getcurrentBB()) {
-          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
-	}
+        if (ifReturn && getFunction()) {
+          getFunction()->addNewbranchComparison(lhsName, ifReturn);
+        }
 	break;
       }
       case INSTRUCTION_KIND_BINARY_EQUAL:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntEQ, rhsOp1ref,
                                         rhsOp2ref, lhstmpName.c_str());
-        if (ifReturn && getcurrentBB()) {
-          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
-	}
+        if (ifReturn && getFunction()) {
+          getFunction()->addNewbranchComparison(lhsName, ifReturn);
+        }
 	break;
       }
       case INSTRUCTION_KIND_BINARY_NOT_EQUAL:
       {
         ifReturn = LLVMBuildICmp(builder, LLVMIntNE, rhsOp1ref,
                                         rhsOp2ref, lhstmpName.c_str());
-        if (ifReturn && getcurrentBB()) {
-          getcurrentBB()->addNewbranchComp(lhsName, ifReturn);
-	}
+        if (ifReturn && getFunction()) {
+          getFunction()->addNewbranchComparison(lhsName, ifReturn);
+        }
 	break;
       }
       case INSTRUCTION_KIND_BINARY_BITWISE_XOR:

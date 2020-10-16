@@ -332,11 +332,11 @@ ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_p
     uint32_t trueBbIdNameCpIndex = read_s4be();
     uint32_t falseBbIdNameCpIndex = read_s4be();
 
-    BasicBlockT *trueDummybasicBlock = new BasicBlockT(get_string_cp(trueBbIdNameCpIndex, m_constant_pool));
-    conditionBrInsn->setifThenBB(trueDummybasicBlock);
+    BIRBasicBlock *trueDummybasicBlock = new BIRBasicBlock(get_string_cp(trueBbIdNameCpIndex, m_constant_pool));
+    conditionBrInsn->setIfThenBB(trueDummybasicBlock);
 
-    BasicBlockT *falseDummybasicBlock = new BasicBlockT(get_string_cp(falseBbIdNameCpIndex, m_constant_pool));
-    conditionBrInsn->setelseBB(falseDummybasicBlock);
+    BIRBasicBlock *falseDummybasicBlock = new BIRBasicBlock(get_string_cp(falseBbIdNameCpIndex, m_constant_pool));
+    conditionBrInsn->setElseBB(falseDummybasicBlock);
 
     conditionBrInsn->setPatchStatus(true);
     conditionBrInsn->setNextBB(NULL);
@@ -362,9 +362,9 @@ MoveInsn* read_move(MoveInsn *moveInsn, constant_pool_set_t *m_constant_pool)
 
 
 // Search basic block based on the basic block ID
-BasicBlockT* search_bb_by_name(vector<BasicBlockT *>   basicBlocks, std::string name)
+BIRBasicBlock* search_bb_by_name(vector<BIRBasicBlock *>   basicBlocks, std::string name)
 {
-    std::vector<BasicBlockT *>::iterator itr;
+    std::vector<BIRBasicBlock *>::iterator itr;
     for (itr = basicBlocks.begin(); itr != basicBlocks.end(); itr++)
     {
         if ((*itr)->getId() == name)
@@ -376,7 +376,7 @@ BasicBlockT* search_bb_by_name(vector<BasicBlockT *>   basicBlocks, std::string 
 }
 
 // Read NonTerminatorInsn from the BIR
-NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, NonTerminatorInsn *nonTerminatorInsn, constant_pool_set_t *m_constant_pool)
+NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock, NonTerminatorInsn *nonTerminatorInsn, constant_pool_set_t *m_constant_pool)
 {
     uint32_t sLine = read_s4be();
     uint32_t eLine = read_s4be();
@@ -407,20 +407,20 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
           break;
       }
       case INSTRUCTION_KIND_GOTO: {
-          TerminatorInsn *terminatorInsn = new TerminatorInsn();
+	  GoToInsn *gotoInsn = new GoToInsn();
           uint32_t nameid = read_goto();
-          BasicBlockT *dummybasicBlock = new BasicBlockT(get_string_cp(nameid, m_constant_pool));
-          terminatorInsn->setNextBB(dummybasicBlock);
-          terminatorInsn->setPatchStatus(true);
-          terminatorInsn->setInstKind((InstructionKind)insnkind);
-          basicBlock->setTerminatorInsn(terminatorInsn);
+          BIRBasicBlock *dummybasicBlock = new BIRBasicBlock(get_string_cp(nameid, m_constant_pool));
+          gotoInsn->setNextBB(dummybasicBlock);
+          gotoInsn->setPatchStatus(true);
+          gotoInsn->setInstKind((InstructionKind)insnkind);
+          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (gotoInsn));
           nonTerminatorInsn = NULL;
           break;
       }
       case INSTRUCTION_KIND_RETURN: {
-          TerminatorInsn *terminatorInsn = new TerminatorInsn();
-          terminatorInsn->setInstKind((InstructionKind)insnkind);
-          basicBlock->setTerminatorInsn(terminatorInsn);
+	  ReturnInsn *returnInsn = new ReturnInsn();
+          returnInsn->setInstKind((InstructionKind)insnkind);
+          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (returnInsn));
           nonTerminatorInsn = NULL;
           break;
       }
@@ -472,7 +472,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
 }
 
 // Read Basic Block from the BIR
-BasicBlockT* readBasicBlock (BIRFunction *BIRfunction, BasicBlockT *basicBlock, constant_pool_set_t *m_constant_pool)
+BIRBasicBlock* readBasicBlock (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock, constant_pool_set_t *m_constant_pool)
 {
     uint32_t nameCpIndex = read_s4be();
     basicBlock->setId(get_string_cp(nameCpIndex, m_constant_pool));
@@ -491,11 +491,11 @@ BasicBlockT* readBasicBlock (BIRFunction *BIRfunction, BasicBlockT *basicBlock, 
 }
 
 // Patches the Terminator Insn with destination Basic Block
-void patchInsn(vector<BasicBlockT *>   basicBlocks)
+void patchInsn(vector<BIRBasicBlock *>   basicBlocks)
 {
     for (unsigned int i = 0; i < basicBlocks.size(); i++)
     {
-        BasicBlockT *basicBlock = basicBlocks[i];
+        BIRBasicBlock *basicBlock = basicBlocks[i];
         TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
         if (terminator->getPatchStatus())
         {
@@ -503,20 +503,20 @@ void patchInsn(vector<BasicBlockT *>   basicBlocks)
             case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
             {
                 ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *> (terminator));
-                BasicBlockT *trueBB = search_bb_by_name(basicBlocks, Terminator->getifThenBB()->getId());
-                BasicBlockT *falseBB = search_bb_by_name(basicBlocks, Terminator->getelseBB()->getId());
-                BasicBlockT *danglingTrueBB = Terminator->getifThenBB();
-                BasicBlockT *danglingFalseBB = Terminator->getelseBB();
+                BIRBasicBlock *trueBB = search_bb_by_name(basicBlocks, Terminator->getIfThenBB()->getId());
+                BIRBasicBlock *falseBB = search_bb_by_name(basicBlocks, Terminator->getElseBB()->getId());
+                BIRBasicBlock *danglingTrueBB = Terminator->getIfThenBB();
+                BIRBasicBlock *danglingFalseBB = Terminator->getElseBB();
                 delete danglingTrueBB;
                 delete danglingFalseBB;
-                Terminator->setifThenBB(trueBB);
-                Terminator->setelseBB(falseBB);
+                Terminator->setIfThenBB(trueBB);
+                Terminator->setElseBB(falseBB);
                 break;
             }
             case INSTRUCTION_KIND_GOTO :
             {
-                BasicBlockT *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
-                BasicBlockT *danglingBB = terminator->getNextBB();
+                BIRBasicBlock *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
+                BIRBasicBlock *danglingBB = terminator->getNextBB();
                 delete danglingBB;
                 terminator->setNextBB(destBB);
                 break;
@@ -645,19 +645,19 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
 
     for (unsigned int i = 0; i < BBCount; i++)
     {
-      BasicBlockT *basicBlock = new BasicBlockT();
+      BIRBasicBlock *basicBlock = new BIRBasicBlock();
       basicBlock = readBasicBlock(BIRfunction, basicBlock, m_constant_pool);
-      BIRfunction->addBasicBlockT(basicBlock);
+      BIRfunction->addBIRBasicBlock(basicBlock);
     }
 
     //Patching the insn
-    vector<BasicBlockT *>   basicBlocks = BIRfunction->getBasicBlocks();
+    vector<BIRBasicBlock *>   basicBlocks = BIRfunction->getBasicBlocks();
     patchInsn(basicBlocks);
 
     //Create links between Basic Block
     for (unsigned int i = 0; i < BBCount - 1; i++)
     {
-      BasicBlockT *basicBlock = BIRfunction->getBasicBlock(i);
+      BIRBasicBlock *basicBlock = BIRfunction->getBasicBlock(i);
       basicBlock->setNextBB(BIRfunction->getBasicBlock(i + 1));
     }
 

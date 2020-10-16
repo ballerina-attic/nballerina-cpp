@@ -57,7 +57,7 @@ void BIRPackage::translate (LLVMModuleRef &modRef)
   for (unsigned int i = 0; i < functions.size(); i++)
   {
     BIRFunction *birFunc = functions[i];
-    birFunc->setpkgAddress (this);    
+    birFunc->setPkgAddress (this);    
     birFunc->translate(modRef);
   }
 }

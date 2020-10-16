@@ -20,9 +20,9 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   if (getLhsOperand() && 
 	getLhsOperand()->getVarDecl()) {
     builder = getFunction()->getLLVMBuilder();
-    if (getpkgAddress() && 
+    if (getPkgAddress() && 
 	  getLhsOperand()->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
-      lhsRef = getpkgAddress()->getGlobalVarRefUsingId(
+      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
                         getLhsOperand()->getVarDecl()->getVarName());
     }
     else if (getFunction() && 
