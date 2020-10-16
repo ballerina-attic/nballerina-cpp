@@ -4,7 +4,7 @@ GoToInsn::GoToInsn() {
 }
 
 GoToInsn::GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                 BasicBlockT *nextBB): TerminatorInsn(pos,kind,lOp,nextBB){
+                 BIRBasicBlock *nextBB): TerminatorInsn(pos,kind,lOp,nextBB){
 }
 
 
@@ -12,7 +12,7 @@ GoToInsn::~GoToInsn() {
 
 }
 
-void GoToInsn::translat(LLVMModuleRef &modRef) {
+void GoToInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   if (getFunction())
     builder = getFunction()->getLLVMBuilder();
