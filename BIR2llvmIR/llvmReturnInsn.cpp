@@ -5,7 +5,7 @@ ReturnInsn::ReturnInsn() {
 }
 
 ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, 
-			Operand *lOp, BasicBlockT *nextBB):
+			Operand *lOp, BIRBasicBlock *nextBB):
 	TerminatorInsn(pos, kind, lOp, nextBB) {
 
 }
@@ -13,13 +13,13 @@ ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind,
 ReturnInsn::~ReturnInsn() {
 }
 
-void ReturnInsn::translat(LLVMModuleRef &modRef) {
+void ReturnInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   VarDecl* returnVarDecl = NULL;
   if (getFunction())
     builder = getFunction()->getLLVMBuilder();
 
-  vector<VarDecl *> globalVarList = getpkgAddress()->getGlobalVars();
+  vector<VarDecl *> globalVarList = getPkgAddress()->getGlobalVars();
   for (unsigned int i = 0; i < globalVarList.size(); i++)
   {
     VarDecl * varDeclLoc = globalVarList[i];
@@ -34,7 +34,7 @@ void ReturnInsn::translat(LLVMModuleRef &modRef) {
     LLVMValueRef lhsRef = getFunction()->getLocalVarRefUsingId(
                         returnVarDecl->getVarName());
     if (!lhsRef)
-      lhsRef = getpkgAddress()->getGlobalVarRefUsingId(
+      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
 			returnVarDecl->getVarName());
     
     LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");

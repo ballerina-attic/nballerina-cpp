@@ -4,7 +4,7 @@ ConditionBrInsn::ConditionBrInsn() {
 
 }
 ConditionBrInsn::ConditionBrInsn (Location *pos, InstructionKind kind,
-                        Operand *lOp, BasicBlockT *nextBB):
+                        Operand *lOp, BIRBasicBlock *nextBB):
                         TerminatorInsn(pos, kind, lOp, nextBB) {
 
 }
@@ -22,13 +22,13 @@ void ConditionBrInsn::translate(LLVMModuleRef &modRef) {
     builder = getFunction()->getLLVMBuilder();
     lhsName = getLhsOperand()->getVarDecl()->getVarName();
   }
-  if (getcurrentBB() && lhsName != "") {
-    brCondition = getcurrentBB()->getValueRefBasedOnName(lhsName);
+  if (getFunction() && lhsName != "") {
+    brCondition = getFunction()->getValueRefBasedOnName(lhsName);
   }
   
-  if (getifThenBB() && getelseBB()) {
-    ifLLVMBB = getifThenBB()->getLLVMBBRef();
-    elseLLVMBB = getelseBB()->getLLVMBBRef();
+  if (getIfThenBB() && getElseBB()) {
+    ifLLVMBB = getIfThenBB()->getLLVMBBRef();
+    elseLLVMBB = getElseBB()->getLLVMBBRef();
   }
   if (builder && brCondition && ifLLVMBB && elseLLVMBB) {
     LLVMBuildCondBr(builder, brCondition, ifLLVMBB, elseLLVMBB);
