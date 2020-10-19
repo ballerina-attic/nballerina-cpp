@@ -1,0 +1,34 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+      
+    - name: Clone nballerina repository
+      uses: actions/checkout@v2
+      with:
+        repository: llvm/llvm-project
+        ref: 'master'
+        path: 'nballerina'
+        
+   - name: Build LLVM and nballerina compiler
+      run: (export LLVM_INSTALL_ROOT = nballerina/build/llvm_install && mkdir nballerina/   build/llvm && cd nballerina/build/llvm &&
+            cmake -DCMAKE_BUILD_TYPE="Release"
+            -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_ROOT"
+            -DBUILD_SHARED_LIBS=True
+            -DLLVM_USE_SPLIT_DWARF=True
+            -DLLVM_OPTIMIZED_TABLEGEN=True
+            -DLLVM_BUILD_TESTS=True
+            ../../llvm-project-master/llvm &&
+            make -j$(nproc) &&
+            make install)
+                              
+    steps:
+    - uses: actions/checkout@v2 
