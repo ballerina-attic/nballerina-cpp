@@ -227,7 +227,7 @@ class AbstractInsn: public BIRNode {
     InstructionKind  kind;
     Operand          *lhsOp;
     BIRFunction      *bFunc;
-    BIRBasicBlock      *currentBB;
+    BIRBasicBlock    *currentBB;
     BIRPackage       *pkgAddress;
 
   public:
@@ -341,19 +341,6 @@ class UnaryOpInsn : public NonTerminatorInsn {
     Operand * getRhsOp()           { return rhsOp; }
 
     void      setRhsOp(Operand *op) { rhsOp = op; }
-
-    void translate(LLVMModuleRef &modRef);
-};
-
-
-class TestClass : public TerminatorInsn {
-  private:
-
-  public:
-    TestClass();
-    TestClass(Location *pos, InstructionKind kind, Operand *lOp,
-                        BIRBasicBlock  *nextB);
-    ~TestClass();
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -592,7 +579,7 @@ class BIRFunction: public BIRNode {
     LLVMValueRef         getNewFunctionRef()    { return newFunction; }
     map<string , LLVMValueRef>  getLocalVarRefs()  { return localVarRefs; }
     BIRPackage*          getPkgAddress()        { return pkgAddress; }
-    map <string, LLVMValueRef>  getbranchComparisonList() { return branchComparisonList; }
+    map <string, LLVMValueRef>  getBranchComparisonList() { return branchComparisonList; }
     LLVMValueRef getValueRefBasedOnName (string lhsName);
 
     void setName(string newName)            { name = newName; }
