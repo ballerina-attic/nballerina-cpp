@@ -1,0 +1,36 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install utils
+        run: (sudo apt install -y ccache && sudo /usr/sbin/update-ccache-symlinks)
+      - name: Clone nballerina repository
+        id : cache-nballerina
+        uses: actions/checkout@v2
+        with:
+          repository: ballerina-platform/nballerina
+          ref: 'master'
+          path: 'nballerina'
+          key: ${{ runner.os }}-nballerina
+        
+      - name: Build LLVM and nballerina compiler
+        run: (export LLVM_INSTALL_ROOT=nballerina/build/llvm_install && cd nballerina/build/llvm &&
+            cmake -DCMAKE_BUILD_TYPE="Release"
+            -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_ROOT"
+            -DLLVM_CCACHE_BUILD=True
+            -DBUILD_SHARED_LIBS=True
+            -DLLVM_USE_SPLIT_DWARF=True
+            -DLLVM_OPTIMIZED_TABLEGEN=True
+            -DLLVM_BUILD_TESTS=True
+            ../../llvm-project-master/llvm &&
+            make -j$(nproc) &&
+            make install && cd ../../BIR2llvmIR && make -j$(nproc))
