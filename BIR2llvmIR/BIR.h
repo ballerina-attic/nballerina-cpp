@@ -18,6 +18,8 @@
 #include "llvm/IR/Type.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm-c/Core.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/GlobalAlias.h"
 
 #define DEFAULT_VERSION 0
 using namespace std;
@@ -25,10 +27,11 @@ using namespace llvm;
 
 // Forward Declarations
 class TypeDecl;
-class BasicBlockT;
+class BIRBasicBlock;
 class VarDecl;
 class BIRFunction;
 class NonTerminatorInsn;
+class BIRPackage;
 
 enum SymbolKind {
 	LOCAL_SYMBOL_KIND,
@@ -36,47 +39,48 @@ enum SymbolKind {
 };
 
 enum VarKind {
-	LOCAL_VAR_KIND,
-	TEMP_VAR_KIND, 
-	RETURN_VAR_KIND, 
-	ARG_VAR_KIND, 
-	GLOBAL_VAR_KIND, 
+	TEMP_VAR_KIND = 1, 
 	SELF_VAR_KIND, 
-	CONSTANT_VAR_KIND
+	LOCAL_VAR_KIND = 3,
+	RETURN_VAR_KIND = 4, 
+	GLOBAL_VAR_KIND = 5, 
+	CONSTANT_VAR_KIND,
+	ARG_VAR_KIND
 };
 
 enum InstructionKind {
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_GOTO = 1,
-        BINARY_SUB,
-        BINARY_MUL,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_RETURN,
-        BINARY_MOD,
-        BINARY_EQUAL,
-        BINARY_NOT_EQUAL,
-        BINARY_GREATER_THAN,
-        BINARY_GREATER_EQUAL,
-        BINARY_LESS_THAN,
-        BINARY_LESS_EQUAL,
-        BINARY_REF_EQUAL,
-        BINARY_REF_NOT_EQUAL,
-        BINARY_CLOSED_RANGE,
-        BINARY_HALF_OPEN_RANGE,
-        BINARY_ANNOT_ACCESS,
-        BINARY_BITWISE_AND,
-        BINARY_BITWISE_OR,
-        BINARY_BITWISE_XOR,
-        BINARY_BITWISE_LEFT_SHIFT,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_CONST_LOAD,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_STRUCTURE,
-        BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT,
-        INS_KIND_MOVE, 
-        INS_KIND_CONST_LOAD,
-        INS_KIND_NEW_MAP, 
-        INS_KIND_NEW_INST,
-        INSTRUCTION_KIND_ENUM_INSTRUCTION_KIND_NEW_TYPEDESC = 52,
-        BINARY_ADD,
-        BINARY_DIV
-}; // we have to add more from bir-model.bal file
+        INSTRUCTION_KIND_GOTO = 1,
+        INSTRUCTION_KIND_CONDITIONAL_BRANCH = 3,
+        INSTRUCTION_KIND_RETURN = 4,
+        INSTRUCTION_KIND_BINARY_REF_EQUAL,
+        INSTRUCTION_KIND_BINARY_REF_NOT_EQUAL,
+        INSTRUCTION_KIND_BINARY_CLOSED_RANGE,
+        INSTRUCTION_KIND_BINARY_HALF_OPEN_RANGE,
+        INSTRUCTION_KIND_BINARY_ANNOT_ACCESS,
+        INSTRUCTION_KIND_BINARY_BITWISE_AND,
+        INSTRUCTION_KIND_BINARY_BITWISE_OR,
+        INSTRUCTION_KIND_BINARY_BITWISE_LEFT_SHIFT,
+        INSTRUCTION_KIND_MOVE = 20,
+        INSTRUCTION_KIND_CONST_LOAD = 21,
+        INSTRUCTION_KIND_NEW_STRUCTURE,
+        INSTRUCTION_KIND_NEW_MAP, 
+        INSTRUCTION_KIND_NEW_TYPEDESC = 52,
+        INSTRUCTION_KIND_BINARY_ADD = 61,
+        INSTRUCTION_KIND_BINARY_SUB,
+        INSTRUCTION_KIND_BINARY_MUL,
+        INSTRUCTION_KIND_BINARY_DIV,
+        INSTRUCTION_KIND_BINARY_MOD,
+        INSTRUCTION_KIND_BINARY_EQUAL = 66,
+        INSTRUCTION_KIND_BINARY_NOT_EQUAL = 67,
+        INSTRUCTION_KIND_BINARY_GREATER_THAN = 68,
+        INSTRUCTION_KIND_BINARY_GREATER_EQUAL = 69,
+        INSTRUCTION_KIND_BINARY_LESS_THAN = 70,
+        INSTRUCTION_KIND_BINARY_LESS_EQUAL = 71,
+        INSTRUCTION_KIND_UNARY_NOT = 81,
+        INSTRUCTION_KIND_UNARY_NEG,
+        INSTRUCTION_KIND_BINARY_BITWISE_XOR = 85,
+        INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
+}; // Enums are referred from bir-model.bal file
 
 enum type_tag_enum_t {
         TYPE_TAG_ENUM_TYPE_TAG_INT = 1,
@@ -134,27 +138,33 @@ enum type_tag_enum_t {
 };
 
 enum VarScope {
-	VAR_SCOPE_GLOBAL=1, 
-	VAR_SCOPE_FUNCTION
+       VAR_SCOPE_GLOBAL=1,
+       VAR_SCOPE_FUNCTION
 };
-
-// Forward Declarations
-class Scope;
 
 class Location {
   private:
     string  fileName;
-    int     lineNum;
-    int     columnNum;
+    int     sLine;
+    int     eLine;
+    int     sCol;
+    int     eCol;
 
   public:
     Location();
-    Location(string name, int line, int col);
+    Location(string name, int sline, int scol, int eline, int ecol);
     ~Location();
+    void    setFileName(string fname)         { fileName = fname; }
+    void    setStartLineNum(int sline)        { sLine = sline; }
+    void    setStartColumnNum(int scol)      { sCol = scol; }
+    void    setEndLineNum(int eline)          { eLine = eline; }
+    void    setEndColumnNum(int ecol)        { eCol = ecol; }
 
-    string getFileName();
-    int    getLineNum();
-    int    getColumnNum();
+    string getFileName()            { return fileName; }
+    int    getStartLineNum()        { return sLine; }
+    int    getStartColumnNum()      { return sCol; }
+    int    getEndLineNum()          { return eLine; }
+    int    getEndColumnNum()        { return eCol; }
 
     virtual void translate(LLVMModuleRef &modRef);
 };
@@ -166,7 +176,7 @@ class BIRNode {
   public:
     BIRNode ();
     BIRNode (Location  *pos);
-    ~BIRNode ();
+    virtual ~BIRNode ();
 
     Location * getLocation()                 { return loc; }
     void       setLocation(Location *newLoc) { loc = newLoc; }
@@ -174,141 +184,24 @@ class BIRNode {
     virtual void translate(LLVMModuleRef &modRef);
 };
 
-class PackageID {
-  private:
-    string        orgName;
-    string        sourceFileName;   // name is actually the source file name
-    string        version;
-    bool          isUnnamed = false;
-    list<string>  nameComps;
-
-  public:
-    PackageID();
-    PackageID(string orgName, list<string> nameComps, string version);
-    PackageID(string orgName, string name, string version);
-    PackageID(string sourceFileName);
-    ~PackageID();
-    
-    string getOrgName()                 { return orgName; }
-    string getSourceFileName()          { return sourceFileName; }
-    string getVersion()                 { return version; }
-    bool   getIsUnnamed()                  { return isUnnamed; }
-    void   addNameComps(string name)    { nameComps.push_back(name); }
-    string getFirstNameComp()           { return nameComps.front(); }
-    string getLastNameComp()            { return nameComps.back(); }
-    bool   nameCompExists(string name);
-
-    typename list<string>::iterator getCompName(string name);  // Return the iterator to the entry matching name
-
-    virtual void translate(LLVMModuleRef &modRef);
-};
-
-class Symbol {
-  private:
-    int         tag;
-    int         flags;
-    string      name;
-    PackageID  *pkgID;
-    SymbolKind *kind;
-    TypeDecl   *type;
-    Symbol     *owner;
-    bool        tainted;
-    bool        closure;
-    // MarkdownDocAttachment markdownDocumentation;
-    Scope      *scope;
-
-  public:
-    Symbol();
-    Symbol(int tag, int flags, string name, SymbolKind *kind,
-	   TypeDecl *type, Symbol *owner, Scope *scope);
-    ~Symbol();
-
-    int          getTag()               { return tag; }
-    int          getFlags()             { return flags; }
-    string       getName()              { return name; }
-    PackageID *  getPackageID()         { return pkgID; }
-    SymbolKind * getSymbolKind()        { return kind; }
-    TypeDecl *   getTypeDecl()          { return type; }
-    Symbol *     getOwner()             { return owner; }
-    bool         isTainted()            { return tainted; }
-    bool         isClosure()            { return closure; }
-    Scope *      getScope()             { return scope; }
-
-    virtual void translate(LLVMModuleRef &modRef);
-};
-
-class ScopeEntry {
-  private:
-    Symbol     *symbol;
-    ScopeEntry *next;
-
-  public:
-    ScopeEntry();
-    ScopeEntry(Symbol *sym, ScopeEntry *next);
-    ~ScopeEntry();
-
-    Symbol *     getSymbol()    { return symbol; }
-    ScopeEntry * getNextScope() { return next; }
-};
-
-class Scope {
-  private:
-    static const int        DEFAULT_SIZE = 10;
-    //static final ScopeEntry NOT_FOUND_ENTRY = new ScopeEntry(NULL, NULL);
-    Symbol                  *owner;
-    map<string, ScopeEntry *>  entries;
-
-  public:
-    Scope();
-    Scope(Symbol *owner);
-    Scope(Symbol *owner, map<string, ScopeEntry*> entries);
-    ~Scope();
-
-    Symbol * getOwner() { return owner; }
-    void     addNewScopeEntry(string name, ScopeEntry *entry)
-             { entries.insert(std::pair<string, ScopeEntry *>(name, entry)); }
-
-    ScopeEntry * getScopeEntry(string name);
-
-    virtual void translate(LLVMModuleRef &modRef);
-};
-
-
-class TypeSymbol: public Symbol {
-  private:
-    bool        isLabel;
-
-  public:
-    TypeSymbol();
-    TypeSymbol(int symTag, int flags, string name, SymbolKind *kind,
-		TypeDecl *type, Symbol *owner, Scope *scope, bool isLab);
-    ~TypeSymbol();
-
-    bool getIsLabel() { return isLabel; }
-};
-
 class TypeDecl {
   private:
     int         tag;
-    TypeSymbol *typeSym;
     string      name;
     int         flags;
 
   public:
     TypeDecl();
-    TypeDecl(TypeSymbol *tsymbol);
-    TypeDecl(int tag, TypeSymbol *tsymbol, int flags);
-    TypeDecl(int tag, TypeSymbol *tsymbol, string name, int flags);
+    TypeDecl(int tag, int flags);
+    TypeDecl(int tag, string name, int flags);
     ~TypeDecl();
 
     void    setTypeDeclName(string namep)    { name = namep; }
     void    setTypeTag (int tagp)            { tag = tagp; }
-    void    setTypeSymbol(TypeSymbol *tySym) { typeSym = tySym; }
     void    setFlags(int flag)               { flags = flag; }
 
     int          getTypeTag()           { return tag; }
     string       getTypeDeclName()      { return name; }
-    TypeSymbol * getTypeSymbol()        { return typeSym; }
     int          getFlags()             { return flags; }
     
     virtual void translate(LLVMModuleRef &modRef);
@@ -331,9 +224,11 @@ class Operand: public BIRNode {
 
 class AbstractInsn: public BIRNode {
   private:
-    InstructionKind   kind;
+    InstructionKind  kind;
     Operand          *lhsOp;
-    BIRFunction       *BFunc;
+    BIRFunction      *bFunc;
+    BIRBasicBlock    *currentBB;
+    BIRPackage       *pkgAddress;
 
   public:
     AbstractInsn();
@@ -342,13 +237,16 @@ class AbstractInsn: public BIRNode {
 
     InstructionKind getInstKind()   { return kind; }
     Operand *       getLhsOperand() { return lhsOp; }
+    BIRFunction * getFunction()                  { return bFunc; }
+    BIRBasicBlock * getCurrentBB()                 { return currentBB; }
+    BIRPackage  * getPkgAddress()        { return pkgAddress; }
 
-    void          setFunction(BIRFunction *func) { BFunc = func; }
-    BIRFunction * getFunction()                  { return BFunc; }
-
+    void setFunction(BIRFunction *func) { bFunc = func; }
     void setInstKind(InstructionKind newKind)   { kind = newKind; }
     void setLhsOperand(Operand *lOp)            { lhsOp = lOp; }
-
+    void setCurrentBB (BIRBasicBlock *currB)      { currentBB = currB; }
+    void setPkgAddress (BIRPackage* pkgAddr)    { pkgAddress = pkgAddr; }
+    
     void translate(LLVMModuleRef &modRef);
 };
 
@@ -365,19 +263,19 @@ class NonTerminatorInsn: public AbstractInsn {
 
 class TerminatorInsn: public AbstractInsn {
   private:
-    BasicBlockT  *thenBB;
+    BIRBasicBlock  *thenBB;
     bool         patchRequire;
   public:
     TerminatorInsn();
     TerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp,
-				 BasicBlockT *then);
+				 BIRBasicBlock *then);
     ~TerminatorInsn();
 
-    BasicBlockT * getNextBB()           { return thenBB; }
-    bool getPatchStatus()                      { return patchRequire; }
+    BIRBasicBlock * getNextBB()           { return thenBB; }
+    bool getPatchStatus()               { return patchRequire; }
 
-    void setNextBB(BasicBlockT *block)  { thenBB = block; }
-    void setPatchStatus(bool patchrequire)     { patchRequire = patchrequire; }
+    void setNextBB(BIRBasicBlock *block)      { thenBB = block; }
+    void setPatchStatus(bool patchrequire)  { patchRequire = patchrequire; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -399,16 +297,16 @@ class MoveInsn: public NonTerminatorInsn {
 
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
-    unsigned long long value;
+    int value;
 
   public:
     ConstantLoadInsn();
     ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                     unsigned long long val);
+                     int val);
     ~ConstantLoadInsn();
 
-    unsigned long long getValue()                       { return value; }
-    void               setValue(unsigned long long val) { value = val; }
+    int getValue()                       { return value; }
+    void   setValue(int val) { value = val; }
 
     void translate(LLVMModuleRef &modRef);
 };
@@ -432,6 +330,40 @@ class BinaryOpInsn : public NonTerminatorInsn {
     void translate(LLVMModuleRef &modRef);
 };
 
+class UnaryOpInsn : public NonTerminatorInsn {
+  private:
+    Operand *rhsOp;
+
+  public:
+    UnaryOpInsn();
+    UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
+    ~UnaryOpInsn();
+    Operand * getRhsOp()           { return rhsOp; }
+
+    void      setRhsOp(Operand *op) { rhsOp = op; }
+
+    void translate(LLVMModuleRef &modRef);
+};
+
+class ConditionBrInsn : public TerminatorInsn {
+  private:
+    BIRBasicBlock  *ifThenBB;
+    BIRBasicBlock  *elseBB;
+
+  public:
+    ConditionBrInsn();
+    ConditionBrInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                        BIRBasicBlock  *nextB);
+    ~ConditionBrInsn();
+    void setIfThenBB (BIRBasicBlock *ifBB)  { ifThenBB = ifBB; }
+    void setElseBB   (BIRBasicBlock *elseB) { elseBB = elseB; }
+
+    BIRBasicBlock* getIfThenBB() { return ifThenBB; }
+    BIRBasicBlock* getElseBB()   { return elseBB; }
+
+    void translate(LLVMModuleRef &modRef);
+};
+
 class GoToInsn : public TerminatorInsn {
   private:
     LLVMValueRef llvmInsn;
@@ -439,12 +371,13 @@ class GoToInsn : public TerminatorInsn {
   public:
     GoToInsn();
     GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-             BasicBlockT *nextBB);
+             BIRBasicBlock *nextBB);
     ~GoToInsn();
 
     LLVMValueRef getLLVMInsn()           { return llvmInsn; }
     void setLLVMInsn(LLVMValueRef insn)  { llvmInsn = insn; }
-    void translat(LLVMModuleRef &modRef);
+
+    void translate(LLVMModuleRef &modRef);
 };
 
 class ReturnInsn : public TerminatorInsn {
@@ -453,59 +386,62 @@ class ReturnInsn : public TerminatorInsn {
   public:
     ReturnInsn();
     ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
-		 BasicBlockT *nextBB);
+		 BIRBasicBlock *nextBB);
     ~ReturnInsn();
 
-    void translat(LLVMModuleRef &modRef);
+    void translate(LLVMModuleRef &modRef);
 };
 
-class BasicBlockT: public BIRNode {
+class BIRBasicBlock: public BIRNode {
   private:
     string                       id;
     vector<NonTerminatorInsn *>  instructions;
     TerminatorInsn              *terminator;
-    LLVMBuilderRef 	         BRef;
-    BIRFunction                 *BFunc;
-    BasicBlockT                 *nextBB;
+    LLVMBuilderRef 	         bRef;
+    BIRFunction                 *bFunc;
+    BIRBasicBlock                 *nextBB;
     LLVMBasicBlockRef            bbRefObj;
+    BIRPackage                  *pkgAddress;
 
   public:
-    BasicBlockT();
-    BasicBlockT(string id);
-    ~BasicBlockT();
-    BasicBlockT(Location *pos, string id);
+    BIRBasicBlock();
+    BIRBasicBlock(string id);
+    ~BIRBasicBlock();
+    BIRBasicBlock(Location *pos, string id);
 
     string           getId()             { return id; }
     TerminatorInsn * getTerminatorInsn() { return terminator; }
-    LLVMBuilderRef   getLLVMBuilderRef() { return BRef; }
-    BIRFunction    * getBIRFunction()    { return BFunc; }
-    BasicBlockT     * getNextBB()        { return nextBB; }
+    LLVMBuilderRef   getLLVMBuilderRef() { return bRef; }
+    BIRFunction    * getBIRFunction()    { return bFunc; }
+    BIRBasicBlock     * getNextBB()        { return nextBB; }
     vector<NonTerminatorInsn *> getNonTerminatorInsn()       { return instructions; }
     NonTerminatorInsn *         getInsn(int i) { return instructions[i]; }
     LLVMBasicBlockRef getLLVMBBRef()     { return bbRefObj; }
+    BIRPackage* getPkgAddress()           { return pkgAddress; }
 
     void setId(string newId)                        { id = newId; }
     void setTerminatorInsn(TerminatorInsn *insn)    { terminator = insn; }
-    void setLLVMBuilderRef(LLVMBuilderRef buildRef) { BRef = buildRef; } 
-    void setBIRFunction(BIRFunction *func)          { BFunc = func; }
-    void setNextBB(BasicBlockT *bb)                 { nextBB = bb; }
+    void setLLVMBuilderRef(LLVMBuilderRef buildRef) { bRef = buildRef; } 
+    void setBIRFunction(BIRFunction *func)          { bFunc = func; }
+    void setNextBB(BIRBasicBlock *bb)                 { nextBB = bb; }
     void setLLVMBBRef(LLVMBasicBlockRef bbRef)      { bbRefObj = bbRef; }
     void addNonTermInsn(NonTerminatorInsn *insn)    { 
 			instructions.push_back(insn); }
 
+    void setPkgAddress(BIRPackage* pkgAddr)          { pkgAddress = pkgAddr; }
     void translate(LLVMModuleRef &modRef);
 };
 
 class VarDecl: public BIRNode {
   private:
-    TypeDecl      *type;
+    TypeDecl       *type;
     string         varName;
     string         metaVarName;
     VarKind        kind;
-    VarScope      scope;
+    VarScope       scope;
     bool           ignoreVariable;
-    BasicBlockT    *endBB;
-    BasicBlockT    *startBB;
+    BIRBasicBlock    *endBB;
+    BIRBasicBlock    *startBB;
     int            insOffset;
 
   public:
@@ -518,8 +454,8 @@ class VarDecl: public BIRNode {
     TypeDecl *   getTypeDecl()      { return type; }
     VarKind      getVarKind()       { return kind; }
     VarScope     getVarScope()      { return scope; }
-    BasicBlockT * getStartBB()       { return startBB; }
-    BasicBlockT * getEndBB()         { return endBB; }
+    BIRBasicBlock * getStartBB()       { return startBB; }
+    BIRBasicBlock * getEndBB()         { return endBB; }
     string       getVarName()       { return varName; }
     string       getMetaVarName()   { return metaVarName; }
     int          getInsOffset()     { return insOffset; }
@@ -528,8 +464,8 @@ class VarDecl: public BIRNode {
     void setTypeDecl(TypeDecl *newType)  { type = newType; }
     void setVarKind(VarKind  newKind)   { kind = newKind; }
     void setVarScope(VarScope newScope) { scope = newScope; }
-    void setStartBB(BasicBlockT *bb)      { startBB = bb; }
-    void setEndBB(BasicBlockT *bb)        { endBB = bb; }
+    void setStartBB(BIRBasicBlock *bb)      { startBB = bb; }
+    void setEndBB(BIRBasicBlock *bb)        { endBB = bb; }
     void setVarName(string newName)      { varName = newName; }
     void setMetaVarName(string newName)  { metaVarName = newName; }
     void setInsOffset(int offset)        { insOffset = offset; }
@@ -584,8 +520,7 @@ class InvokableType: public TypeDecl {
   public:
     InvokableType();
     InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDecl *retTy);
-                  /*TypeSymbol *tSymbol);*/
-    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy);/* TypeSymbol *tSymbol);*/
+    InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy);
     ~InvokableType();
 
     TypeDecl * getReturnType()          { return returnType; }
@@ -610,12 +545,14 @@ class BIRFunction: public BIRNode {
     int                    paramCount;
     vector<VarDecl *>      localVars;
     VarDecl               *returnVar;
-    vector<BasicBlockT *>   basicBlocks;
+    vector<BIRBasicBlock *>   basicBlocks;
     string                 workerName;
     LLVMBuilderRef         builder;
     LLVMValueRef           newFunction;
-    map<FuncParam *, vector<BasicBlockT *>>  params;
+    map<FuncParam *, vector<BIRBasicBlock *>>  params;
     map<string, LLVMValueRef>          localVarRefs;
+    BIRPackage 		   *pkgAddress;
+    map <string, LLVMValueRef>   branchComparisonList;
 
   public:
     BIRFunction();
@@ -634,13 +571,16 @@ class BIRFunction: public BIRNode {
     vector<VarDecl *>    getLocalVars()         { return localVars; }
     VarDecl *            getLocalVar(int i)     { return localVars[i]; }
     VarDecl *            getReturnVar()         { return returnVar; }
-    vector<BasicBlockT *> getBasicBlocks()       { return basicBlocks; }
-    BasicBlockT *         getBasicBlock(int i)   { return basicBlocks[i]; }
+    vector<BIRBasicBlock *> getBasicBlocks()       { return basicBlocks; }
+    BIRBasicBlock *         getBasicBlock(int i)   { return basicBlocks[i]; }
     string               getWorkerName()        { return workerName; }
     LLVMBuilderRef       getLLVMBuilder()       { return builder; }
     int                  getNumParams()            { return paramCount; }
     LLVMValueRef         getNewFunctionRef()    { return newFunction; }
     map<string , LLVMValueRef>  getLocalVarRefs()  { return localVarRefs; }
+    BIRPackage*          getPkgAddress()        { return pkgAddress; }
+    map <string, LLVMValueRef>  getBranchComparisonList() { return branchComparisonList; }
+    LLVMValueRef getValueRefBasedOnName (string lhsName);
 
     void setName(string newName)            { name = newName; }
     void setFlags(int newFlags)             { flags = newFlags; }
@@ -653,20 +593,26 @@ class BIRFunction: public BIRNode {
     void setNumParams(int paramcount)       { paramCount = paramcount; }
     void setLocalVar(VarDecl *var)          { localVars.push_back(var); }
     void setReturnVar(VarDecl *var)         { returnVar = var; }
-    void setBasicBlockTs(vector<BasicBlockT *> b) { basicBlocks = b; }
-    void addBasicBlockT(BasicBlockT *bb)    { basicBlocks.push_back(bb); }
+    void setBIRBasicBlocks(vector<BIRBasicBlock *> b) { basicBlocks = b; }
+    void addBIRBasicBlock(BIRBasicBlock *bb)    { basicBlocks.push_back(bb); }
     void setWorkerName(string newName)      { workerName = newName; }
     void setLLVMBuilder(LLVMBuilderRef b)  { builder = b; }
     void setLocalVarRefs(map<string, LLVMValueRef> newLocalVarRefs)  {
 					localVarRefs = newLocalVarRefs; } 
     void setNewFunctionRef(LLVMValueRef newFuncRef) { newFunction = newFuncRef; }
+    void setPkgAddress (BIRPackage* pkgAddr)    { pkgAddress = pkgAddr; }
+
+    void setBranchComparisonlist (map <string, LLVMValueRef> brCompl) {
+                                branchComparisonList = brCompl; }
+    void addNewbranchComparison(string name, LLVMValueRef compRef)
+             { branchComparisonList.insert(std::pair<string, LLVMValueRef >(name, compRef)); }
 
     LLVMTypeRef   getLLVMTypeRefOfType(TypeDecl *typeD);
     LLVMValueRef  getLocalVarRefUsingId(string locVar);
     LLVMValueRef  getLocalToTempVar(Operand *operand);
     void          translateFunctionBody(LLVMModuleRef &modRef);
     void	  patchInsn(Function* llvnFun);
-    LLVMTypeRef   getLLVMFuncRetTypeRefOfType(TypeDecl *typeD);
+    LLVMTypeRef   getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
     void translate(LLVMModuleRef &modRef);
 };
 
@@ -677,6 +623,8 @@ class BIRPackage: public BIRNode {
     string                version;
     string                sourceFileName;
     vector<BIRFunction *> functions;
+    vector<VarDecl *>     globalVars;
+    map<string, LLVMValueRef>          globalVarRefs;
 
   public:
     BIRPackage();
@@ -697,10 +645,14 @@ class BIRPackage: public BIRNode {
     vector<BIRFunction *> getFunctions()     { return functions; }
     size_t                numFunctions()     { return functions.size(); }
     BIRFunction *         getFunction(int i) { return functions[i]; }
+    vector<VarDecl *>     getGlobalVars()    { return globalVars; }
+    map<string , LLVMValueRef>  getGlobalVarRefs()  { return globalVarRefs; }
 
     void setFunctions(vector<BIRFunction *> f)  { functions = f; }
     void addFunction(BIRFunction * f)           { functions.push_back(f); }
+    void addGlobalVar(VarDecl * g)           { globalVars.push_back(g); }
 
+    LLVMValueRef  getGlobalVarRefUsingId(string globVar);
     void translate(LLVMModuleRef &modRef);
 };
 

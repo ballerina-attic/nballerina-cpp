@@ -5,6 +5,11 @@ LLVM_BUILD_INCLUDES_DIR=$(TOP)/build/llvm/include
 LLVM_BUILD_LIB_DIR=$(TOP)/build/llvm/lib
 
 # No user definable parameters below.
+UNAME=$(shell uname)
+ifeq ($(UNAME), Linux)
+  LTINFO = -ltinfo
+endif
+
 PARALLEL_MAKE=make -j 20
 CXX=g++
 CFLAGS=-g -Wall -I. -I$(LLVM_INCLUDES_DIR) -I$(LLVM_BUILD_INCLUDES_DIR)
@@ -48,7 +53,7 @@ LIBS= -lLLVMXRay -lLLVMWindowsManifest -lLLVMTestingSupport -lLLVMTableGen \
       -lLLVMBitstreamReader -lLLVMAArch64AsmParser -lLLVMMCParser -lLLVMAArch64Desc \
       -lLLVMMC -lLLVMDebugInfoCodeView -lLLVMDebugInfoMSF -lLLVMBinaryFormat \
       -lLLVMAArch64Utils -lLLVMAArch64Info -lLLVMSupport -lLLVMDemangle -lpthread \
-      -ltinfo
+      $(LTINFO)
 
 SRCS = llvmPackageGen.cpp \
        llvmBIRNodeGen.cpp \
@@ -61,19 +66,16 @@ SRCS = llvmPackageGen.cpp \
        llvmFuncParamGen.cpp \
        llvmParamGen.cpp \
        llvmTypeDeclGen.cpp \
-       llvmTypeSymbolGen.cpp \
-       llvmSymbolGen.cpp \
-       llvmPackageIDGen.cpp \
        llvmNonTerminatorInsnGen.cpp \
        llvmAbstractInsnGen.cpp \
        llvmTerminatorInsnGen.cpp \
        llvmMoveInsn.cpp \
        llvmConstantLoadInsn.cpp \
        llvmBinaryOpInsn.cpp \
-       llvmScopeGen.cpp \
-       llvmScopeEntryGen.cpp \
        llvmReturnInsn.cpp \
        llvmGoToInsn.cpp \
+       llvmUnaryOpInsn.cpp \
+       llvmConditionBrInsn.cpp \
        BIRReader.cpp \
        driver.cpp
 

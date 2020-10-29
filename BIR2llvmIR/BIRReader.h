@@ -99,11 +99,25 @@ class package_cp_info_t : public constant_pool_entry_t {
         int32_t version_index() const { return m_version_index; }
 };
 
+class int_cp_info_t : public constant_pool_entry_t {
+
+    public:
+        int_cp_info_t() { }
+        void _read();
+        ~int_cp_info_t();
+
+    private:
+        int64_t m_value;
+
+    public:
+        int64_t value() const { return m_value; }
+};
+
 
 class constant_pool_set_t {
 
   public:
-      constant_pool_set_t() {  _read(); }
+      constant_pool_set_t() { }
       void _read();
       ~constant_pool_set_t();
 
@@ -124,7 +138,7 @@ class BIRReader {
     BIRReader(std::string FileName) { filename = FileName; }
     void setFileName(std::string FileName) { filename = FileName; }
     std::string name()  { return filename; }
-    BIRPackage* deserialize(BIRPackage *);
+    void deserialize(BIRPackage *);
 };
 
 extern uint8_t read_u1();
