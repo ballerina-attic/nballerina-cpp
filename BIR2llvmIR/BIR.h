@@ -32,6 +32,7 @@ class VarDecl;
 class BIRFunction;
 class NonTerminatorInsn;
 class BIRPackage;
+class Param;
 
 enum SymbolKind {
 	LOCAL_SYMBOL_KIND,
@@ -39,17 +40,18 @@ enum SymbolKind {
 };
 
 enum VarKind {
-	TEMP_VAR_KIND = 1, 
-	SELF_VAR_KIND, 
-	LOCAL_VAR_KIND = 3,
+	LOCAL_VAR_KIND = 1,
+	ARG_VAR_KIND = 2,
+	TEMP_VAR_KIND = 3,
 	RETURN_VAR_KIND = 4, 
 	GLOBAL_VAR_KIND = 5, 
-	CONSTANT_VAR_KIND,
-	ARG_VAR_KIND
+	SELF_VAR_KIND = 6,
+	CONSTANT_VAR_KIND = 7
 };
 
 enum InstructionKind {
         INSTRUCTION_KIND_GOTO = 1,
+	INSTRUCTION_KIND_CALL = 2,
         INSTRUCTION_KIND_CONDITIONAL_BRANCH = 3,
         INSTRUCTION_KIND_RETURN = 4,
         INSTRUCTION_KIND_BINARY_REF_EQUAL,
@@ -392,6 +394,36 @@ class ReturnInsn : public TerminatorInsn {
     void translate(LLVMModuleRef &modRef);
 };
 
+class FunctionCallInsn : public TerminatorInsn {
+  private:
+    bool     isVirtual;
+    string   functionName;
+    int      argCount;
+    vector<Param*> argsList;
+    Param    *restParam;
+  public:
+    FunctionCallInsn();
+    void setIsVirtual (bool funcVirtual) { isVirtual = funcVirtual; }
+    void setFunctionName (string funcName) { functionName = funcName; }
+    void setArgCount(int argNumber) { argCount = argNumber; }
+    void setArgumentsList (vector<Param*> fnArgs) { argsList = fnArgs; }
+    void addArgumentToList (Param *arg) {
+      argsList.push_back(arg);
+    }
+    void setRestParam (Param *rParam) { restParam = rParam; }
+
+    bool getIsVirtual() { return isVirtual; }
+    string getFunctionName() { return functionName; }
+    int getArgCount() { return argCount; }
+    Param* getArgumentFromList (int i) { return argsList[i]; }
+    vector<Param*> getArgumentsList() { return argsList; }
+    FunctionCallInsn (string funcName, bool funcVirtual, int argNumber,
+			Operand *lhsOp, BIRBasicBlock *thenBB);
+    Param* getRestParam () { return restParam; }
+    ~FunctionCallInsn();
+    void translate(LLVMModuleRef &modRef);
+};
+
 class BIRBasicBlock: public BIRNode {
   private:
     string                       id;
@@ -416,6 +448,7 @@ class BIRBasicBlock: public BIRNode {
     BIRBasicBlock     * getNextBB()        { return nextBB; }
     vector<NonTerminatorInsn *> getNonTerminatorInsn()       { return instructions; }
     NonTerminatorInsn *         getInsn(int i) { return instructions[i]; }
+    size_t                numInsns()     { return instructions.size(); }
     LLVMBasicBlockRef getLLVMBBRef()     { return bbRefObj; }
     BIRPackage* getPkgAddress()           { return pkgAddress; }
 
@@ -526,7 +559,7 @@ class InvokableType: public TypeDecl {
     TypeDecl * getReturnType()          { return returnType; }
     TypeDecl * getRestType()            { return restType; }
     TypeDecl * getParamType(int i)      { return paramTypes[i]; }
-
+    size_t getParamTypeCount()          { return paramTypes.size(); }
     void setReturnType(TypeDecl *ty)   { returnType = ty; }
     void setRestType(TypeDecl *ty)     { restType = ty; }
     void addParamType(TypeDecl *ty)    { paramTypes.push_back(ty); }
@@ -571,11 +604,12 @@ class BIRFunction: public BIRNode {
     vector<VarDecl *>    getLocalVars()         { return localVars; }
     VarDecl *            getLocalVar(int i)     { return localVars[i]; }
     VarDecl *            getReturnVar()         { return returnVar; }
-    vector<BIRBasicBlock *> getBasicBlocks()       { return basicBlocks; }
-    BIRBasicBlock *         getBasicBlock(int i)   { return basicBlocks[i]; }
+    vector<BIRBasicBlock *> getBasicBlocks()    { return basicBlocks; }
+    size_t               numBasicBlocks()       { return basicBlocks.size(); }
+    BIRBasicBlock *      getBasicBlock(int i)   { return basicBlocks[i]; }
     string               getWorkerName()        { return workerName; }
     LLVMBuilderRef       getLLVMBuilder()       { return builder; }
-    int                  getNumParams()            { return paramCount; }
+    int                  getNumParams()         { return paramCount; }
     LLVMValueRef         getNewFunctionRef()    { return newFunction; }
     map<string , LLVMValueRef>  getLocalVarRefs()  { return localVarRefs; }
     BIRPackage*          getPkgAddress()        { return pkgAddress; }
@@ -625,6 +659,7 @@ class BIRPackage: public BIRNode {
     vector<BIRFunction *> functions;
     vector<VarDecl *>     globalVars;
     map<string, LLVMValueRef>          globalVarRefs;
+    map<string, BIRFunction *>         functionLookUp;
 
   public:
     BIRPackage();
@@ -641,9 +676,7 @@ class BIRPackage: public BIRNode {
     void setPackageName(string pkgName)     { name = pkgName; }
     void setVersion(string verName)         { version = verName; }
     void setSrcFileName(string srcFileName) { sourceFileName = srcFileName; }
-
     vector<BIRFunction *> getFunctions()     { return functions; }
-    size_t                numFunctions()     { return functions.size(); }
     BIRFunction *         getFunction(int i) { return functions[i]; }
     vector<VarDecl *>     getGlobalVars()    { return globalVars; }
     map<string , LLVMValueRef>  getGlobalVarRefs()  { return globalVarRefs; }
@@ -652,7 +685,11 @@ class BIRPackage: public BIRNode {
     void addFunction(BIRFunction * f)           { functions.push_back(f); }
     void addGlobalVar(VarDecl * g)           { globalVars.push_back(g); }
 
-    LLVMValueRef  getGlobalVarRefUsingId(string globVar);
+    void addFunctionLookUpEntry(string funcName, BIRFunction *BIRfunction) { 
+	functionLookUp.insert(pair<string, BIRFunction *> (funcName, BIRfunction)); }
+    BIRFunction * getFunctionLookUp(string funcName) { return functionLookUp.at(funcName); }
+    size_t        numFunctions()     { return functions.size(); }
+    LLVMValueRef  getGlobalVarRefUsingId (string globVar);
     void translate(LLVMModuleRef &modRef);
 };
 

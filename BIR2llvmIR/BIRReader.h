@@ -58,7 +58,7 @@ class shape_cp_info_t : public constant_pool_entry_t {
         ~shape_cp_info_t();
 
     private:
-        int32_t m_shape_lenght;
+        int32_t m_shape_length;
         std::string m_value;
         type_tag_enum_t m_type_tag;
         int32_t m_name_index;
@@ -67,9 +67,11 @@ class shape_cp_info_t : public constant_pool_entry_t {
         int32_t m_param_count;
         uint8_t m_has_rest_type;
         int32_t m_return_type_index;
+        int32_t m_rest_type_index;
+	vector<uint32_t> params;
 
     public:
-        int32_t shape_lenght() const { return m_shape_lenght; }
+        int32_t shape_length() const { return m_shape_length; }
         std::string value() const { return m_value; }
         type_tag_enum_t type_tag() const { return m_type_tag; }
         int32_t name_index() const { return m_name_index; }
@@ -78,6 +80,9 @@ class shape_cp_info_t : public constant_pool_entry_t {
         int32_t param_count() const { return m_param_count; }
         uint8_t has_rest_type() const { return m_has_rest_type; }
         int32_t return_type_index() const { return m_return_type_index; }
+        int32_t rest_type_index() const { return m_rest_type_index; }
+	void add_param(uint32_t param) { params.push_back(param); }
+	uint32_t get_param(uint32_t index) { return params[index]; }
 };
 
 
