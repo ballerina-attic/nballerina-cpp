@@ -109,9 +109,11 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef = LLVMBuildAlloca(builder, varType, varName);
     localVarRefs.insert({locVar->getVarName(), localVarRef});
-   
+
     if (isParamter(locVar)){
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
+      string paramName = getParam(paramIndex)->getVarDecl()->getVarName();
+      LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
       if (parmRef)
         LLVMBuildStore(builder, parmRef, localVarRef);
       paramIndex++;
@@ -123,8 +125,6 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
   for (unsigned int i=0; i < basicBlocks.size(); i++)
   {
     BIRBasicBlock *bb = basicBlocks[i];
-    char label[20];                                     
-    sprintf(label, "<label>:%d", i);
     LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(this->getNewFunctionRef(),
                                                    bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
@@ -148,29 +148,6 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
 
 void BIRFunction::translate (LLVMModuleRef &modRef)
 {
-  builder = LLVMCreateBuilder();
-  LLVMTypeRef   funcType;
-  LLVMTypeRef   retType;
-  LLVMTypeRef  *paramTypes;
-  unsigned int  numParams = getNumParams();
-  bool          isVarArg = false;
-  if (getRestParam())
-    isVarArg = true;
-
-  if (returnVar)  
-    retType = getLLVMFuncRetTypeRefOfType(returnVar);
-  paramTypes = new LLVMTypeRef[numParams];;
-  for (unsigned i = 0;  i < numParams;  i++)
-  {
-    Param *funcParam = requiredParams[i];
-    if (funcParam)
-      paramTypes[i] = getLLVMTypeRefOfType(funcParam->getTypeDecl()); 
-  }
-  if (retType)
-    funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
-  const char *newFuncName = name.c_str();
-  if (funcType) 
-    newFunction = LLVMAddFunction(modRef, newFuncName, funcType);
   translateFunctionBody(modRef);
 }
 

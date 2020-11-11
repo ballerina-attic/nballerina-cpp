@@ -130,6 +130,27 @@ type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool
     return shape_cp->type_tag();
 }
 
+// Search type from the constant pool based on index
+InvokableType* getInvokableType(int32_t index, constant_pool_set_t *m_constant_pool)
+{
+    InvokableType *invokableType = new InvokableType();
+    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
+    shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
+    for (int i = 0; i < shape_cp->param_count(); i++)
+    {
+	TypeDecl *typeDecl = get_type_cp(shape_cp->get_param(i), m_constant_pool, false);
+	invokableType->addParamType(typeDecl);
+    }
+    if (shape_cp->has_rest_type())
+    {
+        TypeDecl *typeDecl = get_type_cp(shape_cp->rest_type_index(), m_constant_pool, false);
+        invokableType->setRestType(typeDecl);
+    }
+    TypeDecl *typeDecl = get_type_cp(shape_cp->return_type_index(), m_constant_pool, false);
+    invokableType->setReturnType(typeDecl);
+    return invokableType;
+}
+
 // Read Global Variable and push it to BIRPackage
 void read_global_var(constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
 {
@@ -360,6 +381,36 @@ MoveInsn* read_move(MoveInsn *moveInsn, constant_pool_set_t *m_constant_pool)
     return moveInsn;
 }
 
+// Read Function Call
+void readFunctionCall(FunctionCallInsn *functionCallInsn, constant_pool_set_t *m_constant_pool)
+{
+    uint8_t isVirtual = read_u1();
+    functionCallInsn->setIsVirtual((bool)isVirtual);
+
+    uint32_t packageIndex __attribute__((unused)) = read_s4be();
+    uint32_t callNameCpIndex = read_s4be();
+    functionCallInsn->setFunctionName(get_string_cp(callNameCpIndex, m_constant_pool));
+
+    uint32_t argumentsCount = read_s4be();
+    functionCallInsn->setArgCount(argumentsCount);
+    for (unsigned int i = 0; i < argumentsCount; i++) {
+	VarDecl *varDecl = read_variable(m_constant_pool);
+	Operand *param = new Operand(varDecl);
+	functionCallInsn->addArgumentToList(param);
+    }
+    uint8_t hasLhsOperand = read_u1();
+    if (hasLhsOperand) {
+        VarDecl *varDecl = read_variable(m_constant_pool);
+	Operand *operand = new Operand();
+	operand->setVarDecl(varDecl);
+	functionCallInsn->setLhsOperand(operand);
+    }
+    uint32_t thenBbIdNameCpIndex = read_s4be();
+    BIRBasicBlock *dummybasicBlock = new BIRBasicBlock(get_string_cp(thenBbIdNameCpIndex, m_constant_pool));
+    functionCallInsn->setNextBB(dummybasicBlock);
+    functionCallInsn->setPatchStatus(true);
+}
+
 
 // Search basic block based on the basic block ID
 BIRBasicBlock* search_bb_by_name(vector<BIRBasicBlock *>   basicBlocks, std::string name)
@@ -465,6 +516,14 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
           nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (moveInsn));
           break;
       }
+      case INSTRUCTION_KIND_CALL: {
+	  FunctionCallInsn *functionCallInsn = new FunctionCallInsn();
+          functionCallInsn->setInstKind((InstructionKind)insnkind);
+	  readFunctionCall(functionCallInsn, m_constant_pool);
+          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (functionCallInsn));
+          nonTerminatorInsn = NULL;
+          break;
+      }
       default:
           break;
     }
@@ -497,7 +556,7 @@ void patchInsn(vector<BIRBasicBlock *>   basicBlocks)
     {
         BIRBasicBlock *basicBlock = basicBlocks[i];
         TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
-        if (terminator->getPatchStatus())
+        if (terminator && terminator->getPatchStatus())
         {
           switch (terminator->getInstKind()) {
             case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
@@ -511,9 +570,19 @@ void patchInsn(vector<BIRBasicBlock *>   basicBlocks)
                 delete danglingFalseBB;
                 Terminator->setIfThenBB(trueBB);
                 Terminator->setElseBB(falseBB);
+		Terminator->setPatchStatus(false);
                 break;
             }
             case INSTRUCTION_KIND_GOTO :
+            {
+                BIRBasicBlock *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
+                BIRBasicBlock *danglingBB = terminator->getNextBB();
+                delete danglingBB;
+                terminator->setNextBB(destBB);
+		terminator->setPatchStatus(false);
+                break;
+            }
+            case INSTRUCTION_KIND_CALL :
             {
                 BIRBasicBlock *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
                 BIRBasicBlock *danglingBB = terminator->getNextBB();
@@ -546,6 +615,11 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
 
     uint32_t nameCpIndex = read_s4be();
     BIRfunction->setName(get_string_cp(nameCpIndex, m_constant_pool));
+    std::string initFuncName = "..<init>";
+    std::string startFuncName = "..<start>";
+    std::string stopFuncName = "..<stop>";
+    if (!(initFuncName.compare (BIRfunction->getName()) == 0 || startFuncName.compare (BIRfunction->getName()) == 0 || stopFuncName.compare (BIRfunction->getName()) == 0))
+        BIRpackage->addFunctionLookUpEntry(BIRfunction->getName(), BIRfunction);
 
     uint32_t workdernameCpIndex = read_s4be();
     BIRfunction->setWorkerName(get_string_cp(workdernameCpIndex, m_constant_pool));
@@ -553,8 +627,8 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
     uint32_t flags = read_s4be();
     BIRfunction->setFlags(flags);
 
-    uint32_t typeCpIndex __attribute__((unused));
-    typeCpIndex = read_s4be();
+    uint32_t typeCpIndex = read_s4be();
+    BIRfunction->setInvokableType(getInvokableType(typeCpIndex, m_constant_pool));
 
     uint64_t annotation_length __attribute__((unused));
     annotation_length = read_s8be();
@@ -564,6 +638,16 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
 
     uint32_t requiredParamCount = read_s4be();
     BIRfunction->setNumParams(requiredParamCount);
+    //Set function param here and then fill remaining values from the default Params
+    for (unsigned int i = 0; i < requiredParamCount; i++)
+    {
+        uint32_t paramNameCpIndex = read_s4be();
+	VarDecl *varDecl = new VarDecl();
+	varDecl->setVarName(get_string_cp(paramNameCpIndex, m_constant_pool));
+	Operand *param = new Operand(varDecl);
+        uint32_t paramFlags __attribute__((unused)) = read_s4be();
+	BIRfunction->setParam(param);
+    }
 
     uint8_t hasRestParam = read_u1();
     if (!((bool)hasRestParam))
@@ -609,8 +693,20 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
         BIRfunction->setReturnVar(varDecl);
     }
 
-    uint32_t defaultParamValue __attribute__((unused));
-    defaultParamValue = read_s4be();
+    uint32_t defaultParamValue = read_s4be();
+    for (unsigned int i = 0; i < defaultParamValue; i++)
+    {
+	uint8_t kind = read_u1();
+	uint32_t typeCpIndex = read_s4be();
+	Operand *param = BIRfunction->getParam(i);
+	param->getVarDecl()->setTypeDecl(get_type_cp(typeCpIndex, m_constant_pool, false));
+	param->getVarDecl()->setVarKind((VarKind)kind);
+	uint32_t nameCpIndex __attribute__((unused)) = read_s4be();
+	if (kind == ARG_VAR_KIND) {
+	    uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
+	}
+	uint8_t hasDefaultExpr __attribute__((unused)) = read_u1();
+    }
 
     uint32_t localVarCount = read_s4be();
 
@@ -630,19 +726,25 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
         varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
         localvars.push_back(varDecl);
 
-        if (kind == 1)
+        if (kind == ARG_VAR_KIND)
+        {
+            uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
+	}
+        else if (kind == LOCAL_VAR_KIND)
         {
 	    uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
 	    uint32_t endBbIdCpIndex __attribute__((unused)) = read_s4be();
 	    uint32_t startBbIdCpIndex __attribute__((unused)) = read_s4be();
 	    uint32_t instructionOffset __attribute__((unused)) = read_s4be();
         }
-
     }
     BIRfunction->setLocalVars(localvars);
+    for (unsigned int i = 0; i < defaultParamValue; i++)
+    {
+      uint32_t basicBlocksCount __attribute__((unused)) = read_s4be();
+    }
 
     uint32_t BBCount = read_s4be();
-
     for (unsigned int i = 0; i < BBCount; i++)
     {
       BIRBasicBlock *basicBlock = new BIRBasicBlock();
@@ -680,48 +782,89 @@ void string_cp_info_t::_read()
 
 void shape_cp_info_t::_read() 
 {
-    m_shape_lenght = read_s4be();
-    std::vector<char> result(m_shape_lenght);
-    is.read(&result[0], m_shape_lenght);
+    m_shape_length = read_s4be();
+    m_type_tag = static_cast<type_tag_enum_t>(read_u1());
+    m_name_index = read_s4be();
+    m_type_flag = read_s4be();
+    m_type_special_flag = read_s4be();
 
-    m_type_tag = static_cast<type_tag_enum_t>(result[0]);
-    std::vector<char> result_swap = result;
-    std::vector<char>::iterator p = result_swap.begin();
+    uint32_t m_shape_length_remain = m_shape_length - 13;
 
-    int temp_name_index = 0;
-    int temp_type_flag = 0;
-    char tmp;
+    switch (m_type_tag) {
+	case TYPE_TAG_ENUM_TYPE_TAG_INVOKABLE: {
+	    m_param_count = read_s4be();
 
-    //Read name index
-    tmp = p[1];
-    p[1] = p[4];
-    p[4] = tmp;
-
-    tmp = p[2];
-    p[2] = p[3];
-    p[3] = tmp;
-
-    temp_name_index |= p[4] << 24;
-    temp_name_index |= p[3] << 16;
-    temp_name_index |= p[2] << 8;
-    temp_name_index |= p[1]; 
-
-    //Read type Flag
-    tmp = p[5];
-    p[5] = p[8];
-    p[8] = tmp;
-
-    tmp = p[6];
-    p[6] = p[7];
-    p[7] = tmp;
-
-    temp_type_flag |= p[8] << 24;
-    temp_type_flag |= p[7] << 16;
-    temp_type_flag |= p[6] << 8;
-    temp_type_flag |= p[5];
-
-    m_name_index = temp_name_index;
-    m_type_flag = temp_type_flag;
+	    for (int i = 0; i < m_param_count; i++) {
+		uint32_t m_param_type_cp_index = read_s4be();
+		add_param(m_param_type_cp_index);
+	    }
+	    m_has_rest_type = read_u1();
+	    if (m_has_rest_type) {
+		m_rest_type_index = read_s4be();
+	    }
+	    m_return_type_index = read_s4be();
+	    break;
+	}
+        case TYPE_TAG_ENUM_TYPE_TAG_INT :
+        case TYPE_TAG_ENUM_TYPE_TAG_BYTE :
+        case TYPE_TAG_ENUM_TYPE_TAG_FLOAT :
+        case TYPE_TAG_ENUM_TYPE_TAG_DECIMAL :
+        case TYPE_TAG_ENUM_TYPE_TAG_STRING :
+        case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN :
+        case TYPE_TAG_ENUM_TYPE_TAG_JSON :
+        case TYPE_TAG_ENUM_TYPE_TAG_XML :
+        case TYPE_TAG_ENUM_TYPE_TAG_TABLE :
+        case TYPE_TAG_ENUM_TYPE_TAG_NIL :
+        case TYPE_TAG_ENUM_TYPE_TAG_ANYDATA :
+        case TYPE_TAG_ENUM_TYPE_TAG_RECORD :
+        case TYPE_TAG_ENUM_TYPE_TAG_TYPEDESC :
+        case TYPE_TAG_ENUM_TYPE_TAG_STREAM :
+        case TYPE_TAG_ENUM_TYPE_TAG_MAP :
+        case TYPE_TAG_ENUM_TYPE_TAG_ANY :
+        case TYPE_TAG_ENUM_TYPE_TAG_ENDPOINT :
+        case TYPE_TAG_ENUM_TYPE_TAG_ARRAY :
+        case TYPE_TAG_ENUM_TYPE_TAG_UNION :
+        case TYPE_TAG_ENUM_TYPE_TAG_INTERSECTION :
+        case TYPE_TAG_ENUM_TYPE_TAG_PACKAGE :
+        case TYPE_TAG_ENUM_TYPE_TAG_NONE :
+        case TYPE_TAG_ENUM_TYPE_TAG_VOID :
+        case TYPE_TAG_ENUM_TYPE_TAG_XMLNS :
+        case TYPE_TAG_ENUM_TYPE_TAG_ANNOTATION :
+        case TYPE_TAG_ENUM_TYPE_TAG_SEMANTIC_ERROR :
+        case TYPE_TAG_ENUM_TYPE_TAG_ERROR :
+        case TYPE_TAG_ENUM_TYPE_TAG_ITERATOR :
+        case TYPE_TAG_ENUM_TYPE_TAG_TUPLE :
+        case TYPE_TAG_ENUM_TYPE_TAG_FUTURE :
+        case TYPE_TAG_ENUM_TYPE_TAG_FINITE :
+        case TYPE_TAG_ENUM_TYPE_TAG_OBJECT :
+        case TYPE_TAG_ENUM_TYPE_TAG_SERVICE :
+        case TYPE_TAG_ENUM_TYPE_TAG_BYTE_ARRAY :
+        case TYPE_TAG_ENUM_TYPE_TAG_FUNCTION_POINTER :
+        case TYPE_TAG_ENUM_TYPE_TAG_HANDLE :
+        case TYPE_TAG_ENUM_TYPE_TAG_READONLY :
+        case TYPE_TAG_ENUM_TYPE_TAG_SIGNED32_INT :
+        case TYPE_TAG_ENUM_TYPE_TAG_SIGNED16_INT :
+        case TYPE_TAG_ENUM_TYPE_TAG_SIGNED8_INT :
+        case TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED32_INT :
+        case TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED16_INT :
+        case TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED8_INT :
+        case TYPE_TAG_ENUM_TYPE_TAG_CHAR_STRING :
+        case TYPE_TAG_ENUM_TYPE_TAG_XML_ELEMENT :
+        case TYPE_TAG_ENUM_TYPE_TAG_XML_PI :
+        case TYPE_TAG_ENUM_TYPE_TAG_XML_COMMENT :
+        case TYPE_TAG_ENUM_TYPE_TAG_XML_TEXT :
+        case TYPE_TAG_ENUM_TYPE_TAG_NEVER :
+        case TYPE_TAG_ENUM_TYPE_TAG_NULL_SET :
+        case TYPE_TAG_ENUM_TYPE_TAG_PARAMETERIZED_TYPE : {
+		std::vector<char> result(m_shape_length_remain);
+		is.read(&result[0], m_shape_length_remain);
+		break;
+        }
+	default:
+	    fprintf(stderr, "%s:%d Invalid Type Tag in shape.\n", __FILE__, __LINE__);
+	    fprintf(stderr, "%d is the Type Tag.\n", (type_tag_enum_t)m_type_tag);
+	    break;
+    }
 }
 
 void package_cp_info_t::_read() 
@@ -733,6 +876,18 @@ void package_cp_info_t::_read()
 
 void int_cp_info_t::_read() {
     m_value = read_s8be();
+}
+
+void boolean_cp_info_t::_read() {
+    m_value = read_u1();
+}
+
+void float_cp_info_t::_read() { 
+    m_value = read_s8be();
+}
+
+void byte_cp_info_t::_read() {
+    m_value = read_u1();
 }
 
 void constant_pool_entry_t::_read() 
@@ -761,6 +916,24 @@ void constant_pool_entry_t::_read()
         case TAG_ENUM_CP_ENTRY_INTEGER: {
             n_cp_info = false;
             int_cp_info_t *m_cp_info = static_cast<int_cp_info_t *> (this);
+            m_cp_info->_read();
+            break;
+        }
+        case TAG_ENUM_CP_ENTRY_BYTE: {
+            n_cp_info = false;
+            byte_cp_info_t *m_cp_info = static_cast<byte_cp_info_t *> (this);
+            m_cp_info->_read();
+            break;
+        }
+        case TAG_ENUM_CP_ENTRY_FLOAT: {
+            n_cp_info = false;
+            float_cp_info_t *m_cp_info = static_cast<float_cp_info_t *> (this);
+            m_cp_info->_read();
+            break;
+        }
+        case TAG_ENUM_CP_ENTRY_BOOLEAN: {
+            n_cp_info = false;
+            boolean_cp_info_t *m_cp_info = static_cast<boolean_cp_info_t *> (this);
             m_cp_info->_read();
             break;
         }
@@ -801,6 +974,27 @@ void constant_pool_set_t::_read()
         }
         case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_INTEGER: {
             int_cp_info_t *m_cp_info = new int_cp_info_t();
+            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
+            pointer->_read();
+            m_constant_pool_entries->push_back(pointer);
+            break;
+        }
+        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_FLOAT: {
+            float_cp_info_t *m_cp_info = new float_cp_info_t();
+            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
+            pointer->_read();
+            m_constant_pool_entries->push_back(pointer);
+            break;
+        }
+        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_BOOLEAN: {
+            boolean_cp_info_t *m_cp_info = new boolean_cp_info_t();
+            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
+            pointer->_read();
+            m_constant_pool_entries->push_back(pointer);
+            break;
+        }
+        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_BYTE: {
+            byte_cp_info_t *m_cp_info = new byte_cp_info_t();
             constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
             pointer->_read();
             m_constant_pool_entries->push_back(pointer);
@@ -862,14 +1056,16 @@ void BIRReader::deserialize(BIRPackage *BIRpackage)
 	}
     }
 
-    uint32_t m_type_definition_bodies_count __attribute__((unused));
-    m_type_definition_bodies_count = read_s4be();
+    uint32_t m_type_definition_bodies_count __attribute__((unused)) = read_s4be();
     uint32_t m_function_count = read_s4be();
 
-    std::string funcName = "main";
+    //Push all the functions in BIRpackage except __init, __start & __stop
+    std::string initFuncName = "..<init>";
+    std::string startFuncName = "..<start>";
+    std::string stopFuncName = "..<stop>";
     for (unsigned int i = 0; i < m_function_count; i++) {
         BIRFunction *curFunc = read_function (m_constant_pool, BIRpackage);
-        if (funcName.compare (curFunc->getName()) == 0)
+        if (!(initFuncName.compare (curFunc->getName()) == 0 || startFuncName.compare (curFunc->getName()) == 0 || stopFuncName.compare (curFunc->getName()) == 0))
            BIRpackage->addFunction(curFunc);
         else
            delete curFunc;
@@ -877,4 +1073,39 @@ void BIRReader::deserialize(BIRPackage *BIRpackage)
 
     uint32_t m_annotations_size __attribute__((unused));
     m_annotations_size = read_s4be();
+
+    //Assign typedecl to function param of call Insn
+    for (size_t i = 0; i < BIRpackage->numFunctions(); i++) {
+        BIRFunction *curFunc = BIRpackage->getFunction(i);
+	for (size_t i = 0; i < curFunc->numBasicBlocks(); i++) {
+	    BIRBasicBlock *birBasicBlock = curFunc->getBasicBlock(i);
+	    for (size_t i = 0; i < birBasicBlock->numInsns(); i++) {
+		TerminatorInsn *terminator = birBasicBlock->getTerminatorInsn();
+		if (terminator && terminator->getPatchStatus())
+		{
+		    switch (terminator->getInstKind()) {
+			case INSTRUCTION_KIND_CALL : {
+			    FunctionCallInsn *Terminator = (static_cast<FunctionCallInsn *> (terminator));
+			    for (int i = 0; i < Terminator->getArgCount(); i++)
+			    {
+				BIRFunction *patchCallFunction = BIRpackage->getFunctionLookUp(Terminator->getFunctionName());
+				InvokableType *invokableType = patchCallFunction->getInvokableType();
+				for(size_t i = 0; i < invokableType->getParamTypeCount(); i++)
+				{
+				    TypeDecl *typeDecl = invokableType->getParamType(i);
+				    Operand *param = Terminator->getArgumentFromList(i);
+				    param->getVarDecl()->setTypeDecl(typeDecl);
+				}
+			    }
+			    break;
+			}
+			default:
+	                    fprintf(stderr, "%s:%d Invalid Insn Kind for assigning TypeDecl to FuncCall Insn.\n", __FILE__, __LINE__);
+            		    break;
+		    }
+		}
+	    }
+	}
+    }
+    fprintf(stderr, "\nDebug point\n");
 }
