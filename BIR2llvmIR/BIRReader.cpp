@@ -200,14 +200,6 @@ VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
     return varDecl;
 }
 
-Param* getParamFromVar(VarDecl *varDecl)
-{
-    Param *param = new Param();
-    param->setName(varDecl->getVarName());
-    delete varDecl;
-    return param;
-}
-
 // Read TYPEDESC Insn
 void read_typedesc ()
 {
@@ -404,7 +396,6 @@ void readFunctionCall(FunctionCallInsn *functionCallInsn, constant_pool_set_t *m
     for (unsigned int i = 0; i < argumentsCount; i++) {
 	VarDecl *varDecl = read_variable(m_constant_pool);
 	Operand *param = new Operand(varDecl);
-	//Param *param = getParamFromVar(varDecl);
 	functionCallInsn->addArgumentToList(param);
     }
     uint8_t hasLhsOperand = read_u1();
@@ -627,7 +618,6 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
     std::string initFuncName = "..<init>";
     std::string startFuncName = "..<start>";
     std::string stopFuncName = "..<stop>";
-    std::string mainFuncName = "main";
     if (!(initFuncName.compare (BIRfunction->getName()) == 0 || startFuncName.compare (BIRfunction->getName()) == 0 || stopFuncName.compare (BIRfunction->getName()) == 0))
         BIRpackage->addFunctionLookUpEntry(BIRfunction->getName(), BIRfunction);
 
@@ -652,12 +642,10 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
     for (unsigned int i = 0; i < requiredParamCount; i++)
     {
         uint32_t paramNameCpIndex = read_s4be();
-	//param->setName(get_string_cp(paramNameCpIndex, m_constant_pool));
 	VarDecl *varDecl = new VarDecl();
 	varDecl->setVarName(get_string_cp(paramNameCpIndex, m_constant_pool));
 	Operand *param = new Operand(varDecl);
-        uint32_t paramFlags = read_s4be();
-	//param->setFlags(paramFlags);
+        uint32_t paramFlags __attribute__((unused)) = read_s4be();
 	BIRfunction->setParam(param);
     }
 
@@ -711,11 +699,10 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
 	uint8_t kind = read_u1();
 	uint32_t typeCpIndex = read_s4be();
 	Operand *param = BIRfunction->getParam(i);
-	//Assign typeDecl to funccall insn param types at end of the pass
 	param->getVarDecl()->setTypeDecl(get_type_cp(typeCpIndex, m_constant_pool, false));
 	param->getVarDecl()->setVarKind((VarKind)kind);
 	uint32_t nameCpIndex __attribute__((unused)) = read_s4be();
-	if (kind == 2) {
+	if (kind == ARG_VAR_KIND) {
 	    uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
 	}
 	uint8_t hasDefaultExpr __attribute__((unused)) = read_u1();
@@ -739,11 +726,11 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
         varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
         localvars.push_back(varDecl);
 
-        if (kind == 2)
+        if (kind == ARG_VAR_KIND)
         {
             uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
 	}
-        else if (kind == 1)
+        else if (kind == LOCAL_VAR_KIND)
         {
 	    uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
 	    uint32_t endBbIdCpIndex __attribute__((unused)) = read_s4be();
@@ -754,18 +741,10 @@ BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BI
     BIRfunction->setLocalVars(localvars);
     for (unsigned int i = 0; i < defaultParamValue; i++)
     {
-      //uint32_t paramBBCount __attribute__((unused)) = read_s4be();
-      uint32_t basicBlocksCount = read_s4be();
+      uint32_t basicBlocksCount __attribute__((unused)) = read_s4be();
     }
-    /*if (!(initFuncName.compare (BIRfunction->getName()) == 0 || startFuncName.compare (BIRfunction->getName()) == 0 || stopFuncName.compare (BIRfunction->getName()) == 0 || mainFuncName.compare (BIRfunction->getName()) == 0))
-      {
-	uint32_t basicBlocksCount = read_s4be();
-	basicBlocksCount = read_s4be();
-	basicBlocksCount = read_s4be();
-      }*/
 
     uint32_t BBCount = read_s4be();
-
     for (unsigned int i = 0; i < BBCount; i++)
     {
       BIRBasicBlock *basicBlock = new BIRBasicBlock();
@@ -886,48 +865,6 @@ void shape_cp_info_t::_read()
 	    fprintf(stderr, "%d is the Type Tag.\n", (type_tag_enum_t)m_type_tag);
 	    break;
     }
- 
-    /*std::vector<char> result(m_shape_lenght);
-    is.read(&result[0], m_shape_lenght);
-
-    m_type_tag = static_cast<type_tag_enum_t>(result[0]);
-    std::vector<char> result_swap = result;
-    std::vector<char>::iterator p = result_swap.begin();
-
-    int temp_name_index = 0;
-    int temp_type_flag = 0;
-    char tmp;
-
-    //Read name index
-    tmp = p[1];
-    p[1] = p[4];
-    p[4] = tmp;
-
-    tmp = p[2];
-    p[2] = p[3];
-    p[3] = tmp;
-
-    temp_name_index |= p[4] << 24;
-    temp_name_index |= p[3] << 16;
-    temp_name_index |= p[2] << 8;
-    temp_name_index |= p[1]; 
-
-    //Read type Flag
-    tmp = p[5];
-    p[5] = p[8];
-    p[8] = tmp;
-
-    tmp = p[6];
-    p[6] = p[7];
-    p[7] = tmp;
-
-    temp_type_flag |= p[8] << 24;
-    temp_type_flag |= p[7] << 16;
-    temp_type_flag |= p[6] << 8;
-    temp_type_flag |= p[5];
-
-    m_name_index = temp_name_index;
-    m_type_flag = temp_type_flag;*/
 }
 
 void package_cp_info_t::_read() 
@@ -1087,7 +1024,7 @@ void BIRReader::deserialize(BIRPackage *BIRpackage)
                  BIRpackage->setOrgName(org_pointer2->value());
 
                  constant_pool_entry_t *name_pointer = m_constant_pool->constant_pool_entries()->at(pointer->name_index());
-                string_cp_info_t *name_pointer2 = static_cast<string_cp_info_t *> (name_pointer);
+                 string_cp_info_t *name_pointer2 = static_cast<string_cp_info_t *> (name_pointer);
                  BIRpackage->setPackageName(name_pointer2->value());
 
                  constant_pool_entry_t *version_pointer = m_constant_pool->constant_pool_entries()->at(pointer->version_index());
@@ -1119,7 +1056,7 @@ void BIRReader::deserialize(BIRPackage *BIRpackage)
 	}
     }
 
-    uint32_t m_type_definition_bodies_count = read_s4be();
+    uint32_t m_type_definition_bodies_count __attribute__((unused)) = read_s4be();
     uint32_t m_function_count = read_s4be();
 
     //Push all the functions in BIRpackage except __init, __start & __stop
