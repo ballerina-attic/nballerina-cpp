@@ -23,7 +23,8 @@ void MoveInsn::translate(LLVMModuleRef &modRef){
     }
 
     else if (getLhsOperand()->getVarDecl()->getVarKind() == LOCAL_VAR_KIND ||
-	     getLhsOperand()->getVarDecl()->getVarKind() == TEMP_VAR_KIND ) {
+	     getLhsOperand()->getVarDecl()->getVarKind() == TEMP_VAR_KIND ||
+	     getLhsOperand()->getVarDecl()->getVarKind() == RETURN_VAR_KIND) {
       lhsRef = getFunction()->getLocalVarRefUsingId(
 			getLhsOperand()->getVarDecl()->getVarName());
       LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);

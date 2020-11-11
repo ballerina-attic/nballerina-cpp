@@ -399,15 +399,15 @@ class FunctionCallInsn : public TerminatorInsn {
     bool     isVirtual;
     string   functionName;
     int      argCount;
-    vector<Param*> argsList;
+    vector<Operand*> argsList;
     Param    *restParam;
   public:
     FunctionCallInsn();
     void setIsVirtual (bool funcVirtual) { isVirtual = funcVirtual; }
     void setFunctionName (string funcName) { functionName = funcName; }
     void setArgCount(int argNumber) { argCount = argNumber; }
-    void setArgumentsList (vector<Param*> fnArgs) { argsList = fnArgs; }
-    void addArgumentToList (Param *arg) {
+    void setArgumentsList (vector<Operand*> fnArgs) { argsList = fnArgs; }
+    void addArgumentToList (Operand *arg) {
       argsList.push_back(arg);
     }
     void setRestParam (Param *rParam) { restParam = rParam; }
@@ -415,8 +415,8 @@ class FunctionCallInsn : public TerminatorInsn {
     bool getIsVirtual() { return isVirtual; }
     string getFunctionName() { return functionName; }
     int getArgCount() { return argCount; }
-    Param* getArgumentFromList (int i) { return argsList[i]; }
-    vector<Param*> getArgumentsList() { return argsList; }
+    Operand* getArgumentFromList (int i) { return argsList[i]; }
+    vector<Operand*> getArgumentsList() { return argsList; }
     FunctionCallInsn (string funcName, bool funcVirtual, int argNumber,
 			Operand *lhsOp, BIRBasicBlock *thenBB);
     Param* getRestParam () { return restParam; }
@@ -572,7 +572,7 @@ class BIRFunction: public BIRNode {
     string                 name;
     int                    flags;
     InvokableType         *type;
-    vector<Param *>        requiredParams;
+    vector<Operand *>        requiredParams;
     VarDecl               *receiver;
     Param                 *restParam;
     int                    paramCount;
@@ -597,8 +597,8 @@ class BIRFunction: public BIRNode {
     string               getName()              { return name; }
     int                  getFlags()             { return flags; }
     InvokableType *      getInvokableType()     { return type; }
-    vector<Param *>      getParams()            { return requiredParams; }
-    Param *              getParam(int i)        { return requiredParams[i]; }
+    vector<Operand *>      getParams()            { return requiredParams; }
+    Operand *              getParam(int i)        { return requiredParams[i]; }
     VarDecl *            getReceiver()          { return receiver; }
     Param *              getRestParam()         { return restParam; }
     vector<VarDecl *>    getLocalVars()         { return localVars; }
@@ -619,8 +619,8 @@ class BIRFunction: public BIRNode {
     void setName(string newName)            { name = newName; }
     void setFlags(int newFlags)             { flags = newFlags; }
     void setInvokableType(InvokableType *t) { type = t; }
-    void setParams(vector<Param *> p)       { requiredParams = p; }
-    void setParam(Param * param)            { requiredParams.push_back(param); }
+    void setParams(vector<Operand *> p)       { requiredParams = p; }
+    void setParam(Operand * param)            { requiredParams.push_back(param); }
     void setReceiver(VarDecl *var)          { receiver = var; }
     void setRestParam(Param *param)         { restParam = param; }
     void setLocalVars(vector<VarDecl *> l)  { localVars = l; }

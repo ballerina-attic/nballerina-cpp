@@ -118,6 +118,48 @@ class int_cp_info_t : public constant_pool_entry_t {
         int64_t value() const { return m_value; }
 };
 
+class boolean_cp_info_t : public constant_pool_entry_t {
+
+    public:
+        boolean_cp_info_t() { }
+        void _read();
+        ~boolean_cp_info_t();
+
+    private:
+        uint8_t m_value;
+
+    public:
+        uint8_t value() const { return m_value; }
+};
+
+class float_cp_info_t : public constant_pool_entry_t {
+
+    public:
+        float_cp_info_t() { } 
+        void _read();
+        ~float_cp_info_t();
+
+    private:
+        double m_value;
+
+    public:
+        double value() const { return m_value; }
+};
+
+class byte_cp_info_t : public constant_pool_entry_t {
+
+    public:
+        byte_cp_info_t() { }
+        void _read();
+        ~byte_cp_info_t();
+
+    private:
+        int32_t m_value;
+
+    public:
+        int32_t value() const { return m_value; }
+};
+
 
 class constant_pool_set_t {
 
