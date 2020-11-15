@@ -41,14 +41,14 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
        getLhsOperand()->getVarDecl()->getTypeDecl()) {
     int typeTag = getLhsOperand()->getVarDecl()->getTypeDecl()->getTypeTag();
     switch (typeTag) {
-      case TYPE_TAG_ENUM_TYPE_TAG_INT:
+      case TYPE_TAG_INT:
       {
         constRef = LLVMConstInt(LLVMInt32Type(), value, 0);
 	break;
       }
-      case TYPE_TAG_ENUM_TYPE_TAG_BYTE:
-      case TYPE_TAG_ENUM_TYPE_TAG_FLOAT:
-      case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN:
+      case TYPE_TAG_BYTE:
+      case TYPE_TAG_FLOAT:
+      case TYPE_TAG_BOOLEAN:
       {
         constRef = LLVMConstInt(LLVMInt8Type(), value, 0);
 	break;

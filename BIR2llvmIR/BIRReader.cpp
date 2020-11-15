@@ -8,21 +8,21 @@ using namespace std;
 std::ifstream is;
 
 // Read 1 byte from the stream
-uint8_t read_u1() {
+uint8_t readU1() {
     uint8_t value;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
     return value;
 }
 
 // Read 1 byte from the stream but do not move pointer
-uint8_t peek_read_u1() {
+uint8_t peekReadU1() {
     uint8_t value;
     value = is.peek();
     return value;
 }
 
 // Read 2 bytes from the stream
-uint16_t read_s2be ()
+uint16_t readS2be ()
 {
     uint16_t value;
     uint16_t result;
@@ -39,7 +39,7 @@ uint16_t read_s2be ()
 }
 
 // Read 4 bytes from the stream
-uint32_t read_s4be ()
+uint32_t readS4be ()
 {
     uint32_t value;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
@@ -55,7 +55,7 @@ uint32_t read_s4be ()
 }
 
 // Read 8 bytes from the stream
-uint64_t read_s8be ()
+uint64_t readS8be ()
 {
     uint64_t value;
     uint64_t result;
@@ -85,28 +85,28 @@ uint64_t read_s8be ()
 }
 
 // Search string from the constant pool based on index
-std::string get_string_cp (int32_t index, constant_pool_set_t *m_constant_pool)
+std::string getStringCp (int32_t index, ConstantPoolSet *constantPool)
 {
-    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-    string_cp_info_t *string_cp = static_cast<string_cp_info_t *> (entry_pointer);
-    return string_cp->value();
+    ConstantPoolEntry *poolEntry = constantPool->getConstantPoolEntries()->at(index);
+    StringCpInfo *stringCp = static_cast<StringCpInfo *> (poolEntry);
+    return stringCp->getValue();
 }
 
 // Search string from the constant pool based on index
-int32_t get_int_cp (int32_t index, constant_pool_set_t *m_constant_pool)
+int32_t getIntCp (int32_t index, ConstantPoolSet *constantPool)
 {
-    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-    int_cp_info_t *int_cp = static_cast<int_cp_info_t *> (entry_pointer);
-    return int_cp->value();
+    ConstantPoolEntry *poolEntry = constantPool->getConstantPoolEntries()->at(index);
+    IntCpInfo *intCp = static_cast<IntCpInfo *> (poolEntry);
+    return intCp->getValue();
 }
 
 // Search type from the constant pool based on index
-TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool, bool voidToInt)
+TypeDecl* getTypeCp(int32_t index, ConstantPoolSet *constantPool, bool voidToInt)
 {
-    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-    shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
+    ConstantPoolEntry *poolEntry = constantPool->getConstantPoolEntries()->at(index);
+    ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *> (poolEntry);
     TypeDecl *typeDecl = new TypeDecl();
-    typeDecl->setTypeDeclName(get_string_cp(shape_cp->name_index(), m_constant_pool));
+    typeDecl->setTypeDeclName(getStringCp(shapeCp->getNameIndex(), constantPool));
     if (typeDecl->getTypeDeclName() == "")
     {
       char  newName[20];
@@ -115,182 +115,182 @@ TypeDecl* get_type_cp(int32_t index, constant_pool_set_t *m_constant_pool, bool 
       sprintf(p,  "%5ld", random() % 100000);
       typeDecl->setTypeDeclName(newName);
     }
-    typeDecl->setTypeTag(shape_cp->type_tag());
-    if (shape_cp->type_tag() == TYPE_TAG_ENUM_TYPE_TAG_NIL && voidToInt)
-      typeDecl->setTypeTag(TYPE_TAG_ENUM_TYPE_TAG_INT);
-    typeDecl->setFlags(shape_cp->type_flag());
+    typeDecl->setTypeTag(shapeCp->getTypeTag());
+    if (shapeCp->getTypeTag() == TYPE_TAG_NIL && voidToInt)
+      typeDecl->setTypeTag(TYPE_TAG_INT);
+    typeDecl->setFlags(shapeCp->getTypeFlag());
     return typeDecl;
 }
 
 // Get the Type tag from the constant pool based on the index passed
-type_tag_enum_t get_type_tag(int32_t index, constant_pool_set_t *m_constant_pool)
+typeTagEnum getTypeTag(int32_t index, ConstantPoolSet *constantPool)
 {
-    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-    shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
-    return shape_cp->type_tag();
+    ConstantPoolEntry *poolEntry = constantPool->getConstantPoolEntries()->at(index);
+    ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *> (poolEntry);
+    return shapeCp->getTypeTag();
 }
 
 // Search type from the constant pool based on index
-InvokableType* getInvokableType(int32_t index, constant_pool_set_t *m_constant_pool)
+InvokableType* getInvokableType(int32_t index, ConstantPoolSet *constantPool)
 {
     InvokableType *invokableType = new InvokableType();
-    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(index);
-    shape_cp_info_t *shape_cp = static_cast<shape_cp_info_t *> (entry_pointer);
-    for (int i = 0; i < shape_cp->param_count(); i++)
+    ConstantPoolEntry *poolEntry = constantPool->getConstantPoolEntries()->at(index);
+    ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *> (poolEntry);
+    for (int i = 0; i < shapeCp->getParamCount(); i++)
     {
-	TypeDecl *typeDecl = get_type_cp(shape_cp->get_param(i), m_constant_pool, false);
+	TypeDecl *typeDecl = getTypeCp(shapeCp->getParam(i), constantPool, false);
 	invokableType->addParamType(typeDecl);
     }
-    if (shape_cp->has_rest_type())
+    if (shapeCp->getRestType())
     {
-        TypeDecl *typeDecl = get_type_cp(shape_cp->rest_type_index(), m_constant_pool, false);
+        TypeDecl *typeDecl = getTypeCp(shapeCp->getRestTypeIndex(), constantPool, false);
         invokableType->setRestType(typeDecl);
     }
-    TypeDecl *typeDecl = get_type_cp(shape_cp->return_type_index(), m_constant_pool, false);
+    TypeDecl *typeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), constantPool, false);
     invokableType->setReturnType(typeDecl);
     return invokableType;
 }
 
 // Read Global Variable and push it to BIRPackage
-void read_global_var(constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
+void readGlobalVar(ConstantPoolSet *constantPool, BIRPackage *birPackage)
 {
     VarDecl *varDecl = new VarDecl();
-    uint8_t kind = read_u1();
+    uint8_t kind = readU1();
     varDecl->setVarKind((VarKind)kind);
 
-    uint32_t varDclNameCpIndex = read_s4be();
-    varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+    uint32_t varDclNameCpIndex = readS4be();
+    varDecl->setVarName((getStringCp(varDclNameCpIndex, constantPool)));
 
-    uint32_t flags __attribute__((unused)) = read_s4be();
-    uint32_t length __attribute__((unused)) = read_s4be();
-    uint8_t hasDoc = read_u1();
+    uint32_t flags __attribute__((unused)) = readS4be();
+    uint32_t length __attribute__((unused)) = readS4be();
+    uint8_t hasDoc = readU1();
     if (hasDoc)
     {
-        uint32_t description_cp_index __attribute__((unused)) = read_s4be();
-        uint32_t return_value_description_cp_index __attribute__((unused)) = read_s4be();
-        uint32_t parameters_count __attribute__((unused)) = read_s4be();
+        uint32_t descriptionCpIndex __attribute__((unused)) = readS4be();
+        uint32_t returnValueDescriptionCpIndex __attribute__((unused)) = readS4be();
+        uint32_t parameterCount __attribute__((unused)) = readS4be();
     }
-    uint32_t typeCpIndex = read_s4be();
-    TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
+    uint32_t typeCpIndex = readS4be();
+    TypeDecl *typeDecl = getTypeCp(typeCpIndex, constantPool, false);
     varDecl->setTypeDecl(typeDecl);
-    BIRpackage->addGlobalVar(varDecl);
+    birPackage->addGlobalVar(varDecl);
 }
 
 // Read Local Variable and return VarDecl pointer
-VarDecl* read_variable (constant_pool_set_t *m_constant_pool)
+VarDecl* readVariable (ConstantPoolSet *constantPool)
 {
     VarDecl *varDecl = new VarDecl();
-    uint8_t ignoredVar = read_u1();
+    uint8_t ignoredVar = readU1();
     varDecl->setIgnore((bool)ignoredVar);
 
-    uint8_t kind = read_u1();
+    uint8_t kind = readU1();
     varDecl->setVarKind((VarKind)kind);
 
-    uint8_t scope = read_u1();
+    uint8_t scope = readU1();
     varDecl->setVarScope((VarScope)scope);
 
-    uint32_t varDclNameCpIndex = read_s4be();
-    varDecl->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+    uint32_t varDclNameCpIndex = readS4be();
+    varDecl->setVarName((getStringCp(varDclNameCpIndex, constantPool)));
 
     if (varDecl->getVarKind() == GLOBAL_VAR_KIND)
     {
-            uint32_t m_package_index __attribute__((unused)) = read_s4be();
-      uint32_t m_type_cp_index __attribute__((unused)) = read_s4be();
+            uint32_t packageIndex __attribute__((unused)) = readS4be();
+      uint32_t typeCpIndex __attribute__((unused)) = readS4be();
     }
     return varDecl;
 }
 
 // Read TYPEDESC Insn
-void read_typedesc ()
+void readTypeDescInsn ()
 {
     uint8_t ignoredVar __attribute__((unused));
-    ignoredVar = read_u1();
+    ignoredVar = readU1();
 
     uint8_t kind __attribute__((unused));
-    kind = read_u1();
+    kind = readU1();
 
     uint8_t scope __attribute__((unused));
-    scope = read_u1();
+    scope = readU1();
 
     uint32_t varDclNameCpIndex __attribute__((unused));
-    varDclNameCpIndex = read_s4be();
+    varDclNameCpIndex = readS4be();
 
     uint32_t typeCpIndex __attribute__((unused));
-    typeCpIndex = read_s4be();
+    typeCpIndex = readS4be();
 }
 
 // Read STRUCTURE Insn
-void read_structure ()
+void readStructureInsn ()
 {
     uint8_t ignoredVar __attribute__((unused));
-    ignoredVar = read_u1();
+    ignoredVar = readU1();
 
     uint8_t kind __attribute__((unused));
-    kind = read_u1();
+    kind = readU1();
 
     uint8_t scope __attribute__((unused));
-    scope = read_u1();
+    scope = readU1();
 
     uint32_t varDclNameCpIndex __attribute__((unused));
-    varDclNameCpIndex = read_s4be();
+    varDclNameCpIndex = readS4be();
 
     uint8_t ignoredVar1 __attribute__((unused));
-    ignoredVar1 = read_u1();
+    ignoredVar1 = readU1();
 
     uint8_t kind1 __attribute__((unused));
-    kind1 = read_u1();
+    kind1 = readU1();
 
     uint8_t scope1 __attribute__((unused));
-    scope1 = read_u1();
+    scope1 = readU1();
 
     uint32_t varDclNameCpIndex1 __attribute__((unused));
-    varDclNameCpIndex1 = read_s4be();
+    varDclNameCpIndex1 = readS4be();
 
     uint32_t packageIndex1 __attribute__((unused));
-    packageIndex1 = read_s4be();
+    packageIndex1 = readS4be();
 
     uint32_t typeCpIndex1 __attribute__((unused));
-    typeCpIndex1 = read_s4be();
+    typeCpIndex1 = readS4be();
 }
 
 // Read CONST_LOAD Insn
-void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_constant_pool)
+void readConstInsn (ConstantLoadInsn *constantloadInsn, ConstantPoolSet *constantPool)
 {
     Operand *lhsOperand = new Operand();
     VarDecl *varDecl = new VarDecl();
     lhsOperand->setVarDecl(varDecl);
 
-    uint32_t typeCpIndex1 = read_s4be();
-    TypeDecl *typeDecl = get_type_cp(typeCpIndex1, m_constant_pool, false);
+    uint32_t typeCpIndex1 = readS4be();
+    TypeDecl *typeDecl = getTypeCp(typeCpIndex1, constantPool, false);
     varDecl->setTypeDecl(typeDecl);
 
-    uint8_t ignoredVar = read_u1();
+    uint8_t ignoredVar = readU1();
     lhsOperand->getVarDecl()->setIgnore((bool)ignoredVar);
 
-    uint8_t kind = read_u1();
+    uint8_t kind = readU1();
     lhsOperand->getVarDecl()->setVarKind((VarKind)kind);
 
-    uint8_t scope = read_u1();
+    uint8_t scope = readU1();
     lhsOperand->getVarDecl()->setVarScope((VarScope)scope);
 
-    uint32_t varDclNameCpIndex = read_s4be();
-    lhsOperand->getVarDecl()->setVarName((get_string_cp(varDclNameCpIndex, m_constant_pool)));
+    uint32_t varDclNameCpIndex = readS4be();
+    lhsOperand->getVarDecl()->setVarName((getStringCp(varDclNameCpIndex, constantPool)));
 
     if (lhsOperand->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND)
     {
-        uint32_t packageIndex __attribute__((unused)) = read_s4be();
-        uint32_t typeCpIndex __attribute__((unused)) = read_s4be();
+        uint32_t packageIndex __attribute__((unused)) = readS4be();
+        uint32_t typeCpIndex __attribute__((unused)) = readS4be();
     }
 
-    type_tag_enum_t m_type_tag = get_type_tag(typeCpIndex1, m_constant_pool);
-    if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_INT)
+    typeTagEnum typeTag = getTypeTag(typeCpIndex1, constantPool);
+    if (typeTag == TYPE_TAG_INT)
     {
-      uint32_t valueCpIndex = read_s4be();
-      constantloadInsn->setValue(get_int_cp(valueCpIndex, m_constant_pool));
+      uint32_t valueCpIndex = readS4be();
+      constantloadInsn->setValue(getIntCp(valueCpIndex, constantPool));
     }
-    if (m_type_tag == TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN)
+    if (typeTag == TYPE_TAG_BOOLEAN)
     {
-      uint8_t valueCpIndex = read_u1();
+      uint8_t valueCpIndex = readU1();
       constantloadInsn->setValue(valueCpIndex);
     }
 
@@ -298,17 +298,17 @@ void read_const (ConstantLoadInsn *constantloadInsn, constant_pool_set_t *m_cons
 }
 
 // Read GOTO Insn
-uint32_t read_goto ()
+uint32_t readGotoInsn ()
 {
-    uint32_t targetBBNameCpIndex = read_s4be();
+    uint32_t targetBBNameCpIndex = readS4be();
     return targetBBNameCpIndex;
 }
 
 // Read Unary Operand
-UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_constant_pool)
+UnaryOpInsn* readUnaryOpInsn(UnaryOpInsn *unaryOpInsn, ConstantPoolSet *constantPool)
 {
-    VarDecl *varDecl1 = read_variable (m_constant_pool);
-    VarDecl *varDecl2 = read_variable (m_constant_pool);
+    VarDecl *varDecl1 = readVariable (constantPool);
+    VarDecl *varDecl2 = readVariable (constantPool);
 
     Operand  *rhsOp = new Operand();
     rhsOp->setVarDecl(varDecl1);
@@ -322,11 +322,11 @@ UnaryOpInsn* read_unaryOp(UnaryOpInsn *unaryOpInsn, constant_pool_set_t *m_const
 }
 
 // Read Binary Operand
-BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_constant_pool)
+BinaryOpInsn* readBinaryOpInsn(BinaryOpInsn *binaryOpInsn, ConstantPoolSet *constantPool)
 {
-    VarDecl *varDecl1 = read_variable (m_constant_pool);
-    VarDecl *varDecl2 = read_variable (m_constant_pool);
-    VarDecl *varDecl3 = read_variable (m_constant_pool);
+    VarDecl *varDecl1 = readVariable (constantPool);
+    VarDecl *varDecl2 = readVariable (constantPool);
+    VarDecl *varDecl3 = readVariable (constantPool);
 
     Operand  *rhsOp1 = new Operand();
     rhsOp1->setVarDecl(varDecl1);
@@ -344,19 +344,19 @@ BinaryOpInsn* read_binaryOp(BinaryOpInsn *binaryOpInsn, constant_pool_set_t *m_c
 }
 
 // Read BRANCH Insn
-ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_pool_set_t *m_constant_pool)
+ConditionBrInsn* readConditionalBrInsn(ConditionBrInsn *conditionBrInsn, ConstantPoolSet *constantPool)
 {
-    VarDecl *varDecl = read_variable (m_constant_pool);
+    VarDecl *varDecl = readVariable (constantPool);
     Operand  *lhsOp = new Operand();
     lhsOp->setVarDecl(varDecl);
     conditionBrInsn->setLhsOperand(lhsOp);
-    uint32_t trueBbIdNameCpIndex = read_s4be();
-    uint32_t falseBbIdNameCpIndex = read_s4be();
+    uint32_t trueBbIdNameCpIndex = readS4be();
+    uint32_t falseBbIdNameCpIndex = readS4be();
 
-    BIRBasicBlock *trueDummybasicBlock = new BIRBasicBlock(get_string_cp(trueBbIdNameCpIndex, m_constant_pool));
+    BIRBasicBlock *trueDummybasicBlock = new BIRBasicBlock(getStringCp(trueBbIdNameCpIndex, constantPool));
     conditionBrInsn->setIfThenBB(trueDummybasicBlock);
 
-    BIRBasicBlock *falseDummybasicBlock = new BIRBasicBlock(get_string_cp(falseBbIdNameCpIndex, m_constant_pool));
+    BIRBasicBlock *falseDummybasicBlock = new BIRBasicBlock(getStringCp(falseBbIdNameCpIndex, constantPool));
     conditionBrInsn->setElseBB(falseDummybasicBlock);
 
     conditionBrInsn->setPatchStatus(true);
@@ -365,10 +365,10 @@ ConditionBrInsn* read_conditionalBr(ConditionBrInsn *conditionBrInsn, constant_p
 }
 
 // Read MOV Insn
-MoveInsn* read_move(MoveInsn *moveInsn, constant_pool_set_t *m_constant_pool)
+MoveInsn* readMoveInsn(MoveInsn *moveInsn, ConstantPoolSet *constantPool)
 {
-    VarDecl *varDecl1 = read_variable (m_constant_pool);
-    VarDecl *varDecl2 = read_variable (m_constant_pool);
+    VarDecl *varDecl1 = readVariable (constantPool);
+    VarDecl *varDecl2 = readVariable (constantPool);
 
     Operand  *rhsOp = new Operand();
     rhsOp->setVarDecl(varDecl1);
@@ -382,38 +382,38 @@ MoveInsn* read_move(MoveInsn *moveInsn, constant_pool_set_t *m_constant_pool)
 }
 
 // Read Function Call
-void readFunctionCall(FunctionCallInsn *functionCallInsn, constant_pool_set_t *m_constant_pool)
+void readFunctionCall(FunctionCallInsn *functionCallInsn, ConstantPoolSet *constantPool)
 {
-    uint8_t isVirtual = read_u1();
+    uint8_t isVirtual = readU1();
     functionCallInsn->setIsVirtual((bool)isVirtual);
 
-    uint32_t packageIndex __attribute__((unused)) = read_s4be();
-    uint32_t callNameCpIndex = read_s4be();
-    functionCallInsn->setFunctionName(get_string_cp(callNameCpIndex, m_constant_pool));
+    uint32_t packageIndex __attribute__((unused)) = readS4be();
+    uint32_t callNameCpIndex = readS4be();
+    functionCallInsn->setFunctionName(getStringCp(callNameCpIndex, constantPool));
 
-    uint32_t argumentsCount = read_s4be();
+    uint32_t argumentsCount = readS4be();
     functionCallInsn->setArgCount(argumentsCount);
     for (unsigned int i = 0; i < argumentsCount; i++) {
-	VarDecl *varDecl = read_variable(m_constant_pool);
+	VarDecl *varDecl = readVariable(constantPool);
 	Operand *param = new Operand(varDecl);
 	functionCallInsn->addArgumentToList(param);
     }
-    uint8_t hasLhsOperand = read_u1();
+    uint8_t hasLhsOperand = readU1();
     if (hasLhsOperand) {
-        VarDecl *varDecl = read_variable(m_constant_pool);
+        VarDecl *varDecl = readVariable(constantPool);
 	Operand *operand = new Operand();
 	operand->setVarDecl(varDecl);
 	functionCallInsn->setLhsOperand(operand);
     }
-    uint32_t thenBbIdNameCpIndex = read_s4be();
-    BIRBasicBlock *dummybasicBlock = new BIRBasicBlock(get_string_cp(thenBbIdNameCpIndex, m_constant_pool));
+    uint32_t thenBbIdNameCpIndex = readS4be();
+    BIRBasicBlock *dummybasicBlock = new BIRBasicBlock(getStringCp(thenBbIdNameCpIndex, constantPool));
     functionCallInsn->setNextBB(dummybasicBlock);
     functionCallInsn->setPatchStatus(true);
 }
 
 
 // Search basic block based on the basic block ID
-BIRBasicBlock* search_bb_by_name(vector<BIRBasicBlock *>   basicBlocks, std::string name)
+BIRBasicBlock* searchBb(vector<BIRBasicBlock *>   basicBlocks, std::string name)
 {
     std::vector<BIRBasicBlock *>::iterator itr;
     for (itr = basicBlocks.begin(); itr != basicBlocks.end(); itr++)
@@ -427,50 +427,50 @@ BIRBasicBlock* search_bb_by_name(vector<BIRBasicBlock *>   basicBlocks, std::str
 }
 
 // Read NonTerminatorInsn from the BIR
-NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock, NonTerminatorInsn *nonTerminatorInsn, constant_pool_set_t *m_constant_pool)
+NonTerminatorInsn* readInsn (BIRFunction *birFunction, BIRBasicBlock *basicBlock, NonTerminatorInsn *nonTerminatorInsn, ConstantPoolSet *constantPool)
 {
-    uint32_t sLine = read_s4be();
-    uint32_t eLine = read_s4be();
-    uint32_t sCol = read_s4be();
-    uint32_t eCol = read_s4be();
-    uint32_t sourceFileCpIndex = read_s4be();
+    uint32_t sLine = readS4be();
+    uint32_t eLine = readS4be();
+    uint32_t sCol = readS4be();
+    uint32_t eCol = readS4be();
+    uint32_t sourceFileCpIndex = readS4be();
 
-    Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+    Location *location = new Location(getStringCp(sourceFileCpIndex, constantPool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
     nonTerminatorInsn->setLocation(location);
 
-    uint8_t insnkind = read_u1();
-    switch ((InstructionKind)insnkind) {
+    uint8_t insnKind = readU1();
+    switch ((InstructionKind)insnKind) {
       case INSTRUCTION_KIND_NEW_TYPEDESC: {
-          read_typedesc();
+          readTypeDescInsn();
           break;
       }
       case INSTRUCTION_KIND_NEW_STRUCTURE: {
-          read_structure();
+          readStructureInsn();
           break;
       }
       case INSTRUCTION_KIND_CONST_LOAD: {
           ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn();
-          constantloadInsn->setFunction(BIRfunction);
-          constantloadInsn->setInstKind((InstructionKind)insnkind);
+          constantloadInsn->setFunction(birFunction);
+          constantloadInsn->setInstKind((InstructionKind)insnKind);
 
-          read_const(constantloadInsn, m_constant_pool);
+          readConstInsn(constantloadInsn, constantPool);
           nonTerminatorInsn = constantloadInsn;
           break;
       }
       case INSTRUCTION_KIND_GOTO: {
 	  GoToInsn *gotoInsn = new GoToInsn();
-          uint32_t nameid = read_goto();
-          BIRBasicBlock *dummybasicBlock = new BIRBasicBlock(get_string_cp(nameid, m_constant_pool));
+          uint32_t nameId = readGotoInsn();
+          BIRBasicBlock *dummybasicBlock = new BIRBasicBlock(getStringCp(nameId, constantPool));
           gotoInsn->setNextBB(dummybasicBlock);
           gotoInsn->setPatchStatus(true);
-          gotoInsn->setInstKind((InstructionKind)insnkind);
+          gotoInsn->setInstKind((InstructionKind)insnKind);
           basicBlock->setTerminatorInsn(gotoInsn);
           nonTerminatorInsn = NULL;
           break;
       }
       case INSTRUCTION_KIND_RETURN: {
 	  ReturnInsn *returnInsn = new ReturnInsn();
-          returnInsn->setInstKind((InstructionKind)insnkind);
+          returnInsn->setInstKind((InstructionKind)insnKind);
           basicBlock->setTerminatorInsn(returnInsn);
           nonTerminatorInsn = NULL;
           break;
@@ -488,38 +488,38 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
       case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
       case INSTRUCTION_KIND_BINARY_MOD: {
           BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
-          binaryOpInsn->setInstKind((InstructionKind)insnkind);
-          binaryOpInsn = read_binaryOp(binaryOpInsn, m_constant_pool);
+          binaryOpInsn->setInstKind((InstructionKind)insnKind);
+          binaryOpInsn = readBinaryOpInsn(binaryOpInsn, constantPool);
           nonTerminatorInsn = binaryOpInsn;
           break;
       }
       case INSTRUCTION_KIND_UNARY_NEG:
       case INSTRUCTION_KIND_UNARY_NOT: {
           UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
-          unaryOpInsn->setInstKind((InstructionKind)insnkind);
-          unaryOpInsn = read_unaryOp(unaryOpInsn, m_constant_pool);
+          unaryOpInsn->setInstKind((InstructionKind)insnKind);
+          unaryOpInsn = readUnaryOpInsn(unaryOpInsn, constantPool);
           nonTerminatorInsn = unaryOpInsn;
           break;
       }
       case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
           ConditionBrInsn *conditionBrInsn = new ConditionBrInsn();
-          conditionBrInsn->setInstKind((InstructionKind)insnkind);
-          conditionBrInsn = read_conditionalBr(conditionBrInsn, m_constant_pool);
+          conditionBrInsn->setInstKind((InstructionKind)insnKind);
+          conditionBrInsn = readConditionalBrInsn(conditionBrInsn, constantPool);
           basicBlock->setTerminatorInsn(conditionBrInsn);
           nonTerminatorInsn = NULL;
           break;
       }
       case INSTRUCTION_KIND_MOVE: {
           MoveInsn *moveInsn = new MoveInsn();
-          moveInsn->setInstKind((InstructionKind)insnkind);
-          moveInsn = read_move(moveInsn, m_constant_pool);
+          moveInsn->setInstKind((InstructionKind)insnKind);
+          moveInsn = readMoveInsn(moveInsn, constantPool);
           nonTerminatorInsn = (moveInsn);
           break;
       }
       case INSTRUCTION_KIND_CALL: {
 	  FunctionCallInsn *functionCallInsn = new FunctionCallInsn();
-          functionCallInsn->setInstKind((InstructionKind)insnkind);
-	  readFunctionCall(functionCallInsn, m_constant_pool);
+          functionCallInsn->setInstKind((InstructionKind)insnKind);
+	  readFunctionCall(functionCallInsn, constantPool);
           basicBlock->setTerminatorInsn(functionCallInsn);
           nonTerminatorInsn = NULL;
           break;
@@ -531,18 +531,18 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
 }
 
 // Read Basic Block from the BIR
-BIRBasicBlock* readBasicBlock (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock, constant_pool_set_t *m_constant_pool)
+BIRBasicBlock* readBasicBlock (BIRFunction *birFunction, BIRBasicBlock *basicBlock, ConstantPoolSet *constantPool)
 {
-    uint32_t nameCpIndex = read_s4be();
-    basicBlock->setId(get_string_cp(nameCpIndex, m_constant_pool));
-    basicBlock->setBIRFunction(BIRfunction);
+    uint32_t nameCpIndex = readS4be();
+    basicBlock->setId(getStringCp(nameCpIndex, constantPool));
+    basicBlock->setBIRFunction(birFunction);
 
-    uint32_t insnCount = read_s4be();
+    uint32_t insnCount = readS4be();
     for (unsigned int i = 0; i < insnCount; i++)
     {
       NonTerminatorInsn *nonTerminatorInsn = new NonTerminatorInsn();
-      nonTerminatorInsn->setFunction(BIRfunction);
-      nonTerminatorInsn = readInsn(BIRfunction, basicBlock, nonTerminatorInsn, m_constant_pool);
+      nonTerminatorInsn->setFunction(birFunction);
+      nonTerminatorInsn = readInsn(birFunction, basicBlock, nonTerminatorInsn, constantPool);
       if (nonTerminatorInsn)
         basicBlock->addNonTermInsn(nonTerminatorInsn);
     }
@@ -562,8 +562,8 @@ void patchInsn(vector<BIRBasicBlock *>   basicBlocks)
             case INSTRUCTION_KIND_CONDITIONAL_BRANCH :
             {
                 ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *> (terminator));
-                BIRBasicBlock *trueBB = search_bb_by_name(basicBlocks, Terminator->getIfThenBB()->getId());
-                BIRBasicBlock *falseBB = search_bb_by_name(basicBlocks, Terminator->getElseBB()->getId());
+                BIRBasicBlock *trueBB = searchBb(basicBlocks, Terminator->getIfThenBB()->getId());
+                BIRBasicBlock *falseBB = searchBb(basicBlocks, Terminator->getElseBB()->getId());
                 BIRBasicBlock *danglingTrueBB = Terminator->getIfThenBB();
                 BIRBasicBlock *danglingFalseBB = Terminator->getElseBB();
                 delete danglingTrueBB;
@@ -575,7 +575,7 @@ void patchInsn(vector<BIRBasicBlock *>   basicBlocks)
             }
             case INSTRUCTION_KIND_GOTO :
             {
-                BIRBasicBlock *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
+                BIRBasicBlock *destBB = searchBb(basicBlocks, terminator->getNextBB()->getId());
                 BIRBasicBlock *danglingBB = terminator->getNextBB();
                 delete danglingBB;
                 terminator->setNextBB(destBB);
@@ -584,7 +584,7 @@ void patchInsn(vector<BIRBasicBlock *>   basicBlocks)
             }
             case INSTRUCTION_KIND_CALL :
             {
-                BIRBasicBlock *destBB = search_bb_by_name(basicBlocks, terminator->getNextBB()->getId());
+                BIRBasicBlock *destBB = searchBb(basicBlocks, terminator->getNextBB()->getId());
                 BIRBasicBlock *danglingBB = terminator->getNextBB();
                 delete danglingBB;
                 terminator->setNextBB(destBB);
@@ -599,342 +599,342 @@ void patchInsn(vector<BIRBasicBlock *>   basicBlocks)
 }
 
 // Reads BIR function 
-BIRFunction* read_function (constant_pool_set_t *m_constant_pool, BIRPackage *BIRpackage)
+BIRFunction* readFunction (ConstantPoolSet *constantPool, BIRPackage *birPackage)
 {
-    BIRFunction *BIRfunction = new BIRFunction();
-    uint32_t sLine = read_s4be();
-    uint32_t eLine = read_s4be();
-    uint32_t sCol = read_s4be();
-    uint32_t eCol = read_s4be();
+    BIRFunction *birFunction = new BIRFunction();
+    uint32_t sLine = readS4be();
+    uint32_t eLine = readS4be();
+    uint32_t sCol = readS4be();
+    uint32_t eCol = readS4be();
 
-    uint32_t sourceFileCpIndex = read_s4be();
-    BIRpackage->setSrcFileName(get_string_cp(sourceFileCpIndex, m_constant_pool));
+    uint32_t sourceFileCpIndex = readS4be();
+    birPackage->setSrcFileName(getStringCp(sourceFileCpIndex, constantPool));
 
-    Location *location = new Location(get_string_cp(sourceFileCpIndex, m_constant_pool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
-    BIRfunction->setLocation(location);
+    Location *location = new Location(getStringCp(sourceFileCpIndex, constantPool), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
+    birFunction->setLocation(location);
 
-    uint32_t nameCpIndex = read_s4be();
-    BIRfunction->setName(get_string_cp(nameCpIndex, m_constant_pool));
+    uint32_t nameCpIndex = readS4be();
+    birFunction->setName(getStringCp(nameCpIndex, constantPool));
     std::string initFuncName = "..<init>";
     std::string startFuncName = "..<start>";
     std::string stopFuncName = "..<stop>";
-    if (!(initFuncName.compare (BIRfunction->getName()) == 0 || startFuncName.compare (BIRfunction->getName()) == 0 || stopFuncName.compare (BIRfunction->getName()) == 0))
-        BIRpackage->addFunctionLookUpEntry(BIRfunction->getName(), BIRfunction);
+    if (!(initFuncName.compare (birFunction->getName()) == 0 || startFuncName.compare (birFunction->getName()) == 0 || stopFuncName.compare (birFunction->getName()) == 0))
+        birPackage->addFunctionLookUpEntry(birFunction->getName(), birFunction);
 
-    uint32_t workdernameCpIndex = read_s4be();
-    BIRfunction->setWorkerName(get_string_cp(workdernameCpIndex, m_constant_pool));
+    uint32_t workdernameCpIndex = readS4be();
+    birFunction->setWorkerName(getStringCp(workdernameCpIndex, constantPool));
 
-    uint32_t flags = read_s4be();
-    BIRfunction->setFlags(flags);
+    uint32_t flags = readS4be();
+    birFunction->setFlags(flags);
 
-    uint32_t typeCpIndex = read_s4be();
-    BIRfunction->setInvokableType(getInvokableType(typeCpIndex, m_constant_pool));
+    uint32_t typeCpIndex = readS4be();
+    birFunction->setInvokableType(getInvokableType(typeCpIndex, constantPool));
 
-    uint64_t annotation_length __attribute__((unused));
-    annotation_length = read_s8be();
+    uint64_t annotationLength __attribute__((unused));
+    annotationLength = readS8be();
 
     uint32_t annotationAttachments __attribute__((unused));
-    annotationAttachments = read_s4be();
+    annotationAttachments = readS4be();
 
-    uint32_t requiredParamCount = read_s4be();
-    BIRfunction->setNumParams(requiredParamCount);
+    uint32_t requiredParamCount = readS4be();
+    birFunction->setNumParams(requiredParamCount);
     //Set function param here and then fill remaining values from the default Params
     for (unsigned int i = 0; i < requiredParamCount; i++)
     {
-        uint32_t paramNameCpIndex = read_s4be();
+        uint32_t paramNameCpIndex = readS4be();
 	VarDecl *varDecl = new VarDecl();
-	varDecl->setVarName(get_string_cp(paramNameCpIndex, m_constant_pool));
+	varDecl->setVarName(getStringCp(paramNameCpIndex, constantPool));
 	Operand *param = new Operand(varDecl);
-        uint32_t paramFlags __attribute__((unused)) = read_s4be();
-	BIRfunction->setParam(param);
+        uint32_t paramFlags __attribute__((unused)) = readS4be();
+	birFunction->setParam(param);
     }
 
-    uint8_t hasRestParam = read_u1();
+    uint8_t hasRestParam = readU1();
     if (!((bool)hasRestParam))
-      BIRfunction->setRestParam(NULL);
+      birFunction->setRestParam(NULL);
 
-    uint8_t hasReceiver = read_u1();
+    uint8_t hasReceiver = readU1();
     if (!((bool)hasReceiver))
-      BIRfunction->setReceiver(NULL);
+      birFunction->setReceiver(NULL);
 
-    uint64_t taintTableLength = read_s8be();
+    uint64_t taintTableLength = readS8be();
 
     std::vector<char> result(taintTableLength);
     is.read(&result[0], taintTableLength);
 
     uint32_t docLength __attribute__((unused));
-    docLength = read_s4be();
+    docLength = readS4be();
 
     std::vector<char> result1(docLength);
     is.read(&result1[0], docLength);
 
     uint64_t functionBodyLength __attribute__((unused));
-    functionBodyLength = read_s8be();
+    functionBodyLength = readS8be();
 
     uint32_t argsCount __attribute__((unused));
-    argsCount = read_s4be();
+    argsCount = readS4be();
 
-    uint8_t m_has_return_var = read_u1();
+    uint8_t hasReturnVar = readU1();
 
-    if (m_has_return_var)
+    if (hasReturnVar)
     {
         VarDecl *varDecl = new VarDecl();
 
-        uint8_t kind = read_u1();
+        uint8_t kind = readU1();
         varDecl->setVarKind ((VarKind)kind);
 
-        uint32_t typeCpIndex = read_s4be();
-        TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
+        uint32_t typeCpIndex = readS4be();
+        TypeDecl *typeDecl = getTypeCp(typeCpIndex, constantPool, false);
         varDecl->setTypeDecl(typeDecl);
 
-        uint32_t nameCpIndex = read_s4be();
-        varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
+        uint32_t nameCpIndex = readS4be();
+        varDecl->setVarName(getStringCp(nameCpIndex, constantPool));
 
-        BIRfunction->setReturnVar(varDecl);
+        birFunction->setReturnVar(varDecl);
     }
 
-    uint32_t defaultParamValue = read_s4be();
+    uint32_t defaultParamValue = readS4be();
     for (unsigned int i = 0; i < defaultParamValue; i++)
     {
-	uint8_t kind = read_u1();
-	uint32_t typeCpIndex = read_s4be();
-	Operand *param = BIRfunction->getParam(i);
-	param->getVarDecl()->setTypeDecl(get_type_cp(typeCpIndex, m_constant_pool, false));
+	uint8_t kind = readU1();
+	uint32_t typeCpIndex = readS4be();
+	Operand *param = birFunction->getParam(i);
+	param->getVarDecl()->setTypeDecl(getTypeCp(typeCpIndex, constantPool, false));
 	param->getVarDecl()->setVarKind((VarKind)kind);
-	uint32_t nameCpIndex __attribute__((unused)) = read_s4be();
+	uint32_t nameCpIndex __attribute__((unused)) = readS4be();
 	if (kind == ARG_VAR_KIND) {
-	    uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
+	    uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
 	}
-	uint8_t hasDefaultExpr __attribute__((unused)) = read_u1();
+	uint8_t hasDefaultExpr __attribute__((unused)) = readU1();
     }
 
-    uint32_t localVarCount = read_s4be();
+    uint32_t localVarCount = readS4be();
 
     std::vector<VarDecl *> localvars;
     for (unsigned int i = 0; i < localVarCount; i++)
     {
         VarDecl *varDecl = new VarDecl();
 
-        uint8_t kind = read_u1();
+        uint8_t kind = readU1();
         varDecl->setVarKind ((VarKind)kind);
 
-        uint32_t typeCpIndex = read_s4be();
-        TypeDecl *typeDecl = get_type_cp(typeCpIndex, m_constant_pool, false);
+        uint32_t typeCpIndex = readS4be();
+        TypeDecl *typeDecl = getTypeCp(typeCpIndex, constantPool, false);
         varDecl->setTypeDecl(typeDecl);
 
-        uint32_t nameCpIndex = read_s4be();
-        varDecl->setVarName(get_string_cp(nameCpIndex, m_constant_pool));
+        uint32_t nameCpIndex = readS4be();
+        varDecl->setVarName(getStringCp(nameCpIndex, constantPool));
         localvars.push_back(varDecl);
 
         if (kind == ARG_VAR_KIND)
         {
-            uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
+            uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
 	}
         else if (kind == LOCAL_VAR_KIND)
         {
-	    uint32_t metaVarNameCpIndex __attribute__((unused)) = read_s4be();
-	    uint32_t endBbIdCpIndex __attribute__((unused)) = read_s4be();
-	    uint32_t startBbIdCpIndex __attribute__((unused)) = read_s4be();
-	    uint32_t instructionOffset __attribute__((unused)) = read_s4be();
+	    uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
+	    uint32_t endBbIdCpIndex __attribute__((unused)) = readS4be();
+	    uint32_t startBbIdCpIndex __attribute__((unused)) = readS4be();
+	    uint32_t instructionOffset __attribute__((unused)) = readS4be();
         }
     }
-    BIRfunction->setLocalVars(localvars);
+    birFunction->setLocalVars(localvars);
     for (unsigned int i = 0; i < defaultParamValue; i++)
     {
-      uint32_t basicBlocksCount __attribute__((unused)) = read_s4be();
+      uint32_t basicBlocksCount __attribute__((unused)) = readS4be();
     }
 
-    uint32_t BBCount = read_s4be();
+    uint32_t BBCount = readS4be();
     for (unsigned int i = 0; i < BBCount; i++)
     {
       BIRBasicBlock *basicBlock = new BIRBasicBlock();
-      basicBlock = readBasicBlock(BIRfunction, basicBlock, m_constant_pool);
-      BIRfunction->addBIRBasicBlock(basicBlock);
+      basicBlock = readBasicBlock(birFunction, basicBlock, constantPool);
+      birFunction->addBIRBasicBlock(basicBlock);
     }
 
     //Patching the insn
-    vector<BIRBasicBlock *>   basicBlocks = BIRfunction->getBasicBlocks();
+    vector<BIRBasicBlock *>   basicBlocks = birFunction->getBasicBlocks();
     patchInsn(basicBlocks);
 
     //Create links between Basic Block
     for (unsigned int i = 0; i < BBCount - 1; i++)
     {
-      BIRBasicBlock *basicBlock = BIRfunction->getBasicBlock(i);
-      basicBlock->setNextBB(BIRfunction->getBasicBlock(i + 1));
+      BIRBasicBlock *basicBlock = birFunction->getBasicBlock(i);
+      basicBlock->setNextBB(birFunction->getBasicBlock(i + 1));
     }
 
     uint32_t errorEntriesCount __attribute__((unused));
-    errorEntriesCount = read_s4be();
+    errorEntriesCount = readS4be();
 
     uint32_t channelsLength __attribute__((unused));
-    channelsLength = read_s4be();
+    channelsLength = readS4be();
 
-    return BIRfunction;
+    return birFunction;
 }
 
-void string_cp_info_t::_read() 
+void StringCpInfo::read() 
 {
-    m_str_len = read_s4be();
-    std::vector<char> result(m_str_len);
-    is.read(&result[0], m_str_len);
-    m_value = std::string(result.begin(), result.end());
+    stringLength = readS4be();
+    std::vector<char> result(stringLength);
+    is.read(&result[0], stringLength);
+    value = std::string(result.begin(), result.end());
 }
 
-void shape_cp_info_t::_read() 
+void ShapeCpInfo::read() 
 {
-    m_shape_length = read_s4be();
-    m_type_tag = static_cast<type_tag_enum_t>(read_u1());
-    m_name_index = read_s4be();
-    m_type_flag = read_s4be();
-    m_type_special_flag = read_s4be();
+    shapeLength = readS4be();
+    typeTag = static_cast<typeTagEnum>(readU1());
+    nameIndex = readS4be();
+    typeFlag = readS4be();
+    typeSpecialFlag = readS4be();
 
-    uint32_t m_shape_length_remain = m_shape_length - 13;
+    uint32_t shapeLengthTypeInfo = shapeLength - 13;
 
-    switch (m_type_tag) {
-	case TYPE_TAG_ENUM_TYPE_TAG_INVOKABLE: {
-	    m_param_count = read_s4be();
+    switch (typeTag) {
+	case TYPE_TAG_INVOKABLE: {
+	    paramCount = readS4be();
 
-	    for (int i = 0; i < m_param_count; i++) {
-		uint32_t m_param_type_cp_index = read_s4be();
-		add_param(m_param_type_cp_index);
+	    for (int i = 0; i < paramCount; i++) {
+		uint32_t paramTypeCpIndex = readS4be();
+		addParam(paramTypeCpIndex);
 	    }
-	    m_has_rest_type = read_u1();
-	    if (m_has_rest_type) {
-		m_rest_type_index = read_s4be();
+	    hasRestType = readU1();
+	    if (hasRestType) {
+		restTypeIndex = readS4be();
 	    }
-	    m_return_type_index = read_s4be();
+	    returnTypeIndex = readS4be();
 	    break;
 	}
-        case TYPE_TAG_ENUM_TYPE_TAG_INT :
-        case TYPE_TAG_ENUM_TYPE_TAG_BYTE :
-        case TYPE_TAG_ENUM_TYPE_TAG_FLOAT :
-        case TYPE_TAG_ENUM_TYPE_TAG_DECIMAL :
-        case TYPE_TAG_ENUM_TYPE_TAG_STRING :
-        case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN :
-        case TYPE_TAG_ENUM_TYPE_TAG_JSON :
-        case TYPE_TAG_ENUM_TYPE_TAG_XML :
-        case TYPE_TAG_ENUM_TYPE_TAG_TABLE :
-        case TYPE_TAG_ENUM_TYPE_TAG_NIL :
-        case TYPE_TAG_ENUM_TYPE_TAG_ANYDATA :
-        case TYPE_TAG_ENUM_TYPE_TAG_RECORD :
-        case TYPE_TAG_ENUM_TYPE_TAG_TYPEDESC :
-        case TYPE_TAG_ENUM_TYPE_TAG_STREAM :
-        case TYPE_TAG_ENUM_TYPE_TAG_MAP :
-        case TYPE_TAG_ENUM_TYPE_TAG_ANY :
-        case TYPE_TAG_ENUM_TYPE_TAG_ENDPOINT :
-        case TYPE_TAG_ENUM_TYPE_TAG_ARRAY :
-        case TYPE_TAG_ENUM_TYPE_TAG_UNION :
-        case TYPE_TAG_ENUM_TYPE_TAG_INTERSECTION :
-        case TYPE_TAG_ENUM_TYPE_TAG_PACKAGE :
-        case TYPE_TAG_ENUM_TYPE_TAG_NONE :
-        case TYPE_TAG_ENUM_TYPE_TAG_VOID :
-        case TYPE_TAG_ENUM_TYPE_TAG_XMLNS :
-        case TYPE_TAG_ENUM_TYPE_TAG_ANNOTATION :
-        case TYPE_TAG_ENUM_TYPE_TAG_SEMANTIC_ERROR :
-        case TYPE_TAG_ENUM_TYPE_TAG_ERROR :
-        case TYPE_TAG_ENUM_TYPE_TAG_ITERATOR :
-        case TYPE_TAG_ENUM_TYPE_TAG_TUPLE :
-        case TYPE_TAG_ENUM_TYPE_TAG_FUTURE :
-        case TYPE_TAG_ENUM_TYPE_TAG_FINITE :
-        case TYPE_TAG_ENUM_TYPE_TAG_OBJECT :
-        case TYPE_TAG_ENUM_TYPE_TAG_SERVICE :
-        case TYPE_TAG_ENUM_TYPE_TAG_BYTE_ARRAY :
-        case TYPE_TAG_ENUM_TYPE_TAG_FUNCTION_POINTER :
-        case TYPE_TAG_ENUM_TYPE_TAG_HANDLE :
-        case TYPE_TAG_ENUM_TYPE_TAG_READONLY :
-        case TYPE_TAG_ENUM_TYPE_TAG_SIGNED32_INT :
-        case TYPE_TAG_ENUM_TYPE_TAG_SIGNED16_INT :
-        case TYPE_TAG_ENUM_TYPE_TAG_SIGNED8_INT :
-        case TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED32_INT :
-        case TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED16_INT :
-        case TYPE_TAG_ENUM_TYPE_TAG_UNSIGNED8_INT :
-        case TYPE_TAG_ENUM_TYPE_TAG_CHAR_STRING :
-        case TYPE_TAG_ENUM_TYPE_TAG_XML_ELEMENT :
-        case TYPE_TAG_ENUM_TYPE_TAG_XML_PI :
-        case TYPE_TAG_ENUM_TYPE_TAG_XML_COMMENT :
-        case TYPE_TAG_ENUM_TYPE_TAG_XML_TEXT :
-        case TYPE_TAG_ENUM_TYPE_TAG_NEVER :
-        case TYPE_TAG_ENUM_TYPE_TAG_NULL_SET :
-        case TYPE_TAG_ENUM_TYPE_TAG_PARAMETERIZED_TYPE : {
-		std::vector<char> result(m_shape_length_remain);
-		is.read(&result[0], m_shape_length_remain);
+        case TYPE_TAG_INT :
+        case TYPE_TAG_BYTE :
+        case TYPE_TAG_FLOAT :
+        case TYPE_TAG_DECIMAL :
+        case TYPE_TAG_STRING :
+        case TYPE_TAG_BOOLEAN :
+        case TYPE_TAG_JSON :
+        case TYPE_TAG_XML :
+        case TYPE_TAG_TABLE :
+        case TYPE_TAG_NIL :
+        case TYPE_TAG_ANYDATA :
+        case TYPE_TAG_RECORD :
+        case TYPE_TAG_TYPEDESC :
+        case TYPE_TAG_STREAM :
+        case TYPE_TAG_MAP :
+        case TYPE_TAG_ANY :
+        case TYPE_TAG_ENDPOINT :
+        case TYPE_TAG_ARRAY :
+        case TYPE_TAG_UNION :
+        case TYPE_TAG_INTERSECTION :
+        case TYPE_TAG_PACKAGE :
+        case TYPE_TAG_NONE :
+        case TYPE_TAG_VOID :
+        case TYPE_TAG_XMLNS :
+        case TYPE_TAG_ANNOTATION :
+        case TYPE_TAG_SEMANTIC_ERROR :
+        case TYPE_TAG_ERROR :
+        case TYPE_TAG_ITERATOR :
+        case TYPE_TAG_TUPLE :
+        case TYPE_TAG_FUTURE :
+        case TYPE_TAG_FINITE :
+        case TYPE_TAG_OBJECT :
+        case TYPE_TAG_SERVICE :
+        case TYPE_TAG_BYTE_ARRAY :
+        case TYPE_TAG_FUNCTION_POINTER :
+        case TYPE_TAG_HANDLE :
+        case TYPE_TAG_READONLY :
+        case TYPE_TAG_SIGNED32_INT :
+        case TYPE_TAG_SIGNED16_INT :
+        case TYPE_TAG_SIGNED8_INT :
+        case TYPE_TAG_UNSIGNED32_INT :
+        case TYPE_TAG_UNSIGNED16_INT :
+        case TYPE_TAG_UNSIGNED8_INT :
+        case TYPE_TAG_CHAR_STRING :
+        case TYPE_TAG_XML_ELEMENT :
+        case TYPE_TAG_XML_PI :
+        case TYPE_TAG_XML_COMMENT :
+        case TYPE_TAG_XML_TEXT :
+        case TYPE_TAG_NEVER :
+        case TYPE_TAG_NULL_SET :
+        case TYPE_TAG_PARAMETERIZED_TYPE : {
+		std::vector<char> result(shapeLengthTypeInfo);
+		is.read(&result[0], shapeLengthTypeInfo);
 		break;
         }
 	default:
 	    fprintf(stderr, "%s:%d Invalid Type Tag in shape.\n", __FILE__, __LINE__);
-	    fprintf(stderr, "%d is the Type Tag.\n", (type_tag_enum_t)m_type_tag);
+	    fprintf(stderr, "%d is the Type Tag.\n", (typeTagEnum)typeTag);
 	    break;
     }
 }
 
-void package_cp_info_t::_read() 
+void PackageCpInfo::read() 
 {
-    m_org_index = read_s4be();
-    m_name_index = read_s4be();
-    m_version_index = read_s4be();
+    orgIndex = readS4be();
+    nameIndex = readS4be();
+    versionIndex = readS4be();
 }
 
-void int_cp_info_t::_read() {
-    m_value = read_s8be();
+void IntCpInfo::read() {
+    value = readS8be();
 }
 
-void boolean_cp_info_t::_read() {
-    m_value = read_u1();
+void BooleanCpInfo::read() {
+    value = readU1();
 }
 
-void float_cp_info_t::_read() { 
-    m_value = read_s8be();
+void FloatCpInfo::read() { 
+    value = readS8be();
 }
 
-void byte_cp_info_t::_read() {
-    m_value = read_u1();
+void ByteCpInfo::read() {
+    value = readU1();
 }
 
-void constant_pool_entry_t::_read() 
+void ConstantPoolEntry::read() 
 {
-    m_tag = static_cast<constant_pool_entry_t::tag_enum_t>(read_u1());
-    n_cp_info = true;
-    switch (tag()) {
+    tag = static_cast<ConstantPoolEntry::tagEnum>(readU1());
+    cpInfo = true;
+    switch (getTag()) {
         case TAG_ENUM_CP_ENTRY_PACKAGE: {
-            n_cp_info = false;
-                package_cp_info_t *m_cp_info = static_cast<package_cp_info_t *> (this);
-                 m_cp_info->_read();
+            cpInfo = false;
+                PackageCpInfo *cpInfo = static_cast<PackageCpInfo *> (this);
+                 cpInfo->read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_SHAPE: {
-            n_cp_info = false;
-            shape_cp_info_t *m_cp_info = static_cast<shape_cp_info_t *> (this);
-            m_cp_info->_read();
+            cpInfo = false;
+            ShapeCpInfo *cpInfo = static_cast<ShapeCpInfo *> (this);
+            cpInfo->read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_STRING: {
-            n_cp_info = false;
-            string_cp_info_t *m_cp_info = static_cast<string_cp_info_t *> (this);
-            m_cp_info->_read();
+            cpInfo = false;
+            StringCpInfo *cpInfo = static_cast<StringCpInfo *> (this);
+            cpInfo->read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_INTEGER: {
-            n_cp_info = false;
-            int_cp_info_t *m_cp_info = static_cast<int_cp_info_t *> (this);
-            m_cp_info->_read();
+            cpInfo = false;
+            IntCpInfo *cpInfo = static_cast<IntCpInfo *> (this);
+            cpInfo->read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_BYTE: {
-            n_cp_info = false;
-            byte_cp_info_t *m_cp_info = static_cast<byte_cp_info_t *> (this);
-            m_cp_info->_read();
+            cpInfo = false;
+            ByteCpInfo *cpInfo = static_cast<ByteCpInfo *> (this);
+            cpInfo->read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_FLOAT: {
-            n_cp_info = false;
-            float_cp_info_t *m_cp_info = static_cast<float_cp_info_t *> (this);
-            m_cp_info->_read();
+            cpInfo = false;
+            FloatCpInfo *cpInfo = static_cast<FloatCpInfo *> (this);
+            cpInfo->read();
             break;
         }
         case TAG_ENUM_CP_ENTRY_BOOLEAN: {
-            n_cp_info = false;
-            boolean_cp_info_t *m_cp_info = static_cast<boolean_cp_info_t *> (this);
-            m_cp_info->_read();
+            cpInfo = false;
+            BooleanCpInfo *cpInfo = static_cast<BooleanCpInfo *> (this);
+            cpInfo->read();
             break;
         }
         default:
@@ -942,62 +942,62 @@ void constant_pool_entry_t::_read()
     }
 }
 
-void constant_pool_set_t::_read() 
+void ConstantPoolSet::read() 
 {
-    m_constant_pool_count = read_s4be();
-    int l_constant_pool_entries = constant_pool_count();
-    m_constant_pool_entries = new std::vector<constant_pool_entry_t*>();
-    m_constant_pool_entries->reserve(l_constant_pool_entries);
-    for (int i = 0; i < l_constant_pool_entries; i++) {
-        constant_pool_entry_t::tag_enum_t m_tag = static_cast<constant_pool_entry_t::tag_enum_t>(peek_read_u1());
-        switch (m_tag) {
-        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_PACKAGE: {
-            package_cp_info_t *m_cp_info = new package_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            pointer->_read();
-            m_constant_pool_entries->push_back(pointer);
+    poolCount = readS4be();
+    int constantPoolEntries = getConstantPoolCount();
+    poolEntries = new std::vector<ConstantPoolEntry*>();
+    poolEntries->reserve(constantPoolEntries);
+    for (int i = 0; i < constantPoolEntries; i++) {
+        ConstantPoolEntry::tagEnum tag = static_cast<ConstantPoolEntry::tagEnum>(peekReadU1());
+        switch (tag) {
+        case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_PACKAGE: {
+            PackageCpInfo *cpInfo = new PackageCpInfo();
+            ConstantPoolEntry *poolEntry = static_cast<ConstantPoolEntry *> (cpInfo);
+            poolEntry->read();
+            poolEntries->push_back(poolEntry);
             break;
         }
-        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_SHAPE: {
-            shape_cp_info_t *m_cp_info = new shape_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            pointer->_read();
-            m_constant_pool_entries->push_back(pointer);
+        case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE: {
+            ShapeCpInfo *cpInfo = new ShapeCpInfo();
+            ConstantPoolEntry *poolEntry = static_cast<ConstantPoolEntry *> (cpInfo);
+            poolEntry->read();
+            poolEntries->push_back(poolEntry);
             break;
         }
-        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_STRING: {
-            string_cp_info_t *m_cp_info = new string_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            pointer->_read();
-            m_constant_pool_entries->push_back(pointer);
+        case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_STRING: {
+            StringCpInfo *cpInfo = new StringCpInfo();
+            ConstantPoolEntry *poolEntry = static_cast<ConstantPoolEntry *> (cpInfo);
+            poolEntry->read();
+            poolEntries->push_back(poolEntry);
             break;
         }
-        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_INTEGER: {
-            int_cp_info_t *m_cp_info = new int_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            pointer->_read();
-            m_constant_pool_entries->push_back(pointer);
+        case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER: {
+            IntCpInfo *cpInfo = new IntCpInfo();
+            ConstantPoolEntry *poolEntry = static_cast<ConstantPoolEntry *> (cpInfo);
+            poolEntry->read();
+            poolEntries->push_back(poolEntry);
             break;
         }
-        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_FLOAT: {
-            float_cp_info_t *m_cp_info = new float_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            pointer->_read();
-            m_constant_pool_entries->push_back(pointer);
+        case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT: {
+            FloatCpInfo *cpInfo = new FloatCpInfo();
+            ConstantPoolEntry *poolEntry = static_cast<ConstantPoolEntry *> (cpInfo);
+            poolEntry->read();
+            poolEntries->push_back(poolEntry);
             break;
         }
-        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_BOOLEAN: {
-            boolean_cp_info_t *m_cp_info = new boolean_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            pointer->_read();
-            m_constant_pool_entries->push_back(pointer);
+        case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN: {
+            BooleanCpInfo *cpInfo = new BooleanCpInfo();
+            ConstantPoolEntry *poolEntry = static_cast<ConstantPoolEntry *> (cpInfo);
+            poolEntry->read();
+            poolEntries->push_back(poolEntry);
             break;
         }
-        case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_BYTE: {
-            byte_cp_info_t *m_cp_info = new byte_cp_info_t();
-            constant_pool_entry_t *pointer = static_cast<constant_pool_entry_t *> (m_cp_info);
-            pointer->_read();
-            m_constant_pool_entries->push_back(pointer);
+        case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BYTE: {
+            ByteCpInfo *cpInfo = new ByteCpInfo();
+            ConstantPoolEntry *poolEntry = static_cast<ConstantPoolEntry *> (cpInfo);
+            poolEntry->read();
+            poolEntries->push_back(poolEntry);
             break;
         }
         default:
@@ -1006,30 +1006,30 @@ void constant_pool_set_t::_read()
     }
 }
 
-void BIRReader::deserialize(BIRPackage *BIRpackage)
+void BIRReader::deserialize(BIRPackage *birPackage)
 {
-    is.open(filename, ifstream::binary);
+    is.open(fileName, ifstream::binary);
 
-    constant_pool_set_t *m_constant_pool = new constant_pool_set_t();
-    m_constant_pool->_read();
+    ConstantPoolSet *constantPool = new ConstantPoolSet();
+    constantPool->read();
 
     // Read module
-    int32_t m_id_cp_index = read_s4be();
-    constant_pool_entry_t *entry_pointer = m_constant_pool->constant_pool_entries()->at(m_id_cp_index);
-        switch (entry_pointer->tag()) {
-           case constant_pool_entry_t::tag_enum_t::TAG_ENUM_CP_ENTRY_PACKAGE: {
-                 package_cp_info_t *pointer = static_cast<package_cp_info_t *> (entry_pointer);
-                 constant_pool_entry_t *org_pointer = m_constant_pool->constant_pool_entries()->at(pointer->org_index());
-                 string_cp_info_t *org_pointer2 = static_cast<string_cp_info_t *> (org_pointer);
-                 BIRpackage->setOrgName(org_pointer2->value());
+    int32_t idCpIndex = readS4be();
+    ConstantPoolEntry *poolEntry = constantPool->getConstantPoolEntries()->at(idCpIndex);
+        switch (poolEntry->getTag()) {
+           case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_PACKAGE: {
+                 PackageCpInfo *packageEntry = static_cast<PackageCpInfo *> (poolEntry);
+                 poolEntry = constantPool->getConstantPoolEntries()->at(packageEntry->getOrgIndex());
+                 StringCpInfo *stringCp = static_cast<StringCpInfo *> (poolEntry);
+                 birPackage->setOrgName(stringCp->getValue());
 
-                 constant_pool_entry_t *name_pointer = m_constant_pool->constant_pool_entries()->at(pointer->name_index());
-                 string_cp_info_t *name_pointer2 = static_cast<string_cp_info_t *> (name_pointer);
-                 BIRpackage->setPackageName(name_pointer2->value());
+                 poolEntry = constantPool->getConstantPoolEntries()->at(packageEntry->getNameIndex());
+                 stringCp = static_cast<StringCpInfo *> (poolEntry);
+                 birPackage->setPackageName(stringCp->getValue());
 
-                 constant_pool_entry_t *version_pointer = m_constant_pool->constant_pool_entries()->at(pointer->version_index());
-                 string_cp_info_t *version_pointer2 = static_cast<string_cp_info_t *> (version_pointer);
-                 BIRpackage->setVersion(version_pointer2->value());
+                 poolEntry = constantPool->getConstantPoolEntries()->at(packageEntry->getVersionIndex());
+                 stringCp = static_cast<StringCpInfo *> (poolEntry);
+                 birPackage->setVersion(stringCp->getValue());
                  break;
            }
            default:
@@ -1039,44 +1039,44 @@ void BIRReader::deserialize(BIRPackage *BIRpackage)
 
     // The following three are read into unused variables so that the file
     // pointer advances to the data that we need next.
-    uint32_t m_import_count __attribute__((unused));
-    uint32_t m_const_count __attribute__((unused));
-    uint32_t m_type_definition_count __attribute__((unused));
+    uint32_t importCount __attribute__((unused));
+    uint32_t constCount __attribute__((unused));
+    uint32_t typeDefinitionCount __attribute__((unused));
 
-    m_import_count = read_s4be();
-    m_const_count = read_s4be();
-    m_type_definition_count = read_s4be();
+    importCount = readS4be();
+    constCount = readS4be();
+    typeDefinitionCount = readS4be();
 
-    uint32_t m_golbal_var_count = read_s4be();
-    if (m_golbal_var_count > 0)
+    uint32_t globalVarCount = readS4be();
+    if (globalVarCount > 0)
     {
-	for (unsigned int i = 0; i < m_golbal_var_count; i++)
+	for (unsigned int i = 0; i < globalVarCount; i++)
 	{
-	    read_global_var(m_constant_pool, BIRpackage);
+	    readGlobalVar(constantPool, birPackage);
 	}
     }
 
-    uint32_t m_type_definition_bodies_count __attribute__((unused)) = read_s4be();
-    uint32_t m_function_count = read_s4be();
+    uint32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
+    uint32_t functionCount = readS4be();
 
     //Push all the functions in BIRpackage except __init, __start & __stop
     std::string initFuncName = "..<init>";
     std::string startFuncName = "..<start>";
     std::string stopFuncName = "..<stop>";
-    for (unsigned int i = 0; i < m_function_count; i++) {
-        BIRFunction *curFunc = read_function (m_constant_pool, BIRpackage);
+    for (unsigned int i = 0; i < functionCount; i++) {
+        BIRFunction *curFunc = readFunction (constantPool, birPackage);
         if (!(initFuncName.compare (curFunc->getName()) == 0 || startFuncName.compare (curFunc->getName()) == 0 || stopFuncName.compare (curFunc->getName()) == 0))
-           BIRpackage->addFunction(curFunc);
+           birPackage->addFunction(curFunc);
         else
            delete curFunc;
     }
 
-    uint32_t m_annotations_size __attribute__((unused));
-    m_annotations_size = read_s4be();
+    uint32_t annotationsSize __attribute__((unused));
+    annotationsSize = readS4be();
 
     //Assign typedecl to function param of call Insn
-    for (size_t i = 0; i < BIRpackage->numFunctions(); i++) {
-        BIRFunction *curFunc = BIRpackage->getFunction(i);
+    for (size_t i = 0; i < birPackage->numFunctions(); i++) {
+        BIRFunction *curFunc = birPackage->getFunction(i);
 	for (size_t i = 0; i < curFunc->numBasicBlocks(); i++) {
 	    BIRBasicBlock *birBasicBlock = curFunc->getBasicBlock(i);
 	    for (size_t i = 0; i < birBasicBlock->numInsns(); i++) {
@@ -1088,7 +1088,7 @@ void BIRReader::deserialize(BIRPackage *BIRpackage)
 			    FunctionCallInsn *Terminator = (static_cast<FunctionCallInsn *> (terminator));
 			    for (int i = 0; i < Terminator->getArgCount(); i++)
 			    {
-				BIRFunction *patchCallFunction = BIRpackage->getFunctionLookUp(Terminator->getFunctionName());
+				BIRFunction *patchCallFunction = birPackage->getFunctionLookUp(Terminator->getFunctionName());
 				InvokableType *invokableType = patchCallFunction->getInvokableType();
 				for(size_t i = 0; i < invokableType->getParamTypeCount(); i++)
 				{
@@ -1107,5 +1107,4 @@ void BIRReader::deserialize(BIRPackage *BIRpackage)
 	    }
 	}
     }
-    fprintf(stderr, "\nDebug point\n");
 }
