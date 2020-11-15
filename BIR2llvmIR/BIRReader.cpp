@@ -454,7 +454,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
           constantloadInsn->setInstKind((InstructionKind)insnkind);
 
           read_const(constantloadInsn, m_constant_pool);
-          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (constantloadInsn));
+          nonTerminatorInsn = constantloadInsn;
           break;
       }
       case INSTRUCTION_KIND_GOTO: {
@@ -464,14 +464,14 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
           gotoInsn->setNextBB(dummybasicBlock);
           gotoInsn->setPatchStatus(true);
           gotoInsn->setInstKind((InstructionKind)insnkind);
-          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (gotoInsn));
+          basicBlock->setTerminatorInsn(gotoInsn);
           nonTerminatorInsn = NULL;
           break;
       }
       case INSTRUCTION_KIND_RETURN: {
 	  ReturnInsn *returnInsn = new ReturnInsn();
           returnInsn->setInstKind((InstructionKind)insnkind);
-          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (returnInsn));
+          basicBlock->setTerminatorInsn(returnInsn);
           nonTerminatorInsn = NULL;
           break;
       }
@@ -490,7 +490,7 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
           BinaryOpInsn *binaryOpInsn = new BinaryOpInsn();
           binaryOpInsn->setInstKind((InstructionKind)insnkind);
           binaryOpInsn = read_binaryOp(binaryOpInsn, m_constant_pool);
-          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (binaryOpInsn));
+          nonTerminatorInsn = binaryOpInsn;
           break;
       }
       case INSTRUCTION_KIND_UNARY_NEG:
@@ -498,14 +498,14 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
           UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
           unaryOpInsn->setInstKind((InstructionKind)insnkind);
           unaryOpInsn = read_unaryOp(unaryOpInsn, m_constant_pool);
-          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (unaryOpInsn));
+          nonTerminatorInsn = unaryOpInsn;
           break;
       }
       case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
           ConditionBrInsn *conditionBrInsn = new ConditionBrInsn();
           conditionBrInsn->setInstKind((InstructionKind)insnkind);
           conditionBrInsn = read_conditionalBr(conditionBrInsn, m_constant_pool);
-          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (conditionBrInsn));
+          basicBlock->setTerminatorInsn(conditionBrInsn);
           nonTerminatorInsn = NULL;
           break;
       }
@@ -513,14 +513,14 @@ NonTerminatorInsn* readInsn (BIRFunction *BIRfunction, BIRBasicBlock *basicBlock
           MoveInsn *moveInsn = new MoveInsn();
           moveInsn->setInstKind((InstructionKind)insnkind);
           moveInsn = read_move(moveInsn, m_constant_pool);
-          nonTerminatorInsn = (static_cast<NonTerminatorInsn *> (moveInsn));
+          nonTerminatorInsn = (moveInsn);
           break;
       }
       case INSTRUCTION_KIND_CALL: {
 	  FunctionCallInsn *functionCallInsn = new FunctionCallInsn();
           functionCallInsn->setInstKind((InstructionKind)insnkind);
 	  readFunctionCall(functionCallInsn, m_constant_pool);
-          basicBlock->setTerminatorInsn(static_cast<TerminatorInsn *> (functionCallInsn));
+          basicBlock->setTerminatorInsn(functionCallInsn);
           nonTerminatorInsn = NULL;
           break;
       }
