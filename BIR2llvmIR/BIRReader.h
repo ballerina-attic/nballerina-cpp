@@ -4,16 +4,16 @@
 #include <fstream>
 #include "BIR.h"
 
-class constant_pool_set_t;
-class constant_pool_entry_t;
-class package_cp_info_t;
-class shape_cp_info_t;
-class string_cp_info_t;
+class ConstantPoolSet;
+class ConstantPoolEntry;
+class PackageCpInfo;
+class ShapeCpInfo;
+class StringCpInfo;
 
-class constant_pool_entry_t {
+class ConstantPoolEntry {
 
     public:
-        enum tag_enum_t {
+        enum tagEnum {
             TAG_ENUM_CP_ENTRY_INTEGER = 1,
             TAG_ENUM_CP_ENTRY_FLOAT = 2,
             TAG_ENUM_CP_ENTRY_BOOLEAN = 3,
@@ -22,175 +22,175 @@ class constant_pool_entry_t {
             TAG_ENUM_CP_ENTRY_BYTE = 6,
             TAG_ENUM_CP_ENTRY_SHAPE = 7
         };
-        constant_pool_entry_t() {  }
-        void _read();
+        ConstantPoolEntry() {  }
+        void read();
 
     private:
-        tag_enum_t m_tag;
-        bool n_cp_info;
+        tagEnum tag;
+        bool cpInfo;
 
     public:
-        tag_enum_t tag() const { return m_tag; }
+        tagEnum getTag() const { return tag; }
 };
 
-class string_cp_info_t : public constant_pool_entry_t {
+class StringCpInfo : public ConstantPoolEntry {
 
     public:
-        string_cp_info_t() {  }
-        void _read();
-        ~string_cp_info_t();
+        StringCpInfo() {  }
+        void read();
+        ~StringCpInfo();
 
     private:
-        int32_t m_str_len;
-        std::string m_value;
+        int32_t stringLength;
+        std::string value;
 
     public:
-        int32_t str_len() const { return m_str_len; }
-        std::string value() const { return m_value; }
+        int32_t getStringLength() const { return stringLength; }
+        std::string getValue() const { return value; }
 };
 
 
-class shape_cp_info_t : public constant_pool_entry_t {
+class ShapeCpInfo : public ConstantPoolEntry {
 
     public:
-        shape_cp_info_t() {  }
-        void _read();
-        ~shape_cp_info_t();
+        ShapeCpInfo() {  }
+        void read();
+        ~ShapeCpInfo();
 
     private:
-        int32_t m_shape_length;
-        std::string m_value;
-        type_tag_enum_t m_type_tag;
-        int32_t m_name_index;
-        int32_t m_type_flag;
-        int32_t m_type_special_flag;
-        int32_t m_param_count;
-        uint8_t m_has_rest_type;
-        int32_t m_return_type_index;
-        int32_t m_rest_type_index;
+        int32_t shapeLength;
+        std::string value;
+        typeTagEnum typeTag;
+        int32_t nameIndex;
+        int32_t typeFlag;
+        int32_t typeSpecialFlag;
+        int32_t paramCount;
+        uint8_t hasRestType;
+        int32_t returnTypeIndex;
+        int32_t restTypeIndex;
 	vector<uint32_t> params;
 
     public:
-        int32_t shape_length() const { return m_shape_length; }
-        std::string value() const { return m_value; }
-        type_tag_enum_t type_tag() const { return m_type_tag; }
-        int32_t name_index() const { return m_name_index; }
-        int32_t type_flag() const { return m_type_flag; }
-        int32_t type_special_flag() const { return m_type_special_flag; }
-        int32_t param_count() const { return m_param_count; }
-        uint8_t has_rest_type() const { return m_has_rest_type; }
-        int32_t return_type_index() const { return m_return_type_index; }
-        int32_t rest_type_index() const { return m_rest_type_index; }
-	void add_param(uint32_t param) { params.push_back(param); }
-	uint32_t get_param(uint32_t index) { return params[index]; }
+        int32_t getShapeLength() const { return shapeLength; }
+        std::string getValue() const { return value; }
+        typeTagEnum getTypeTag() const { return typeTag; }
+        int32_t getNameIndex() const { return nameIndex; }
+        int32_t getTypeFlag() const { return typeFlag; }
+        int32_t getTypeSpecialFlag() const { return typeSpecialFlag; }
+        int32_t getParamCount() const { return paramCount; }
+        uint8_t getRestType() const { return hasRestType; }
+        int32_t getReturnTypeIndex() const { return returnTypeIndex; }
+        int32_t getRestTypeIndex() const { return restTypeIndex; }
+	void addParam(uint32_t param) { params.push_back(param); }
+	uint32_t getParam(uint32_t index) { return params[index]; }
 };
 
 
-class package_cp_info_t : public constant_pool_entry_t {
+class PackageCpInfo : public ConstantPoolEntry {
 
     public:
-        package_cp_info_t() { m_org_index = 0; m_name_index = 0; m_version_index = 0; }
-        void _read();
-        ~package_cp_info_t();
+        PackageCpInfo() { orgIndex = 0; nameIndex = 0; versionIndex = 0; }
+        void read();
+        ~PackageCpInfo();
 
     private:
-        int32_t m_org_index;
-        int32_t m_name_index;
-        int32_t m_version_index;
+        int32_t orgIndex;
+        int32_t nameIndex;
+        int32_t versionIndex;
 
     public:
-        int32_t org_index() const { return m_org_index; }
-        int32_t name_index() const { return m_name_index; }
-        int32_t version_index() const { return m_version_index; }
+        int32_t getOrgIndex() const { return orgIndex; }
+        int32_t getNameIndex() const { return nameIndex; }
+        int32_t getVersionIndex() const { return versionIndex; }
 };
 
-class int_cp_info_t : public constant_pool_entry_t {
+class IntCpInfo : public ConstantPoolEntry {
 
     public:
-        int_cp_info_t() { }
-        void _read();
-        ~int_cp_info_t();
+        IntCpInfo() { }
+        void read();
+        ~IntCpInfo();
 
     private:
-        int64_t m_value;
+        int64_t value;
 
     public:
-        int64_t value() const { return m_value; }
+        int64_t getValue() const { return value; }
 };
 
-class boolean_cp_info_t : public constant_pool_entry_t {
+class BooleanCpInfo : public ConstantPoolEntry {
 
     public:
-        boolean_cp_info_t() { }
-        void _read();
-        ~boolean_cp_info_t();
+        BooleanCpInfo() { }
+        void read();
+        ~BooleanCpInfo();
 
     private:
-        uint8_t m_value;
+        uint8_t value;
 
     public:
-        uint8_t value() const { return m_value; }
+        uint8_t getValue() const { return value; }
 };
 
-class float_cp_info_t : public constant_pool_entry_t {
+class FloatCpInfo : public ConstantPoolEntry {
 
     public:
-        float_cp_info_t() { } 
-        void _read();
-        ~float_cp_info_t();
+        FloatCpInfo() { } 
+        void read();
+        ~FloatCpInfo();
 
     private:
-        double m_value;
+        double value;
 
     public:
-        double value() const { return m_value; }
+        double getValue() const { return value; }
 };
 
-class byte_cp_info_t : public constant_pool_entry_t {
+class ByteCpInfo : public ConstantPoolEntry {
 
     public:
-        byte_cp_info_t() { }
-        void _read();
-        ~byte_cp_info_t();
+        ByteCpInfo() { }
+        void read();
+        ~ByteCpInfo();
 
     private:
-        int32_t m_value;
+        int32_t value;
 
     public:
-        int32_t value() const { return m_value; }
+        int32_t getValue() const { return value; }
 };
 
 
-class constant_pool_set_t {
+class ConstantPoolSet {
 
   public:
-      constant_pool_set_t() { }
-      void _read();
-      ~constant_pool_set_t();
+      ConstantPoolSet() { }
+      void read();
+      ~ConstantPoolSet();
 
   private:
-      int32_t m_constant_pool_count;
-      std::vector<constant_pool_entry_t*>* m_constant_pool_entries;
+      int32_t poolCount;
+      std::vector<ConstantPoolEntry*>* poolEntries;
 
   public:
-      int32_t constant_pool_count() const { return m_constant_pool_count; }
-      std::vector<constant_pool_entry_t*>* constant_pool_entries() const { return m_constant_pool_entries; }
+      int32_t getConstantPoolCount() const { return poolCount; }
+      std::vector<ConstantPoolEntry*>* getConstantPoolEntries() const { return poolEntries; }
 };
 
 class BIRReader {
   private:
-    std::string   filename;
+    std::string   fileName;
 
   public:
-    BIRReader(std::string FileName) { filename = FileName; }
-    void setFileName(std::string FileName) { filename = FileName; }
-    std::string name()  { return filename; }
+    BIRReader(std::string FileName) { fileName = FileName; }
+    void setFileName(std::string FileName) { fileName = FileName; }
+    std::string getFileName()  { return fileName; }
     void deserialize(BIRPackage *);
 };
 
-extern uint8_t read_u1();
-extern uint16_t read_s2be();
-extern uint32_t read_s4be();
-extern uint64_t read_s8be();
+extern uint8_t readU1();
+extern uint16_t readS2be();
+extern uint32_t readS4be();
+extern uint64_t readS8be();
 
 #endif // BIRREADER_H
