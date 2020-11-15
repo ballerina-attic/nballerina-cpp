@@ -49,7 +49,7 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
     if (getFunction() && getFunction()->getReturnVar() && 
 	  getFunction()->getReturnVar()->getTypeDecl() && 
 	  getFunction()->getReturnVar()->getTypeDecl()->getTypeTag() != 
-		TYPE_TAG_ENUM_TYPE_TAG_NIL && builder) {
+		TYPE_TAG_NIL && builder) {
       LLVMValueRef retValueRef = LLVMBuildLoad(builder, getFunction()->getLocalVarRefUsingId("%0"), "retrun_temp");
       LLVMBuildRet(builder, retValueRef);
     }

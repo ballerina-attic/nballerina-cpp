@@ -70,8 +70,8 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl)
   // if main function return type is void, but user wants to return some 
   // value using _bal_result (global variable from BIR), change main function 
   // return type from void to global variable (_bal_result) type. 
-  if (typeTag == TYPE_TAG_ENUM_TYPE_TAG_NIL ||
-      typeTag == TYPE_TAG_ENUM_TYPE_TAG_VOID) {
+  if (typeTag == TYPE_TAG_NIL ||
+      typeTag == TYPE_TAG_VOID) {
     vector<VarDecl *>  globVars = getPkgAddress()->getGlobalVars();
     for (unsigned int i = 0; i < globVars.size(); i++) {
       VarDecl* globVar = globVars[i];
@@ -83,11 +83,11 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl)
   }
   
   switch (typeTag) {
-    case TYPE_TAG_ENUM_TYPE_TAG_INT:
+    case TYPE_TAG_INT:
       return LLVMInt32Type();
-    case TYPE_TAG_ENUM_TYPE_TAG_BYTE:
-    case TYPE_TAG_ENUM_TYPE_TAG_FLOAT:
-    case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN:
+    case TYPE_TAG_BYTE:
+    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_BOOLEAN:
       return LLVMInt8Type();
     default:
       return LLVMVoidType();
@@ -159,11 +159,11 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
 {
   int typeTag = typeD->getTypeTag();
   switch (typeTag) {
-    case TYPE_TAG_ENUM_TYPE_TAG_INT:
+    case TYPE_TAG_INT:
       return LLVMInt32Type();
-    case TYPE_TAG_ENUM_TYPE_TAG_BYTE:
-    case TYPE_TAG_ENUM_TYPE_TAG_FLOAT:
-    case TYPE_TAG_ENUM_TYPE_TAG_BOOLEAN:
+    case TYPE_TAG_BYTE:
+    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_BOOLEAN:
       return LLVMInt8Type();
     default: 
       return LLVMInt32Type();
