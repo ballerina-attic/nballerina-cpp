@@ -2,26 +2,26 @@
 
 BIRFunction::BIRFunction() {}
 
-BIRFunction::BIRFunction(Location *pos, string namep, int flagsp, 
-	InvokableType *typep, string workerNamep): BIRNode(pos), 
-	name(namep), flags(flagsp), type(typep), workerName(workerNamep) {}
+BIRFunction::BIRFunction(Location *pos, string namep, int flagsp,
+                         InvokableType *typep, string workerNamep)
+    : BIRNode(pos), name(namep), flags(flagsp), type(typep),
+      workerName(workerNamep) {}
 
-BIRFunction::BIRFunction(const BIRFunction&) {}
+BIRFunction::BIRFunction(const BIRFunction &) {}
 
-LLVMValueRef BIRFunction::getValueRefBasedOnName (string lhsName) {
+LLVMValueRef BIRFunction::getValueRefBasedOnName(string lhsName) {
   map<string, LLVMValueRef>::iterator it;
   it = branchComparisonList.find(lhsName);
 
-  if(it == branchComparisonList.end()) {
+  if (it == branchComparisonList.end()) {
     return NULL;
-  }
-  else
+  } else
     return it->second;
 }
 
 LLVMValueRef BIRFunction::getLocalVarRefUsingId(string locVar) {
-  for(std::map<string, LLVMValueRef>::iterator iter = localVarRefs.begin();
-	 iter != localVarRefs.end(); iter++) {
+  for (std::map<string, LLVMValueRef>::iterator iter = localVarRefs.begin();
+       iter != localVarRefs.end(); iter++) {
     if (iter->first == locVar)
       return iter->second;
   }
@@ -35,19 +35,19 @@ LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand) {
   return LLVMBuildLoad(builder, locVRef, tempName.c_str());
 }
 
-static bool isParamter (VarDecl *locVar) {
-  switch(locVar->getVarKind()) {
-    case LOCAL_VAR_KIND:
-    case TEMP_VAR_KIND:
-    case RETURN_VAR_KIND:
-    case GLOBAL_VAR_KIND:
-    case SELF_VAR_KIND:
-    case CONSTANT_VAR_KIND:
-      return false;
-    case ARG_VAR_KIND:
-      return true;
-    default:
-      return false;
+static bool isParamter(VarDecl *locVar) {
+  switch (locVar->getVarKind()) {
+  case LOCAL_VAR_KIND:
+  case TEMP_VAR_KIND:
+  case RETURN_VAR_KIND:
+  case GLOBAL_VAR_KIND:
+  case SELF_VAR_KIND:
+  case CONSTANT_VAR_KIND:
+    return false;
+  case ARG_VAR_KIND:
+    return true;
+  default:
+    return false;
   }
 }
 
@@ -55,30 +55,29 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   int typeTag = 0;
   if (vDecl->getTypeDecl())
     typeTag = vDecl->getTypeDecl()->getTypeTag();
-  // if main function return type is void, but user wants to return some 
-  // value using _bal_result (global variable from BIR), change main function 
-  // return type from void to global variable (_bal_result) type. 
-  if (typeTag == TYPE_TAG_NIL ||
-      typeTag == TYPE_TAG_VOID) {
-    vector<VarDecl *>  globVars = getPkgAddress()->getGlobalVars();
+  // if main function return type is void, but user wants to return some
+  // value using _bal_result (global variable from BIR), change main function
+  // return type from void to global variable (_bal_result) type.
+  if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
+    vector<VarDecl *> globVars = getPkgAddress()->getGlobalVars();
     for (unsigned int i = 0; i < globVars.size(); i++) {
-      VarDecl* globVar = globVars[i];
+      VarDecl *globVar = globVars[i];
       if (globVar->getVarName() == "_bal_result") {
-	typeTag = globVar->getTypeDecl()->getTypeTag();
-	break;
+        typeTag = globVar->getTypeDecl()->getTypeTag();
+        break;
       }
     }
   }
-  
+
   switch (typeTag) {
-    case TYPE_TAG_INT:
-      return LLVMInt32Type();
-    case TYPE_TAG_BYTE:
-    case TYPE_TAG_FLOAT:
-    case TYPE_TAG_BOOLEAN:
-      return LLVMInt8Type();
-    default:
-      return LLVMVoidType();
+  case TYPE_TAG_INT:
+    return LLVMInt32Type();
+  case TYPE_TAG_BYTE:
+  case TYPE_TAG_FLOAT:
+  case TYPE_TAG_BOOLEAN:
+    return LLVMInt8Type();
+  default:
+    return LLVMVoidType();
   }
 }
 
@@ -89,7 +88,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   LLVMPositionBuilderAtEnd(builder, BbRef);
 
   // iterate through all local vars.
-  for (unsigned int i=0; i < localVars.size(); i++) {
+  for (unsigned int i = 0; i < localVars.size(); i++) {
     VarDecl *locVar = localVars[i];
     const char *varName = (locVar->getVarName()).c_str();
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
@@ -103,15 +102,15 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
       if (parmRef)
         LLVMBuildStore(builder, parmRef, localVarRef);
       paramIndex++;
-    }   
+    }
   }
-  
+
   // iterate through with each basic block in the function and create them
   // first.
-  for (unsigned int i=0; i < basicBlocks.size(); i++) {
+  for (unsigned int i = 0; i < basicBlocks.size(); i++) {
     BIRBasicBlock *bb = basicBlocks[i];
-    LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(this->getNewFunctionRef(),
-                                                   bb->getId().c_str());
+    LLVMBasicBlockRef bbRef =
+        LLVMAppendBasicBlock(this->getNewFunctionRef(), bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
     bb->setBIRFunction(this);
     bb->setLLVMBuilderRef(builder);
@@ -123,14 +122,14 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
     LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
-  for (unsigned int i=0; i < basicBlocks.size(); i++) {
+  for (unsigned int i = 0; i < basicBlocks.size(); i++) {
     BIRBasicBlock *bb = basicBlocks[i];
     LLVMPositionBuilderAtEnd(builder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
 }
 
-void BIRFunction::translate (LLVMModuleRef &modRef) {
+void BIRFunction::translate(LLVMModuleRef &modRef) {
   translateFunctionBody(modRef);
 }
 
@@ -139,14 +138,13 @@ BIRFunction::~BIRFunction() {}
 LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   int typeTag = typeD->getTypeTag();
   switch (typeTag) {
-    case TYPE_TAG_INT:
-      return LLVMInt32Type();
-    case TYPE_TAG_BYTE:
-    case TYPE_TAG_FLOAT:
-    case TYPE_TAG_BOOLEAN:
-      return LLVMInt8Type();
-    default: 
-      return LLVMInt32Type();
+  case TYPE_TAG_INT:
+    return LLVMInt32Type();
+  case TYPE_TAG_BYTE:
+  case TYPE_TAG_FLOAT:
+  case TYPE_TAG_BOOLEAN:
+    return LLVMInt8Type();
+  default:
+    return LLVMInt32Type();
   }
 }
-

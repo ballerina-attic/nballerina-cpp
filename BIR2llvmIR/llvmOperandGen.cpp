@@ -2,7 +2,7 @@
 
 Operand::Operand() {}
 
-Operand::Operand(VarDecl *vDecl):varDecl(vDecl) {}
+Operand::Operand(VarDecl *vDecl) : varDecl(vDecl) {}
 
 Operand::~Operand() {}
 

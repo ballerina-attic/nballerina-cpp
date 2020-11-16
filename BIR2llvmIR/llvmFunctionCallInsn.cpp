@@ -2,17 +2,18 @@
 
 FunctionCallInsn::FunctionCallInsn() {}
 
-FunctionCallInsn::FunctionCallInsn (string funcName, bool funcVirtual, int argNumber,
-                        Operand *lhsOp, BIRBasicBlock *thenBB) {}
+FunctionCallInsn::FunctionCallInsn(string funcName, bool funcVirtual,
+                                   int argNumber, Operand *lhsOp,
+                                   BIRBasicBlock *thenBB) {}
 
 FunctionCallInsn::~FunctionCallInsn() {}
 
-void FunctionCallInsn::translate (LLVMModuleRef &modRef) {
-  LLVMValueRef 		*ParamRefs = new LLVMValueRef[argCount]; 
-  LLVMBuilderRef   	builder;
-  string 		funName;
-  LLVMValueRef 		namedFuncRef;
-  BIRFunction 		*birFunc;
+void FunctionCallInsn::translate(LLVMModuleRef &modRef) {
+  LLVMValueRef *ParamRefs = new LLVMValueRef[argCount];
+  LLVMBuilderRef builder;
+  string funName;
+  LLVMValueRef namedFuncRef;
+  BIRFunction *birFunc;
 
   if (getFunction() && getPkgAddress()) {
     builder = getFunction()->getLLVMBuilder();
@@ -20,9 +21,8 @@ void FunctionCallInsn::translate (LLVMModuleRef &modRef) {
     if (birFunc)
       namedFuncRef = birFunc->getNewFunctionRef();
   }
-  
-  for (int i = 0;  i < argCount;  i++)
-  {
+
+  for (int i = 0; i < argCount; i++) {
     Operand *op = argsList[i];
     LLVMValueRef opRef = getFunction()->getLocalToTempVar(op);
     ParamRefs[i] = opRef;
@@ -37,12 +37,12 @@ void FunctionCallInsn::translate (LLVMModuleRef &modRef) {
       if (!lhsRef)
         lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
     }
-  } 
+  }
   int argCount = getArgCount();
   LLVMValueRef callResult;
   if (builder && namedFuncRef) {
-    callResult = LLVMBuildCall(builder, namedFuncRef,
-                           ParamRefs, argCount, "call");
+    callResult =
+        LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
     if (callResult && lhsRef) {
       LLVMBuildStore(builder, callResult, lhsRef);
     }
