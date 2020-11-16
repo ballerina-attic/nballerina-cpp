@@ -1,22 +1,19 @@
 #include "BIR.h"
 
-UnaryOpInsn::UnaryOpInsn() {
-}
+UnaryOpInsn::UnaryOpInsn() {}
 
 UnaryOpInsn::UnaryOpInsn (Location *pos, InstructionKind kind,
 				Operand *lOp, Operand *rOp):
-		NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {
-}
+		NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
 
-UnaryOpInsn::~UnaryOpInsn() {
-}
+UnaryOpInsn::~UnaryOpInsn() {}
 
 void UnaryOpInsn::translate(LLVMModuleRef &modRef) {
-  LLVMBuilderRef builder;
-  string lhstmpName;
-  LLVMValueRef lhsRef;
-  LLVMValueRef rhsOpref; 
-  LLVMValueRef ifReturn;
+  LLVMBuilderRef	builder;
+  string		lhstmpName;
+  LLVMValueRef 		lhsRef;
+  LLVMValueRef 		rhsOpref; 
+  LLVMValueRef 		ifReturn;
   if (getFunction() && getLhsOperand() && getLhsOperand()->getVarDecl()) {
     builder = getFunction()->getLLVMBuilder();
     lhstmpName = getLhsOperand()->getVarDecl()->getVarName() + "_temp" ;

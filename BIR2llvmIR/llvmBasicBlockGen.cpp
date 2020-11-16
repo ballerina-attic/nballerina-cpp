@@ -2,19 +2,14 @@
 
 BIRBasicBlock::BIRBasicBlock() {}
 
-BIRBasicBlock::BIRBasicBlock(string pid):id(pid) {
-}
+BIRBasicBlock::BIRBasicBlock(string pid):id(pid) {}
 
-BIRBasicBlock::BIRBasicBlock(Location *loc, string pid):BIRNode(loc), id(pid)
-{
-}
+BIRBasicBlock::BIRBasicBlock(Location *loc, string pid):BIRNode(loc), id(pid) {}
 
 BIRBasicBlock::~BIRBasicBlock() {}
 
-void BIRBasicBlock::translate(LLVMModuleRef &modRef)
-{
-  for(unsigned int i=0; i < instructions.size(); i++)
-  {
+void BIRBasicBlock::translate(LLVMModuleRef &modRef) {
+  for(unsigned int i=0; i < instructions.size(); i++) {
     NonTerminatorInsn *insn = instructions[i];
 
     insn->setFunction(bFunc);
@@ -23,8 +18,7 @@ void BIRBasicBlock::translate(LLVMModuleRef &modRef)
     insn->translate(modRef);
   }
 
-  if(terminator) 
-  {
+  if(terminator) {
     terminator->setFunction(bFunc);
     terminator->setCurrentBB(this);
     terminator->setPkgAddress(getPkgAddress());

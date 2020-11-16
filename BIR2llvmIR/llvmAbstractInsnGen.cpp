@@ -7,4 +7,4 @@ AbstractInsn::AbstractInsn(Location *pos, InstructionKind kindP, Operand *lOp):
 
 AbstractInsn::~AbstractInsn() {}
 
-void AbstractInsn::translate(LLVMModuleRef &modRef) { }
+void AbstractInsn::translate(LLVMModuleRef &modRef) {}

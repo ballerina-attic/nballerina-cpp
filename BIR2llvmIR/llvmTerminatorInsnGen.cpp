@@ -8,5 +8,4 @@ TerminatorInsn::TerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp
 
 TerminatorInsn::~TerminatorInsn() {}
 
-void TerminatorInsn::translate(LLVMModuleRef &modRef) {
-}
+void TerminatorInsn::translate(LLVMModuleRef &modRef) {}

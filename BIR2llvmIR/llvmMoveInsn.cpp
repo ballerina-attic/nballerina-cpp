@@ -1,19 +1,19 @@
 #include "BIR.h"
 
-MoveInsn::MoveInsn(){
-}
+MoveInsn::MoveInsn() {}
 
 MoveInsn::MoveInsn(Location *pos, InstructionKind kind,Operand *lOp, Operand *rOp):
-	NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {
-}
+	NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
 
-MoveInsn::~MoveInsn(){
-}
+MoveInsn::~MoveInsn() {}
 
 void MoveInsn::translate(LLVMModuleRef &modRef){
-  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+  LLVMBuilderRef builder;
+  LLVMValueRef   lhsRef;
 
-  LLVMValueRef lhsRef;
+  if (getFunction())
+    builder = getFunction()->getLLVMBuilder();
+
   if (getLhsOperand() && getLhsOperand()->getVarDecl()) {
     if (getLhsOperand()->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
       lhsRef = getPkgAddress()->getGlobalVarRefUsingId(

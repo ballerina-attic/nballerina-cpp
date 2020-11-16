@@ -6,24 +6,22 @@
 
 using namespace std;
 
-BIRPackage::BIRPackage() {
-}
+BIRPackage::BIRPackage() {}
 
 BIRPackage::BIRPackage(string orgName, string pkgName, string verName,
-               string srcFileName):
-	org(orgName), name(pkgName), version(verName), sourceFileName(srcFileName) {
-}
+		string srcFileName): org(orgName), name(pkgName), 
+		version(verName), sourceFileName(srcFileName) {}
 
+// return ValueRef of global variable based on variable name.
 LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
   map<string, LLVMValueRef>::iterator it;
-  
   it = globalVarRefs.find(globVar);
-  if(it == globalVarRefs.end()) {
+  if (it == globalVarRefs.end()) {
     return NULL;
   }
-  else
+  else {
     return it->second;
-   
+  }
   return NULL;
 }
 
@@ -38,17 +36,16 @@ void BIRPackage::translate (LLVMModuleRef &modRef) {
     string varName = globVar->getVarName();
     if (varTyperef && modRef) {
       // emit/adding the global variable.
-      Constant* init_value  = Constant::getNullValue(unwrap(varTyperef));
+      Constant* initValue  = Constant::getNullValue(unwrap(varTyperef));
       GlobalVariable *gVar = new GlobalVariable(*unwrap(modRef), 
 		unwrap(varTyperef), false, GlobalValue::ExternalLinkage,
-                      init_value, varName.c_str(),0);
+                      initValue, varName.c_str(),0);
       gVar->setAlignment(Align(4));
       globVarRef = wrap(gVar);
     }
     if (globVarRef)
       globalVarRefs.insert({globVar->getVarName(), globVarRef});
   }
-
 
 // iterating over each function, first create function definition 
 // (without function body) and adding to Module.
@@ -75,11 +72,13 @@ void BIRPackage::translate (LLVMModuleRef &modRef) {
 				getVarDecl()->getTypeDecl());
       }
     }
-    if (retType)
+    if (retType) {
       funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
-    const char *newFuncName = birFunc->getName().c_str();
-    if (funcType)
-      birFunc->setNewFunctionRef(LLVMAddFunction(modRef, newFuncName, funcType));
+      const char *newFuncName = birFunc->getName().c_str();
+      if (funcType) {
+        birFunc->setNewFunctionRef(LLVMAddFunction(modRef, newFuncName, funcType));
+      }
+    }
   }
 
   // iterating over each function translate the function body.
@@ -91,5 +90,4 @@ void BIRPackage::translate (LLVMModuleRef &modRef) {
   }
 }
 
-BIRPackage::~BIRPackage() {
-}
+BIRPackage::~BIRPackage() {}

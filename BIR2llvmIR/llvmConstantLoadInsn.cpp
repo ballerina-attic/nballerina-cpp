@@ -10,8 +10,7 @@ ConstantLoadInsn::ConstantLoadInsn (Location *pos, InstructionKind kind,
 
 }
 
-ConstantLoadInsn::~ConstantLoadInsn() {
-}
+ConstantLoadInsn::~ConstantLoadInsn() {}
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;   

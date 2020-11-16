@@ -7,5 +7,4 @@ NonTerminatorInsn::NonTerminatorInsn(Location *posi, InstructionKind kindP, Oper
 
 NonTerminatorInsn::~NonTerminatorInsn () {}
 
-void NonTerminatorInsn::translate(LLVMModuleRef &modRef){
-}
+void NonTerminatorInsn::translate(LLVMModuleRef &modRef) {}

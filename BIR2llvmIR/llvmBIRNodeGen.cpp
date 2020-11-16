@@ -1,17 +1,9 @@
 #include "BIR.h"
 
-BIRNode::BIRNode () 
-{
-}
+BIRNode::BIRNode () {}
 
-BIRNode::BIRNode (Location  *location):loc(location)
-{
-}
+BIRNode::BIRNode (Location  *location):loc(location) {}
 
-void BIRNode::translate (LLVMModuleRef &modRef) 
-{
-}
+void BIRNode::translate (LLVMModuleRef &modRef) {}
 
-BIRNode::~BIRNode ()
-{
-}
+BIRNode::~BIRNode () {}
