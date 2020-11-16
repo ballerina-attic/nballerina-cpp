@@ -1,15 +1,12 @@
 #include "BIR.h"
 
-BinaryOpInsn::BinaryOpInsn() {
-}
+BinaryOpInsn::BinaryOpInsn() {}
 
 BinaryOpInsn::BinaryOpInsn (Location *pos, InstructionKind kind,
 				Operand *lOp, Operand *rOp1, Operand *rOp2):
-		NonTerminatorInsn(pos, kind, lOp), rhsOp1(rOp1), rhsOp2(rOp2) {
-}
+		NonTerminatorInsn(pos, kind, lOp), rhsOp1(rOp1), rhsOp2(rOp2) {}
 
-BinaryOpInsn::~BinaryOpInsn() {
-}
+BinaryOpInsn::~BinaryOpInsn() {}
 
 void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;

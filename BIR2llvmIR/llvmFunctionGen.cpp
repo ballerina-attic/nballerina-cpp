@@ -1,19 +1,12 @@
 #include "BIR.h"
 
-BIRFunction::BIRFunction()
-{
-}
+BIRFunction::BIRFunction() {}
 
 BIRFunction::BIRFunction(Location *pos, string namep, int flagsp, 
-			  InvokableType *typep, string workerNamep):
-	BIRNode(pos), name(namep), flags(flagsp), type(typep), workerName(workerNamep)
-{
-  
-}
+	InvokableType *typep, string workerNamep): BIRNode(pos), 
+	name(namep), flags(flagsp), type(typep), workerName(workerNamep) {}
 
-BIRFunction::BIRFunction(const BIRFunction&) 
-{
-}
+BIRFunction::BIRFunction(const BIRFunction&) {}
 
 LLVMValueRef BIRFunction::getValueRefBasedOnName (string lhsName) {
   map<string, LLVMValueRef>::iterator it;
@@ -26,27 +19,23 @@ LLVMValueRef BIRFunction::getValueRefBasedOnName (string lhsName) {
     return it->second;
 }
 
-LLVMValueRef BIRFunction::getLocalVarRefUsingId(string locVar)
-{
+LLVMValueRef BIRFunction::getLocalVarRefUsingId(string locVar) {
   for(std::map<string, LLVMValueRef>::iterator iter = localVarRefs.begin();
-	 iter != localVarRefs.end(); iter++)
-  {
+	 iter != localVarRefs.end(); iter++) {
     if (iter->first == locVar)
       return iter->second;
   }
   return NULL;
 }
 
-LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand)
-{
+LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand) {
   string refOp = operand->getVarDecl()->getVarName();
   string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
   return LLVMBuildLoad(builder, locVRef, tempName.c_str());
 }
 
-static bool isParamter (VarDecl *locVar)
-{
+static bool isParamter (VarDecl *locVar) {
   switch(locVar->getVarKind()) {
     case LOCAL_VAR_KIND:
     case TEMP_VAR_KIND:
@@ -62,8 +51,7 @@ static bool isParamter (VarDecl *locVar)
   }
 }
 
-LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl)
-{
+LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   int typeTag = 0;
   if (vDecl->getTypeDecl())
     typeTag = vDecl->getTypeDecl()->getTypeTag();
@@ -94,23 +82,21 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl)
   }
 }
 
-void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
-{
+void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   LLVMBasicBlockRef BbRef;
   int paramIndex = 0;
   BbRef = LLVMAppendBasicBlock(newFunction, "entry");
   LLVMPositionBuilderAtEnd(builder, BbRef);
 
   // iterate through all local vars.
-  for (unsigned int i=0; i < localVars.size(); i++)
-  {
+  for (unsigned int i=0; i < localVars.size(); i++) {
     VarDecl *locVar = localVars[i];
     const char *varName = (locVar->getVarName()).c_str();
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef = LLVMBuildAlloca(builder, varType, varName);
     localVarRefs.insert({locVar->getVarName(), localVarRef});
 
-    if (isParamter(locVar)){
+    if (isParamter(locVar)) {
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
       string paramName = getParam(paramIndex)->getVarDecl()->getVarName();
       LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
@@ -122,8 +108,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
   
   // iterate through with each basic block in the function and create them
   // first.
-  for (unsigned int i=0; i < basicBlocks.size(); i++)
-  {
+  for (unsigned int i=0; i < basicBlocks.size(); i++) {
     BIRBasicBlock *bb = basicBlocks[i];
     LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(this->getNewFunctionRef(),
                                                    bb->getId().c_str());
@@ -138,25 +123,20 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef)
     LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
-  for (unsigned int i=0; i < basicBlocks.size(); i++)
-  {
+  for (unsigned int i=0; i < basicBlocks.size(); i++) {
     BIRBasicBlock *bb = basicBlocks[i];
     LLVMPositionBuilderAtEnd(builder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
 }
 
-void BIRFunction::translate (LLVMModuleRef &modRef)
-{
+void BIRFunction::translate (LLVMModuleRef &modRef) {
   translateFunctionBody(modRef);
 }
 
-BIRFunction::~BIRFunction()
-{
-}
+BIRFunction::~BIRFunction() {}
 
-LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD)
-{
+LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   int typeTag = typeD->getTypeTag();
   switch (typeTag) {
     case TYPE_TAG_INT:

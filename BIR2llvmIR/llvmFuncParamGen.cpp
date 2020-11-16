@@ -9,6 +9,4 @@ FuncParam::FuncParam(Location *pos, TypeDecl *ty, string name,
 
 FuncParam::~FuncParam() {}
 
-void FuncParam::translate(LLVMModuleRef &modRef) {
-
-}
+void FuncParam::translate(LLVMModuleRef &modRef) {}

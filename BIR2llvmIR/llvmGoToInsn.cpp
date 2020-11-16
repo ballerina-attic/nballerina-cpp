@@ -1,16 +1,12 @@
 #include "BIR.h"
 
-GoToInsn::GoToInsn() {
-}
+GoToInsn::GoToInsn() {}
 
 GoToInsn::GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                 BIRBasicBlock *nextBB): TerminatorInsn(pos,kind,lOp,nextBB){
-}
+                 BIRBasicBlock *nextBB): TerminatorInsn(pos,kind,lOp,nextBB) {}
 
 
-GoToInsn::~GoToInsn() {
-
-}
+GoToInsn::~GoToInsn() {}
 
 void GoToInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;

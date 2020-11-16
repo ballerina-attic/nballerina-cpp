@@ -148,8 +148,8 @@ class Location {
   private:
     string  fileName;
     int     sLine;
-    int     eLine;
     int     sCol;
+    int     eLine;
     int     eCol;
 
   public:
@@ -173,16 +173,17 @@ class Location {
 
 class BIRNode {
   private:
-    Location  *loc;
-
+    Location  	*loc;
+    BIRPackage 	*pkgAddress;
   public:
     BIRNode ();
     BIRNode (Location  *pos);
     virtual ~BIRNode ();
 
+    BIRPackage  * getPkgAddress()        { return pkgAddress; }
     Location * getLocation()                 { return loc; }
     void       setLocation(Location *newLoc) { loc = newLoc; }
-
+    void setPkgAddress (BIRPackage* pkgAddr)    { pkgAddress = pkgAddr; }
     virtual void translate(LLVMModuleRef &modRef);
 };
 
@@ -230,7 +231,6 @@ class AbstractInsn: public BIRNode {
     Operand          *lhsOp;
     BIRFunction      *bFunc;
     BIRBasicBlock    *currentBB;
-    BIRPackage       *pkgAddress;
 
   public:
     AbstractInsn();
@@ -241,13 +241,11 @@ class AbstractInsn: public BIRNode {
     Operand *       getLhsOperand() { return lhsOp; }
     BIRFunction * getFunction()                  { return bFunc; }
     BIRBasicBlock * getCurrentBB()                 { return currentBB; }
-    BIRPackage  * getPkgAddress()        { return pkgAddress; }
 
     void setFunction(BIRFunction *func) { bFunc = func; }
     void setInstKind(InstructionKind newKind)   { kind = newKind; }
     void setLhsOperand(Operand *lOp)            { lhsOp = lOp; }
     void setCurrentBB (BIRBasicBlock *currB)      { currentBB = currB; }
-    void setPkgAddress (BIRPackage* pkgAddr)    { pkgAddress = pkgAddr; }
     
     void translate(LLVMModuleRef &modRef);
 };
@@ -433,7 +431,6 @@ class BIRBasicBlock: public BIRNode {
     BIRFunction                 *bFunc;
     BIRBasicBlock                 *nextBB;
     LLVMBasicBlockRef            bbRefObj;
-    BIRPackage                  *pkgAddress;
 
   public:
     BIRBasicBlock();
@@ -450,7 +447,6 @@ class BIRBasicBlock: public BIRNode {
     NonTerminatorInsn *         getInsn(int i) { return instructions[i]; }
     size_t                numInsns()     { return instructions.size(); }
     LLVMBasicBlockRef getLLVMBBRef()     { return bbRefObj; }
-    BIRPackage* getPkgAddress()           { return pkgAddress; }
 
     void setId(string newId)                        { id = newId; }
     void setTerminatorInsn(TerminatorInsn *insn)    { terminator = insn; }
@@ -461,7 +457,6 @@ class BIRBasicBlock: public BIRNode {
     void addNonTermInsn(NonTerminatorInsn *insn)    { 
 			instructions.push_back(insn); }
 
-    void setPkgAddress(BIRPackage* pkgAddr)          { pkgAddress = pkgAddr; }
     void translate(LLVMModuleRef &modRef);
 };
 
@@ -584,7 +579,6 @@ class BIRFunction: public BIRNode {
     LLVMValueRef           newFunction;
     map<FuncParam *, vector<BIRBasicBlock *>>  params;
     map<string, LLVMValueRef>          localVarRefs;
-    BIRPackage 		   *pkgAddress;
     map <string, LLVMValueRef>   branchComparisonList;
 
   public:
@@ -612,7 +606,6 @@ class BIRFunction: public BIRNode {
     int                  getNumParams()         { return paramCount; }
     LLVMValueRef         getNewFunctionRef()    { return newFunction; }
     map<string , LLVMValueRef>  getLocalVarRefs()  { return localVarRefs; }
-    BIRPackage*          getPkgAddress()        { return pkgAddress; }
     map <string, LLVMValueRef>  getBranchComparisonList() { return branchComparisonList; }
     LLVMValueRef getValueRefBasedOnName (string lhsName);
 
@@ -634,7 +627,6 @@ class BIRFunction: public BIRNode {
     void setLocalVarRefs(map<string, LLVMValueRef> newLocalVarRefs)  {
 					localVarRefs = newLocalVarRefs; } 
     void setNewFunctionRef(LLVMValueRef newFuncRef) { newFunction = newFuncRef; }
-    void setPkgAddress (BIRPackage* pkgAddr)    { pkgAddress = pkgAddr; }
 
     void setBranchComparisonlist (map <string, LLVMValueRef> brCompl) {
                                 branchComparisonList = brCompl; }

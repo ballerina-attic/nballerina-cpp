@@ -7,11 +7,8 @@ InvokableType::InvokableType(vector<TypeDecl*> paramTy, TypeDecl *restTy, TypeDe
 			returnType(retTy) {}
 
 InvokableType::InvokableType(vector<TypeDecl*> paramTy, TypeDecl *retTy)
-		 :paramTypes(paramTy),returnType(retTy) {
-}
+		 :paramTypes(paramTy),returnType(retTy) {}
 
 InvokableType::~InvokableType() {}
 
-void InvokableType::translate(LLVMModuleRef &modRef) {
-
-}
+void InvokableType::translate(LLVMModuleRef &modRef) {}

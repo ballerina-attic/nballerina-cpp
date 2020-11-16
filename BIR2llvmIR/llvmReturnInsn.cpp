@@ -1,17 +1,12 @@
 #include "BIR.h"
 
-ReturnInsn::ReturnInsn() {
-
-}
+ReturnInsn::ReturnInsn() {}
 
 ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, 
 			Operand *lOp, BIRBasicBlock *nextBB):
-	TerminatorInsn(pos, kind, lOp, nextBB) {
+	TerminatorInsn(pos, kind, lOp, nextBB) {}
 
-}
-
-ReturnInsn::~ReturnInsn() {
-}
+ReturnInsn::~ReturnInsn() {}
 
 void ReturnInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
@@ -32,30 +27,25 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
     if(builder && getFunction() && returnVarDecl) {
       LLVMValueRef lhsRef = getFunction()->getLocalVarRefUsingId(
                           returnVarDecl->getVarName());
-      if (!lhsRef)
+      if (!lhsRef) {
         lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
   			returnVarDecl->getVarName());
       
-      LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
-      if (retValRef)
-        LLVMBuildRet(builder, retValRef);
-    }
-    else {
-      if (builder)
-        LLVMBuildRetVoid(builder);
+        LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
+        if (retValRef)
+          LLVMBuildRet(builder, retValRef);
+      }
     }
   }
-  else {
-    if (getFunction() && getFunction()->getReturnVar() && 
+  else if (getFunction() && getFunction()->getReturnVar() && 
 	  getFunction()->getReturnVar()->getTypeDecl() && 
 	  getFunction()->getReturnVar()->getTypeDecl()->getTypeTag() != 
 		TYPE_TAG_NIL && builder) {
       LLVMValueRef retValueRef = LLVMBuildLoad(builder, getFunction()->getLocalVarRefUsingId("%0"), "retrun_temp");
       LLVMBuildRet(builder, retValueRef);
-    }
-    else {
-      if (builder)
-	LLVMBuildRetVoid(builder);
-    }
+  }
+  else {
+    if (builder)
+      LLVMBuildRetVoid(builder);
   }
 }
