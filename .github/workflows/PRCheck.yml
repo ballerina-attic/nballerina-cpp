@@ -23,10 +23,11 @@ jobs:
           key: ${{ runner.os }}-nballerina
 
       - name: Cache LLVM Build
-          uses: actions/cache@v1.1.0
-          with:
-          path: ~/.llvm       
-          key: LLVM12
+        uses: actions/cache@v1.1.0
+        with:
+        path: ~/.llvm       
+        key: LLVM12
+        
       - name: Build LLVM and nballerina compiler
         run: (export LLVM_INSTALL_ROOT=nballerina/build/llvm_install && cd nballerina/build/llvm &&
             cmake -DCMAKE_BUILD_TYPE="Release"
