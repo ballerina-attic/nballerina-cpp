@@ -21,12 +21,19 @@ jobs:
           ref: 'master'
           path: 'nballerina'
           key: ${{ runner.os }}-nballerina
-        
+
+      - name: Cache LLVM Build
+        uses: actions/cache@v2
+        with:
+          path: ~/.llvm       
+          key: LLVM12
+          
       - name: Build LLVM and nballerina compiler
         run: (export LLVM_INSTALL_ROOT=nballerina/build/llvm_install && cd nballerina/build/llvm &&
             cmake -DCMAKE_BUILD_TYPE="Release"
             -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_ROOT"
             -DLLVM_CCACHE_BUILD=True
+            -DLLVM_CCACHE_DIR=~/.llvm
             -DBUILD_SHARED_LIBS=True
             -DLLVM_USE_SPLIT_DWARF=True
             -DLLVM_OPTIMIZED_TABLEGEN=True
