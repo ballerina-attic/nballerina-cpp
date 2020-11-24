@@ -84,7 +84,7 @@ enum InstructionKind {
   INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
 }; // Enums are referred from bir-model.bal file
 
-enum typeTagEnum {
+enum TypeTagEnum {
   TYPE_TAG_INT = 1,
   TYPE_TAG_BYTE = 2,
   TYPE_TAG_FLOAT = 3,
