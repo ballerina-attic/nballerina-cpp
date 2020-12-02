@@ -40,7 +40,11 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
       break;
     }
     case TYPE_TAG_BYTE:
-    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_FLOAT: {
+      // Currently, there is no floating point support in nballerina.
+      llvm_unreachable("No floating point support in nballerina");
+      break;
+    }
     case TYPE_TAG_BOOLEAN: {
       constRef = LLVMConstInt(LLVMInt8Type(), value, 0);
       break;
