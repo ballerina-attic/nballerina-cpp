@@ -162,7 +162,7 @@ public:
   int getEndLineNum() { return eLine; }
   int getEndColumnNum() { return eCol; }
 
-  virtual void translate(LLVMModuleRef &modRef);
+  void translate(LLVMModuleRef &modRef);
 };
 
 class BIRNode {

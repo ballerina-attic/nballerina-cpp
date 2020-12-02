@@ -22,7 +22,6 @@ LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
   } else {
     return it->second;
   }
-  return NULL;
 }
 
 void BIRPackage::translate(LLVMModuleRef &modRef) {
