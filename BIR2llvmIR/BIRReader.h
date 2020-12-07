@@ -9,6 +9,7 @@ class ConstantPoolEntry;
 class PackageCpInfo;
 class ShapeCpInfo;
 class StringCpInfo;
+class BIRReader;
 
 class ConstantPoolEntry {
 
@@ -23,11 +24,10 @@ public:
     TAG_ENUM_CP_ENTRY_SHAPE = 7
   };
   ConstantPoolEntry() {}
-  void read();
+  void read() {}
 
 private:
   tagEnum tag;
-  bool cpInfo;
 
 public:
   tagEnum getTag() const { return tag; }
@@ -37,7 +37,7 @@ class StringCpInfo : public ConstantPoolEntry {
 
 public:
   StringCpInfo() {}
-  void read();
+  void read(BIRReader *reader);
   ~StringCpInfo();
 
 private:
@@ -53,7 +53,7 @@ class ShapeCpInfo : public ConstantPoolEntry {
 
 public:
   ShapeCpInfo() {}
-  void read();
+  void read(BIRReader *reader);
   ~ShapeCpInfo();
 
 private:
@@ -92,7 +92,7 @@ public:
     nameIndex = 0;
     versionIndex = 0;
   }
-  void read();
+  void read(BIRReader *reader);
   ~PackageCpInfo();
 
 private:
@@ -110,7 +110,7 @@ class IntCpInfo : public ConstantPoolEntry {
 
 public:
   IntCpInfo() {}
-  void read();
+  void read(BIRReader *reader);
   ~IntCpInfo();
 
 private:
@@ -124,7 +124,7 @@ class BooleanCpInfo : public ConstantPoolEntry {
 
 public:
   BooleanCpInfo() {}
-  void read();
+  void read(BIRReader *reader);
   ~BooleanCpInfo();
 
 private:
@@ -138,7 +138,7 @@ class FloatCpInfo : public ConstantPoolEntry {
 
 public:
   FloatCpInfo() {}
-  void read();
+  void read(BIRReader *reader);
   ~FloatCpInfo();
 
 private:
@@ -152,7 +152,7 @@ class ByteCpInfo : public ConstantPoolEntry {
 
 public:
   ByteCpInfo() {}
-  void read();
+  void read(BIRReader *reader);
   ~ByteCpInfo();
 
 private:
@@ -166,7 +166,7 @@ class ConstantPoolSet {
 
 public:
   ConstantPoolSet() {}
-  void read();
+  void read(BIRReader *reader);
   ~ConstantPoolSet();
 
 private:
@@ -178,22 +178,73 @@ public:
   std::vector<ConstantPoolEntry *> *getConstantPoolEntries() const {
     return poolEntries;
   }
+  ConstantPoolEntry *getEntry(int index) { return (*poolEntries)[index]; }
+  std::string getStringCp(int32_t index, ConstantPoolSet *constantPool);
+  int32_t getIntCp(int32_t index, ConstantPoolSet *constantPool);
+  TypeDecl *getTypeCp(int32_t index, ConstantPoolSet *constantPool,
+                      bool voidToInt);
+  typeTagEnum getTypeTag(int32_t index, ConstantPoolSet *constantPool);
+  InvokableType *getInvokableType(int32_t index, ConstantPoolSet *constantPool);
 };
 
 class BIRReader {
 private:
   std::string fileName;
+  std::ifstream is;
+
+  ConstantPoolSet *constantPool;
+  BIRPackage *birPackage;
+  void readGlobalVar();
+  VarDecl *readLocalVar();
+  Operand *readOperand();
+  void readTypeDescInsn();
+  void readStructureInsn();
+  void readConstInsn(ConstantLoadInsn *constantloadInsn);
+  uint32_t readGotoInsn();
+  void readUnaryOpInsn(UnaryOpInsn *unaryOpInsn);
+  void readBinaryOpInsn(BinaryOpInsn *binaryOpInsn);
+  void readConditionalBrInsn(ConditionBrInsn *conditionBrInsn);
+  void readMoveInsn(MoveInsn *moveInsn);
+  void readFunctionCall(FunctionCallInsn *functionCallInsn);
+  BIRBasicBlock *searchBb(vector<BIRBasicBlock *> basicBlocks,
+                          std::string name);
+  NonTerminatorInsn *readInsn(BIRFunction *birFunction,
+                              BIRBasicBlock *basicBlock);
+  BIRBasicBlock *readBasicBlock(BIRFunction *birFunction);
+  void patchInsn(vector<BIRBasicBlock *> basicBlocks);
+  BIRFunction *readFunction();
+  void readModule();
+
+  // Read bytes functions
+  uint8_t readU1();
+  uint8_t peekReadU1();
+  uint16_t readS2be();
+  uint32_t readS4be();
+  uint64_t readS8be();
 
 public:
-  BIRReader(std::string FileName) { fileName = FileName; }
+  BIRReader(std::string FileName) {
+    fileName = FileName;
+    is.open(fileName, ifstream::binary);
+  }
   void setFileName(std::string FileName) { fileName = FileName; }
   std::string getFileName() { return fileName; }
   void deserialize(BIRPackage *);
+  void setConstantPool(ConstantPoolSet *constantPoolSet) {
+    constantPool = constantPoolSet;
+  }
+  void setBIRPackage(BIRPackage *birPackageReader) {
+    birPackage = birPackageReader;
+  }
+  friend class ConstantPoolEntry;
+  friend class ConstantPoolSet;
+  friend class PackageCpInfo;
+  friend class ShapeCpInfo;
+  friend class StringCpInfo;
+  friend class IntCpInfo;
+  friend class FloatCpInfo;
+  friend class BooleanCpInfo;
+  friend class ByteCpInfo;
 };
-
-extern uint8_t readU1();
-extern uint16_t readS2be();
-extern uint32_t readS4be();
-extern uint64_t readS8be();
 
 #endif // BIRREADER_H
