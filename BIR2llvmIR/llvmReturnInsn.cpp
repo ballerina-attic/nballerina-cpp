@@ -10,10 +10,10 @@ ReturnInsn::~ReturnInsn() {}
 
 void ReturnInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
+  BIRFunction *funcObj = getFunction();
   VarDecl *returnVarDecl = NULL;
-  if (getFunction())
-    builder = getFunction()->getLLVMBuilder();
-  if (getFunction()->getName() == "main") {
+  if (funcObj) {
+    builder = funcObj->getLLVMBuilder();
     vector<VarDecl *> globalVarList = getPkgAddress()->getGlobalVars();
     for (unsigned int i = 0; i < globalVarList.size(); i++) {
       VarDecl *varDeclLoc = globalVarList[i];
@@ -23,9 +23,11 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
         break;
       }
     }
-    if (builder && getFunction() && returnVarDecl) {
+  }
+  if (funcObj->getName() == "main" && returnVarDecl) {
+    if (builder && funcObj) {
       LLVMValueRef lhsRef =
-          getFunction()->getLocalVarRefUsingId(returnVarDecl->getVarName());
+          funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
       if (!lhsRef) {
         lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
             returnVarDecl->getVarName());
@@ -35,16 +37,17 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
           LLVMBuildRet(builder, retValRef);
       }
     }
-  } else if (getFunction() && getFunction()->getReturnVar() &&
-             getFunction()->getReturnVar()->getTypeDecl() &&
-             getFunction()->getReturnVar()->getTypeDecl()->getTypeTag() !=
-                 TYPE_TAG_NIL &&
-             builder) {
-    LLVMValueRef retValueRef = LLVMBuildLoad(
-        builder, getFunction()->getLocalVarRefUsingId("%0"), "retrun_temp");
-    LLVMBuildRet(builder, retValueRef);
   } else {
-    if (builder)
-      LLVMBuildRetVoid(builder);
+    assert(funcObj && funcObj->getReturnVar() &&
+           funcObj->getReturnVar()->getTypeDecl());
+    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() !=
+        TYPE_TAG_NIL) {
+      LLVMValueRef retValueRef = LLVMBuildLoad(
+          builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
+      LLVMBuildRet(builder, retValueRef);
+    } else {
+      if (builder)
+        LLVMBuildRetVoid(builder);
+    }
   }
 }

@@ -9,23 +9,23 @@ BinaryOpInsn::BinaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
 BinaryOpInsn::~BinaryOpInsn() {}
 
 void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
+  BIRFunction *funcObj = getFunction();
   LLVMBuilderRef builder;
   string lhsName, lhstmpName;
   LLVMValueRef lhsRef;
   LLVMValueRef rhsOp1ref;
   LLVMValueRef rhsOp2ref;
   LLVMValueRef ifReturn;
-  if (getFunction() && getLhsOperand() && getLhsOperand()->getVarDecl()) {
-    builder = getFunction()->getLLVMBuilder();
-    lhsName = getLhsOperand()->getVarDecl()->getVarName();
+  if (funcObj && getLhsOperand() && getLhsOperand()->getVarDecl()) {
+    builder = funcObj->getLLVMBuilder();
+    lhsName = getLhsOperand()->name();
     lhstmpName = lhsName + "_temp";
-    lhsRef = getFunction()->getLocalVarRefUsingId(
-        getLhsOperand()->getVarDecl()->getVarName());
+    lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
   }
 
-  if (getFunction() && rhsOp1 && rhsOp2) {
-    rhsOp1ref = getFunction()->getLocalToTempVar(rhsOp1);
-    rhsOp2ref = getFunction()->getLocalToTempVar(rhsOp2);
+  if (funcObj && rhsOp1 && rhsOp2) {
+    rhsOp1ref = funcObj->getLocalToTempVar(rhsOp1);
+    rhsOp2ref = funcObj->getLocalToTempVar(rhsOp2);
   }
 
   if (rhsOp1ref && rhsOp2ref && builder) {
@@ -74,48 +74,48 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
     case INSTRUCTION_KIND_BINARY_GREATER_THAN: {
       ifReturn = LLVMBuildICmp(builder, LLVMIntUGT, rhsOp1ref, rhsOp2ref,
                                lhstmpName.c_str());
-      if (ifReturn && getFunction()) {
-        getFunction()->addNewbranchComparison(lhsName, ifReturn);
+      if (ifReturn && funcObj) {
+        funcObj->addNewbranchComparison(lhsName, ifReturn);
       }
       break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_EQUAL: {
       ifReturn = LLVMBuildICmp(builder, LLVMIntUGE, rhsOp1ref, rhsOp2ref,
                                lhstmpName.c_str());
-      if (ifReturn && getFunction()) {
-        getFunction()->addNewbranchComparison(lhsName, ifReturn);
+      if (ifReturn && funcObj) {
+        funcObj->addNewbranchComparison(lhsName, ifReturn);
       }
       break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_THAN: {
       ifReturn = LLVMBuildICmp(builder, LLVMIntULT, rhsOp1ref, rhsOp2ref,
                                lhstmpName.c_str());
-      if (ifReturn && getFunction()) {
-        getFunction()->addNewbranchComparison(lhsName, ifReturn);
+      if (ifReturn && funcObj) {
+        funcObj->addNewbranchComparison(lhsName, ifReturn);
       }
       break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_EQUAL: {
       ifReturn = LLVMBuildICmp(builder, LLVMIntULE, rhsOp1ref, rhsOp2ref,
                                lhstmpName.c_str());
-      if (ifReturn && getFunction()) {
-        getFunction()->addNewbranchComparison(lhsName, ifReturn);
+      if (ifReturn && funcObj) {
+        funcObj->addNewbranchComparison(lhsName, ifReturn);
       }
       break;
     }
     case INSTRUCTION_KIND_BINARY_EQUAL: {
       ifReturn = LLVMBuildICmp(builder, LLVMIntEQ, rhsOp1ref, rhsOp2ref,
                                lhstmpName.c_str());
-      if (ifReturn && getFunction()) {
-        getFunction()->addNewbranchComparison(lhsName, ifReturn);
+      if (ifReturn && funcObj) {
+        funcObj->addNewbranchComparison(lhsName, ifReturn);
       }
       break;
     }
     case INSTRUCTION_KIND_BINARY_NOT_EQUAL: {
       ifReturn = LLVMBuildICmp(builder, LLVMIntNE, rhsOp1ref, rhsOp2ref,
                                lhstmpName.c_str());
-      if (ifReturn && getFunction()) {
-        getFunction()->addNewbranchComparison(lhsName, ifReturn);
+      if (ifReturn && funcObj) {
+        funcObj->addNewbranchComparison(lhsName, ifReturn);
       }
       break;
     }
