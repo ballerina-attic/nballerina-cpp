@@ -12,28 +12,24 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   LLVMValueRef lhsRef;
   LLVMValueRef constRef;
-  if (getLhsOperand() && getLhsOperand()->getVarDecl()) {
+  Operand *lhsOp = getLhsOperand();
+  VarKind varKind = lhsOp->getVarDecl()->getVarKind();
+
+  if (lhsOp && lhsOp->getVarDecl()) {
     builder = getFunction()->getLLVMBuilder();
     if (getPkgAddress() &&
-        getLhsOperand()->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
-      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
-          getLhsOperand()->getVarDecl()->getVarName());
+        lhsOp->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
+      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->name());
     } else if (getFunction() &&
-               (getLhsOperand()->getVarDecl()->getVarKind() == LOCAL_VAR_KIND ||
-                getLhsOperand()->getVarDecl()->getVarKind() == TEMP_VAR_KIND ||
-                getLhsOperand()->getVarDecl()->getVarKind() ==
-                    RETURN_VAR_KIND ||
-                getLhsOperand()->getVarDecl()->getVarKind() == SELF_VAR_KIND ||
-                getLhsOperand()->getVarDecl()->getVarKind() ==
-                    CONSTANT_VAR_KIND)) {
-      lhsRef = getFunction()->getLocalVarRefUsingId(
-          getLhsOperand()->getVarDecl()->getVarName());
+               (varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
+                varKind == RETURN_VAR_KIND || varKind == SELF_VAR_KIND ||
+                varKind == CONSTANT_VAR_KIND)) {
+      lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->name());
     }
   }
 
-  if (getLhsOperand() && getLhsOperand()->getVarDecl() &&
-      getLhsOperand()->getVarDecl()->getTypeDecl()) {
-    int typeTag = getLhsOperand()->getVarDecl()->getTypeDecl()->getTypeTag();
+  if (lhsOp && lhsOp->getVarDecl() && lhsOp->getVarDecl()->getTypeDecl()) {
+    int typeTag = lhsOp->typeTag();
     switch (typeTag) {
     case TYPE_TAG_INT: {
       constRef = LLVMConstInt(LLVMInt32Type(), value, 0);
