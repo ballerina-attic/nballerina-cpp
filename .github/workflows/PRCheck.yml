@@ -16,11 +16,6 @@ jobs:
       - name: Clone nballerina repository
         id : cache-nballerina
         uses: actions/checkout@v2
-        with:
-          repository: ballerina-platform/nballerina
-          ref: 'master'
-          path: 'nballerina'
-          key: ${{ runner.os }}-nballerina
 
       - name: Cache LLVM Build
         uses: actions/cache@v2
