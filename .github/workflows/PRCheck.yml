@@ -24,7 +24,7 @@ jobs:
           key: LLVM12
           
       - name: Build LLVM and nballerina compiler
-        run: (export LLVM_INSTALL_ROOT=nballerina/build/llvm_install && cd nballerina/build/llvm &&
+        run: (export LLVM_INSTALL_ROOT=nballerina/build/llvm_install && mkdir -p nballerina/build/llvm && cd nballerina/build/llvm &&
             cmake -DCMAKE_BUILD_TYPE="Release"
             -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_ROOT"
             -DLLVM_CCACHE_BUILD=True
