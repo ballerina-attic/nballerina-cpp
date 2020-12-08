@@ -92,9 +92,12 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
     VarDecl *locVar = localVars[i];
     const char *varName = (locVar->getVarName()).c_str();
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
-    LLVMValueRef localVarRef = LLVMBuildAlloca(builder, varType, varName);
+    LLVMValueRef localVarRef;
+    if (locVar->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
+      varType = wrap(getPkgAddress()->getStructType());
+    }
+    localVarRef = LLVMBuildAlloca(builder, varType, varName);
     localVarRefs.insert({locVar->getVarName(), localVarRef});
-
     if (isParamter(locVar)) {
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
       string paramName = getParam(paramIndex)->getVarDecl()->getVarName();
@@ -144,7 +147,20 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   case TYPE_TAG_FLOAT:
   case TYPE_TAG_BOOLEAN:
     return LLVMInt8Type();
+  case TYPE_TAG_ANY:
+    return LLVMPointerType(LLVMInt64Type(),0);
   default:
     return LLVMInt32Type();
   }
+}
+
+VarDecl *BIRFunction::getNameVarDecl(string opName) {
+  for (unsigned int i = 0; i < localVars.size(); i++) {
+    VarDecl *variableDecl = localVars[i];
+    string varName = variableDecl->getVarName();
+    if (varName == opName) {
+      return variableDecl;
+    }
+  }
+  return NULL;
 }

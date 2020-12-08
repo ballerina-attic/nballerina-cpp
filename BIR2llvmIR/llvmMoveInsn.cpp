@@ -11,23 +11,24 @@ MoveInsn::~MoveInsn() {}
 void MoveInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   LLVMValueRef lhsRef;
+  Operand *lhsOp = getLhsOperand();
+  VarKind varKind;
+  if (lhsOp->getVarDecl())
+    varKind = lhsOp->getVarDecl()->getVarKind();
 
   if (getFunction())
     builder = getFunction()->getLLVMBuilder();
 
-  if (getLhsOperand() && getLhsOperand()->getVarDecl()) {
-    if (getLhsOperand()->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
-      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
-          getLhsOperand()->getVarDecl()->getVarName());
+  if (lhsOp && lhsOp->getVarDecl()) {
+    if (varKind == GLOBAL_VAR_KIND) {
+      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->name());
       LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
       LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
     }
 
-    else if (getLhsOperand()->getVarDecl()->getVarKind() == LOCAL_VAR_KIND ||
-             getLhsOperand()->getVarDecl()->getVarKind() == TEMP_VAR_KIND ||
-             getLhsOperand()->getVarDecl()->getVarKind() == RETURN_VAR_KIND) {
-      lhsRef = getFunction()->getLocalVarRefUsingId(
-          getLhsOperand()->getVarDecl()->getVarName());
+    else if (varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
+             varKind == RETURN_VAR_KIND) {
+      lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->name());
       LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
       LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
     }

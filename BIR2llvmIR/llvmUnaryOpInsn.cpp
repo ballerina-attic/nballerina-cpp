@@ -9,20 +9,23 @@ UnaryOpInsn::UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
 UnaryOpInsn::~UnaryOpInsn() {}
 
 void UnaryOpInsn::translate(LLVMModuleRef &modRef) {
+  BIRFunction *funcObj = getFunction();
   LLVMBuilderRef builder;
   string lhstmpName;
   LLVMValueRef lhsRef;
   LLVMValueRef rhsOpref;
   LLVMValueRef ifReturn;
-  if (getFunction() && getLhsOperand() && getLhsOperand()->getVarDecl()) {
-    builder = getFunction()->getLLVMBuilder();
-    lhstmpName = getLhsOperand()->getVarDecl()->getVarName() + "_temp";
-    lhsRef = getFunction()->getLocalVarRefUsingId(
-        getLhsOperand()->getVarDecl()->getVarName());
+  Operand *lhsOp = getLhsOperand();
+  string lhsName = lhsOp->name();
+
+  if (funcObj && lhsOp && lhsOp->getVarDecl()) {
+    builder = funcObj->getLLVMBuilder();
+    lhstmpName = lhsName + "_temp";
+    lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
   }
 
-  if (getFunction() && rhsOp)
-    rhsOpref = getFunction()->getLocalToTempVar(rhsOp);
+  if (funcObj && rhsOp)
+    rhsOpref = funcObj->getLocalToTempVar(rhsOp);
 
   if (rhsOpref && builder) {
     switch (getInstKind()) {
