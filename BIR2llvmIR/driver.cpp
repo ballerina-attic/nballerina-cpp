@@ -53,25 +53,25 @@ int main(int argc, char** argv)
   outFileName = outFileName + ".ll";
   }
 
-  BIRReader *Reader = new BIRReader(inFileName);
-  BIRPackage *bIRPackage = new BIRPackage ();
-  Reader->deserialize(bIRPackage);
-  char* Message;
-  bool dumpllvm = true; //temp value
-  string ModuleName = bIRPackage->getOrgName() + bIRPackage->getPackageName()
-			 + bIRPackage->getVersion();
-  LLVMModuleRef mod = LLVMModuleCreateWithName(ModuleName.c_str());
-  LLVMSetSourceFileName(mod, bIRPackage->getSrcFileName().c_str(),
-                        bIRPackage->getSrcFileName().length());
+  BIRReader *reader = new BIRReader(inFileName);
+  BIRPackage *birPackage = new BIRPackage ();
+  reader->deserialize(birPackage);
+  char* message;
+  bool dumpLlvm = true; //temp value
+  string moduleName = birPackage->getOrgName() + birPackage->getPackageName()
+			 + birPackage->getVersion();
+  LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
+  LLVMSetSourceFileName(mod, birPackage->getSrcFileName().c_str(),
+                        birPackage->getSrcFileName().length());
   LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
   LLVMSetTarget(mod, "x86_64-pc-linux-gnu");
-  bIRPackage->translate(mod);
+  birPackage->translate(mod);
   
-  if(dumpllvm)
+  if(dumpLlvm)
   {
-    if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &Message))
+    if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &message))
     {
-      std::cerr << Message;
+      std::cerr << message;
     }  
   }
 }

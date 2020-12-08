@@ -1,16 +1,9 @@
 #include "BIR.h"
 
-Operand::Operand()
-{
-}
+Operand::Operand() {}
 
-Operand::Operand(VarDecl *vDecl):varDecl(vDecl)
-{
-}
-Operand::~Operand()
-{
-}
+Operand::Operand(VarDecl *vDecl) : varDecl(vDecl) {}
 
-void Operand::translate(LLVMModuleRef &modRef)
-{
-}
+Operand::~Operand() {}
+
+void Operand::translate(LLVMModuleRef &modRef) {}

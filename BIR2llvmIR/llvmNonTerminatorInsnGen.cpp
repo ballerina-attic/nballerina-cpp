@@ -2,10 +2,10 @@
 
 NonTerminatorInsn::NonTerminatorInsn() {}
 
-NonTerminatorInsn::NonTerminatorInsn(Location *posi, InstructionKind kindP, Operand *lOp):
-	AbstractInsn(posi, kindP, lOp) {}
+NonTerminatorInsn::NonTerminatorInsn(Location *posi, InstructionKind kindP,
+                                     Operand *lOp)
+    : AbstractInsn(posi, kindP, lOp) {}
 
-NonTerminatorInsn::~NonTerminatorInsn () {}
+NonTerminatorInsn::~NonTerminatorInsn() {}
 
-void NonTerminatorInsn::translate(LLVMModuleRef &modRef){
-}
+void NonTerminatorInsn::translate(LLVMModuleRef &modRef) {}
