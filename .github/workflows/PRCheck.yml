@@ -16,11 +16,6 @@ jobs:
       - name: Clone nballerina repository
         id : cache-nballerina
         uses: actions/checkout@v2
-        with:
-          repository: ballerina-platform/nballerina
-          ref: 'master'
-          path: 'nballerina'
-          key: ${{ runner.os }}-nballerina
 
       - name: Cache LLVM Build
         uses: actions/cache@v2
@@ -29,7 +24,7 @@ jobs:
           key: LLVM12
           
       - name: Build LLVM and nballerina compiler
-        run: (export LLVM_INSTALL_ROOT=nballerina/build/llvm_install && cd nballerina/build/llvm &&
+        run: (export LLVM_INSTALL_ROOT="$GITHUB_WORKSPACE/build/llvm_install" && mkdir -p "$GITHUB_WORKSPACE/build/llvm" && cd "$GITHUB_WORKSPACE/build/llvm" &&
             cmake -DCMAKE_BUILD_TYPE="Release"
             -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_ROOT"
             -DLLVM_CCACHE_BUILD=True
@@ -38,6 +33,6 @@ jobs:
             -DLLVM_USE_SPLIT_DWARF=True
             -DLLVM_OPTIMIZED_TABLEGEN=True
             -DLLVM_BUILD_TESTS=True
-            ../../llvm-project-master/llvm &&
+            "$GITHUB_WORKSPACE/llvm-project-master/llvm" &&
             make -j$(nproc) &&
-            make install && cd ../../BIR2llvmIR && make -j$(nproc))
+            make install && cd "$GITHUB_WORKSPACE/BIR2llvmIR" && make -j$(nproc))
