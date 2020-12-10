@@ -48,7 +48,7 @@ For instructions, see [Building from source](https://github.com/ballerina-platfo
 
 ## Coding Conventions
 For nBallerina code, we are following [LLVM Coding Standards](https://llvm.org/docs/CodingStandards.html) with following changes. 
-1. Four space intent. Shouldn't use tab character. Most of the IDEs can be configured to replace tab character with 4 spaces. 
+1. Four space indent. Shouldn't use tab character. Most of the IDEs can be configured to replace tab character with 4 spaces. 
 2. Write your code to fit within 120 columns.
 3. CamelCase naming conventions. Elaborate function names, class member names and global variable names.  Local variables can be short. Local variables and member variables should start with lowercase letter. 
 4. Opening brace of classes, functions, loops, and conditional statements should be on the same line. 
