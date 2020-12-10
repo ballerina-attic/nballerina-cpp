@@ -406,7 +406,7 @@ void readFunctionCall(FunctionCallInsn *functionCallInsn,
 void readTypeCast(TypeCastInsn *typeCastInsn, ConstantPoolSet *constantPool) {
   VarDecl *lhsVar = readVariable(constantPool);
   Operand *lhsOperand = new Operand(lhsVar);
-  typeCastInsn->setLhsOp(lhsOperand);
+  typeCastInsn->setLhsOperand(lhsOperand);
 
   VarDecl *rhsVar = readVariable(constantPool);
   Operand *rhsOperand = new Operand(rhsVar);
@@ -428,7 +428,7 @@ void readTypeTest(TypeTestInsn *typeTestInsn, ConstantPoolSet *constantPool) {
 
   VarDecl *lhsVar = readVariable(constantPool);
   Operand *lhsOperand = new Operand(lhsVar);
-  typeTestInsn->setLhsOp(lhsOperand);
+  typeTestInsn->setLhsOperand(lhsOperand);
 
   VarDecl *rhsVar = readVariable(constantPool);
   Operand *rhsOperand = new Operand(rhsVar);

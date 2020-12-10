@@ -45,8 +45,7 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
       LLVMValueRef retValueRef = LLVMBuildLoad(
           builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
       LLVMBuildRet(builder, retValueRef);
-    } else {
-      if (builder)
+    } else if (builder) {
         LLVMBuildRetVoid(builder);
     }
   }
