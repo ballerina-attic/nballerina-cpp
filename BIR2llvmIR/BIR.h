@@ -345,7 +345,6 @@ public:
 
 class TypeCastInsn : public NonTerminatorInsn {
 private:
-  Operand *lhsOp;
   Operand *rhsOp;
   TypeDecl *typeDecl;
   bool checkTypes;
@@ -356,11 +355,9 @@ public:
                TypeDecl *tDecl, bool checkTypes);
   ~TypeCastInsn();
 
-  Operand *getLhsOp() { return lhsOp; }
   Operand *getRhsOp() { return rhsOp; }
   TypeDecl *getTypeDecl() { return typeDecl; }
   bool mustCheckTypes() { return checkTypes; }
-  void setLhsOp(Operand *op) { lhsOp = op; }
   void setRhsOp(Operand *op) { rhsOp = op; }
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
   void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
@@ -370,7 +367,6 @@ public:
 
 class TypeTestInsn : public NonTerminatorInsn {
 private:
-  Operand *lhsOp;
   Operand *rhsOp;
   TypeDecl *typeDecl;
 
@@ -380,10 +376,8 @@ public:
                TypeDecl *tDecl);
   ~TypeTestInsn();
 
-  Operand *getLhsOp() { return lhsOp; }
   Operand *getRhsOp() { return rhsOp; }
   TypeDecl *getTypeDecl() { return typeDecl; }
-  void setLhsOp(Operand *op) { lhsOp = op; }
   void setRhsOp(Operand *op) { rhsOp = op; }
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
 
