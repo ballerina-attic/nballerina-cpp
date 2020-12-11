@@ -12,12 +12,22 @@ void ConditionBrInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef brCondition;
   LLVMBasicBlockRef ifLLVMBB;
   LLVMBasicBlockRef elseLLVMBB;
-  if (getFunction() && getLhsOperand() && getLhsOperand()->getVarDecl()) {
+  Operand *lhsOp = getLhsOperand();
+
+  if (getFunction() && lhsOp && lhsOp->getVarDecl()) {
     builder = getFunction()->getLLVMBuilder();
-    lhsName = getLhsOperand()->getVarDecl()->getVarName();
+    lhsName = lhsOp->name();
   }
   if (getFunction() && lhsName != "") {
     brCondition = getFunction()->getValueRefBasedOnName(lhsName);
+  }
+
+  if (!brCondition) {
+    VarDecl *lhsVarDecl = getFunction()->getNameVarDecl(lhsName);
+    if (lhsVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_BOOLEAN) {
+      brCondition = LLVMBuildIsNotNull(
+          builder, getFunction()->getLocalToTempVar(lhsOp), lhsName.c_str());
+    }
   }
 
   if (getIfThenBB() && getElseBB()) {

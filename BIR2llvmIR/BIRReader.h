@@ -59,7 +59,7 @@ public:
 private:
   int32_t shapeLength;
   std::string value;
-  typeTagEnum typeTag;
+  TypeTagEnum typeTag;
   int32_t nameIndex;
   int32_t typeFlag;
   int32_t typeSpecialFlag;
@@ -72,7 +72,7 @@ private:
 public:
   int32_t getShapeLength() const { return shapeLength; }
   std::string getValue() const { return value; }
-  typeTagEnum getTypeTag() const { return typeTag; }
+  TypeTagEnum getTypeTag() const { return typeTag; }
   int32_t getNameIndex() const { return nameIndex; }
   int32_t getTypeFlag() const { return typeFlag; }
   int32_t getTypeSpecialFlag() const { return typeSpecialFlag; }
