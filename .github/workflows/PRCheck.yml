@@ -13,6 +13,7 @@ jobs:
     steps:
       - name: Install utils
         run: (sudo apt install -y ccache && sudo /usr/sbin/update-ccache-symlinks)
+
       - name: Clone nballerina repository
         id : cache-nballerina
         uses: actions/checkout@v2
@@ -22,6 +23,12 @@ jobs:
         with:
           path: ~/.llvm       
           key: LLVM12
+
+      - name: Install LLVM
+        run: (cd $HOME && wget http://ftp.br.debian.org/debian/pool/main/l/llvm-toolchain-11/llvm-11-dev_11.0.0-5+b1_amd64.deb && dpkg -x llvm-11-dev_11.0.0-5+b1_amd64.deb $HOME/llvm-11-dev)
+
+      - name: Install LLVM Tools
+        run: (cd $HOME && wget http://ftp.br.debian.org/debian/pool/main/l/llvm-toolchain-11/llvm-11-tools_11.0.0-5+b1_amd64.deb && dpkg -x llvm-11-tools_11.0.0-5+b1_amd64.deb $HOME/llvm-11-tools)
           
       - name: Build LLVM and nballerina compiler
         run: (export LLVM_INSTALL_ROOT="$GITHUB_WORKSPACE/build/llvm_install" && mkdir -p "$GITHUB_WORKSPACE/build/llvm" && cd "$GITHUB_WORKSPACE/build/llvm" &&
