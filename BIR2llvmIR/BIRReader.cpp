@@ -120,7 +120,7 @@ TypeDecl *getTypeCp(int32_t index, ConstantPoolSet *constantPool,
 }
 
 // Get the Type tag from the constant pool based on the index passed
-typeTagEnum getTypeTag(int32_t index, ConstantPoolSet *constantPool) {
+TypeTagEnum getTypeTag(int32_t index, ConstantPoolSet *constantPool) {
   ConstantPoolEntry *poolEntry =
       constantPool->getConstantPoolEntries()->at(index);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
@@ -188,7 +188,7 @@ VarDecl *readVariable(ConstantPoolSet *constantPool) {
 
   if (varDecl->getVarKind() == GLOBAL_VAR_KIND) {
     uint32_t packageIndex __attribute__((unused)) = readS4be();
-    uint32_t typeCpIndex  = readS4be();
+    uint32_t typeCpIndex = readS4be();
     varDecl->setTypeDecl(getTypeCp(typeCpIndex, constantPool, false));
   }
   return varDecl;
@@ -274,7 +274,7 @@ void readConstInsn(ConstantLoadInsn *constantloadInsn,
     uint32_t typeCpIndex __attribute__((unused)) = readS4be();
   }
 
-  typeTagEnum typeTag = getTypeTag(typeCpIndex, constantPool);
+  TypeTagEnum typeTag = getTypeTag(typeCpIndex, constantPool);
   if (typeTag == TYPE_TAG_INT) {
     uint32_t valueCpIndex = readS4be();
     constantloadInsn->setValue(getIntCp(valueCpIndex, constantPool));
@@ -403,8 +403,7 @@ void readFunctionCall(FunctionCallInsn *functionCallInsn,
 }
 
 // Read TypeCast Insn
-void readTypeCast(TypeCastInsn *typeCastInsn, ConstantPoolSet *constantPool)
-{
+void readTypeCast(TypeCastInsn *typeCastInsn, ConstantPoolSet *constantPool) {
   VarDecl *lhsVar = readVariable(constantPool);
   Operand *lhsOperand = new Operand(lhsVar);
   typeCastInsn->setLhsOp(lhsOperand);
@@ -418,12 +417,11 @@ void readTypeCast(TypeCastInsn *typeCastInsn, ConstantPoolSet *constantPool)
   typeCastInsn->setTypeDecl(typeDecl);
 
   uint8_t isCheckTypes = readU1();
-  typeCastInsn->setCheckTypes((bool)isCheckTypes);
+  typeCastInsn->setTypesChecking((bool)isCheckTypes);
 }
 
 // Read Type Test Insn
-void readTypeTest(TypeTestInsn *typeTestInsn, ConstantPoolSet *constantPool)
-{
+void readTypeTest(TypeTestInsn *typeTestInsn, ConstantPoolSet *constantPool) {
   uint32_t typeCpIndex = readS4be();
   TypeDecl *typeDecl = getTypeCp(typeCpIndex, constantPool, false);
   typeTestInsn->setTypeDecl(typeDecl);
@@ -818,7 +816,7 @@ void StringCpInfo::read() {
 
 void ShapeCpInfo::read() {
   shapeLength = readS4be();
-  typeTag = static_cast<typeTagEnum>(readU1());
+  typeTag = static_cast<TypeTagEnum>(readU1());
   nameIndex = readS4be();
   typeFlag = readS4be();
   typeSpecialFlag = readS4be();
@@ -897,7 +895,7 @@ void ShapeCpInfo::read() {
   }
   default:
     fprintf(stderr, "%s:%d Invalid Type Tag in shape.\n", __FILE__, __LINE__);
-    fprintf(stderr, "%d is the Type Tag.\n", (typeTagEnum)typeTag);
+    fprintf(stderr, "%d is the Type Tag.\n", (TypeTagEnum)typeTag);
     break;
   }
 }

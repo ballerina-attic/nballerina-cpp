@@ -22,10 +22,11 @@ LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
   } else {
     return it->second;
   }
-  return NULL;
 }
 
 void BIRPackage::translate(LLVMModuleRef &modRef) {
+  // String Table initialization
+  strBuilder = new StringTableBuilder(StringTableBuilder::RAW, 1);
   // iterate over all global variables and translate
   for (unsigned int i = 0; i < globalVars.size(); i++) {
     LLVMValueRef globVarRef;
@@ -47,6 +48,16 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
       globalVarRefs.insert({globVar->getVarName(), globVarRef});
   }
 
+  // creating struct smart pointer to store any type variables data.
+  LLVMTypeRef structGen =
+      LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
+  LLVMTypeRef *structElementTypes = new LLVMTypeRef[3];
+  structElementTypes[0] = LLVMInt32Type();
+  structElementTypes[1] = LLVMInt32Type();
+  structElementTypes[2] = LLVMPointerType(LLVMInt8Type(), 0);
+  LLVMStructSetBody(structGen, structElementTypes, 3, 0);
+  structType = unwrap<StructType>(structGen);
+
   // iterating over each function, first create function definition
   // (without function body) and adding to Module.
   map<string, BIRFunction *>::iterator it;
@@ -67,7 +78,9 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
       retType = birFunc->getLLVMFuncRetTypeRefOfType(birFunc->getReturnVar());
     for (unsigned i = 0; i < numParams; i++) {
       Operand *funcParam = birFunc->getParam(i);
-      if (funcParam) {
+      if (funcParam && funcParam->typeTag() == TYPE_TAG_ANY) {
+        paramTypes[i] = wrap(structType);
+      } else {
         paramTypes[i] = birFunc->getLLVMTypeRefOfType(
             funcParam->getVarDecl()->getTypeDecl());
       }
@@ -88,6 +101,52 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
     BIRFunction *birFunc = it1->second;
     birFunc->setPkgAddress(this);
     birFunc->translate(modRef);
+  }
+  // This Api will finalize the string table builder if table size is not
+  // zero.
+  if (strBuilder->getSize() != 0)
+    applyStringOffsetRelocations(modRef);
+}
+
+void BIRPackage::addStringOffsetRelocationEntry(string eleType,
+                                                LLVMValueRef storeInsn) {
+  if (structElementStoreInst.size() == 0) {
+    vector<LLVMValueRef> temp;
+    temp.push_back(storeInsn);
+    structElementStoreInst.insert(
+        pair<string, vector<LLVMValueRef>>(eleType, temp));
+  } else {
+    map<string, vector<LLVMValueRef>>::iterator itr;
+    itr = structElementStoreInst.find(eleType);
+    if (itr == structElementStoreInst.end()) {
+      vector<LLVMValueRef> temp1;
+      temp1.push_back(storeInsn);
+      structElementStoreInst.insert(
+          pair<string, vector<LLVMValueRef>>(eleType, temp1));
+    } else {
+      vector<LLVMValueRef> temp2 = itr->second;
+      temp2.push_back(storeInsn);
+      itr->second = temp2;
+    }
+  }
+}
+
+// Finalizing the string table after storing all the values into string table
+// and Storing the any type data (string table offset).
+void BIRPackage::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
+  strBuilder->finalize();
+  map<string, vector<LLVMValueRef>>::iterator itr;
+  for (itr = structElementStoreInst.begin();
+       itr != structElementStoreInst.end(); itr++) {
+    size_t finalOrigOffset = strBuilder->getOffset(itr->first);
+    vector<LLVMValueRef> temp = itr->second;
+    LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
+    for (unsigned int i = 0; i < temp.size(); i++) {
+      LLVMValueRef storeInsn = temp[i];
+      LLVMValueRef constOperand = LLVMGetOperand(storeInsn, 0);
+      LLVMReplaceAllUsesWith(constOperand, tempVal);
+      break;
+    }
   }
 }
 
