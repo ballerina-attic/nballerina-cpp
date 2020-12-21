@@ -30,7 +30,8 @@ private:
   tagEnum tag;
 
 public:
-  tagEnum getTag() const { return tag; }
+  tagEnum getTag() { return tag; }
+  void setTag(tagEnum t) { tag = t; }
 };
 
 class StringCpInfo : public ConstantPoolEntry {
@@ -41,12 +42,11 @@ public:
   ~StringCpInfo();
 
 private:
-  int32_t stringLength;
   std::string value;
 
 public:
-  int32_t getStringLength() const { return stringLength; }
-  std::string getValue() const { return value; }
+  std::string getValue() { return value; }
+  void setValue(std::string str) { value = str; }
 };
 
 class ShapeCpInfo : public ConstantPoolEntry {
@@ -57,31 +57,42 @@ public:
   ~ShapeCpInfo();
 
 private:
-  int32_t shapeLength;
+  uint32_t shapeLength;
   std::string value;
   typeTagEnum typeTag;
-  int32_t nameIndex;
-  int32_t typeFlag;
-  int32_t typeSpecialFlag;
-  int32_t paramCount;
+  uint32_t nameIndex;
+  uint32_t typeFlag;
+  uint32_t typeSpecialFlag;
+  uint32_t paramCount;
   uint8_t hasRestType;
-  int32_t returnTypeIndex;
-  int32_t restTypeIndex;
+  uint32_t returnTypeIndex;
+  uint32_t restTypeIndex;
   vector<uint32_t> params;
 
 public:
-  int32_t getShapeLength() const { return shapeLength; }
-  std::string getValue() const { return value; }
-  typeTagEnum getTypeTag() const { return typeTag; }
-  int32_t getNameIndex() const { return nameIndex; }
-  int32_t getTypeFlag() const { return typeFlag; }
-  int32_t getTypeSpecialFlag() const { return typeSpecialFlag; }
-  int32_t getParamCount() const { return paramCount; }
-  uint8_t getRestType() const { return hasRestType; }
-  int32_t getReturnTypeIndex() const { return returnTypeIndex; }
-  int32_t getRestTypeIndex() const { return restTypeIndex; }
+  uint32_t getShapeLength() { return shapeLength; }
+  std::string getValue() { return value; }
+  typeTagEnum getTypeTag() { return typeTag; }
+  uint32_t getNameIndex() { return nameIndex; }
+  uint32_t getTypeFlag() { return typeFlag; }
+  uint32_t getTypeSpecialFlag() { return typeSpecialFlag; }
+  uint32_t getParamCount() { return paramCount; }
+  uint8_t getRestType() { return hasRestType; }
+  uint32_t getReturnTypeIndex() { return returnTypeIndex; }
+  uint32_t getRestTypeIndex() { return restTypeIndex; }
   void addParam(uint32_t param) { params.push_back(param); }
   uint32_t getParam(uint32_t index) { return params[index]; }
+
+  void setShapeLength(uint32_t s) { shapeLength = s; }
+  void setValue(std::string v) { value = v; }
+  void setTypeTag(typeTagEnum t) { typeTag = t; }
+  void setNameIndex(uint32_t n) { nameIndex = n; }
+  void setTypeFlag(uint32_t t) { typeFlag = t; }
+  void setTypeSpecialFlag(uint32_t t) { typeSpecialFlag = t; }
+  void setParamCount(uint32_t p) { paramCount = p; }
+  void setRestType(uint8_t r) { hasRestType = r; }
+  void setReturnTypeIndex(uint32_t r) { returnTypeIndex = r; }
+  void setRestTypeIndex(uint32_t r) { restTypeIndex = r; }
 };
 
 class PackageCpInfo : public ConstantPoolEntry {
@@ -96,14 +107,17 @@ public:
   ~PackageCpInfo();
 
 private:
-  int32_t orgIndex;
-  int32_t nameIndex;
-  int32_t versionIndex;
+  uint32_t orgIndex;
+  uint32_t nameIndex;
+  uint32_t versionIndex;
 
 public:
-  int32_t getOrgIndex() const { return orgIndex; }
-  int32_t getNameIndex() const { return nameIndex; }
-  int32_t getVersionIndex() const { return versionIndex; }
+  uint32_t getOrgIndex() { return orgIndex; }
+  uint32_t getNameIndex() { return nameIndex; }
+  uint32_t getVersionIndex() { return versionIndex; }
+  void setOrgIndex(uint32_t org) { orgIndex = org; }
+  void setNameIndex(uint32_t name) { nameIndex = name; }
+  void setVersionIndex(uint32_t version) { versionIndex = version; }
 };
 
 class IntCpInfo : public ConstantPoolEntry {
@@ -117,7 +131,8 @@ private:
   int64_t value;
 
 public:
-  int64_t getValue() const { return value; }
+  uint64_t getValue() { return value; }
+  void setValue(int64_t v) { value = v; }
 };
 
 class BooleanCpInfo : public ConstantPoolEntry {
@@ -131,7 +146,8 @@ private:
   uint8_t value;
 
 public:
-  uint8_t getValue() const { return value; }
+  uint8_t getValue() { return value; }
+  void setValue(uint8_t v) { value = v; }
 };
 
 class FloatCpInfo : public ConstantPoolEntry {
@@ -145,7 +161,8 @@ private:
   double value;
 
 public:
-  double getValue() const { return value; }
+  double getValue() { return value; }
+  void setValue(double v) { value = v; }
 };
 
 class ByteCpInfo : public ConstantPoolEntry {
@@ -156,10 +173,11 @@ public:
   ~ByteCpInfo();
 
 private:
-  int32_t value;
+  uint32_t value;
 
 public:
-  int32_t getValue() const { return value; }
+  uint32_t getValue() { return value; }
+  void setValue(uint32_t v) { value = v; }
 };
 
 class ConstantPoolSet {
@@ -170,46 +188,35 @@ public:
   ~ConstantPoolSet();
 
 private:
-  int32_t poolCount;
   std::vector<ConstantPoolEntry *> *poolEntries;
 
 public:
-  int32_t getConstantPoolCount() const { return poolCount; }
   std::vector<ConstantPoolEntry *> *getConstantPoolEntries() const {
     return poolEntries;
   }
   ConstantPoolEntry *getEntry(int index) { return (*poolEntries)[index]; }
-  std::string getStringCp(int32_t index, ConstantPoolSet *constantPool);
-  int32_t getIntCp(int32_t index, ConstantPoolSet *constantPool);
-  TypeDecl *getTypeCp(int32_t index, ConstantPoolSet *constantPool,
-                      bool voidToInt);
-  typeTagEnum getTypeTag(int32_t index, ConstantPoolSet *constantPool);
-  InvokableType *getInvokableType(int32_t index, ConstantPoolSet *constantPool);
+  std::string getStringCp(uint32_t index);
+  uint32_t getIntCp(uint32_t index);
+  TypeDecl *getTypeCp(uint32_t index, bool voidToInt);
+  typeTagEnum getTypeTag(uint32_t index);
+  InvokableType *getInvokableType(uint32_t index);
 };
 
 class BIRReader {
 private:
   std::string fileName;
   std::ifstream is;
+  BIRReader() { }
 
   ConstantPoolSet *constantPool;
-  BIRPackage *birPackage;
-  void readGlobalVar();
-  VarDecl *readLocalVar();
+  //BIRPackage *birPackage;
+  VarDecl* readGlobalVar();
   Operand *readOperand();
-  void readTypeDescInsn();
-  void readStructureInsn();
-  void readConstInsn(ConstantLoadInsn *constantloadInsn);
+  VarDecl *readLocalVar();
+  TypeDescInsn* readTypeDescInsn();
+  StructureInsn* readStructureInsn();
   uint32_t readGotoInsn();
-  void readUnaryOpInsn(UnaryOpInsn *unaryOpInsn);
-  void readBinaryOpInsn(BinaryOpInsn *binaryOpInsn);
-  void readConditionalBrInsn(ConditionBrInsn *conditionBrInsn);
-  void readMoveInsn(MoveInsn *moveInsn);
-  void readFunctionCall(FunctionCallInsn *functionCallInsn);
-  BIRBasicBlock *searchBb(vector<BIRBasicBlock *> basicBlocks,
-                          std::string name);
-  NonTerminatorInsn *readInsn(BIRFunction *birFunction,
-                              BIRBasicBlock *basicBlock);
+  void readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock);
   BIRBasicBlock *readBasicBlock(BIRFunction *birFunction);
   void patchInsn(vector<BIRBasicBlock *> basicBlocks);
   BIRFunction *readFunction();
@@ -223,19 +230,27 @@ private:
   uint64_t readS8be();
 
 public:
-  BIRReader(std::string FileName) {
+  BIRPackage birPackage;
+  static BIRReader reader;
+  static BIRReader& getInstance()
+  {
+    return reader;
+  }
+  void setFileStream(std::string FileName) {
     fileName = FileName;
+    if(is.is_open())
+      is.close();
     is.open(fileName, ifstream::binary);
   }
   void setFileName(std::string FileName) { fileName = FileName; }
   std::string getFileName() { return fileName; }
-  void deserialize(BIRPackage *);
+  void deserialize();//BIRPackage *);
   void setConstantPool(ConstantPoolSet *constantPoolSet) {
     constantPool = constantPoolSet;
   }
-  void setBIRPackage(BIRPackage *birPackageReader) {
-    birPackage = birPackageReader;
-  }
+  //void setBIRPackage(BIRPackage *birPackageReader) {
+  //  birPackage = birPackageReader;
+  //}
   friend class ConstantPoolEntry;
   friend class ConstantPoolSet;
   friend class PackageCpInfo;
@@ -245,6 +260,122 @@ public:
   friend class FloatCpInfo;
   friend class BooleanCpInfo;
   friend class ByteCpInfo;
+  friend class ReadCondBrInsn;
+  friend class ReadBinaryInsn;
+  friend class ReadUnaryInsn;
+  friend class ReadConstLoadInsn;
+  friend class ReadMoveInsn;
+  friend class ReadFuncCallInsn;
+  friend class ReadTypeDescInsn;
+  friend class ReadStructureInsn;
+  friend class ReadGoToInsn;
+  friend class ReadReturnInsn;
+};
+
+class Insn
+{
+public:
+ BIRReader& readerRef = BIRReader::reader;
+ Insn() { }
+ ~Insn() { }
+ virtual NonTerminatorInsn* readNonTerminatorInsn() { return NULL; };
+ virtual TerminatorInsn* readTerminatorInsn() { return NULL; };
+};
+
+class NonTerminatorInstruction : public Insn
+{
+public:
+  NonTerminatorInstruction() {}
+  ~NonTerminatorInstruction() {}
+  NonTerminatorInsn* readNonTerminatorInsn() { return NULL; }
+};
+
+class TerminatorInstruction : public Insn
+{
+public:
+  TerminatorInstruction() {}
+  ~TerminatorInstruction() {}
+  TerminatorInsn* readTerminatorInsn() { return NULL; }
+};
+
+class ReadCondBrInsn : public TerminatorInstruction
+{
+public:
+  ReadCondBrInsn() {}
+  ~ReadCondBrInsn() {}
+  ConditionBrInsn* readTerminatorInsn();
+};
+
+class ReadFuncCallInsn : public TerminatorInstruction
+{
+public:
+  ReadFuncCallInsn() {}
+  ~ReadFuncCallInsn() {}
+  FunctionCallInsn* readTerminatorInsn();
+};
+
+class ReadGoToInsn : public TerminatorInstruction
+{
+public:
+  ReadGoToInsn() {}
+  ~ReadGoToInsn() {}
+  GoToInsn* readTerminatorInsn();
+};
+
+class ReadReturnInsn : public TerminatorInstruction
+{
+public:
+  ReadReturnInsn() {}
+  ~ReadReturnInsn() {}
+  ReturnInsn* readTerminatorInsn();
+};
+
+class ReadBinaryInsn : public NonTerminatorInstruction
+{
+public:
+  ReadBinaryInsn() {}
+  ~ReadBinaryInsn() {}
+  BinaryOpInsn* readNonTerminatorInsn();
+};
+
+class ReadUnaryInsn : public NonTerminatorInstruction
+{
+public:
+  ReadUnaryInsn() {}
+  ~ReadUnaryInsn() {}
+  UnaryOpInsn* readNonTerminatorInsn();
+};
+
+class ReadConstLoadInsn : public NonTerminatorInstruction
+{
+public:
+  ReadConstLoadInsn() {}
+  ~ReadConstLoadInsn() {}
+  ConstantLoadInsn* readNonTerminatorInsn();
+};
+
+class ReadMoveInsn : public NonTerminatorInstruction
+{
+public:
+  ReadMoveInsn() {}
+  ~ReadMoveInsn() {}
+  MoveInsn* readNonTerminatorInsn();
+};
+
+class ReadTypeDescInsn : public NonTerminatorInstruction
+{
+public:
+  ReadTypeDescInsn() {}
+  ~ReadTypeDescInsn() {}
+  TypeDescInsn* readNonTerminatorInsn();
+};
+
+class ReadStructureInsn : public NonTerminatorInstruction
+{
+public:
+  ReadStructureInsn() {}
+  ~ReadStructureInsn() {}
+  StructureInsn* readNonTerminatorInsn();
 };
 
 #endif // BIRREADER_H
