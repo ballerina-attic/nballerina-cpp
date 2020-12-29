@@ -297,14 +297,26 @@ public:
 class ConstantLoadInsn : public NonTerminatorInsn {
 private:
   int value;
+  std::string strValue;
+  float floatValue;
+  bool boolValue;
 
 public:
   ConstantLoadInsn();
   ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, int val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, std::string val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, float val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, bool val);
   ~ConstantLoadInsn();
 
   int getValue() { return value; }
+  std::string getStringValue() { return strValue; }
+  float getFloatValue() { return floatValue; }
+  bool getBoolValue() { return boolValue; }
   void setValue(int val) { value = val; }
+  void setStringValue(std::string val) { strValue = val; }
+  void setFloatValue(float val) { floatValue = val; }
+  void setBoolValue(bool val) { boolValue = val; }
 
   void translate(LLVMModuleRef &modRef);
 };

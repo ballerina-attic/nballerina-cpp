@@ -6,6 +6,18 @@ ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
                                    Operand *lOp, int val)
     : NonTerminatorInsn(pos, kind, lOp), value(val) {}
 
+ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
+                                   Operand *lOp, std::string val)
+    : NonTerminatorInsn(pos, kind, lOp), strValue(val) {}
+
+ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
+                                   Operand *lOp, float val)
+    : NonTerminatorInsn(pos, kind, lOp), floatValue(val) {}
+
+ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
+                                   Operand *lOp, bool val)
+    : NonTerminatorInsn(pos, kind, lOp), boolValue(val) {}
+
 ConstantLoadInsn::~ConstantLoadInsn() {}
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
