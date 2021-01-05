@@ -51,8 +51,9 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       LLVMValueRef origTypeIdx =
           LLVMBuildStructGEP(builder, structAllocaRef, 0, "origTypeIdx");
       VarDecl *origVarDecl = funcObj->getNameVarDecl(lhsOpName);
-      const char *origTypeName = funcObj->getTypeNameOfTypeTag(
-          TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag()));
+      assert(origVarDecl->getTypeDecl()->getTypeTag());
+      TypeTagEnum origTypeTag = TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
+      const char *origTypeName = funcObj->getTypeNameOfTypeTag(origTypeTag);
       if (!strTable->contains(origTypeName))
         strTable->add(origTypeName);
       LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), -1, 0);
@@ -63,8 +64,9 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       LLVMValueRef lastTypeIdx =
           LLVMBuildStructGEP(builder, structAllocaRef, 1, "lastTypeIdx");
       VarDecl *lastTypeVarDecl = funcObj->getNameVarDecl(rhsOpName);
-      const char *lastTypeName = funcObj->getTypeNameOfTypeTag(
-          TypeTagEnum(lastTypeVarDecl->getTypeDecl()->getTypeTag()));
+      assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
+      TypeTagEnum lastTypeTag = TypeTagEnum(lastTypeVarDecl->getTypeDecl()->getTypeTag());
+      const char *lastTypeName = funcObj->getTypeNameOfTypeTag(lastTypeTag);
       if (!strTable->contains(lastTypeName))
         strTable->add(lastTypeName);
       LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), -2, 0);
