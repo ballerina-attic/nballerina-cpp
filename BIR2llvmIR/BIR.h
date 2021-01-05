@@ -21,7 +21,7 @@
 #include "llvm/IR/Type.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/raw_ostream.h"
-
+#include "llvm/IR/IRBuilder.h"
 #define DEFAULT_VERSION 0
 using namespace std;
 using namespace llvm;
@@ -297,15 +297,26 @@ public:
 class ConstantLoadInsn : public NonTerminatorInsn {
 private:
   int value;
+  std::string strValue;
+  double floatValue;
+  bool boolValue;
 
 public:
   ConstantLoadInsn();
   ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, int val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, std::string val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, float val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, bool val);
   ~ConstantLoadInsn();
 
   int getValue() { return value; }
+  std::string getStringValue() { return strValue; }
+  float getFloatValue() { return floatValue; }
+  bool getBoolValue() { return boolValue; }
   void setValue(int val) { value = val; }
-
+  void setStringValue(std::string val) { strValue = val; }
+  void setFloatValue(float val) { floatValue = val; }
+  void setBoolValue(bool val) { boolValue = val; }
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -361,7 +372,6 @@ public:
   void setRhsOp(Operand *op) { rhsOp = op; }
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
   void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
-
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -681,6 +691,7 @@ public:
   void patchInsn(Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(string opName);
+  const char* getTypeNameOfTypeTag(TypeTagEnum typeTag);
   void translate(LLVMModuleRef &modRef);
 };
 

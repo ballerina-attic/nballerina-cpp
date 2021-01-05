@@ -14,9 +14,8 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef constRef;
   Operand *lhsOp = getLhsOperand();
   VarKind varKind = lhsOp->getVarDecl()->getVarKind();
-
+  builder = getFunction()->getLLVMBuilder();
   if (lhsOp && lhsOp->getVarDecl()) {
-    builder = getFunction()->getLLVMBuilder();
     if (getPkgAddress() &&
         lhsOp->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
       lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->name());
@@ -37,12 +36,11 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     }
     case TYPE_TAG_BYTE:
     case TYPE_TAG_FLOAT: {
-      // Currently, there is no floating point support in nballerina.
-      llvm_unreachable("No floating point support in nballerina");
+      constRef = LLVMConstReal(LLVMFloatType(), floatValue);
       break;
     }
     case TYPE_TAG_BOOLEAN: {
-      constRef = LLVMConstInt(LLVMInt8Type(), value, 0);
+      constRef = LLVMConstInt(LLVMInt8Type(), boolValue, 0);
       break;
     }
     default:
