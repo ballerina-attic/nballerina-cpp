@@ -21,6 +21,7 @@
 #include "llvm/IR/Type.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/IRBuilder.h"
 
 #define DEFAULT_VERSION 0
 using namespace std;
@@ -296,16 +297,41 @@ public:
 
 class ConstantLoadInsn : public NonTerminatorInsn {
 private:
-  int value;
-
+  enum TypeTagEnum typeTag;
+  union value {
+    int intValue;
+    double floatValue;
+    bool boolValue;
+    string *strValue = new string();
+    value() {}
+    value(int x)	:intValue(x){ }
+    value(float x)	:floatValue(x){ }
+    value(bool x)	:boolValue(x){ }
+    value(string *x)	:strValue(x){ }
+  }val;
 public:
   ConstantLoadInsn();
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, int val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, int intval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, float floatval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, bool boolval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, string *strval);
   ~ConstantLoadInsn();
 
-  int getValue() { return value; }
-  void setValue(int val) { value = val; }
-
+  int getIntValue() 	{ return val.intValue; }
+  float getFloatValue() { return val.floatValue; }
+  bool getBoolValue() 	{ return val.boolValue; }
+  string *getStringValue() { return val.strValue; }
+  void setIntValue(int intVal, TypeTagEnum TypeTag) 
+    { val.intValue = intVal; typeTag = TypeTag; }
+  void setFloatValue(float floatVal, TypeTagEnum TypeTag) 
+    { val.floatValue = floatVal; typeTag = TypeTag; }
+  void setBoolValue(bool boolVal, TypeTagEnum TypeTag) 
+    { val.boolValue = boolVal; typeTag = TypeTag; }
+  void setStringValue(string *str, TypeTagEnum TypeTag)
+    { val.strValue = str; typeTag = TypeTag; }
+  // With Nil Type setting only Type Tag because value will be zero with NIL Type. 
+  void setTypeTagNil (TypeTagEnum TypeTag) { typeTag = TypeTag; }
+  TypeTagEnum getTypeTag() { return typeTag; }
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -361,7 +387,6 @@ public:
   void setRhsOp(Operand *op) { rhsOp = op; }
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
   void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
-
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -681,6 +706,7 @@ public:
   void patchInsn(Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(string opName);
+  const char* getTypeNameOfTypeTag(TypeTagEnum typeTag);
   void translate(LLVMModuleRef &modRef);
 };
 
