@@ -263,6 +263,8 @@ public:
   std::string getStringCp(uint32_t index);
   uint32_t getIntCp(uint32_t index);
   TypeDecl *getTypeCp(uint32_t index, bool voidToInt);
+  float getFloatCp(uint32_t index);
+  bool getBooleanCp(uint32_t index);
   TypeTagEnum getTypeTag(uint32_t index);
   InvokableType *getInvokableType(uint32_t index);
 };

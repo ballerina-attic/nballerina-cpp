@@ -111,6 +111,24 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
   return intCp->getValue();
 }
 
+// Search string from the constant pool based on index
+float ConstantPoolSet::getFloatCp(uint32_t index) {
+  ConstantPoolEntry *poolEntry = getEntry(index);
+  assert(poolEntry->getTag() !=
+         ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
+  FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
+  return floatCp->getValue();
+}
+
+// Search string from the constant pool based on index
+bool ConstantPoolSet::getBooleanCp(uint32_t index) {
+  ConstantPoolEntry *poolEntry = getEntry(index);
+  assert(poolEntry->getTag() !=
+         ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
+  BooleanCpInfo *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
+  return booleanCp->getValue();
+}
+
 // Search type from the constant pool based on index
 TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   ConstantPoolEntry *poolEntry = getEntry(index);
@@ -262,13 +280,44 @@ ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
   lhsOperand->getVarDecl()->setTypeDecl(typeDecl);
 
   TypeTagEnum typeTag = readerRef.constantPool->getTypeTag(typeCpIndex);
-  if (typeTag == TYPE_TAG_INT) {
+  switch (typeTag) {
+  case TYPE_TAG_INT:
+  case TYPE_TAG_UNSIGNED8_INT:
+  case TYPE_TAG_UNSIGNED16_INT:
+  case TYPE_TAG_UNSIGNED32_INT:
+  case TYPE_TAG_SIGNED8_INT:
+  case TYPE_TAG_SIGNED16_INT:
+  case TYPE_TAG_SIGNED32_INT:
+  case TYPE_TAG_DECIMAL:
+  case TYPE_TAG_BYTE: {
     uint32_t valueCpIndex = readerRef.readS4be();
-    constantloadInsn->setValue(readerRef.constantPool->getIntCp(valueCpIndex));
+    constantloadInsn->setIntValue(
+        readerRef.constantPool->getIntCp(valueCpIndex), typeTag);
+    break;
   }
-  if (typeTag == TYPE_TAG_BOOLEAN) {
+  case TYPE_TAG_BOOLEAN: {
     uint8_t valueCpIndex = readerRef.readU1();
-    constantloadInsn->setValue(valueCpIndex);
+    constantloadInsn->setBoolValue(valueCpIndex, typeTag);
+    break;
+  }
+  case TYPE_TAG_FLOAT: {
+    uint32_t valueCpIndex = readerRef.readS4be();
+    constantloadInsn->setFloatValue(
+        readerRef.constantPool->getFloatCp(valueCpIndex), typeTag);
+    break;
+  }
+  case TYPE_TAG_CHAR_STRING:
+  case TYPE_TAG_STRING: {
+    uint32_t valueCpIndex = readerRef.readS4be();
+    string *strVal = new string();
+    strVal[0] = readerRef.constantPool->getStringCp(valueCpIndex);
+    constantloadInsn->setStringValue(strVal, typeTag);
+    break;
+  }
+  case TYPE_TAG_NIL:
+    constantloadInsn->setTypeTagNil(typeTag);
+  default:
+    break;
   }
   constantloadInsn->setLhsOperand(lhsOperand);
   return constantloadInsn;
@@ -521,6 +570,8 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     break;
   }
   default:
+    fprintf(stderr, "%s:%d Invalid Insn Kind for Reader.\n", __FILE__,
+            __LINE__);
     break;
   }
   if (nonTerminatorInsn)
