@@ -385,6 +385,23 @@ public:
   void translate(LLVMModuleRef &modRef);
 };
 
+class TypeDescInsn : public NonTerminatorInsn {
+public:
+  TypeDescInsn() { }
+  ~TypeDescInsn() { }
+};
+
+class StructureInsn : public NonTerminatorInsn {
+private:
+  Operand *rhsOp;
+
+public:
+  StructureInsn() { }
+  ~StructureInsn() { }
+  Operand *getRhsOp() { return rhsOp; }
+  void setRhsOp(Operand *op) { rhsOp = op; }
+};
+
 class FunctionCallInsn : public TerminatorInsn {
 private:
   bool isVirtual;
@@ -628,6 +645,8 @@ public:
   void addNewbranchComparison(string name, LLVMValueRef compRef) {
     branchComparisonList.insert(std::pair<string, LLVMValueRef>(name, compRef));
   }
+
+  BIRBasicBlock *searchBb(std::string name);
 
   LLVMTypeRef getLLVMTypeRefOfType(TypeDecl *typeD);
   LLVMValueRef getLocalVarRefUsingId(string locVar);

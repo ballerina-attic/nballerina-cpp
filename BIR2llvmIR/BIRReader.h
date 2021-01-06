@@ -24,7 +24,7 @@ public:
     TAG_ENUM_CP_ENTRY_SHAPE = 7
   };
   ConstantPoolEntry() {}
-  void read() {}
+  virtual void read() {}
 
 private:
   tagEnum tag;
@@ -128,11 +128,11 @@ public:
   ~IntCpInfo();
 
 private:
-  int64_t value;
+  uint64_t value;
 
 public:
   uint64_t getValue() { return value; }
-  void setValue(int64_t v) { value = v; }
+  void setValue(uint64_t v) { value = v; }
 };
 
 class BooleanCpInfo : public ConstantPoolEntry {
@@ -191,9 +191,6 @@ private:
   std::vector<ConstantPoolEntry *> *poolEntries;
 
 public:
-  std::vector<ConstantPoolEntry *> *getConstantPoolEntries() const {
-    return poolEntries;
-  }
   ConstantPoolEntry *getEntry(int index) { return (*poolEntries)[index]; }
   std::string getStringCp(uint32_t index);
   uint32_t getIntCp(uint32_t index);
@@ -209,13 +206,11 @@ private:
   BIRReader() { }
 
   ConstantPoolSet *constantPool;
-  //BIRPackage *birPackage;
   VarDecl* readGlobalVar();
   Operand *readOperand();
   VarDecl *readLocalVar();
   TypeDescInsn* readTypeDescInsn();
   StructureInsn* readStructureInsn();
-  uint32_t readGotoInsn();
   void readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock);
   BIRBasicBlock *readBasicBlock(BIRFunction *birFunction);
   void patchInsn(vector<BIRBasicBlock *> basicBlocks);
@@ -237,20 +232,19 @@ public:
     return reader;
   }
   void setFileStream(std::string FileName) {
+    if (fileName == FileName)
+      return;
     fileName = FileName;
     if(is.is_open())
       is.close();
     is.open(fileName, ifstream::binary);
   }
-  void setFileName(std::string FileName) { fileName = FileName; }
   std::string getFileName() { return fileName; }
-  void deserialize();//BIRPackage *);
+  void deserialize();
   void setConstantPool(ConstantPoolSet *constantPoolSet) {
     constantPool = constantPoolSet;
   }
-  //void setBIRPackage(BIRPackage *birPackageReader) {
-  //  birPackage = birPackageReader;
-  //}
+  void patchTypesToFuncParam();
   friend class ConstantPoolEntry;
   friend class ConstantPoolSet;
   friend class PackageCpInfo;
@@ -272,33 +266,31 @@ public:
   friend class ReadReturnInsn;
 };
 
-class Insn
+class ReadInsn
 {
 public:
  BIRReader& readerRef = BIRReader::reader;
- Insn() { }
- ~Insn() { }
- virtual NonTerminatorInsn* readNonTerminatorInsn() { return NULL; };
- virtual TerminatorInsn* readTerminatorInsn() { return NULL; };
+ ReadInsn() { }
+ ~ReadInsn() { }
 };
 
-class NonTerminatorInstruction : public Insn
+class ReadNonTerminatorInstruction : public ReadInsn
 {
 public:
-  NonTerminatorInstruction() {}
-  ~NonTerminatorInstruction() {}
-  NonTerminatorInsn* readNonTerminatorInsn() { return NULL; }
+  ReadNonTerminatorInstruction() {}
+  ~ReadNonTerminatorInstruction() {}
+  virtual NonTerminatorInsn* readNonTerminatorInsn() { return NULL; }
 };
 
-class TerminatorInstruction : public Insn
+class ReadTerminatorInstruction : public ReadInsn
 {
 public:
-  TerminatorInstruction() {}
-  ~TerminatorInstruction() {}
-  TerminatorInsn* readTerminatorInsn() { return NULL; }
+  ReadTerminatorInstruction() {}
+  ~ReadTerminatorInstruction() {}
+  virtual TerminatorInsn* readTerminatorInsn() { return NULL; }
 };
 
-class ReadCondBrInsn : public TerminatorInstruction
+class ReadCondBrInsn : public ReadTerminatorInstruction
 {
 public:
   ReadCondBrInsn() {}
@@ -306,7 +298,7 @@ public:
   ConditionBrInsn* readTerminatorInsn();
 };
 
-class ReadFuncCallInsn : public TerminatorInstruction
+class ReadFuncCallInsn : public ReadTerminatorInstruction
 {
 public:
   ReadFuncCallInsn() {}
@@ -314,7 +306,7 @@ public:
   FunctionCallInsn* readTerminatorInsn();
 };
 
-class ReadGoToInsn : public TerminatorInstruction
+class ReadGoToInsn : public ReadTerminatorInstruction
 {
 public:
   ReadGoToInsn() {}
@@ -322,7 +314,7 @@ public:
   GoToInsn* readTerminatorInsn();
 };
 
-class ReadReturnInsn : public TerminatorInstruction
+class ReadReturnInsn : public ReadTerminatorInstruction
 {
 public:
   ReadReturnInsn() {}
@@ -330,7 +322,7 @@ public:
   ReturnInsn* readTerminatorInsn();
 };
 
-class ReadBinaryInsn : public NonTerminatorInstruction
+class ReadBinaryInsn : public ReadNonTerminatorInstruction
 {
 public:
   ReadBinaryInsn() {}
@@ -338,7 +330,7 @@ public:
   BinaryOpInsn* readNonTerminatorInsn();
 };
 
-class ReadUnaryInsn : public NonTerminatorInstruction
+class ReadUnaryInsn : public ReadNonTerminatorInstruction
 {
 public:
   ReadUnaryInsn() {}
@@ -346,7 +338,7 @@ public:
   UnaryOpInsn* readNonTerminatorInsn();
 };
 
-class ReadConstLoadInsn : public NonTerminatorInstruction
+class ReadConstLoadInsn : public ReadNonTerminatorInstruction
 {
 public:
   ReadConstLoadInsn() {}
@@ -354,7 +346,7 @@ public:
   ConstantLoadInsn* readNonTerminatorInsn();
 };
 
-class ReadMoveInsn : public NonTerminatorInstruction
+class ReadMoveInsn : public ReadNonTerminatorInstruction
 {
 public:
   ReadMoveInsn() {}
@@ -362,7 +354,7 @@ public:
   MoveInsn* readNonTerminatorInsn();
 };
 
-class ReadTypeDescInsn : public NonTerminatorInstruction
+class ReadTypeDescInsn : public ReadNonTerminatorInstruction
 {
 public:
   ReadTypeDescInsn() {}
@@ -370,7 +362,7 @@ public:
   TypeDescInsn* readNonTerminatorInsn();
 };
 
-class ReadStructureInsn : public NonTerminatorInstruction
+class ReadStructureInsn : public ReadNonTerminatorInstruction
 {
 public:
   ReadStructureInsn() {}

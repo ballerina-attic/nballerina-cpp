@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;
+//using std::ConstantPoolEntry::tagEnum;
 
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
@@ -82,6 +83,8 @@ uint64_t BIRReader::readS8be() {
 // Search string from the constant pool based on index
 std::string ConstantPoolSet::getStringCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
+  //using namespace ConstantPoolEntry::tagEnum;
+  assert (poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_STRING);
   StringCpInfo *stringCp = static_cast<StringCpInfo *>(poolEntry);
   return stringCp->getValue();
 }
@@ -89,6 +92,7 @@ std::string ConstantPoolSet::getStringCp(uint32_t index) {
 // Search string from the constant pool based on index
 uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
+  assert (poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER);
   IntCpInfo *intCp = static_cast<IntCpInfo *>(poolEntry);
   return intCp->getValue();
 }
@@ -97,6 +101,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index,
                                      bool voidToInt) {
   ConstantPoolEntry *poolEntry = getEntry(index);
+  assert (poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
   TypeDecl *typeDecl = new TypeDecl();
   typeDecl->setTypeDeclName(
@@ -118,6 +123,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index,
 // Get the Type tag from the constant pool based on the index passed
 typeTagEnum ConstantPoolSet::getTypeTag(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
+  assert (poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
   return shapeCp->getTypeTag();
 }
@@ -127,6 +133,7 @@ InvokableType *
 ConstantPoolSet::getInvokableType(uint32_t index) {
   InvokableType *invokableType = new InvokableType();
   ConstantPoolEntry *poolEntry = getEntry(index);
+  assert (poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
   for (unsigned int i = 0; i < shapeCp->getParamCount(); i++) {
     TypeDecl *typeDecl =
@@ -262,12 +269,6 @@ ConstantLoadInsn* ReadConstLoadInsn::readNonTerminatorInsn() {
   return constantloadInsn;
 }
 
-// Read GOTO Insn
-uint32_t BIRReader::readGotoInsn() {
-  uint32_t targetBBNameCpIndex = readS4be();
-  return targetBBNameCpIndex;
-}
-
 // Read Unary Operand
 UnaryOpInsn* ReadUnaryInsn::readNonTerminatorInsn() {
   UnaryOpInsn *unaryOpInsn = new UnaryOpInsn();
@@ -357,7 +358,7 @@ FunctionCallInsn* ReadFuncCallInsn::readTerminatorInsn() {
 
 GoToInsn* ReadGoToInsn::readTerminatorInsn() {
   GoToInsn *gotoInsn = new GoToInsn();
-  uint32_t nameId = readerRef.readGotoInsn();
+  uint32_t nameId = readerRef.readS4be();
   BIRBasicBlock *dummybasicBlock =
       new BIRBasicBlock(readerRef.constantPool->getStringCp(nameId));
   gotoInsn->setNextBB(dummybasicBlock);
@@ -552,7 +553,6 @@ BIRFunction *BIRReader::readFunction() {
   uint32_t eLine = readS4be();
   uint32_t sCol = readS4be();
   uint32_t eCol = readS4be();
-
   uint32_t sourceFileCpIndex = readS4be();
   birPackage.setSrcFileName(
       constantPool->getStringCp(sourceFileCpIndex));
@@ -583,12 +583,8 @@ BIRFunction *BIRReader::readFunction() {
   birFunction->setInvokableType(
       constantPool->getInvokableType(typeCpIndex));
 
-  uint64_t annotationLength __attribute__((unused));
-  annotationLength = readS8be();
-
-  uint32_t annotationAttachments __attribute__((unused));
-  annotationAttachments = readS4be();
-
+  uint64_t annotationLength __attribute__((unused)) = readS8be();
+  uint32_t annotationAttachments __attribute__((unused)) = readS4be();
   uint32_t requiredParamCount = readS4be();
   birFunction->setNumParams(requiredParamCount);
   // Set function param here and then fill remaining values from the default
@@ -604,30 +600,23 @@ BIRFunction *BIRReader::readFunction() {
   }
 
   uint8_t hasRestParam = readU1();
-  if (!((bool)hasRestParam))
+  if (!hasRestParam)
     birFunction->setRestParam(NULL);
 
   uint8_t hasReceiver = readU1();
-  if (!((bool)hasReceiver))
+  if (!hasReceiver)
     birFunction->setReceiver(NULL);
 
   uint64_t taintTableLength = readS8be();
+  std::vector<char> taint(taintTableLength);
+  is.read(&taint[0], taintTableLength);
 
-  std::vector<char> result(taintTableLength);
-  is.read(&result[0], taintTableLength);
+  uint32_t docLength = readS4be();
+  std::vector<char> doc(docLength);
+  is.read(&doc[0], docLength);
 
-  uint32_t docLength __attribute__((unused));
-  docLength = readS4be();
-
-  std::vector<char> result1(docLength);
-  is.read(&result1[0], docLength);
-
-  uint64_t functionBodyLength __attribute__((unused));
-  functionBodyLength = readS8be();
-
-  uint32_t argsCount __attribute__((unused));
-  argsCount = readS4be();
-
+  uint64_t functionBodyLength __attribute__((unused)) = readS8be();
+  uint32_t argsCount __attribute__((unused)) = readS4be();
   uint8_t hasReturnVar = readU1();
 
   if (hasReturnVar) {
@@ -663,7 +652,6 @@ BIRFunction *BIRReader::readFunction() {
   }
 
   uint32_t localVarCount = readS4be();
-
   std::vector<VarDecl *> localvars;
   for (unsigned int i = 0; i < localVarCount; i++) {
     VarDecl *varDecl = readLocalVar();
@@ -678,6 +666,12 @@ BIRFunction *BIRReader::readFunction() {
   for (unsigned int i = 0; i < BBCount; i++) {
     BIRBasicBlock *basicBlock = readBasicBlock(birFunction);
     birFunction->addBIRBasicBlock(basicBlock);
+    // Create links between the basic blocks
+    if (i > 0)
+    {
+      BIRBasicBlock *prevBasicBlock = birFunction->getBasicBlock(i - 1);
+      prevBasicBlock->setNextBB(basicBlock);
+    }
   }
 
   // Patching the insn
@@ -685,17 +679,12 @@ BIRFunction *BIRReader::readFunction() {
   patchInsn(basicBlocks);
 
   // Create links between Basic Block
-  for (unsigned int i = 0; i < BBCount - 1; i++) {
+  /*for (unsigned int i = 0; i < BBCount - 1; i++) {
     BIRBasicBlock *basicBlock = birFunction->getBasicBlock(i);
     basicBlock->setNextBB(birFunction->getBasicBlock(i + 1));
-  }
-
-  uint32_t errorEntriesCount __attribute__((unused));
-  errorEntriesCount = readS4be();
-
-  uint32_t channelsLength __attribute__((unused));
-  channelsLength = readS4be();
-
+  }*/
+  uint32_t errorEntriesCount __attribute__((unused)) = readS4be();
+  uint32_t channelsLength __attribute__((unused)) = readS4be();
   return birFunction;
 }
 
@@ -861,6 +850,45 @@ void ConstantPoolSet::read(BIRReader *reader) {
   }
 }
 
+// Assigns Type Decl to function parameters
+void BIRReader::patchTypesToFuncParam() {
+  for (size_t i = 0; i < birPackage.numFunctions(); i++) {
+    BIRFunction *curFunc = birPackage.getFunction(i);
+    for (size_t i = 0; i < curFunc->numBasicBlocks(); i++) {
+      BIRBasicBlock *birBasicBlock = curFunc->getBasicBlock(i);
+      for (size_t i = 0; i < birBasicBlock->numInsns(); i++) {
+        TerminatorInsn *terminator = birBasicBlock->getTerminatorInsn();
+        if (terminator && terminator->getPatchStatus()) {
+          switch (terminator->getInstKind()) {
+          case INSTRUCTION_KIND_CALL: {
+            FunctionCallInsn *Terminator =
+                (static_cast<FunctionCallInsn *>(terminator));
+            for (int i = 0; i < Terminator->getArgCount(); i++) {
+              BIRFunction *patchCallFunction =
+                  birPackage.getFunctionLookUp(Terminator->getFunctionName());
+              InvokableType *invokableType =
+                  patchCallFunction->getInvokableType();
+              for (size_t i = 0; i < invokableType->getParamTypeCount(); i++) {
+                TypeDecl *typeDecl = invokableType->getParamType(i);
+                Operand *param = Terminator->getArgumentFromList(i);
+                param->getVarDecl()->setTypeDecl(typeDecl);
+              }
+            }
+            break;
+          }
+          default:
+            fprintf(stderr,
+                    "%s:%d Invalid Insn Kind for assigning TypeDecl to "
+                    "FuncCall Insn.\n",
+                    __FILE__, __LINE__);
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
 void BIRReader::readModule() {
   uint32_t idCpIndex = readS4be();
   ConstantPoolEntry *poolEntry = constantPool->getEntry(idCpIndex);
@@ -919,56 +947,17 @@ void BIRReader::readModule() {
       delete curFunc;
   }
 
-  uint32_t annotationsSize __attribute__((unused));
-  annotationsSize = readS4be();
+  uint32_t annotationsSize __attribute__((unused)) = readS4be();
 
   // Assign typedecl to function param of call Insn
-  for (size_t i = 0; i < birPackage.numFunctions(); i++) {
-    BIRFunction *curFunc = birPackage.getFunction(i);
-    for (size_t i = 0; i < curFunc->numBasicBlocks(); i++) {
-      BIRBasicBlock *birBasicBlock = curFunc->getBasicBlock(i);
-      for (size_t i = 0; i < birBasicBlock->numInsns(); i++) {
-        TerminatorInsn *terminator = birBasicBlock->getTerminatorInsn();
-        if (terminator && terminator->getPatchStatus()) {
-          switch (terminator->getInstKind()) {
-          case INSTRUCTION_KIND_CALL: {
-            FunctionCallInsn *Terminator =
-                (static_cast<FunctionCallInsn *>(terminator));
-            for (int i = 0; i < Terminator->getArgCount(); i++) {
-              BIRFunction *patchCallFunction =
-                  birPackage.getFunctionLookUp(Terminator->getFunctionName());
-              InvokableType *invokableType =
-                  patchCallFunction->getInvokableType();
-              for (size_t i = 0; i < invokableType->getParamTypeCount(); i++) {
-                TypeDecl *typeDecl = invokableType->getParamType(i);
-                Operand *param = Terminator->getArgumentFromList(i);
-                param->getVarDecl()->setTypeDecl(typeDecl);
-              }
-            }
-            break;
-          }
-          default:
-            fprintf(stderr,
-                    "%s:%d Invalid Insn Kind for assigning TypeDecl to "
-                    "FuncCall Insn.\n",
-                    __FILE__, __LINE__);
-            break;
-          }
-        }
-      }
-    }
-  }
+  patchTypesToFuncParam();
 }
 
-void BIRReader::deserialize() {//BIRPackage *birPackageReader) {
+void BIRReader::deserialize() {
   // Read Constant Pool
   ConstantPoolSet *constantPoolSet = new ConstantPoolSet();
   constantPoolSet->read(this);
-
   setConstantPool(constantPoolSet);
-  ///setBIRPackage(birPackageReader);
-
-  //BIRReader &readerRef = BIRReader::reader;
 
   // Read Module
   readModule();
