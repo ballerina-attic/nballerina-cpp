@@ -203,14 +203,14 @@ class BIRReader {
 private:
   std::string fileName;
   std::ifstream is;
-  BIRReader() { }
+  BIRReader() {}
 
   ConstantPoolSet *constantPool;
-  VarDecl* readGlobalVar();
+  VarDecl *readGlobalVar();
   Operand *readOperand();
   VarDecl *readLocalVar();
-  TypeDescInsn* readTypeDescInsn();
-  StructureInsn* readStructureInsn();
+  TypeDescInsn *readTypeDescInsn();
+  StructureInsn *readStructureInsn();
   void readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock);
   BIRBasicBlock *readBasicBlock(BIRFunction *birFunction);
   void patchInsn(vector<BIRBasicBlock *> basicBlocks);
@@ -227,15 +227,12 @@ private:
 public:
   BIRPackage birPackage;
   static BIRReader reader;
-  static BIRReader& getInstance()
-  {
-    return reader;
-  }
+  static BIRReader &getInstance() { return reader; }
   void setFileStream(std::string FileName) {
     if (fileName == FileName)
       return;
     fileName = FileName;
-    if(is.is_open())
+    if (is.is_open())
       is.close();
     is.open(fileName, ifstream::binary);
   }
@@ -268,124 +265,109 @@ public:
   friend class ReadTypeTestInsn;
 };
 
-class ReadInsn
-{
+class ReadInsn {
 public:
- BIRReader& readerRef = BIRReader::reader;
- ReadInsn() { }
- ~ReadInsn() { }
+  BIRReader &readerRef = BIRReader::reader;
+  ReadInsn() {}
+  ~ReadInsn() {}
 };
 
-class ReadNonTerminatorInstruction : public ReadInsn
-{
+class ReadNonTerminatorInstruction : public ReadInsn {
 public:
   ReadNonTerminatorInstruction() {}
   ~ReadNonTerminatorInstruction() {}
-  virtual NonTerminatorInsn* readNonTerminatorInsn() { return NULL; }
+  virtual NonTerminatorInsn *readNonTerminatorInsn() { return NULL; }
 };
 
-class ReadTerminatorInstruction : public ReadInsn
-{
+class ReadTerminatorInstruction : public ReadInsn {
 public:
   ReadTerminatorInstruction() {}
   ~ReadTerminatorInstruction() {}
-  virtual TerminatorInsn* readTerminatorInsn() { return NULL; }
+  virtual TerminatorInsn *readTerminatorInsn() { return NULL; }
 };
 
-class ReadCondBrInsn : public ReadTerminatorInstruction
-{
+class ReadCondBrInsn : public ReadTerminatorInstruction {
 public:
   ReadCondBrInsn() {}
   ~ReadCondBrInsn() {}
-  ConditionBrInsn* readTerminatorInsn();
+  ConditionBrInsn *readTerminatorInsn();
 };
 
-class ReadFuncCallInsn : public ReadTerminatorInstruction
-{
+class ReadFuncCallInsn : public ReadTerminatorInstruction {
 public:
   ReadFuncCallInsn() {}
   ~ReadFuncCallInsn() {}
-  FunctionCallInsn* readTerminatorInsn();
+  FunctionCallInsn *readTerminatorInsn();
 };
 
-class ReadGoToInsn : public ReadTerminatorInstruction
-{
+class ReadGoToInsn : public ReadTerminatorInstruction {
 public:
   ReadGoToInsn() {}
   ~ReadGoToInsn() {}
-  GoToInsn* readTerminatorInsn();
+  GoToInsn *readTerminatorInsn();
 };
 
-class ReadReturnInsn : public ReadTerminatorInstruction
-{
+class ReadReturnInsn : public ReadTerminatorInstruction {
 public:
   ReadReturnInsn() {}
   ~ReadReturnInsn() {}
-  ReturnInsn* readTerminatorInsn();
+  ReturnInsn *readTerminatorInsn();
 };
 
-class ReadBinaryInsn : public ReadNonTerminatorInstruction
-{
+class ReadBinaryInsn : public ReadNonTerminatorInstruction {
 public:
   ReadBinaryInsn() {}
   ~ReadBinaryInsn() {}
-  BinaryOpInsn* readNonTerminatorInsn();
+  BinaryOpInsn *readNonTerminatorInsn();
 };
 
-class ReadUnaryInsn : public ReadNonTerminatorInstruction
-{
+class ReadUnaryInsn : public ReadNonTerminatorInstruction {
 public:
   ReadUnaryInsn() {}
   ~ReadUnaryInsn() {}
-  UnaryOpInsn* readNonTerminatorInsn();
+  UnaryOpInsn *readNonTerminatorInsn();
 };
 
-class ReadConstLoadInsn : public ReadNonTerminatorInstruction
-{
+class ReadConstLoadInsn : public ReadNonTerminatorInstruction {
 public:
   ReadConstLoadInsn() {}
   ~ReadConstLoadInsn() {}
-  ConstantLoadInsn* readNonTerminatorInsn();
+  ConstantLoadInsn *readNonTerminatorInsn();
 };
 
-class ReadMoveInsn : public ReadNonTerminatorInstruction
-{
+class ReadMoveInsn : public ReadNonTerminatorInstruction {
 public:
   ReadMoveInsn() {}
   ~ReadMoveInsn() {}
-  MoveInsn* readNonTerminatorInsn();
+  MoveInsn *readNonTerminatorInsn();
 };
 
-class ReadTypeDescInsn : public ReadNonTerminatorInstruction
-{
+class ReadTypeDescInsn : public ReadNonTerminatorInstruction {
 public:
   ReadTypeDescInsn() {}
   ~ReadTypeDescInsn() {}
-  TypeDescInsn* readNonTerminatorInsn();
+  TypeDescInsn *readNonTerminatorInsn();
 };
 
-class ReadStructureInsn : public ReadNonTerminatorInstruction
-{
+class ReadStructureInsn : public ReadNonTerminatorInstruction {
 public:
   ReadStructureInsn() {}
   ~ReadStructureInsn() {}
-  StructureInsn* readNonTerminatorInsn();
+  StructureInsn *readNonTerminatorInsn();
 };
 
-class ReadTypeCastInsn : public ReadNonTerminatorInstruction
-{
+class ReadTypeCastInsn : public ReadNonTerminatorInstruction {
 public:
   ReadTypeCastInsn() {}
   ~ReadTypeCastInsn() {}
-  TypeCastInsn* readNonTerminatorInsn();
+  TypeCastInsn *readNonTerminatorInsn();
 };
 
-class ReadTypeTestInsn : public ReadNonTerminatorInstruction
-{
+class ReadTypeTestInsn : public ReadNonTerminatorInstruction {
 public:
   ReadTypeTestInsn() {}
   ~ReadTypeTestInsn() {}
-  TypeTestInsn* readNonTerminatorInsn();
+  TypeTestInsn *readNonTerminatorInsn();
 };
 
 #endif // BIRREADER_H
