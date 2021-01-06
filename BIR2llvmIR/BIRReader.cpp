@@ -82,7 +82,6 @@ uint64_t BIRReader::readS8be() {
 // Search string from the constant pool based on index
 std::string ConstantPoolSet::getStringCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  // using namespace ConstantPoolEntry::tagEnum;
   assert(poolEntry->getTag() !=
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_STRING);
   StringCpInfo *stringCp = static_cast<StringCpInfo *>(poolEntry);
@@ -121,7 +120,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 }
 
 // Get the Type tag from the constant pool based on the index passed
-typeTagEnum ConstantPoolSet::getTypeTag(uint32_t index) {
+TypeTagEnum ConstantPoolSet::getTypeTag(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
   assert(poolEntry->getTag() !=
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
@@ -216,7 +215,6 @@ Operand *BIRReader::readOperand() {
     uint32_t typeCpIndex = readS4be();
     varDecl->setTypeDecl(constantPool->getTypeCp(typeCpIndex, false));
   }
-
   Operand *operand = new Operand(varDecl);
   return operand;
 }
@@ -243,13 +241,13 @@ StructureInsn *ReadStructureInsn::readNonTerminatorInsn() {
 // Read CONST_LOAD Insn
 ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
   ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn();
-  uint32_t typeCpIndex1 = readerRef.readS4be();
-  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex1, false);
+  uint32_t typeCpIndex = readerRef.readS4be();
+  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
 
   Operand *lhsOperand = readerRef.readOperand();
   lhsOperand->getVarDecl()->setTypeDecl(typeDecl);
 
-  typeTagEnum typeTag = readerRef.constantPool->getTypeTag(typeCpIndex1);
+  TypeTagEnum typeTag = readerRef.constantPool->getTypeTag(typeCpIndex);
   if (typeTag == TYPE_TAG_INT) {
     uint32_t valueCpIndex = readerRef.readS4be();
     constantloadInsn->setValue(readerRef.constantPool->getIntCp(valueCpIndex));
@@ -347,6 +345,35 @@ FunctionCallInsn *ReadFuncCallInsn::readTerminatorInsn() {
   functionCallInsn->setNextBB(dummybasicBlock);
   functionCallInsn->setPatchStatus(true);
   return functionCallInsn;
+}
+
+// Read TypeCast Insn
+TypeCastInsn *ReadTypeCastInsn::readNonTerminatorInsn() {
+  TypeCastInsn *typeCastInsn = new TypeCastInsn();
+  Operand *lhsOperand = readerRef.readOperand();
+  typeCastInsn->setLhsOperand(lhsOperand);
+  Operand *rhsOperand = readerRef.readOperand();
+  typeCastInsn->setRhsOp(rhsOperand);
+
+  uint32_t typeCpIndex = readerRef.readS4be();
+  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+  typeCastInsn->setTypeDecl(typeDecl);
+  uint8_t isCheckTypes = readerRef.readU1();
+  typeCastInsn->setTypesChecking((bool)isCheckTypes);
+  return typeCastInsn;
+}
+
+// Read Type Test Insn
+TypeTestInsn *ReadTypeTestInsn::readNonTerminatorInsn() {
+  TypeTestInsn *typeTestInsn = new TypeTestInsn();
+  uint32_t typeCpIndex = readerRef.readS4be();
+  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+  typeTestInsn->setTypeDecl(typeDecl);
+  Operand *lhsOperand = readerRef.readOperand();
+  typeTestInsn->setLhsOperand(lhsOperand);
+  Operand *rhsOperand = readerRef.readOperand();
+  typeTestInsn->setRhsOp(rhsOperand);
+  return typeTestInsn;
 }
 
 GoToInsn *ReadGoToInsn::readTerminatorInsn() {
@@ -469,16 +496,16 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     break;
   }
   case INSTRUCTION_KIND_TYPE_CAST: {
-    TypeCastInsn *typeCastInsn = new TypeCastInsn();
-    typeCastInsn->setInstKind((InstructionKind)insnKind);
-    readTypeCast(typeCastInsn, constantPool);
+    ReadTypeCastInsn *readTypeCastInsn = new ReadTypeCastInsn();
+    TypeCastInsn *typeCastInsn = readTypeCastInsn->readNonTerminatorInsn();
+    typeCastInsn->setInstKind(insnKind);
     nonTerminatorInsn = (typeCastInsn);
     break;
   }
   case INSTRUCTION_KIND_TYPE_TEST: {
-    TypeTestInsn *typeTestInsn = new TypeTestInsn();
-    typeTestInsn->setInstKind((InstructionKind)insnKind);
-    readTypeTest(typeTestInsn, constantPool);
+    ReadTypeTestInsn *readTypeTestInsn = new ReadTypeTestInsn();
+    TypeTestInsn *typeTestInsn = readTypeTestInsn->readNonTerminatorInsn();
+    typeTestInsn->setInstKind(insnKind);
     nonTerminatorInsn = (typeTestInsn);
     break;
   }
@@ -680,11 +707,6 @@ BIRFunction *BIRReader::readFunction() {
   vector<BIRBasicBlock *> basicBlocks = birFunction->getBasicBlocks();
   patchInsn(basicBlocks);
 
-  // Create links between Basic Block
-  /*for (unsigned int i = 0; i < BBCount - 1; i++) {
-    BIRBasicBlock *basicBlock = birFunction->getBasicBlock(i);
-    basicBlock->setNextBB(birFunction->getBasicBlock(i + 1));
-  }*/
   uint32_t errorEntriesCount __attribute__((unused)) = readS4be();
   uint32_t channelsLength __attribute__((unused)) = readS4be();
   return birFunction;
@@ -699,7 +721,7 @@ void StringCpInfo::read(BIRReader *reader) {
 
 void ShapeCpInfo::read(BIRReader *reader) {
   shapeLength = reader->readS4be();
-  typeTag = static_cast<typeTagEnum>(reader->readU1());
+  typeTag = static_cast<TypeTagEnum>(reader->readU1());
   nameIndex = reader->readS4be();
   typeFlag = reader->readS4be();
   typeSpecialFlag = reader->readS4be();
@@ -963,14 +985,4 @@ void BIRReader::deserialize() {
 
   // Read Module
   readModule();
-}
-
-void BIRReader::deserialize(BIRPackage *birPackage) {
-  is.open(fileName, ifstream::binary);
-
-  ConstantPoolSet *constantPool = new ConstantPoolSet();
-  constantPool->read();
-
-  // Read module
-  readModule(birPackage, constantPool);
 }

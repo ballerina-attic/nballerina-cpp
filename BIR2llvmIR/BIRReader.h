@@ -59,7 +59,7 @@ public:
 private:
   uint32_t shapeLength;
   std::string value;
-  typeTagEnum typeTag;
+  TypeTagEnum typeTag;
   uint32_t nameIndex;
   uint32_t typeFlag;
   uint32_t typeSpecialFlag;
@@ -72,7 +72,7 @@ private:
 public:
   uint32_t getShapeLength() { return shapeLength; }
   std::string getValue() { return value; }
-  typeTagEnum getTypeTag() { return typeTag; }
+  TypeTagEnum getTypeTag() { return typeTag; }
   uint32_t getNameIndex() { return nameIndex; }
   uint32_t getTypeFlag() { return typeFlag; }
   uint32_t getTypeSpecialFlag() { return typeSpecialFlag; }
@@ -85,7 +85,7 @@ public:
 
   void setShapeLength(uint32_t s) { shapeLength = s; }
   void setValue(std::string v) { value = v; }
-  void setTypeTag(typeTagEnum t) { typeTag = t; }
+  void setTypeTag(TypeTagEnum t) { typeTag = t; }
   void setNameIndex(uint32_t n) { nameIndex = n; }
   void setTypeFlag(uint32_t t) { typeFlag = t; }
   void setTypeSpecialFlag(uint32_t t) { typeSpecialFlag = t; }
@@ -195,7 +195,7 @@ public:
   std::string getStringCp(uint32_t index);
   uint32_t getIntCp(uint32_t index);
   TypeDecl *getTypeCp(uint32_t index, bool voidToInt);
-  typeTagEnum getTypeTag(uint32_t index);
+  TypeTagEnum getTypeTag(uint32_t index);
   InvokableType *getInvokableType(uint32_t index);
 };
 
@@ -264,6 +264,8 @@ public:
   friend class ReadStructureInsn;
   friend class ReadGoToInsn;
   friend class ReadReturnInsn;
+  friend class ReadTypeCastInsn;
+  friend class ReadTypeTestInsn;
 };
 
 class ReadInsn
@@ -368,6 +370,22 @@ public:
   ReadStructureInsn() {}
   ~ReadStructureInsn() {}
   StructureInsn* readNonTerminatorInsn();
+};
+
+class ReadTypeCastInsn : public ReadNonTerminatorInstruction
+{
+public:
+  ReadTypeCastInsn() {}
+  ~ReadTypeCastInsn() {}
+  TypeCastInsn* readNonTerminatorInsn();
+};
+
+class ReadTypeTestInsn : public ReadNonTerminatorInstruction
+{
+public:
+  ReadTypeTestInsn() {}
+  ~ReadTypeTestInsn() {}
+  TypeTestInsn* readNonTerminatorInsn();
 };
 
 #endif // BIRREADER_H
