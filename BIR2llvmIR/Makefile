@@ -3,6 +3,7 @@ TOP=..
 LLVM_INCLUDES_DIR=$(TOP)/llvm-project-master/llvm/include
 LLVM_BUILD_INCLUDES_DIR=$(TOP)/build/llvm/include
 LLVM_BUILD_LIB_DIR=$(TOP)/build/llvm/lib
+NBALLERINA_BUILD_DIR=$(TOP)/build/nballerina
 
 # No user definable parameters below.
 UNAME=$(shell uname)
@@ -84,12 +85,14 @@ SRCS = llvmPackageGen.cpp \
 
 HEADERS = BIR.h BIRReader.h
 
-OBJS = $(patsubst %.cpp,%.o,$(SRCS))
+OBJS = $(patsubst %.cpp,$(NBALLERINA_BUILD_DIR)/%.o,$(SRCS))
 
-EXE = nballerinacc
+DEPS = $(patsubst %.cpp,$(NBALLERINA_BUILD_DIR)/%.d,$(SRCS))
 
-.cpp.o: $(HEADERS)
-	$(CXX) -c $(CFLAGS) -o $@ $<
+EXE = ../build/nballerina/nballerinacc
+
+$(NBALLERINA_BUILD_DIR)/%.o: %.cpp $(HEADERS)
+	$(CXX) -c $(CFLAGS) -o $@ -MD -MP -MF ${@:.o=.d} $<
 
 $(EXE): $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o $@
@@ -98,3 +101,8 @@ all: $(EXE)
 
 clean:
 	rm -f $(OBJS) $(EXE)
+
+clobber: clean
+	rm -f $(DEPS)
+
+-include $(DEPS)
