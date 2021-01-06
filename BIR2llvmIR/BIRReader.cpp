@@ -468,6 +468,20 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     nonTerminatorInsn = NULL;
     break;
   }
+  case INSTRUCTION_KIND_TYPE_CAST: {
+    TypeCastInsn *typeCastInsn = new TypeCastInsn();
+    typeCastInsn->setInstKind((InstructionKind)insnKind);
+    readTypeCast(typeCastInsn, constantPool);
+    nonTerminatorInsn = (typeCastInsn);
+    break;
+  }
+  case INSTRUCTION_KIND_TYPE_TEST: {
+    TypeTestInsn *typeTestInsn = new TypeTestInsn();
+    typeTestInsn->setInstKind((InstructionKind)insnKind);
+    readTypeTest(typeTestInsn, constantPool);
+    nonTerminatorInsn = (typeTestInsn);
+    break;
+  }
   default:
     break;
   }
@@ -763,7 +777,7 @@ void ShapeCpInfo::read(BIRReader *reader) {
   }
   default:
     fprintf(stderr, "%s:%d Invalid Type Tag in shape.\n", __FILE__, __LINE__);
-    fprintf(stderr, "%d is the Type Tag.\n", (typeTagEnum)typeTag);
+    fprintf(stderr, "%d is the Type Tag.\n", (TypeTagEnum)typeTag);
     break;
   }
 }
@@ -949,4 +963,14 @@ void BIRReader::deserialize() {
 
   // Read Module
   readModule();
+}
+
+void BIRReader::deserialize(BIRPackage *birPackage) {
+  is.open(fileName, ifstream::binary);
+
+  ConstantPoolSet *constantPool = new ConstantPoolSet();
+  constantPool->read();
+
+  // Read module
+  readModule(birPackage, constantPool);
 }

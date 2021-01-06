@@ -19,6 +19,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
+#include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
 #define DEFAULT_VERSION 0
@@ -63,6 +64,8 @@ enum InstructionKind {
   INSTRUCTION_KIND_CONST_LOAD = 21,
   INSTRUCTION_KIND_NEW_STRUCTURE,
   INSTRUCTION_KIND_NEW_MAP,
+  INSTRUCTION_KIND_TYPE_CAST = 29,
+  INSTRUCTION_KIND_TYPE_TEST = 31,
   INSTRUCTION_KIND_NEW_TYPEDESC = 52,
   INSTRUCTION_KIND_BINARY_ADD = 61,
   INSTRUCTION_KIND_BINARY_SUB,
@@ -81,7 +84,7 @@ enum InstructionKind {
   INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
 }; // Enums are referred from bir-model.bal file
 
-enum typeTagEnum {
+enum TypeTagEnum {
   TYPE_TAG_INT = 1,
   TYPE_TAG_BYTE = 2,
   TYPE_TAG_FLOAT = 3,
@@ -162,7 +165,7 @@ public:
   int getEndLineNum() { return eLine; }
   int getEndColumnNum() { return eCol; }
 
-  virtual void translate(LLVMModuleRef &modRef);
+  void translate(LLVMModuleRef &modRef);
 };
 
 class BIRNode {
@@ -216,7 +219,8 @@ public:
 
   VarDecl *getVarDecl() { return varDecl; }
   void setVarDecl(VarDecl *newDecl) { varDecl = newDecl; }
-
+  string name();
+  int typeTag();
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -335,6 +339,47 @@ public:
   Operand *getRhsOp() { return rhsOp; }
 
   void setRhsOp(Operand *op) { rhsOp = op; }
+
+  void translate(LLVMModuleRef &modRef);
+};
+
+class TypeCastInsn : public NonTerminatorInsn {
+private:
+  Operand *rhsOp;
+  TypeDecl *typeDecl;
+  bool checkTypes;
+
+public:
+  TypeCastInsn();
+  TypeCastInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp,
+               TypeDecl *tDecl, bool checkTypes);
+  ~TypeCastInsn();
+
+  Operand *getRhsOp() { return rhsOp; }
+  TypeDecl *getTypeDecl() { return typeDecl; }
+  bool mustCheckTypes() { return checkTypes; }
+  void setRhsOp(Operand *op) { rhsOp = op; }
+  void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
+  void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
+
+  void translate(LLVMModuleRef &modRef);
+};
+
+class TypeTestInsn : public NonTerminatorInsn {
+private:
+  Operand *rhsOp;
+  TypeDecl *typeDecl;
+
+public:
+  TypeTestInsn();
+  TypeTestInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp,
+               TypeDecl *tDecl);
+  ~TypeTestInsn();
+
+  Operand *getRhsOp() { return rhsOp; }
+  TypeDecl *getTypeDecl() { return typeDecl; }
+  void setRhsOp(Operand *op) { rhsOp = op; }
+  void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
 
   void translate(LLVMModuleRef &modRef);
 };
@@ -650,10 +695,11 @@ public:
 
   LLVMTypeRef getLLVMTypeRefOfType(TypeDecl *typeD);
   LLVMValueRef getLocalVarRefUsingId(string locVar);
-  LLVMValueRef getLocalToTempVar(Operand *operand);
+  LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);
   void patchInsn(Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
+  VarDecl *getNameVarDecl(string opName);
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -667,6 +713,9 @@ private:
   vector<VarDecl *> globalVars;
   map<string, LLVMValueRef> globalVarRefs;
   map<string, BIRFunction *> functionLookUp;
+  StructType *structType;
+  StringTableBuilder *strBuilder;
+  map<string, vector<LLVMValueRef>> structElementStoreInst;
 
 public:
   BIRPackage();
@@ -678,7 +727,7 @@ public:
   string getPackageName() { return name; }
   string getVersion() { return version; }
   string getSrcFileName() { return sourceFileName; }
-
+  StringTableBuilder *getStrTableBuilder() { return strBuilder; }
   void setOrgName(string orgName) { org = orgName; }
   void setPackageName(string pkgName) { name = pkgName; }
   void setVersion(string verName) { version = verName; }
@@ -687,7 +736,7 @@ public:
   BIRFunction *getFunction(int i) { return functions[i]; }
   vector<VarDecl *> getGlobalVars() { return globalVars; }
   map<string, LLVMValueRef> getGlobalVarRefs() { return globalVarRefs; }
-
+  StructType *getStructType() { return structType; }
   void setFunctions(vector<BIRFunction *> f) { functions = f; }
   void addFunction(BIRFunction *f) { functions.push_back(f); }
   void addGlobalVar(VarDecl *g) { globalVars.push_back(g); }
@@ -700,6 +749,8 @@ public:
   }
   size_t numFunctions() { return functions.size(); }
   LLVMValueRef getGlobalVarRefUsingId(string globVar);
+  void addStringOffsetRelocationEntry(string eleType, LLVMValueRef storeInsn);
+  void applyStringOffsetRelocations(LLVMModuleRef &modRef);
   void translate(LLVMModuleRef &modRef);
 };
 
