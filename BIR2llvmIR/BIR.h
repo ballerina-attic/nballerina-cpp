@@ -387,8 +387,8 @@ public:
 
 class TypeDescInsn : public NonTerminatorInsn {
 public:
-  TypeDescInsn() { }
-  ~TypeDescInsn() { }
+  TypeDescInsn() {}
+  ~TypeDescInsn() {}
 };
 
 class StructureInsn : public NonTerminatorInsn {
@@ -396,8 +396,8 @@ private:
   Operand *rhsOp;
 
 public:
-  StructureInsn() { }
-  ~StructureInsn() { }
+  StructureInsn() {}
+  ~StructureInsn() {}
   Operand *getRhsOp() { return rhsOp; }
   void setRhsOp(Operand *op) { rhsOp = op; }
 };

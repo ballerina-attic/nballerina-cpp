@@ -10,8 +10,7 @@ BIRFunction::BIRFunction(Location *pos, string namep, int flagsp,
 BIRFunction::BIRFunction(const BIRFunction &) {}
 
 // Search basic block based on the basic block ID
-BIRBasicBlock *BIRFunction::searchBb(std::string name)
-{
+BIRBasicBlock *BIRFunction::searchBb(std::string name) {
   std::vector<BIRBasicBlock *>::iterator itr;
   for (itr = basicBlocks.begin(); itr != basicBlocks.end(); itr++) {
     if ((*itr)->getId() == name) {
