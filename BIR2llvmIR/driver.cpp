@@ -8,6 +8,8 @@
 
 using namespace std;
 
+BIRReader BIRReader::reader;
+
 int main(int argc, char **argv) {
   int opt;
   string inFileName = "";
@@ -50,19 +52,19 @@ int main(int argc, char **argv) {
     outFileName = outFileName + ".ll";
   }
 
-  BIRReader *reader = new BIRReader(inFileName);
-  BIRPackage *birPackage = new BIRPackage();
-  reader->deserialize(birPackage);
+  BIRReader::reader.setFileStream(inFileName);
+  BIRReader::reader.deserialize();
+  BIRPackage &birPackage = BIRReader::reader.birPackage;
   char *message;
   bool dumpLlvm = true; // temp value
-  string moduleName = birPackage->getOrgName() + birPackage->getPackageName() +
-                      birPackage->getVersion();
+  string moduleName = birPackage.getOrgName() + birPackage.getPackageName() +
+                      birPackage.getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
-  LLVMSetSourceFileName(mod, birPackage->getSrcFileName().c_str(),
-                        birPackage->getSrcFileName().length());
+  LLVMSetSourceFileName(mod, birPackage.getSrcFileName().c_str(),
+                        birPackage.getSrcFileName().length());
   LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
   LLVMSetTarget(mod, "x86_64-pc-linux-gnu");
-  birPackage->translate(mod);
+  birPackage.translate(mod);
 
   if (dumpLlvm) {
     if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &message)) {
