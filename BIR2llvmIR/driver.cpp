@@ -54,18 +54,17 @@ int main(int argc, char **argv) {
 
   BIRReader::reader.setFileStream(inFileName);
   BIRReader::reader.deserialize();
+  BIRPackage &birPackage = BIRReader::reader.birPackage;
   char *message;
   bool dumpLlvm = true; // temp value
-  string moduleName = BIRReader::reader.birPackage.getOrgName() +
-                      BIRReader::reader.birPackage.getPackageName() +
-                      BIRReader::reader.birPackage.getVersion();
+  string moduleName = birPackage.getOrgName() + birPackage.getPackageName() +
+                      birPackage.getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
-  LLVMSetSourceFileName(mod,
-                        BIRReader::reader.birPackage.getSrcFileName().c_str(),
-                        BIRReader::reader.birPackage.getSrcFileName().length());
+  LLVMSetSourceFileName(mod, birPackage.getSrcFileName().c_str(),
+                        birPackage.getSrcFileName().length());
   LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
   LLVMSetTarget(mod, "x86_64-pc-linux-gnu");
-  BIRReader::reader.birPackage.translate(mod);
+  birPackage.translate(mod);
 
   if (dumpLlvm) {
     if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &message)) {
