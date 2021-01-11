@@ -22,6 +22,7 @@
 #include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/IRBuilder.h"
+
 #define DEFAULT_VERSION 0
 using namespace std;
 using namespace llvm;
@@ -296,27 +297,41 @@ public:
 
 class ConstantLoadInsn : public NonTerminatorInsn {
 private:
-  int value;
-  std::string strValue;
-  double floatValue;
-  bool boolValue;
-
+  enum TypeTagEnum typeTag;
+  union value {
+    int intValue;
+    double floatValue;
+    bool boolValue;
+    string *strValue = new string();
+    value() {}
+    value(int x)	:intValue(x){ }
+    value(float x)	:floatValue(x){ }
+    value(bool x)	:boolValue(x){ }
+    value(string *x)	:strValue(x){ }
+  }val;
 public:
   ConstantLoadInsn();
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, int val);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, std::string val);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, float val);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, bool val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, int intval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, float floatval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, bool boolval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, string *strval);
   ~ConstantLoadInsn();
 
-  int getValue() { return value; }
-  std::string getStringValue() { return strValue; }
-  float getFloatValue() { return floatValue; }
-  bool getBoolValue() { return boolValue; }
-  void setValue(int val) { value = val; }
-  void setStringValue(std::string val) { strValue = val; }
-  void setFloatValue(float val) { floatValue = val; }
-  void setBoolValue(bool val) { boolValue = val; }
+  int getIntValue() 	{ return val.intValue; }
+  float getFloatValue() { return val.floatValue; }
+  bool getBoolValue() 	{ return val.boolValue; }
+  string *getStringValue() { return val.strValue; }
+  void setIntValue(int intVal, TypeTagEnum TypeTag) 
+    { val.intValue = intVal; typeTag = TypeTag; }
+  void setFloatValue(float floatVal, TypeTagEnum TypeTag) 
+    { val.floatValue = floatVal; typeTag = TypeTag; }
+  void setBoolValue(bool boolVal, TypeTagEnum TypeTag) 
+    { val.boolValue = boolVal; typeTag = TypeTag; }
+  void setStringValue(string *str, TypeTagEnum TypeTag)
+    { val.strValue = str; typeTag = TypeTag; }
+  // With Nil Type setting only Type Tag because value will be zero with NIL Type. 
+  void setTypeTagNil (TypeTagEnum TypeTag) { typeTag = TypeTag; }
+  TypeTagEnum getTypeTag() { return typeTag; }
   void translate(LLVMModuleRef &modRef);
 };
 

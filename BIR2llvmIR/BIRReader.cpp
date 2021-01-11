@@ -302,25 +302,30 @@ void readConstInsn(ConstantLoadInsn *constantloadInsn,
   case TYPE_TAG_DECIMAL:
   case TYPE_TAG_BYTE: {
     uint32_t valueCpIndex = readS4be();
-    constantloadInsn->setValue(getIntCp(valueCpIndex, constantPool));
+    constantloadInsn->setIntValue(getIntCp(valueCpIndex, constantPool), typeTag);
     break;
   }
   case TYPE_TAG_BOOLEAN: {
     uint8_t valueCpIndex = readU1();
-    constantloadInsn->setBoolValue(valueCpIndex);
+    constantloadInsn->setBoolValue(valueCpIndex, typeTag);
+    break;
+  }
+  case TYPE_TAG_FLOAT: {
+    uint32_t valueCpIndex = readS4be();
+    constantloadInsn->setFloatValue(getFloatCp(valueCpIndex, constantPool), typeTag);
     break;
   }
   case TYPE_TAG_CHAR_STRING:
   case TYPE_TAG_STRING: {
     uint32_t valueCpIndex = readS4be();
-    constantloadInsn->setStringValue(getStringCp(valueCpIndex,constantPool));
+    string *strVal = new string();
+    strVal[0] = getStringCp(valueCpIndex,constantPool);
+    constantloadInsn->setStringValue(strVal, typeTag);
     break;
   }
-  case TYPE_TAG_FLOAT: {
-    uint32_t valueCpIndex = readS4be();
-    constantloadInsn->setFloatValue(getFloatCp(valueCpIndex, constantPool));
-    break;
-  }
+  // here, Value will be empty. So no need to set Value.
+  case TYPE_TAG_NIL: 
+    constantloadInsn->setTypeTagNil(typeTag);
   default:
     break;
   }

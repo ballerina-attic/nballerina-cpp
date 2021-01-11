@@ -142,10 +142,10 @@ public:
   ~FloatCpInfo();
 
 private:
-  float value;
+  double value;
 
 public:
-  float getValue() const { return value; }
+  double getValue() const { return value; }
 };
 
 class ByteCpInfo : public ConstantPoolEntry {
