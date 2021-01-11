@@ -14,6 +14,15 @@ fn is_same_type(src_type : &str, dest_type : &str) -> bool
   return same_type;
 }
 
+// Returns string object based on passed string literal
+#[no_mangle]
+pub extern "C" fn str_to_strobj(cstring : &str) -> std::string::String
+{
+  println!("{}", cstring);
+  let content_string = String::from(cstring);
+  return content_string;
+}
+
 // Prints 64 bit signed integer
 fn print64(num64 : i64)
 {
@@ -78,4 +87,9 @@ fn printf32(num32 : f32)
 fn print_str(string : &str)
 {
    println!("{}", string);
+}
+
+fn main()
+{
+  str_to_strobj("hello string literal");
 }

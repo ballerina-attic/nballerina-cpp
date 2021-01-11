@@ -321,6 +321,10 @@ void readConstInsn(ConstantLoadInsn *constantloadInsn,
     constantloadInsn->setFloatValue(getFloatCp(valueCpIndex, constantPool));
     break;
   }
+  case TYPE_TAG_NIL: {
+    constantloadInsn->setValue(0);
+    break;
+  }
   default:
     break;
   }
