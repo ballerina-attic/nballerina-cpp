@@ -4,15 +4,7 @@
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type : &str, dest_type : &str) -> bool
 {
-  let same_type:bool;
-  if src_type == dest_type {
-    same_type = true;
-  }
-  else
-  {
-    same_type = false;
-  }
-  return same_type;
+  return src_type == dest_type;;
 }
 
 // Returns string object based on passed string literal
