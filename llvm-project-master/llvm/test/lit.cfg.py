@@ -85,6 +85,8 @@ def get_asan_rtlib():
 
 llvm_config.use_default_substitutions()
 
+#some_var = os.environ.get('$WORK_PATH')
+#config.substitutions.append(('$WORK_PATH', config.work_path))
 # Add site-specific substitutions.
 config.substitutions.append(('%llvmshlibdir', config.llvm_shlib_dir))
 config.substitutions.append(('%shlibext', config.llvm_shlib_ext))
