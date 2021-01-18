@@ -18,6 +18,9 @@ ReadTypeDescInsn ReadTypeDescInsn::readTypeDescInsn;
 ReadStructureInsn ReadStructureInsn::readStructureInsn;
 ReadTypeCastInsn ReadTypeCastInsn::readTypeCastInsn;
 ReadTypeTestInsn ReadTypeTestInsn::readTypeTestInsn;
+ReadArrayInsn ReadArrayInsn::readArrayInsn;
+ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
+ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
@@ -439,6 +442,47 @@ TypeTestInsn *ReadTypeTestInsn::readNonTerminatorInsn() {
   return typeTestInsn;
 }
 
+// Read Array Insn
+ArrayInsn *ReadArrayInsn::readNonTerminatorInsn() {
+  ArrayInsn *arrayInsn = new ArrayInsn();
+  uint32_t typeCpIndex = readerRef.readS4be();
+  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+  arrayInsn->setTypeDecl(typeDecl);
+  Operand *lhsOperand = readerRef.readOperand();
+  arrayInsn->setLhsOperand(lhsOperand);
+  Operand *sizeOperand = readerRef.readOperand();
+  arrayInsn->setSizeOp(sizeOperand);
+  return arrayInsn;
+}
+
+// Read Array Store Insn
+ArrayStoreInsn *ReadArrayStoreInsn::readNonTerminatorInsn() {
+  ArrayStoreInsn *arrayStoreInsn = new ArrayStoreInsn();
+  Operand *lhsOperand = readerRef.readOperand();
+  arrayStoreInsn->setLhsOperand(lhsOperand);
+  Operand *keyOperand = readerRef.readOperand();
+  arrayStoreInsn->setKeyOp(keyOperand);
+  Operand *rhsOperand = readerRef.readOperand();
+  arrayStoreInsn->setRhsOperand(rhsOperand);
+  return arrayStoreInsn;
+}
+
+// Read Array Load Insn
+ArrayLoadInsn *ReadArrayLoadInsn::readNonTerminatorInsn() {
+  ArrayLoadInsn *arrayLoadInsn = new ArrayLoadInsn();
+  uint8_t optionalFieldAccess = readerRef.read_u1();
+  arrayLoadInsn->setOptionalFieldAcces((bool)optionalFieldAccess);
+  uint8_t fillingRead = readerRef.read_u1();
+  arrayLoadInsn->setFillingRead((bool)fillingRead);
+  Operand *lhsOperand = readerRef.readOperand();
+  arrayLoadInsn->setLhsOperand(lhsOperand);
+  Operand *keyOperand = readerRef.readOperand();
+  arrayLoadInsn->setKeyOp(keyOperand);
+  Operand *rhsOperand = readerRef.readOperand();
+  arrayLoadInsn->setRhsOperand(rhsOperand);
+  return arrayLoadInsn;
+}
+
 GoToInsn *ReadGoToInsn::readTerminatorInsn() {
   GoToInsn *gotoInsn = new GoToInsn();
   uint32_t nameId = readerRef.readS4be();
@@ -567,6 +611,27 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
         ReadTypeTestInsn::readTypeTestInsn.readNonTerminatorInsn();
     typeTestInsn->setInstKind(insnKind);
     nonTerminatorInsn = (typeTestInsn);
+    break;
+  }
+  case INSTRUCTION_KIND_NEW_ARRAY: {
+    ArrayInsn *arrayInsn =
+        ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
+    arrayInsn->setInstKind(insnKind);
+    nonTerminatorInsn = (arrayInsn);
+    break;
+  }
+  case INSTRUCTION_KIND_ARRAY_STORE: {
+    ArrayStoreInsn *arrayStoreInsn =
+        ReadArrayStoreInsn::readArrayStoreInsn.readNonTerminatorInsn();
+    arrayStoreInsn->setInstKind(insnKind);
+    nonTerminatorInsn = (arrayStoreInsn);
+    break;
+  }
+  case INSTRUCTION_KIND_ARRAY_LOAD: {
+    ArrayLoadInsn *arrayLoadInsn =
+        ReadArrayLoadInsn::readArrayLoadInsn.readNonTerminatorInsn();
+    arrayLoadInsn->setInstKind(insnKind);
+    nonTerminatorInsn = (arrayLoadInsn);
     break;
   }
   default:
