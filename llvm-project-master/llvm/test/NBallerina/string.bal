@@ -1,4 +1,4 @@
-// RUN: ./../../../../../BIR2llvmIR/testRunScript.sh %s -o - | FileCheck %s
+// RUN: ./../../../../BIR2llvmIR/testRunScript.sh %s -o - | FileCheck %s
 
 public function main() {
   string str = "Hello World!";

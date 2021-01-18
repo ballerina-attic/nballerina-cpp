@@ -1,4 +1,4 @@
-// RUN: ./../../../../../BIR2llvmIR/testRunScript.sh %s -o - | FileCheck %s
+// RUN: ./../../../../BIR2llvmIR/testRunScript.sh %s -o - | FileCheck %s
 
 int _bal_result = 0;
 public function bar(any l) returns int
