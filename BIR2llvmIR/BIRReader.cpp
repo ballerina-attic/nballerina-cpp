@@ -120,7 +120,7 @@ float ConstantPoolSet::getFloatCp(uint32_t index) {
   return floatCp->getValue();
 }
 
-// Search string from the constant pool based on index
+// Search boolean from the constant pool based on index
 bool ConstantPoolSet::getBooleanCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
   assert(poolEntry->getTag() !=
