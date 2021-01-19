@@ -819,6 +819,7 @@ void PackageCpInfo::read() {
   orgIndex = readerRef.readS4be();
   nameIndex = readerRef.readS4be();
   versionIndex = readerRef.readS4be();
+  setTag(TAG_ENUM_CP_ENTRY_PACKAGE);
 }
 
 void IntCpInfo::read() { value = readerRef.readS8be(); }
