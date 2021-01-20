@@ -132,7 +132,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   }
 
   // creating branch to next basic block.
-  if (basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
+  if (basicBlocks.size() != 0 && basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
     LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
