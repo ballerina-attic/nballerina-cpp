@@ -1,23 +1,11 @@
 #!/bin/bash
-echo "Input file name is $1"
+# echo "Input file name is $1"
 FILE=$(basename $1)
 filename="${FILE%.*}"
 
-JAVA_HOME=$(realpath $JAVA_HOME)
-
-if [ -z "$JAVA_HOME"]
+if [ -z "$JAVA_HOME" ]
 then
   echo "\$JAVA_HOME not set."
-  exit 1
-fi
-
-export JAVA_HOME=$JAVA_HOME
-
-WORK_PATH=$(realpath $WORK_PATH)
-
-if [ -z "$WORK_PATH"]
-then
-  echo "\$WORK_PATH not set."
   exit 1
 fi
 
@@ -29,7 +17,7 @@ then
   exit 1
 fi
 
-$WORK_PATH/../build/nballerina/./nballerinacc $filename-bir-dump  2>err.log
+$2 $filename-bir-dump  2>err.log
 
 if [ -s ./err.log ]
 then
@@ -48,4 +36,4 @@ fi
 ./$filename.out
 echo RETVAL=$?
 
-rm $filename-bir-dump.ll $filename-bir-dump $filename.jar ./$filename.out
+rm $filename-bir-dump.ll $filename-bir-dump $filename.out $filename.jar

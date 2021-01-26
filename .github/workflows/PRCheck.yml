@@ -9,37 +9,14 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Install utils
-        run: (sudo apt install -y ccache && sudo /usr/sbin/update-ccache-symlinks)
+        run: (sudo apt update && sudo apt install -y llvm-11-dev)
 
       - name: Clone nballerina repository
         id : cache-nballerina
         uses: actions/checkout@v2
 
-      - name: Cache LLVM Build
-        uses: actions/cache@v2
-        with:
-          path: ~/.llvm       
-          key: LLVM12
-
-      - name: Install LLVM
-        run: (cd $HOME && wget http://ftp.br.debian.org/debian/pool/main/l/llvm-toolchain-11/llvm-11-dev_11.0.1-2_amd64.deb && dpkg -x llvm-11-dev_11.0.1-2_amd64.deb $HOME/llvm-11-dev)
-
-      - name: Install LLVM Tools
-        run: (cd $HOME && wget http://ftp.br.debian.org/debian/pool/main/l/llvm-toolchain-11/llvm-11-tools_11.0.1-2_amd64.deb && dpkg -x llvm-11-tools_11.0.1-2_amd64.deb $HOME/llvm-11-tools)
-          
-      - name: Build LLVM and nballerina compiler
-        run: (export LLVM_INSTALL_ROOT="$GITHUB_WORKSPACE/build/llvm_install" && mkdir -p "$GITHUB_WORKSPACE/build/llvm" && cd "$GITHUB_WORKSPACE/build/llvm" &&
-            cmake -DCMAKE_BUILD_TYPE="Release"
-            -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_ROOT"
-            -DLLVM_CCACHE_BUILD=True
-            -DLLVM_CCACHE_DIR=~/.llvm
-            -DBUILD_SHARED_LIBS=True
-            -DLLVM_USE_SPLIT_DWARF=True
-            -DLLVM_OPTIMIZED_TABLEGEN=True
-            -DLLVM_BUILD_TESTS=True
-            "$GITHUB_WORKSPACE/llvm-project-master/llvm" &&
-            make -j$(nproc) &&
-            make install && cd "$GITHUB_WORKSPACE/BIR2llvmIR" && make -j$(nproc))
+      - name: nballerina compiler
+        run: (cd "$GITHUB_WORKSPACE/build" && cmake -DCMAKE_BUILD_TYPE="Release" ../ && make)
