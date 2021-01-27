@@ -463,23 +463,23 @@ ArrayStoreInsn *ReadArrayStoreInsn::readNonTerminatorInsn() {
   Operand *keyOperand = readerRef.readOperand();
   arrayStoreInsn->setKeyOp(keyOperand);
   Operand *rhsOperand = readerRef.readOperand();
-  arrayStoreInsn->setRhsOperand(rhsOperand);
+  arrayStoreInsn->setRhsOp(rhsOperand);
   return arrayStoreInsn;
 }
 
 // Read Array Load Insn
 ArrayLoadInsn *ReadArrayLoadInsn::readNonTerminatorInsn() {
   ArrayLoadInsn *arrayLoadInsn = new ArrayLoadInsn();
-  uint8_t optionalFieldAccess = readerRef.read_u1();
-  arrayLoadInsn->setOptionalFieldAcces((bool)optionalFieldAccess);
-  uint8_t fillingRead = readerRef.read_u1();
+  uint8_t optionalFieldAccess = readerRef.readU1();
+  arrayLoadInsn->setOptionalFieldAccess((bool)optionalFieldAccess);
+  uint8_t fillingRead = readerRef.readU1();
   arrayLoadInsn->setFillingRead((bool)fillingRead);
   Operand *lhsOperand = readerRef.readOperand();
   arrayLoadInsn->setLhsOperand(lhsOperand);
   Operand *keyOperand = readerRef.readOperand();
   arrayLoadInsn->setKeyOp(keyOperand);
   Operand *rhsOperand = readerRef.readOperand();
-  arrayLoadInsn->setRhsOperand(rhsOperand);
+  arrayLoadInsn->setRhsOp(rhsOperand);
   return arrayLoadInsn;
 }
 

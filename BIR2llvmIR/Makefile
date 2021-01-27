@@ -3,6 +3,8 @@ TOP=..
 LLVM_INCLUDES_DIR=$(TOP)/llvm-project-master/llvm/include
 LLVM_BUILD_INCLUDES_DIR=$(TOP)/build/llvm/include
 LLVM_BUILD_LIB_DIR=$(TOP)/build/llvm/lib
+NBALLERINA_BUILD_DIR=$(TOP)/build/nballerina
+RUST_BUILD_DIR=$(TOP)/runtime
 
 # No user definable parameters below.
 UNAME=$(shell uname)
@@ -12,8 +14,9 @@ endif
 
 PARALLEL_MAKE=make -j 20
 CXX=g++
+RUST=rustc
 CFLAGS=-g -Wall -I. -I$(LLVM_INCLUDES_DIR) -I$(LLVM_BUILD_INCLUDES_DIR)
-LDFLAGS= -L$(LLVM_BUILD_LIB_DIR) $(LIBS) 
+LDFLAGS= -L$(LLVM_BUILD_LIB_DIR) $(LIBS) -L$(RUST_BUILD_DIR) 
 LIBS= -lLLVMXRay -lLLVMWindowsManifest -lLLVMTestingSupport -lLLVMTableGen \
       -lLLVMSymbolize -lLLVMDebugInfoPDB -lLLVMOrcJIT -lLLVMOrcError -lLLVMJITLink \
       -lLLVMObjectYAML -lLLVMMCA -lLLVMLTO -lLLVMPasses -lLLVMCoroutines \
@@ -79,22 +82,34 @@ SRCS = llvmPackageGen.cpp \
        llvmFunctionCallInsn.cpp \
        llvmTypeCastInsn.cpp \
        llvmTypeTestInsn.cpp \
+       llvmArrayTypeInsn.cpp \
+       llvmArrayLoadInsn.cpp \
+       llvmArrayStoreInsn.cpp \
        BIRReader.cpp \
        driver.cpp
 
 HEADERS = BIR.h BIRReader.h
 
-OBJS = $(patsubst %.cpp,%.o,$(SRCS))
+OBJS = $(patsubst %.cpp,$(NBALLERINA_BUILD_DIR)/%.o,$(SRCS))
 
-EXE = nballerinacc
+DEPS = $(patsubst %.cpp,$(NBALLERINA_BUILD_DIR)/%.d,$(SRCS))
 
-.cpp.o: $(HEADERS)
-	$(CXX) -c $(CFLAGS) -o $@ $<
+EXE = ../build/nballerina/nballerinacc
+
+$(NBALLERINA_BUILD_DIR)/%.o: %.cpp $(HEADERS)
+	$(CXX) -c $(CFLAGS) -o $@ -MD -MP -MF ${@:.o=.d} $<
 
 $(EXE): $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o $@
 
 all: $(EXE)
 
+buildrust:
+	$(RUST) --crate-type=dylib $(RUST_BUILD_DIR)/lib.rs
 clean:
 	rm -f $(OBJS) $(EXE)
+
+clobber: clean
+	rm -f $(DEPS)
+
+-include $(DEPS)

@@ -22,6 +22,8 @@
 #include "llvm/IR/Type.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Config/llvm-config.h"
+#include "llvm/ADT/Triple.h"
 
 #define DEFAULT_VERSION 0
 using namespace std;
@@ -65,6 +67,9 @@ enum InstructionKind {
   INSTRUCTION_KIND_CONST_LOAD = 21,
   INSTRUCTION_KIND_NEW_STRUCTURE,
   INSTRUCTION_KIND_NEW_MAP,
+  INSTRUCTION_KIND_NEW_ARRAY = 25,
+  INSTRUCTION_KIND_ARRAY_STORE = 26,
+  INSTRUCTION_KIND_ARRAY_LOAD = 27,
   INSTRUCTION_KIND_TYPE_CAST = 29,
   INSTRUCTION_KIND_TYPE_TEST = 31,
   INSTRUCTION_KIND_NEW_TYPEDESC = 52,
@@ -246,7 +251,6 @@ public:
   void setInstKind(InstructionKind newKind) { kind = newKind; }
   void setLhsOperand(Operand *lOp) { lhsOp = lOp; }
   void setCurrentBB(BIRBasicBlock *currB) { currentBB = currB; }
-
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -421,6 +425,66 @@ public:
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
 
   void translate(LLVMModuleRef &modRef);
+};
+
+class ArrayInsn : public NonTerminatorInsn {
+private:
+  Operand *sizeOp;
+  TypeDecl *typeDecl;
+public:
+  ArrayInsn();
+  ArrayInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                  Operand *sOp, TypeDecl *TDecl);
+  void setSizeOp(Operand *Size) { sizeOp = Size; }
+  void setTypeDecl(TypeDecl *Type) { typeDecl = Type; }
+
+  Operand *getSizeOp() { return sizeOp; }
+  TypeDecl *getTypeDecl() { return typeDecl; }
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getNewArrayDeclaration (LLVMModuleRef &modRef, BIRPackage *pkg);
+  ~ArrayInsn();
+};
+
+class ArrayLoadInsn : public NonTerminatorInsn {
+private:
+  bool optionalFieldAccess;
+  bool fillingRead;
+  Operand* keyOp;
+  Operand* rhsOp;
+public:
+  ArrayLoadInsn();
+  ArrayLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                  bool opFA, bool fR, Operand* KOp, Operand* ROp);
+  void setOptionalFieldAccess (bool OpFAccess) {
+    optionalFieldAccess = OpFAccess;
+  }
+  void setFillingRead (bool fRead) { fillingRead = fRead; }
+  void setKeyOp (Operand* kOp) { keyOp = kOp; }
+  void setRhsOp (Operand* rOp) { rhsOp = rOp; }
+  bool getOptionalFieldAccess () { return optionalFieldAccess; }
+  bool getFillingRead () { return fillingRead; }
+  Operand* getKeyOp () { return keyOp; }
+  Operand* getRhsOp () { return rhsOp; }
+  ~ArrayLoadInsn();
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getArrayLoadDeclaration (LLVMModuleRef &modRef, BIRPackage *pkg);
+};
+
+class ArrayStoreInsn : public NonTerminatorInsn {
+private:
+  Operand* keyOp;
+  Operand* rhsOp;
+public:
+  ArrayStoreInsn();
+  ArrayStoreInsn(Location *pos, InstructionKind kind, Operand *lOp, 
+		  Operand* KOp, Operand* ROp);
+  void setKeyOp (Operand* kOp) { keyOp = kOp; }
+  void setRhsOp (Operand* rOp) { rhsOp = rOp; }
+  Operand* getKeyOp () { return keyOp; }
+  Operand* getRhsOp () { return rhsOp; }
+  ~ArrayStoreInsn();
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getArrayStoreDeclaration (LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
 class ConditionBrInsn : public TerminatorInsn {
@@ -665,6 +729,7 @@ private:
   int paramCount;
   vector<VarDecl *> localVars;
   VarDecl *returnVar;
+
   vector<BIRBasicBlock *> basicBlocks;
   string workerName;
   LLVMBuilderRef builder;
@@ -756,7 +821,7 @@ private:
   StructType *structType;
   StringTableBuilder *strBuilder;
   map<string, vector<LLVMValueRef>> structElementStoreInst;
-
+  map<string, LLVMValueRef> arrayFunctionRefs; 
 public:
   BIRPackage();
   BIRPackage(string orgName, string pkgName, string verName,
@@ -791,6 +856,11 @@ public:
   LLVMValueRef getGlobalVarRefUsingId(string globVar);
   void addStringOffsetRelocationEntry(string eleType, LLVMValueRef storeInsn);
   void applyStringOffsetRelocations(LLVMModuleRef &modRef);
+  void addArrayFunctionRef(string arrayName, LLVMValueRef functionRef){
+    arrayFunctionRefs.insert(std::pair<string, LLVMValueRef>(arrayName, functionRef));
+  }
+  LLVMValueRef getFunctionRefBasedOnName (string arrayName);
+  map<string, LLVMValueRef> getArrayFuncRefMap() { return arrayFunctionRefs; }
   void translate(LLVMModuleRef &modRef);
 };
 

@@ -150,4 +150,14 @@ void BIRPackage::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
   }
 }
 
+LLVMValueRef BIRPackage::getFunctionRefBasedOnName (string arrayName) {
+  map<string, LLVMValueRef>::iterator it;
+  it = arrayFunctionRefs.find(arrayName);
+
+  if (it == arrayFunctionRefs.end()) {
+    return NULL;
+  } else
+    return it->second;
+}
+
 BIRPackage::~BIRPackage() {}
