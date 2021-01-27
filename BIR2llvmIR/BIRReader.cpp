@@ -114,7 +114,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
   return intCp->getValue();
 }
 
-// Search string from the constant pool based on index
+// Search float from the constant pool based on index
 float ConstantPoolSet::getFloatCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
   assert(poolEntry->getTag() !=
@@ -123,7 +123,7 @@ float ConstantPoolSet::getFloatCp(uint32_t index) {
   return floatCp->getValue();
 }
 
-// Search string from the constant pool based on index
+// Search boolean from the constant pool based on index
 bool ConstantPoolSet::getBooleanCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
   assert(poolEntry->getTag() !=
