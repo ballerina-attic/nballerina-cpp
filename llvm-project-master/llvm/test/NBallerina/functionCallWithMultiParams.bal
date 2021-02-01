@@ -7,9 +7,9 @@ public function bar(int x, int y, int z) returns int
 }
 
 public function main() {
-  int a = 5;
-  int b = 10;
-  _bal_result = bar(a,b,a);
+    int a = 5;
+    int b = 10;
+    _bal_result = bar(a, b, a);
 }
 // CHECK: RETVAL
 // CHECK-SAME: 55

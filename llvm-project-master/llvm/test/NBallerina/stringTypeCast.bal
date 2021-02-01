@@ -7,8 +7,8 @@ public function bar(any z) returns string
 }
 
 public function main() {
-  string b = "Hello Wolrd";
-  string c = bar(b);
+    string b = "Hello Wolrd";
+    string c = bar(b);
 }
 
 // CHECK: RETVAL

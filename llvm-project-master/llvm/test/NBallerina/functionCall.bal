@@ -7,8 +7,8 @@ public function bar(int z) returns int
 }
 
 public function main() {
-  int a = 5;
-  _bal_result = bar(a);
+    int a = 5;
+    _bal_result = bar(a);
 }
 // CHECK: RETVAL
 // CHECK-SAME: 15

@@ -5,10 +5,10 @@ public function main() {
     int a = 42;
     int b = 22;
     if (a < b) {
-      _bal_result = a;
+        _bal_result = a;
     }
     else {
-      _bal_result = b;
+        _bal_result = b;
     }
 }
 // CHECK: RETVAL

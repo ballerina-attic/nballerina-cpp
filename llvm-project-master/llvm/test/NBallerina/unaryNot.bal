@@ -6,10 +6,10 @@ public function main() {
     boolean f = false;
     e = !f;
     if (e) {
-      _bal_result = 0;
+        _bal_result = 0;
     }
     else {
-     _bal_result = 1;
+        _bal_result = 1;
     }
 }
 // CHECK: RETVAL

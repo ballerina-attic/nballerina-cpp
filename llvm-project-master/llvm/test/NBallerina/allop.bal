@@ -8,7 +8,7 @@ public function main() {
     int i = 0;
     boolean e = false;
     boolean f = false;
-    c  = a + b;
+    c = a + b;
     c = a - b;
     c = a * b;
     c = a / b;
@@ -17,25 +17,25 @@ public function main() {
     e = !f;
     b = ~a;
     if (a == 10) {
-      c = b;
+        c = b;
     }
     if (a < b) {
-      e = false;
+        e = false;
     }
     if (a > b) {
-      f = true;
+        f = true;
     }
-    if ( a <= b) {
-      e = true;
+    if (a <= b) {
+        e = true;
     }
     if (a >= b) {
-      f = false;
+        f = false;
     }
     else {
-      f = true;
+        f = true;
     }
     while (i < 10) {
-      i = i + 1;
+        i = i + 1;
     }
     _bal_result = a;
 }

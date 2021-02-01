@@ -7,8 +7,8 @@ public function bar(any z) returns boolean
 }
 
 public function main() {
-  boolean b = true;
-  _bal_result = bar(b);
+    boolean b = true;
+    _bal_result = bar(b);
 }
 
 // CHECK: RETVAL

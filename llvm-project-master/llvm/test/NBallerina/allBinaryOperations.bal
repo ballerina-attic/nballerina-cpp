@@ -2,7 +2,7 @@
 
 int _bal_result = 0;
 public function main() {
-   int a = 10;
+    int a = 10;
     int b = 5;
     int c = 0;
 

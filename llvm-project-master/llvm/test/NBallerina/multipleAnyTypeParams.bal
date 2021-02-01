@@ -7,10 +7,10 @@ public function bar(any l, int m, any n) returns int
 }
 
 public function main() {
-  int a = 35;
-  int b = 2;
-  int c = 10;
-  _bal_result = bar(a,b,c);
+    int a = 35;
+    int b = 2;
+    int c = 10;
+    _bal_result = bar(a, b, c);
 }
 // CHECK: RETVAL
 // CHECK-SAME: 47
