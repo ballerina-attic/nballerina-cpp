@@ -43,6 +43,8 @@ LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand) {
   string refOp = operand->getVarDecl()->getVarName();
   string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
+  if(!locVRef)
+    locVRef = getPkgAddress()->getGlobalVarRefUsingId(refOp);
   return LLVMBuildLoad(builder, locVRef, tempName.c_str());
 }
 

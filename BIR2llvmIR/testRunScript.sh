@@ -29,7 +29,7 @@ then
   exit 1
 fi
 
-$WORK_PATH/./nballerinacc $filename-bir-dump  2>err.log
+$WORK_PATH/../build/nballerina/./nballerinacc $filename-bir-dump  2>err.log
 
 if [ -s ./err.log ]
 then
@@ -38,6 +38,12 @@ then
 fi
 
 clang -O0 -o $filename.out $filename-bir-dump.ll 2>err.log
+
+if [ -s ./err.log ]
+then
+  echo "clang error/warning. Check err.log"
+  exit 1
+fi
 
 ./$filename.out
 echo RETVAL=$?
