@@ -7,8 +7,8 @@ public function bar(any z) returns float
 }
 
 public function main() {
-  float b = 10.5;
-  float c = bar(b);
+    float b = 10.5;
+    float c = bar(b);
 }
 
 // CHECK: RETVAL

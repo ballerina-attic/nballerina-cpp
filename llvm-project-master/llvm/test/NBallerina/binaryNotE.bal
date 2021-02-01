@@ -5,7 +5,7 @@ public function main() {
     int a = 10;
     int b = 5;
     if (a != b) {
-      _bal_result = 54;
+        _bal_result = 54;
     }
 }
 // CHECK: RETVAL

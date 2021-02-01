@@ -5,10 +5,10 @@ public function main() {
     boolean e = false;
     boolean f = true;
     if (e) {
-      _bal_result = 10;
+        _bal_result = 10;
     }
     if (f) {
-      _bal_result = 20;
+        _bal_result = 20;
     }
 }
 // CHECK: RETVAL

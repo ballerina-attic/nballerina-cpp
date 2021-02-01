@@ -8,15 +8,15 @@ public function main() {
     boolean e = false;
     boolean f = true;
     if (a > b) {
-      if (f) {
-        _bal_result = a;
-      }
-      else {
-	_bal_result = b;
-      }
+        if (f) {
+            _bal_result = a;
+        }
+        else {
+            _bal_result = b;
+        }
     }
     else {
-      _bal_result = c;
+        _bal_result = c;
     }
 }
 // CHECK: RETVAL
