@@ -300,7 +300,8 @@ ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
   }
   case TYPE_TAG_BOOLEAN: {
     uint8_t valueCpIndex = readerRef.readU1();
-    constantloadInsn->setBoolValue(valueCpIndex, typeTag);
+    constantloadInsn->setBoolValue(
+	readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
     break;
   }
   case TYPE_TAG_FLOAT: {

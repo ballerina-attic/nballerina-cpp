@@ -306,7 +306,7 @@ private:
     int intValue;
     double floatValue;
     bool boolValue;
-    string *strValue = new string();
+    string *strValue;
     value() {}
     value(int x) : intValue(x) {}
     value(float x) : floatValue(x) {}
