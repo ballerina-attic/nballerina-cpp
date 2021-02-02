@@ -8,37 +8,42 @@ public function main() {
     int i = 0;
     boolean e = false;
     boolean f = false;
-    c = a + b;
+    c  = a + b;
     c = a - b;
     c = a * b;
     c = a / b;
     c = a % b;
-    b = -a;
+    int g = -a;
     e = !f;
-    b = ~a;
+    int k = ~a;
     if (a == 10) {
-        c = b;
+      _bal_result = _bal_result + 1;
     }
     if (a < b) {
-        e = false;
+      e = false;
+      _bal_result = _bal_result + 1;
     }
     if (a > b) {
-        f = true;
+      f = true;
+      _bal_result = _bal_result + 1;
     }
-    if (a <= b) {
-        e = true;
+    if ( a <= b) {
+      e = true;
+      _bal_result = _bal_result + 1;
     }
     if (a >= b) {
-        f = false;
+      f = false;
+      _bal_result = _bal_result + 1;
     }
     else {
-        f = true;
+      f = true;
+      _bal_result = _bal_result + 1;
     }
     while (i < 10) {
-        i = i + 1;
+      i = i + 1;
+      _bal_result = _bal_result + 1;
     }
-    _bal_result = a;
 }
 
 // CHECK: RETVAL
-// CHECK-SAME: 10
+// CHECK-SAME: 13
