@@ -22,6 +22,8 @@ void UnaryOpInsn::translate(LLVMModuleRef &modRef) {
     builder = funcObj->getLLVMBuilder();
     lhstmpName = lhsName + "_temp";
     lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
+    if (!lhsRef)
+      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
   }
 
   if (funcObj && rhsOp)

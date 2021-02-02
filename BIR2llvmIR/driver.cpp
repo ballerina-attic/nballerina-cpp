@@ -60,10 +60,11 @@ int main(int argc, char **argv) {
   string moduleName = birPackage.getOrgName() + birPackage.getPackageName() +
                       birPackage.getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
+  const char *Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   LLVMSetSourceFileName(mod, birPackage.getSrcFileName().c_str(),
                         birPackage.getSrcFileName().length());
   LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
-  LLVMSetTarget(mod, "x86_64-pc-linux-gnu");
+  LLVMSetTarget(mod, Triple);
   birPackage.translate(mod);
 
   if (dumpLlvm) {

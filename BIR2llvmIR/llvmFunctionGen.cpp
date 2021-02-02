@@ -43,6 +43,8 @@ LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand) {
   string refOp = operand->getVarDecl()->getVarName();
   string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
+  if(!locVRef)
+    locVRef = getPkgAddress()->getGlobalVarRefUsingId(refOp);
   return LLVMBuildLoad(builder, locVRef, tempName.c_str());
 }
 
@@ -132,7 +134,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   }
 
   // creating branch to next basic block.
-  if (basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
+  if (basicBlocks.size() != 0 && basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
     LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
