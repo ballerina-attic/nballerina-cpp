@@ -107,7 +107,7 @@ public:
 class StringCpInfo : public ConstantPoolEntry {
 
 public:
-  StringCpInfo() {}
+  StringCpInfo();
   void read();
   ~StringCpInfo();
 
@@ -122,7 +122,7 @@ public:
 class ShapeCpInfo : public ConstantPoolEntry {
 
 public:
-  ShapeCpInfo() {}
+  ShapeCpInfo();
   void read();
   ~ShapeCpInfo();
 
@@ -168,11 +168,7 @@ public:
 class PackageCpInfo : public ConstantPoolEntry {
 
 public:
-  PackageCpInfo() {
-    orgIndex = 0;
-    nameIndex = 0;
-    versionIndex = 0;
-  }
+  PackageCpInfo();
   void read();
   ~PackageCpInfo();
 
@@ -193,7 +189,7 @@ public:
 class IntCpInfo : public ConstantPoolEntry {
 
 public:
-  IntCpInfo() {}
+  IntCpInfo();
   void read();
   ~IntCpInfo();
 
@@ -208,7 +204,7 @@ public:
 class BooleanCpInfo : public ConstantPoolEntry {
 
 public:
-  BooleanCpInfo() {}
+  BooleanCpInfo();
   void read();
   ~BooleanCpInfo();
 
@@ -223,7 +219,7 @@ public:
 class FloatCpInfo : public ConstantPoolEntry {
 
 public:
-  FloatCpInfo() {}
+  FloatCpInfo();
   void read();
   ~FloatCpInfo();
 
@@ -238,7 +234,7 @@ public:
 class ByteCpInfo : public ConstantPoolEntry {
 
 public:
-  ByteCpInfo() {}
+  ByteCpInfo();
   void read();
   ~ByteCpInfo();
 
