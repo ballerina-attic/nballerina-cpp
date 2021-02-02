@@ -22,7 +22,7 @@ config.test_format = lit.formats.ShTest(not llvm_config.use_lit_shell)
 
 # suffixes: A list of file extensions to treat as test files. This is overriden
 # by individual lit.local.cfg files in the test subdirectories.
-config.suffixes = ['.ll', '.c', '.test', '.txt', '.s', '.mir', '.yaml']
+config.suffixes = ['.ll', '.c', '.test', '.txt', '.s', '.mir', '.yaml', '.bal']
 
 # excludes: A list of directories to exclude from the testsuite. The 'Inputs'
 # subdirectories contain auxiliary inputs for various tests in their parent
@@ -84,6 +84,13 @@ def get_asan_rtlib():
 
 
 llvm_config.use_default_substitutions()
+
+# add WORK_PATH and JAVA_HOME substitutions for LIT.
+work_path = os.environ.get('WORK_PATH')
+config.substitutions.append(('%WORK_PATH', work_path))
+
+java_home = os.environ.get('JAVA_HOME')
+config.substitutions.append(('%JAVA_HOME', java_home))
 
 # Add site-specific substitutions.
 config.substitutions.append(('%llvmshlibdir', config.llvm_shlib_dir))
