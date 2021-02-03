@@ -42,4 +42,4 @@ jobs:
             -DLLVM_BUILD_TESTS=True
             "$GITHUB_WORKSPACE/llvm-project-master/llvm" &&
             make -j$(nproc) &&
-            make install && cd "$GITHUB_WORKSPACE/BIR2llvmIR" && make -j$(nproc))
+            make install && cd "$GITHUB_WORKSPACE/compiler" && make -j$(nproc))
