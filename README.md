@@ -5,8 +5,8 @@
 
 ## Build steps
 1.  `cd build`
-2. `cmake ../`
-3. `make`
+2. `cmake ../ -DCMAKE_BUILD_TYPE=Debug`
+3. `make -j`
 
 ## Usage
 * Output binary will be at `build/nballerinacc`

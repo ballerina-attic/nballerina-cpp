@@ -18,5 +18,5 @@ jobs:
         id : cache-nballerina
         uses: actions/checkout@v2
 
-      - name: nballerina compiler
-        run: (cd "$GITHUB_WORKSPACE/build" && cmake -DCMAKE_BUILD_TYPE="Release" ../ && make)
+      - name: Build nballerinacc
+        run: (cd "$GITHUB_WORKSPACE/build" && cmake -DCMAKE_BUILD_TYPE=Release ../ && make -j)
