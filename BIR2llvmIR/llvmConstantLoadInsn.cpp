@@ -1,10 +1,22 @@
 #include "BIR.h"
 
-ConstantLoadInsn::ConstantLoadInsn() { value = 0; }
+ConstantLoadInsn::ConstantLoadInsn() {}
 
 ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
-                                   Operand *lOp, int val)
-    : NonTerminatorInsn(pos, kind, lOp), value(val) {}
+                                   Operand *lOp, int intval)
+    : NonTerminatorInsn(pos, kind, lOp), val(intval) {}
+
+ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
+                                   Operand *lOp, float fval)
+    : NonTerminatorInsn(pos, kind, lOp), val(fval) {}
+
+ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
+                                   Operand *lOp, bool boolval)
+    : NonTerminatorInsn(pos, kind, lOp), val(boolval) {}
+
+ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
+                                   Operand *lOp, string *strval)
+    : NonTerminatorInsn(pos, kind, lOp), val(strval) {}
 
 ConstantLoadInsn::~ConstantLoadInsn() {}
 
@@ -14,9 +26,8 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef constRef;
   Operand *lhsOp = getLhsOperand();
   VarKind varKind = lhsOp->getVarDecl()->getVarKind();
-
+  builder = getFunction()->getLLVMBuilder();
   if (lhsOp && lhsOp->getVarDecl()) {
-    builder = getFunction()->getLLVMBuilder();
     if (getPkgAddress() &&
         lhsOp->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
       lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->name());
@@ -29,24 +40,45 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   }
 
   if (lhsOp && lhsOp->getVarDecl() && lhsOp->getVarDecl()->getTypeDecl()) {
-    int typeTag = lhsOp->typeTag();
-    switch (typeTag) {
+    TypeTagEnum lhsTypeTag = TypeTagEnum(lhsOp->typeTag());
+    assert(lhsTypeTag == typeTag);
+    switch (lhsTypeTag) {
     case TYPE_TAG_INT: {
-      constRef = LLVMConstInt(LLVMInt32Type(), value, 0);
+      constRef = LLVMConstInt(LLVMInt32Type(), val.intValue, 0);
       break;
     }
-    case TYPE_TAG_BYTE:
     case TYPE_TAG_FLOAT: {
-      // Currently, there is no floating point support in nballerina.
-      llvm_unreachable("No floating point support in nballerina");
+      constRef = LLVMConstReal(LLVMFloatType(), val.floatValue);
       break;
     }
     case TYPE_TAG_BOOLEAN: {
-      constRef = LLVMConstInt(LLVMInt8Type(), value, 0);
+      constRef = LLVMConstInt(LLVMInt8Type(), val.boolValue, 0);
       break;
     }
+    case TYPE_TAG_STRING:
+    case TYPE_TAG_CHAR_STRING: {
+      LLVMValueRef *paramTypes = new LLVMValueRef[3];
+      string stringValue = val.strValue->data();
+      Constant *C = llvm::ConstantDataArray::getString(
+          *unwrap(LLVMGetGlobalContext()),
+          StringRef(stringValue.c_str(), stringValue.length()));
+      GlobalVariable *GV =
+          new GlobalVariable(*unwrap(modRef), C->getType(), false,
+                             GlobalValue::PrivateLinkage, C, ".str");
+      GV->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+      GV->setAlignment(llvm::Align(1));
+
+      paramTypes[0] = wrap(unwrap(builder)->getInt64(0));
+      paramTypes[1] = wrap(unwrap(builder)->getInt64(0));
+      constRef =
+          LLVMBuildInBoundsGEP(builder, wrap(GV), paramTypes, 2, "simple");
+      break;
+    }
+    case TYPE_TAG_NIL: {
+      return;
+    }
     default:
-      constRef = LLVMConstInt(LLVMInt32Type(), value, 0);
+      llvm_unreachable("Unknown Type");
     }
   }
   if (builder && constRef && lhsRef)
