@@ -2,6 +2,7 @@
 #include "BIRReader.h"
 #include <fstream>
 #include <iostream>
+#include <nballerina_rt.h>
 #include <string>
 #include <unistd.h>
 #include <vector>

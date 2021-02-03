@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Install utils
-        run: (sudo apt update && sudo apt install -y llvm-11-dev)
+        run: (sudo apt update && sudo apt install -y llvm-11-dev cargo && cargo install cbindgen)
 
       - name: Clone nballerina repository
         id : cache-nballerina
