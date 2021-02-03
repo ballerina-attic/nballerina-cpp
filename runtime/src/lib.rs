@@ -26,7 +26,7 @@ use std::os::raw::c_char;
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type : *const c_char, dest_type : *const c_char) -> bool
 {
-  return src_type == dest_type;;
+  return src_type == dest_type;
 }
 
 // Prints 64 bit signed integer
