@@ -99,7 +99,7 @@ uint64_t BIRReader::readS8be() {
 // Search string from the constant pool based on index
 std::string ConstantPoolSet::getStringCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_STRING);
   StringCpInfo *stringCp = static_cast<StringCpInfo *>(poolEntry);
   return stringCp->getValue();
@@ -108,7 +108,7 @@ std::string ConstantPoolSet::getStringCp(uint32_t index) {
 // Search string from the constant pool based on index
 uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER);
   IntCpInfo *intCp = static_cast<IntCpInfo *>(poolEntry);
   return intCp->getValue();
@@ -135,7 +135,7 @@ bool ConstantPoolSet::getBooleanCp(uint32_t index) {
 // Search type from the constant pool based on index
 TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
   TypeDecl *typeDecl = new TypeDecl();
@@ -157,7 +157,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 // Get the Type tag from the constant pool based on the index passed
 TypeTagEnum ConstantPoolSet::getTypeTag(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
   return shapeCp->getTypeTag();
@@ -167,7 +167,7 @@ TypeTagEnum ConstantPoolSet::getTypeTag(uint32_t index) {
 InvokableType *ConstantPoolSet::getInvokableType(uint32_t index) {
   InvokableType *invokableType = new InvokableType();
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
   for (unsigned int i = 0; i < shapeCp->getParamCount(); i++) {
@@ -840,12 +840,16 @@ BIRFunction *BIRReader::readFunction() {
   return birFunction;
 }
 
+StringCpInfo::StringCpInfo() { setTag(TAG_ENUM_CP_ENTRY_STRING); }
+
 void StringCpInfo::read() {
   uint32_t stringLength = readerRef.readS4be();
   std::vector<char> result(stringLength);
   readerRef.is.read(&result[0], stringLength);
   value = std::string(result.begin(), result.end());
 }
+
+ShapeCpInfo::ShapeCpInfo() { setTag(TAG_ENUM_CP_ENTRY_SHAPE); }
 
 void ShapeCpInfo::read() {
   shapeLength = readerRef.readS4be();
@@ -932,17 +936,32 @@ void ShapeCpInfo::read() {
   }
 }
 
+PackageCpInfo::PackageCpInfo() {
+  orgIndex = 0;
+  nameIndex = 0;
+  versionIndex = 0;
+  setTag(TAG_ENUM_CP_ENTRY_PACKAGE);
+}
+
 void PackageCpInfo::read() {
   orgIndex = readerRef.readS4be();
   nameIndex = readerRef.readS4be();
   versionIndex = readerRef.readS4be();
 }
 
+IntCpInfo::IntCpInfo() { setTag(TAG_ENUM_CP_ENTRY_INTEGER); }
+
 void IntCpInfo::read() { value = readerRef.readS8be(); }
+
+BooleanCpInfo::BooleanCpInfo() { setTag(TAG_ENUM_CP_ENTRY_BOOLEAN); }
 
 void BooleanCpInfo::read() { value = readerRef.readU1(); }
 
+FloatCpInfo::FloatCpInfo() { setTag(TAG_ENUM_CP_ENTRY_FLOAT); }
+
 void FloatCpInfo::read() { value = readerRef.readS8be(); }
+
+ByteCpInfo::ByteCpInfo() { setTag(TAG_ENUM_CP_ENTRY_BYTE); }
 
 void ByteCpInfo::read() { value = readerRef.readU1(); }
 
