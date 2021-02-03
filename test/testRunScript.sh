@@ -36,4 +36,4 @@ fi
 ./$filename.out
 echo RETVAL=$?
 
-rm $filename-bir-dump.ll $filename-bir-dump $filename.out $filename.jar
+rm $filename-bir-dump.ll $filename.out
