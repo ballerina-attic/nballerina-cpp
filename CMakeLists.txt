@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 project(nballerina VERSION 0.0.1 LANGUAGES CXX)
 
 # Find and loacd LLVM components
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM 11 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
