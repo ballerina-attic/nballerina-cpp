@@ -22,8 +22,8 @@
 #include "llvm/IR/Type.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Config/llvm-config.h"
 #include "llvm/ADT/Triple.h"
+#include "llvm/Config/config.h"
 
 #define DEFAULT_VERSION 0
 using namespace std;
