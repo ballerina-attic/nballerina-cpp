@@ -1,12 +1,15 @@
 # This repository contains code for translating Ballerina IR to LLVM IR
 
 ## Prerequisites for Ubuntu 20.04
-* `sudo apt install build-essential llvm-11-dev cmake`
+* `sudo apt install build-essential llvm-11-dev cmake cargo python3-pip`
+* `cargo install cbindgen`
+* `pip3 install lit filecheck`
 
 ## Build steps
 1.  `cd build`
 2. `cmake ../ -DCMAKE_BUILD_TYPE=Debug`
 3. `make -j`
+This will build the Rust runtime (output in runtime/target/release), the C++ header for the runtime (output in runtime/include/) and the nballerinacc app.
 
 ## Usage
 * Output binary will be at `build/nballerinacc`
@@ -19,10 +22,8 @@
   * The -O0 is required because the optimizer will otherwise optimize everything away. 
 * Running the a.out and checking the return value on the command-line by using "echo $?" will yield the int value returned by the function. 
 * The a.out can be disassembled using "objdump -d" to see the machine instructions generated in main.
-
-### Run integration tests (LIT tests)
-* Install standalone Pyhton LIT package `pip3 install lit filecheck`
-* Execute tests:
+* Optional: Run `export LD_LIBRARY_PATH=<Full path to runtime .so>` during development so that the dynamic loader can find the nBallerina runtime libs at app runtime.
+* Execute the tests in `test` folder:
 
         cd build/
         make check
