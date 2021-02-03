@@ -21,6 +21,7 @@ void BinaryOpInsn::translate(LLVMModuleRef &modRef) {
     lhsName = getLhsOperand()->name();
     lhstmpName = lhsName + "_temp";
     lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
+
     if (!lhsRef)
       lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
   }

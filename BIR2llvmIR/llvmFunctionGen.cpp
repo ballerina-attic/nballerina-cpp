@@ -87,8 +87,12 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
     return LLVMInt32Type();
   case TYPE_TAG_BYTE:
   case TYPE_TAG_FLOAT:
+    return LLVMFloatType();
   case TYPE_TAG_BOOLEAN:
     return LLVMInt8Type();
+  case TYPE_TAG_CHAR_STRING:
+  case TYPE_TAG_STRING:
+    return LLVMPointerType(LLVMInt8Type(), 0);
   default:
     return LLVMVoidType();
   }
@@ -158,10 +162,14 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
     return LLVMInt32Type();
   case TYPE_TAG_BYTE:
   case TYPE_TAG_FLOAT:
+    return LLVMFloatType();
   case TYPE_TAG_BOOLEAN:
     return LLVMInt8Type();
+  case TYPE_TAG_CHAR_STRING:
+  case TYPE_TAG_STRING:
+    return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_ANY:
-    return LLVMPointerType(LLVMInt64Type(),0);
+    return LLVMPointerType(LLVMInt64Type(), 0);
   default:
     return LLVMInt32Type();
   }
@@ -176,4 +184,22 @@ VarDecl *BIRFunction::getNameVarDecl(string opName) {
     }
   }
   return NULL;
+}
+
+const char *BIRFunction::getTypeNameOfTypeTag(TypeTagEnum typeTag) {
+  switch (typeTag) {
+  case TYPE_TAG_INT:
+    return "int";
+  case TYPE_TAG_FLOAT:
+    return "float";
+  case TYPE_TAG_CHAR_STRING:
+  case TYPE_TAG_STRING:
+    return "string";
+  case TYPE_TAG_BOOLEAN:
+    return "bool";
+  case TYPE_TAG_ANY:
+    return "any";
+  default:
+    return "";
+  }
 }

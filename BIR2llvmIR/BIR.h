@@ -8,11 +8,13 @@
 #include <vector>
 
 #include "llvm-c/Core.h"
+#include "llvm/ADT/Triple.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalAlias.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -64,6 +66,9 @@ enum InstructionKind {
   INSTRUCTION_KIND_CONST_LOAD = 21,
   INSTRUCTION_KIND_NEW_STRUCTURE,
   INSTRUCTION_KIND_NEW_MAP,
+  INSTRUCTION_KIND_NEW_ARRAY = 25,
+  INSTRUCTION_KIND_ARRAY_STORE = 26,
+  INSTRUCTION_KIND_ARRAY_LOAD = 27,
   INSTRUCTION_KIND_TYPE_CAST = 29,
   INSTRUCTION_KIND_TYPE_TEST = 31,
   INSTRUCTION_KIND_NEW_TYPEDESC = 52,
@@ -245,7 +250,6 @@ public:
   void setInstKind(InstructionKind newKind) { kind = newKind; }
   void setLhsOperand(Operand *lOp) { lhsOp = lOp; }
   void setCurrentBB(BIRBasicBlock *currB) { currentBB = currB; }
-
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -296,16 +300,55 @@ public:
 
 class ConstantLoadInsn : public NonTerminatorInsn {
 private:
-  int value;
+  enum TypeTagEnum typeTag;
+  union value {
+    int intValue;
+    double floatValue;
+    bool boolValue;
+    string *strValue;
+    value() {}
+    value(int x) : intValue(x) {}
+    value(float x) : floatValue(x) {}
+    value(bool x) : boolValue(x) {}
+    value(string *x) : strValue(x) {}
+  } val;
 
 public:
   ConstantLoadInsn();
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, int val);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                   int intval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                   float floatval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                   bool boolval);
+  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                   string *strval);
   ~ConstantLoadInsn();
 
-  int getValue() { return value; }
-  void setValue(int val) { value = val; }
-
+  int getIntValue() { return val.intValue; }
+  float getFloatValue() { return val.floatValue; }
+  bool getBoolValue() { return val.boolValue; }
+  string *getStringValue() { return val.strValue; }
+  void setIntValue(int intVal, TypeTagEnum TypeTag) {
+    val.intValue = intVal;
+    typeTag = TypeTag;
+  }
+  void setFloatValue(float floatVal, TypeTagEnum TypeTag) {
+    val.floatValue = floatVal;
+    typeTag = TypeTag;
+  }
+  void setBoolValue(bool boolVal, TypeTagEnum TypeTag) {
+    val.boolValue = boolVal;
+    typeTag = TypeTag;
+  }
+  void setStringValue(string *str, TypeTagEnum TypeTag) {
+    val.strValue = str;
+    typeTag = TypeTag;
+  }
+  // With Nil Type setting only Type Tag because value will be zero with NIL
+  // Type.
+  void setTypeTagNil(TypeTagEnum TypeTag) { typeTag = TypeTag; }
+  TypeTagEnum getTypeTag() { return typeTag; }
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -361,7 +404,6 @@ public:
   void setRhsOp(Operand *op) { rhsOp = op; }
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
   void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
-
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -382,6 +424,69 @@ public:
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
 
   void translate(LLVMModuleRef &modRef);
+};
+
+class ArrayInsn : public NonTerminatorInsn {
+private:
+  Operand *sizeOp;
+  TypeDecl *typeDecl;
+
+public:
+  ArrayInsn();
+  ArrayInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *sOp,
+            TypeDecl *TDecl);
+  void setSizeOp(Operand *Size) { sizeOp = Size; }
+  void setTypeDecl(TypeDecl *Type) { typeDecl = Type; }
+
+  Operand *getSizeOp() { return sizeOp; }
+  TypeDecl *getTypeDecl() { return typeDecl; }
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getNewArrayDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
+  ~ArrayInsn();
+};
+
+class ArrayLoadInsn : public NonTerminatorInsn {
+private:
+  bool optionalFieldAccess;
+  bool fillingRead;
+  Operand *keyOp;
+  Operand *rhsOp;
+
+public:
+  ArrayLoadInsn();
+  ArrayLoadInsn(Location *pos, InstructionKind kind, Operand *lOp, bool opFA,
+                bool fR, Operand *KOp, Operand *ROp);
+  void setOptionalFieldAccess(bool OpFAccess) {
+    optionalFieldAccess = OpFAccess;
+  }
+  void setFillingRead(bool fRead) { fillingRead = fRead; }
+  void setKeyOp(Operand *kOp) { keyOp = kOp; }
+  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
+  bool getOptionalFieldAccess() { return optionalFieldAccess; }
+  bool getFillingRead() { return fillingRead; }
+  Operand *getKeyOp() { return keyOp; }
+  Operand *getRhsOp() { return rhsOp; }
+  ~ArrayLoadInsn();
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
+};
+
+class ArrayStoreInsn : public NonTerminatorInsn {
+private:
+  Operand *keyOp;
+  Operand *rhsOp;
+
+public:
+  ArrayStoreInsn();
+  ArrayStoreInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                 Operand *KOp, Operand *ROp);
+  void setKeyOp(Operand *kOp) { keyOp = kOp; }
+  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
+  Operand *getKeyOp() { return keyOp; }
+  Operand *getRhsOp() { return rhsOp; }
+  ~ArrayStoreInsn();
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
 class ConditionBrInsn : public TerminatorInsn {
@@ -626,6 +731,7 @@ private:
   int paramCount;
   vector<VarDecl *> localVars;
   VarDecl *returnVar;
+
   vector<BIRBasicBlock *> basicBlocks;
   string workerName;
   LLVMBuilderRef builder;
@@ -700,6 +806,7 @@ public:
   void patchInsn(Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(string opName);
+  const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);
   void translate(LLVMModuleRef &modRef);
 };
 
@@ -716,6 +823,7 @@ private:
   StructType *structType;
   StringTableBuilder *strBuilder;
   map<string, vector<LLVMValueRef>> structElementStoreInst;
+  map<string, LLVMValueRef> arrayFunctionRefs;
 
 public:
   BIRPackage();
@@ -751,6 +859,12 @@ public:
   LLVMValueRef getGlobalVarRefUsingId(string globVar);
   void addStringOffsetRelocationEntry(string eleType, LLVMValueRef storeInsn);
   void applyStringOffsetRelocations(LLVMModuleRef &modRef);
+  void addArrayFunctionRef(string arrayName, LLVMValueRef functionRef) {
+    arrayFunctionRefs.insert(
+        std::pair<string, LLVMValueRef>(arrayName, functionRef));
+  }
+  LLVMValueRef getFunctionRefBasedOnName(string arrayName);
+  map<string, LLVMValueRef> getArrayFuncRefMap() { return arrayFunctionRefs; }
   void translate(LLVMModuleRef &modRef);
 };
 

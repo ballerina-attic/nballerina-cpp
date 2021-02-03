@@ -75,6 +75,9 @@ public:
   friend class ReadReturnInsn;
   friend class ReadTypeCastInsn;
   friend class ReadTypeTestInsn;
+  friend class ReadArrayInsn;
+  friend class ReadArrayStoreInsn;
+  friend class ReadArrayLoadInsn;
 };
 
 class ConstantPoolEntry {
@@ -263,6 +266,8 @@ public:
   std::string getStringCp(uint32_t index);
   uint32_t getIntCp(uint32_t index);
   TypeDecl *getTypeCp(uint32_t index, bool voidToInt);
+  float getFloatCp(uint32_t index);
+  bool getBooleanCp(uint32_t index);
   TypeTagEnum getTypeTag(uint32_t index);
   InvokableType *getInvokableType(uint32_t index);
 };
@@ -382,6 +387,30 @@ public:
   static ReadTypeTestInsn readTypeTestInsn;
   ~ReadTypeTestInsn() {}
   TypeTestInsn *readNonTerminatorInsn();
+};
+
+class ReadArrayInsn : public ReadNonTerminatorInstruction {
+public:
+  ReadArrayInsn() {}
+  static ReadArrayInsn readArrayInsn;
+  ~ReadArrayInsn() {}
+  ArrayInsn *readNonTerminatorInsn();
+};
+
+class ReadArrayStoreInsn : public ReadNonTerminatorInstruction {
+public:
+  ReadArrayStoreInsn() {}
+  static ReadArrayStoreInsn readArrayStoreInsn;
+  ~ReadArrayStoreInsn() {}
+  ArrayStoreInsn *readNonTerminatorInsn();
+};
+
+class ReadArrayLoadInsn : public ReadNonTerminatorInstruction {
+public:
+  ReadArrayLoadInsn() {}
+  static ReadArrayLoadInsn readArrayLoadInsn;
+  ~ReadArrayLoadInsn() {}
+  ArrayLoadInsn *readNonTerminatorInsn();
 };
 
 #endif // BIRREADER_H
