@@ -1,3 +1,4 @@
-export PATH=$PATH:$HOME/workspace/wso2/nballerina/BIR2llvmIR/jballerina-tools-2.0.0-Preview2/bin
+export PATH=$PATH:$HOME/jballerina-tools-2.0.0-Preview2/bin
 export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
-export WORK_PATH=$HOME/workspace/wso2/nballerina/BIR2llvmIR
+export WORK_PATH=$HOME/workspace/wso2/nballerina_typecast/nballerina/compiler
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/$WORK_PATH/../runtime
