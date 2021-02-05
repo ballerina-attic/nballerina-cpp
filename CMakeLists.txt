@@ -15,7 +15,7 @@ add_subdirectory(runtime)
 
 # Add nballerinacc
 file(GLOB SOURCES
-${PROJECT_SOURCE_DIR}/BIR2llvmIR/*.cpp
+${PROJECT_SOURCE_DIR}/compiler/*.cpp
 )
 add_executable(nballerinacc ${SOURCES})
 add_dependencies(nballerinacc nballerina_rt)
