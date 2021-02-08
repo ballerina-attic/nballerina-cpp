@@ -121,7 +121,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 // Search float from the constant pool based on index
 float ConstantPoolSet::getFloatCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
   FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
   return floatCp->getValue();
@@ -130,7 +130,7 @@ float ConstantPoolSet::getFloatCp(uint32_t index) {
 // Search boolean from the constant pool based on index
 bool ConstantPoolSet::getBooleanCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
   BooleanCpInfo *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
   return booleanCp->getValue();
@@ -305,7 +305,7 @@ ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
   case TYPE_TAG_BOOLEAN: {
     uint8_t valueCpIndex = readerRef.readU1();
     constantloadInsn->setBoolValue(
-	readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
+        readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
     break;
   }
   case TYPE_TAG_FLOAT: {
@@ -619,8 +619,7 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     break;
   }
   case INSTRUCTION_KIND_NEW_ARRAY: {
-    ArrayInsn *arrayInsn =
-        ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
+    ArrayInsn *arrayInsn = ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
     arrayInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayInsn);
     break;
