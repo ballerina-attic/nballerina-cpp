@@ -2,8 +2,8 @@
 
 int _bal_result = 0;
 public function main() {
-  int[] arr1 = [5];
-  _bal_result = 1;
+    int[] arr1 = [5];
+    _bal_result = 1;
 }
 
 // CHECK: RETVAL
