@@ -18,8 +18,15 @@ This will build:
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
 ### Run tests
-1. `cd build/`
-2. `make check` 
+1. Install Java 8 runtime (e.g. openjdk-8-jre on ubuntu)
+2. Create `JAVA_HOME` environment variable and point it to the Java install dir
+3. Get this specific Ballerina version : [link](https://drive.google.com/file/d/1a1TlJdw-rTtCLOFrrvJe4nr1FkGzwpKH/view?usp=sharing)
+4. Extract Ballerina pack and add the `bin` folder with the `ballerina` executable to your `PATH` system variable 
+5. Navigate to nBallerina `build/` folder and run tests
+
+        cd build/
+        make check
+
 
 ## Usage
 * Run nballerinacc against a BIR dump file to generate the .ll LLVM IR file
