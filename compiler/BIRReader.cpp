@@ -4,7 +4,6 @@
     #include <libgen.h> 
 #else 
     #define __attribute__(unused)
-    #define random() rand()
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,7 +148,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
     char newName[20];
     char *p;
     p = strcpy(newName, "anon-");
-    sprintf(p, "%5ld", random() % 100000);
+    sprintf(p, "%5ld",  (long) std::rand() % 100000);
     typeDecl->setTypeDeclName(newName);
   }
   typeDecl->setTypeTag(shapeCp->getTypeTag());

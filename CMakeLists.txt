@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.15)
 if (NOT UNIX)
     cmake_policy(SET CMP0091 NEW)
 endif()
 project(nballerina VERSION 0.0.1 LANGUAGES CXX)
 
 # Find and loacd LLVM components
-find_package(LLVM 11.1.0 REQUIRED CONFIG)
+find_package(LLVM 11 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 add_definitions(${LLVM_DEFINITIONS})
 
@@ -24,24 +24,22 @@ add_executable(nballerinacc ${SOURCES})
 
 add_dependencies(nballerinacc BallerinaRT)
 
-if (UNIX) 
-    target_link_libraries(nballerinacc PRIVATE LLVM-11)
-else ()
+llvm_map_components_to_libnames(llvm_libs codegen)
+if (NOT UNIX)
     set_property(TARGET nballerinacc PROPERTY
                 MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    target_link_libraries(nballerinacc PRIVATE LLVM-C
-    LLVMBinaryFormat
-    LLVMBitReader
-    LLVMBitstreamReader
-    LLVMCodeGen
-    LLVMCore
-    LLVMRemarks
-    LLVMSupport)
 endif()
+target_link_libraries(nballerinacc PRIVATE ${llvm_libs})
 
 # Set extra warnings for nballerinacc
-set(DEBUG_OPTIONS -Wall)
-set(RELEASE_OPTIONS -Wall)
+if (MSVC)
+    set(DEBUG_OPTIONS /W4)
+    set(RELEASE_OPTIONS /W4)
+else()
+    set(DEBUG_OPTIONS -Wall)
+    set(RELEASE_OPTIONS -Wall)
+endif()
+
 target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
 target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
 
