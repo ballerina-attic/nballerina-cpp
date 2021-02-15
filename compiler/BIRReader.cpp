@@ -305,7 +305,7 @@ ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
   case TYPE_TAG_BOOLEAN: {
     uint8_t valueCpIndex = readerRef.readU1();
     constantloadInsn->setBoolValue(
-	readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
+        readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
     break;
   }
   case TYPE_TAG_FLOAT: {
@@ -530,7 +530,7 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
   case INSTRUCTION_KIND_NEW_STRUCTURE: {
     StructureInsn *structureInsn =
         ReadStructureInsn::readStructureInsn.readNonTerminatorInsn();
-    delete structureInsn;
+    nonTerminatorInsn = structureInsn;
     break;
   }
   case INSTRUCTION_KIND_CONST_LOAD: {
@@ -619,8 +619,7 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     break;
   }
   case INSTRUCTION_KIND_NEW_ARRAY: {
-    ArrayInsn *arrayInsn =
-        ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
+    ArrayInsn *arrayInsn = ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
     arrayInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayInsn);
     break;

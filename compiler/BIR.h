@@ -550,6 +550,9 @@ public:
   ~StructureInsn() {}
   Operand *getRhsOp() { return rhsOp; }
   void setRhsOp(Operand *op) { rhsOp = op; }
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getNewStructureDeclaration(LLVMModuleRef &modRef,
+                                          BIRPackage *pkg);
 };
 
 class FunctionCallInsn : public TerminatorInsn {
