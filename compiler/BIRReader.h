@@ -138,6 +138,7 @@ private:
   uint32_t returnTypeIndex;
   uint32_t restTypeIndex;
   vector<uint32_t> params;
+  uint32_t constraintTypeCpIndex; // this should an typeStructure interface
 
 public:
   uint32_t getShapeLength() { return shapeLength; }
@@ -152,6 +153,7 @@ public:
   uint32_t getRestTypeIndex() { return restTypeIndex; }
   void addParam(uint32_t param) { params.push_back(param); }
   uint32_t getParam(uint32_t index) { return params[index]; }
+  uint32_t getConstraintTypeCpIndex() { return constraintTypeCpIndex; }
 
   void setShapeLength(uint32_t s) { shapeLength = s; }
   void setValue(std::string v) { value = v; }

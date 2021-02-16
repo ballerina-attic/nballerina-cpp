@@ -877,6 +877,11 @@ void ShapeCpInfo::read() {
     returnTypeIndex = readerRef.readS4be();
     break;
   }
+  case TYPE_TAG_MAP: {
+    assert(shapeLengthTypeInfo == 4);
+    constraintTypeCpIndex = readerRef.readS4be();
+    break;
+  }
   case TYPE_TAG_INT:
   case TYPE_TAG_BYTE:
   case TYPE_TAG_FLOAT:
@@ -891,7 +896,6 @@ void ShapeCpInfo::read() {
   case TYPE_TAG_RECORD:
   case TYPE_TAG_TYPEDESC:
   case TYPE_TAG_STREAM:
-  case TYPE_TAG_MAP:
   case TYPE_TAG_ANY:
   case TYPE_TAG_ENDPOINT:
   case TYPE_TAG_ARRAY:
