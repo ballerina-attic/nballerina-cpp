@@ -40,7 +40,8 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 
 LLVMValueRef StructureInsn::getNewStructureDeclaration(LLVMModuleRef &modRef,
                                                        BIRPackage *pkg) {
-  LLVMTypeRef funcType = LLVMFunctionType(LLVMInt32Type(), nullptr, 0, 0);
+  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt64Type(), 0);
+  LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
   LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "map_new_int", funcType);
   pkg->addArrayFunctionRef("map_new_int", addedFuncRef);
   return addedFuncRef;
@@ -55,7 +56,8 @@ LLVMValueRef MapStoreInsn::getMapStoreDeclaration(LLVMModuleRef &modRef,
   LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
   LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-  paramTypes[0] = int32PtrType;
+  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt64Type(), 0);
+  paramTypes[0] = memPtrType;
   paramTypes[1] = charArrayPtrType;
   paramTypes[2] = int32PtrType;
   LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
@@ -76,15 +78,13 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   if (!mapStoreFunc)
     mapStoreFunc = getMapStoreDeclaration(modRef, pkgObj);
 
-  LLVMValueRef lhsOpRef = funcObj->getLocalVarRefUsingId(lhsName);
-  if (!lhsOpRef)
-    lhsOpRef = pkgObj->getGlobalVarRefUsingId(lhsName);
+  LLVMValueRef lhsOpTempRef = funcObj->getLocalToTempVar(getLhsOperand());
 
   LLVMValueRef rhsOpRef = funcObj->getLocalVarRefUsingId(rhsName);
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
-  assert(mapStoreFunc && lhsOpRef && rhsOpRef && keyRef);
+  assert(mapStoreFunc && lhsOpTempRef && rhsOpRef && keyRef);
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
-  argOpValueRef[0] = lhsOpRef;
+  argOpValueRef[0] = lhsOpTempRef;
   argOpValueRef[1] = keyRef;
   argOpValueRef[2] = rhsOpRef;
 

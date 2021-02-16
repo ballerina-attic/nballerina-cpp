@@ -43,7 +43,7 @@ LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand) {
   string refOp = operand->getVarDecl()->getVarName();
   string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
-  if(!locVRef)
+  if (!locVRef)
     locVRef = getPkgAddress()->getGlobalVarRefUsingId(refOp);
   return LLVMBuildLoad(builder, locVRef, tempName.c_str());
 }
@@ -138,7 +138,8 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   }
 
   // creating branch to next basic block.
-  if (basicBlocks.size() != 0 && basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
+  if (basicBlocks.size() != 0 && basicBlocks[0] &&
+      basicBlocks[0]->getLLVMBBRef())
     LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
@@ -169,6 +170,8 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   case TYPE_TAG_STRING:
     return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_ANY:
+    return LLVMPointerType(LLVMInt64Type(), 0);
+  case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt64Type(), 0);
   default:
     return LLVMInt32Type();
