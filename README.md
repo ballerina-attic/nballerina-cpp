@@ -13,7 +13,7 @@ Translate Ballerina IR to LLVM IR.
 3. `make -j`
 
 This will build:
-* The Rust runtime : runtime/target/release/liballerina_rt.so
+* The Rust runtime : runtime/target/release/libballerina_rt.so
 * The C++ header for the runtime : runtime/include/ballerina_rt.h
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
