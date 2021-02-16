@@ -147,7 +147,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   if (typeDecl->getTypeDeclName() == "") {
     char newName[20];
     char *p;
-    p = strcpy(newName, "anon-");
+    p = strcpy(newName, "anon-") + strlen("anon-");
     sprintf(p, "%5ld",  (long) std::rand() % 100000);
     typeDecl->setTypeDeclName(newName);
   }
