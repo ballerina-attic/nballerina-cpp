@@ -6,7 +6,6 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
-#include <llvm/Support/Host.h>
 
 using namespace std;
 
