@@ -213,6 +213,19 @@ public:
   virtual void translate(LLVMModuleRef &modRef);
 };
 
+class MapTypeDecl : public TypeDecl {
+private:
+  const int memberTypeTag;
+
+public:
+  MapTypeDecl() = delete;
+  MapTypeDecl(int tag, string name, int flags, int memberTag)
+      : TypeDecl{tag, name, flags}, memberTypeTag{memberTag} {};
+  ~MapTypeDecl() = default;
+  int getTypeMemberTag() { return memberTypeTag; }
+  void translate(LLVMModuleRef &modRef){};
+};
+
 class Operand : public BIRNode {
 private:
   VarDecl *varDecl;
