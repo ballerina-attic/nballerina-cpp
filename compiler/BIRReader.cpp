@@ -1,6 +1,10 @@
 #include "BIRReader.h"
 #include "BIR.h"
-#include <libgen.h>
+#ifdef unix 
+    #include <libgen.h> 
+#else 
+    #define __attribute__(unused)
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;
@@ -143,8 +147,8 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   if (typeDecl->getTypeDeclName() == "") {
     char newName[20];
     char *p;
-    p = stpcpy(newName, "anon-");
-    sprintf(p, "%5ld", random() % 100000);
+    p = strcpy(newName, "anon-") + strlen("anon-");
+    sprintf(p, "%5ld",  (long) std::rand() % 100000);
     typeDecl->setTypeDeclName(newName);
   }
   typeDecl->setTypeTag(shapeCp->getTypeTag());

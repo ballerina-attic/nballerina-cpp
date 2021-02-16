@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <unistd.h>
+
 #include <vector>
 
 using namespace std;
@@ -12,7 +12,6 @@ using namespace std;
 BIRReader BIRReader::reader;
 
 int main(int argc, char **argv) {
-  int opt;
   string inFileName = "";
   string outFileName = "";
   string exeName = "";
@@ -20,27 +19,19 @@ int main(int argc, char **argv) {
     printf("Need input file name \n");
     exit(0);
   }
-  // put ':' in the starting of the
-  // string so that program can
-  // distinguish between '?' and ':'
-  while ((opt = getopt(argc, argv, "co:")) != -1) {
-    switch (opt) {
-    case 'c':
-      // exeName = optarg;
-      break;
-    case 'o':
-      outFileName = optarg;
-      break;
-    case ':':
-      break;
-    case '?':
-      break;
-    }
-  }
-  // optind is for the extra arguments
-  // which are not parsed
-  for (; optind < argc; optind++) {
-    inFileName = argv[optind];
+  
+  int i = 0; 
+  while (i < argc) { 
+     string arg = std::string(argv[i]); 
+     if (arg == "-c") { 
+       i = i + 1; 
+     } else if (arg == "-o") { 
+       outFileName = argv[i + 1]; 
+       i = i + 2; 
+     } else { 
+       inFileName = argv[i]; 
+       i = i + 1; 
+     } 
   }
   // if output file name is empty from command line options.
   if (outFileName == "") {

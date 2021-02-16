@@ -1,4 +1,7 @@
 #include "BIR.h"
+#ifndef unix 
+    #define __attribute__(unused)
+#endif
 
 TypeCastInsn::TypeCastInsn() {}
 
