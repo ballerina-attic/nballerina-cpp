@@ -6,6 +6,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <llvm/Support/Host.h>
 
 using namespace std;
 
@@ -61,11 +62,25 @@ int main(int argc, char **argv) {
   string moduleName = birPackage.getOrgName() + birPackage.getPackageName() +
                       birPackage.getVersion();
   LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
-  const char *Triple = LLVM_DEFAULT_TARGET_TRIPLE;
+  const char *tripleStr = LLVM_DEFAULT_TARGET_TRIPLE;
+
+  //MacOS specific code. This is needed, since the default Triple will have the OS as darwin, 
+  //but the clang will expect the os as macosx
+  Triple triple(LLVM_DEFAULT_TARGET_TRIPLE);
+  char modifiedTriple[200];
+  if(triple.isMacOSX()){
+    unsigned major, minor, micro;
+    if (triple.getMacOSXVersion(major, minor, micro)){
+      triple.setOS(Triple::OSType::MacOSX);
+      sprintf(modifiedTriple, "%s%i.%i.%i", triple.getTriple().c_str(), major, minor, micro);
+      tripleStr = modifiedTriple;
+    }
+  }
+  
   LLVMSetSourceFileName(mod, birPackage.getSrcFileName().c_str(),
                         birPackage.getSrcFileName().length());
   LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
-  LLVMSetTarget(mod, Triple);
+  LLVMSetTarget(mod, tripleStr);
   birPackage.translate(mod);
 
   if (dumpLlvm) {
