@@ -19,7 +19,8 @@ ${PROJECT_SOURCE_DIR}/compiler/*.cpp
 )
 add_executable(nballerinacc ${SOURCES})
 add_dependencies(nballerinacc BallerinaRT)
-target_link_libraries(nballerinacc PRIVATE LLVM-11)
+llvm_map_components_to_libnames(llvm_libs codegen)
+target_link_libraries(nballerinacc PRIVATE ${llvm_libs})
 
 # Set extra warnings for nballerinacc
 set(DEBUG_OPTIONS -Wall)
