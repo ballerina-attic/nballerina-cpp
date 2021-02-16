@@ -46,3 +46,12 @@ LLVMValueRef StructureInsn::getNewStructureDeclaration(LLVMModuleRef &modRef,
   pkg->addArrayFunctionRef("new_map_init", addedFuncRef);
   return addedFuncRef;
 }
+
+MapStoreInsn::MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp,
+                           Operand *KOp, Operand *rOp)
+    : NonTerminatorInsn(pos, kind, lOp), keyOp(KOp), rhsOp(rOp) {}
+
+LLVMValueRef MapStoreInsn::getMapStoreDeclaration(LLVMModuleRef &modRef,
+                                                      BIRPackage *pkg) {}
+
+void MapStoreInsn::translate(LLVMModuleRef &modRef) {}

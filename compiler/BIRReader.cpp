@@ -25,6 +25,7 @@ ReadTypeTestInsn ReadTypeTestInsn::readTypeTestInsn;
 ReadArrayInsn ReadArrayInsn::readArrayInsn;
 ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
 ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
+ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
 
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
@@ -498,6 +499,18 @@ ArrayLoadInsn *ReadArrayLoadInsn::readNonTerminatorInsn() {
   return arrayLoadInsn;
 }
 
+// Read Map Store Insn
+MapStoreInsn *ReadMapStoreInsn::readNonTerminatorInsn() {
+  MapStoreInsn *mapStoreInsn = new MapStoreInsn();
+  Operand *lhsOperand = readerRef.readOperand();
+  mapStoreInsn->setLhsOperand(lhsOperand);
+  Operand *keyOperand = readerRef.readOperand();
+  mapStoreInsn->setKeyOp(keyOperand);
+  Operand *rhsOperand = readerRef.readOperand();
+  mapStoreInsn->setRhsOp(rhsOperand);
+  return mapStoreInsn;
+}
+
 GoToInsn *ReadGoToInsn::readTerminatorInsn() {
   GoToInsn *gotoInsn = new GoToInsn();
   uint32_t nameId = readerRef.readS4be();
@@ -647,6 +660,14 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
         ReadArrayLoadInsn::readArrayLoadInsn.readNonTerminatorInsn();
     arrayLoadInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayLoadInsn);
+    break;
+  }
+  case INSTRUCTION_KIND_MAP_STORE: {
+    // Add map store logic
+    MapStoreInsn *mapStoreInsn =
+        ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn();
+    mapStoreInsn->setInstKind(insnKind);
+    nonTerminatorInsn = (mapStoreInsn);
     break;
   }
   default:

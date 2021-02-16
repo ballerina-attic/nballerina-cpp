@@ -65,7 +65,7 @@ enum InstructionKind {
   INSTRUCTION_KIND_MOVE = 20,
   INSTRUCTION_KIND_CONST_LOAD = 21,
   INSTRUCTION_KIND_NEW_STRUCTURE,
-  INSTRUCTION_KIND_NEW_MAP,
+  INSTRUCTION_KIND_MAP_STORE = 23,
   INSTRUCTION_KIND_NEW_ARRAY = 25,
   INSTRUCTION_KIND_ARRAY_STORE = 26,
   INSTRUCTION_KIND_ARRAY_LOAD = 27,
@@ -500,6 +500,24 @@ public:
   ~ArrayStoreInsn();
   void translate(LLVMModuleRef &modRef);
   LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
+};
+
+class MapStoreInsn : public NonTerminatorInsn {
+private:
+  Operand *keyOp;
+  Operand *rhsOp;
+
+public:
+  MapStoreInsn() = default;
+  MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *KOp,
+               Operand *ROp);
+  void setKeyOp(Operand *kOp) { keyOp = kOp; }
+  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
+  Operand *getKeyOp() { return keyOp; }
+  Operand *getRhsOp() { return rhsOp; }
+  ~MapStoreInsn() = default;
+  void translate(LLVMModuleRef &modRef);
+  LLVMValueRef getMapStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
 class ConditionBrInsn : public TerminatorInsn {

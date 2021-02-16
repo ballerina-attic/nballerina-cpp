@@ -78,6 +78,7 @@ public:
   friend class ReadArrayInsn;
   friend class ReadArrayStoreInsn;
   friend class ReadArrayLoadInsn;
+  friend class ReadMapStoreInsn;
 };
 
 class ConstantPoolEntry {
@@ -409,6 +410,14 @@ public:
   static ReadArrayLoadInsn readArrayLoadInsn;
   ~ReadArrayLoadInsn() {}
   ArrayLoadInsn *readNonTerminatorInsn();
+};
+
+class ReadMapStoreInsn : public ReadNonTerminatorInstruction {
+public:
+  ReadMapStoreInsn() {}
+  static ReadMapStoreInsn readMapStoreInsn;
+  ~ReadMapStoreInsn() {}
+  MapStoreInsn *readNonTerminatorInsn();
 };
 
 #endif // BIRREADER_H
