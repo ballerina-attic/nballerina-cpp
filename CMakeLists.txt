@@ -18,7 +18,7 @@ file(GLOB SOURCES
 ${PROJECT_SOURCE_DIR}/compiler/*.cpp
 )
 add_executable(nballerinacc ${SOURCES})
-add_dependencies(nballerinacc nballerina_rt)
+add_dependencies(nballerinacc BallerinaRT)
 target_link_libraries(nballerinacc PRIVATE LLVM-11)
 
 # Set extra warnings for nballerinacc
