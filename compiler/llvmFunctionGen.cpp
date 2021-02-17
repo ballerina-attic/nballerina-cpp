@@ -105,8 +105,8 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   LLVMPositionBuilderAtEnd(builder, BbRef);
 
   // iterate through all local vars.
-  for (unsigned int i = 0; i < localVars.size(); i++) {
-    VarDecl *locVar = localVars[i];
+  for (auto const it : localVars) {
+    VarDecl *locVar = it.second;
     const char *varName = (locVar->getVarName()).c_str();
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef;
@@ -179,14 +179,12 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
 }
 
 VarDecl *BIRFunction::getNameVarDecl(string opName) {
-  for (unsigned int i = 0; i < localVars.size(); i++) {
-    VarDecl *variableDecl = localVars[i];
-    string varName = variableDecl->getVarName();
-    if (varName == opName) {
-      return variableDecl;
-    }
-  }
-  return NULL;
+
+  auto varIt = localVars.find(opName);
+  if (varIt == localVars.end())
+    return nullptr;
+
+  return varIt->second;
 }
 
 const char *BIRFunction::getTypeNameOfTypeTag(TypeTagEnum typeTag) {

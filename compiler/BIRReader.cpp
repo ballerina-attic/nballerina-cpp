@@ -849,9 +849,8 @@ BIRFunction *BIRReader::readFunction() {
   std::vector<VarDecl *> localvars;
   for (unsigned int i = 0; i < localVarCount; i++) {
     VarDecl *varDecl = readLocalVar();
-    localvars.push_back(varDecl);
+    birFunction->setLocalVar(varDecl->getVarName(), varDecl);
   }
-  birFunction->setLocalVars(localvars);
   for (unsigned int i = 0; i < defaultParamValue; i++) {
     uint32_t basicBlocksCount __attribute__((unused)) = readS4be();
   }

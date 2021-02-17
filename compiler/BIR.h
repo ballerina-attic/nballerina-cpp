@@ -213,6 +213,7 @@ public:
   virtual void translate(LLVMModuleRef &modRef);
 };
 
+// Extend TypeDecl for MapTypeDecl; to store member type info
 class MapTypeDecl : public TypeDecl {
 private:
   const int memberTypeTag;
@@ -506,6 +507,8 @@ class MapStoreInsn : public NonTerminatorInsn {
 private:
   Operand *keyOp;
   Operand *rhsOp;
+  LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef,
+                                         BIRPackage *pkg);
 
 public:
   MapStoreInsn() = default;
@@ -515,9 +518,13 @@ public:
   void setRhsOp(Operand *rOp) { rhsOp = rOp; }
   Operand *getKeyOp() { return keyOp; }
   Operand *getRhsOp() { return rhsOp; }
-  ~MapStoreInsn() = default;
+  ~MapStoreInsn() {
+    if (keyOp)
+      delete keyOp;
+    if (rhsOp)
+      delete rhsOp;
+  };
   void translate(LLVMModuleRef &modRef);
-  LLVMValueRef getMapStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
 class ConditionBrInsn : public TerminatorInsn {
@@ -575,6 +582,8 @@ public:
 class StructureInsn : public NonTerminatorInsn {
 private:
   Operand *rhsOp;
+  void mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef);
+  LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 
 public:
   StructureInsn() {}
@@ -582,8 +591,6 @@ public:
   Operand *getRhsOp() { return rhsOp; }
   void setRhsOp(Operand *op) { rhsOp = op; }
   void translate(LLVMModuleRef &modRef);
-  LLVMValueRef getNewStructureDeclaration(LLVMModuleRef &modRef,
-                                          BIRPackage *pkg);
 };
 
 class FunctionCallInsn : public TerminatorInsn {
@@ -763,7 +770,7 @@ private:
   VarDecl *receiver;
   Param *restParam;
   int paramCount;
-  vector<VarDecl *> localVars;
+  map<string, VarDecl *> localVars;
   VarDecl *returnVar;
 
   vector<BIRBasicBlock *> basicBlocks;
@@ -788,8 +795,7 @@ public:
   Operand *getParam(int i) { return requiredParams[i]; }
   VarDecl *getReceiver() { return receiver; }
   Param *getRestParam() { return restParam; }
-  vector<VarDecl *> getLocalVars() { return localVars; }
-  VarDecl *getLocalVar(int i) { return localVars[i]; }
+
   VarDecl *getReturnVar() { return returnVar; }
   vector<BIRBasicBlock *> getBasicBlocks() { return basicBlocks; }
   size_t numBasicBlocks() { return basicBlocks.size(); }
@@ -811,9 +817,10 @@ public:
   void setParam(Operand *param) { requiredParams.push_back(param); }
   void setReceiver(VarDecl *var) { receiver = var; }
   void setRestParam(Param *param) { restParam = param; }
-  void setLocalVars(vector<VarDecl *> l) { localVars = l; }
   void setNumParams(int paramcount) { paramCount = paramcount; }
-  void setLocalVar(VarDecl *var) { localVars.push_back(var); }
+  void setLocalVar(string name, VarDecl *var) {
+    localVars.insert(pair<string, VarDecl *>(name, var));
+  }
   void setReturnVar(VarDecl *var) { returnVar = var; }
   void setBIRBasicBlocks(vector<BIRBasicBlock *> b) { basicBlocks = b; }
   void addBIRBasicBlock(BIRBasicBlock *bb) { basicBlocks.push_back(bb); }
