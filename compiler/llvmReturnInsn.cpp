@@ -1,14 +1,10 @@
 #include "BIR.h"
 
-ReturnInsn::ReturnInsn() {}
-
 ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
                        BIRBasicBlock *nextBB)
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
-ReturnInsn::~ReturnInsn() {}
-
-void ReturnInsn::translate(LLVMModuleRef &modRef) {
+void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   BIRFunction *funcObj = getFunction();
   VarDecl *returnVarDecl = NULL;
@@ -40,13 +36,12 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
   } else {
     assert(funcObj && funcObj->getReturnVar() &&
            funcObj->getReturnVar()->getTypeDecl());
-    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() !=
-        TYPE_TAG_NIL) {
+    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
       LLVMValueRef retValueRef = LLVMBuildLoad(
           builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
       LLVMBuildRet(builder, retValueRef);
     } else if (builder) {
-        LLVMBuildRetVoid(builder);
+      LLVMBuildRetVoid(builder);
     }
   }
 }

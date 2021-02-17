@@ -1,14 +1,10 @@
 #include "BIR.h"
 
-UnaryOpInsn::UnaryOpInsn() {}
-
 UnaryOpInsn::UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
                          Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
 
-UnaryOpInsn::~UnaryOpInsn() {}
-
-void UnaryOpInsn::translate(LLVMModuleRef &modRef) {
+void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   BIRFunction *funcObj = getFunction();
   LLVMBuilderRef builder;
   string lhstmpName;

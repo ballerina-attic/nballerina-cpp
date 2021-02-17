@@ -1,12 +1,10 @@
 #include "BIR.h"
 
-ConditionBrInsn::ConditionBrInsn() {}
 ConditionBrInsn::ConditionBrInsn(Location *pos, InstructionKind kind,
                                  Operand *lOp, BIRBasicBlock *nextBB)
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
-ConditionBrInsn::~ConditionBrInsn() {}
 
-void ConditionBrInsn::translate(LLVMModuleRef &modRef) {
+void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   string lhsName;
   LLVMValueRef brCondition;

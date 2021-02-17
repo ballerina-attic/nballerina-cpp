@@ -10,7 +10,8 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 add_definitions(${LLVM_DEFINITIONS})
 
 # Include and lib directories
-include_directories(${LLVM_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/runtime/include)
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS}) 
+include_directories(${CMAKE_SOURCE_DIR}/runtime/include)
 link_directories(${CMAKE_SOURCE_DIR}/runtime/target/release)
 
 # Add runtime project
@@ -33,10 +34,10 @@ target_link_libraries(nballerinacc PRIVATE ${llvm_libs})
 
 # Set extra warnings for nballerinacc
 if (MSVC)
-    set(DEBUG_OPTIONS /W4)
+    set(DEBUG_OPTIONS /W4 /WX)
     set(RELEASE_OPTIONS /W4)
 else()
-    set(DEBUG_OPTIONS -Wall)
+    set(DEBUG_OPTIONS -Wall -Wextra -pedantic)
     set(RELEASE_OPTIONS -Wall)
 endif()
 

@@ -1,18 +1,11 @@
 #include "BIR.h"
-#ifndef unix 
-    #define __attribute__(unused)
-#endif
-
-TypeCastInsn::TypeCastInsn() {}
 
 TypeCastInsn::TypeCastInsn(Location *pos, InstructionKind kind, Operand *lOp,
                            Operand *rOp, TypeDecl *tDecl, bool checkTypes)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp), typeDecl(tDecl),
       checkTypes(checkTypes) {}
 
-TypeCastInsn::~TypeCastInsn() {}
-
-void TypeCastInsn::translate(LLVMModuleRef &modRef) {
+void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   BIRFunction *funcObj = getFunction();
   string lhsOpName = getLhsOperand()->name();
   string rhsOpName = rhsOp->name();

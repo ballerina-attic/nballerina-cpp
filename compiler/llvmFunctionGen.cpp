@@ -1,13 +1,9 @@
 #include "BIR.h"
 
-BIRFunction::BIRFunction() {}
-
 BIRFunction::BIRFunction(Location *pos, string namep, int flagsp,
                          InvokableType *typep, string workerNamep)
     : BIRNode(pos), name(namep), flags(flagsp), type(typep),
       workerName(workerNamep) {}
-
-BIRFunction::BIRFunction(const BIRFunction &) {}
 
 // Search basic block based on the basic block ID
 BIRBasicBlock *BIRFunction::searchBb(std::string name) {
@@ -153,8 +149,6 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
 void BIRFunction::translate(LLVMModuleRef &modRef) {
   translateFunctionBody(modRef);
 }
-
-BIRFunction::~BIRFunction() {}
 
 LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   int typeTag = typeD->getTypeTag();

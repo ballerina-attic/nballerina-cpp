@@ -1,7 +1,5 @@
 #include "BIR.h"
 
-ConstantLoadInsn::ConstantLoadInsn() {}
-
 ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
                                    Operand *lOp, int intval)
     : NonTerminatorInsn(pos, kind, lOp), val(intval) {}
@@ -17,8 +15,6 @@ ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
 ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
                                    Operand *lOp, string *strval)
     : NonTerminatorInsn(pos, kind, lOp), val(strval) {}
-
-ConstantLoadInsn::~ConstantLoadInsn() {}
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;

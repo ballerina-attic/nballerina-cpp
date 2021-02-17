@@ -1,14 +1,10 @@
 #include "BIR.h"
 
-MoveInsn::MoveInsn() {}
-
 MoveInsn::MoveInsn(Location *pos, InstructionKind kind, Operand *lOp,
                    Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
 
-MoveInsn::~MoveInsn() {}
-
-void MoveInsn::translate(LLVMModuleRef &modRef) {
+void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   LLVMValueRef lhsRef;
   Operand *lhsOp = getLhsOperand();

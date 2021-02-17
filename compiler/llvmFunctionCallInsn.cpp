@@ -1,14 +1,7 @@
 #include "BIR.h"
 
-FunctionCallInsn::FunctionCallInsn() {}
-
-FunctionCallInsn::FunctionCallInsn(string funcName, bool funcVirtual,
-                                   int argNumber, Operand *lhsOp,
-                                   BIRBasicBlock *thenBB) {}
-
-FunctionCallInsn::~FunctionCallInsn() {}
-
-void FunctionCallInsn::translate(LLVMModuleRef &modRef) {
+void FunctionCallInsn::translate(__attribute__((unused))
+                                 LLVMModuleRef &modRef) {
   BIRFunction *funcObj = getFunction();
   LLVMValueRef *ParamRefs = new LLVMValueRef[argCount];
   LLVMBuilderRef builder;

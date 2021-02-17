@@ -6,8 +6,6 @@
 
 using namespace std;
 
-BIRPackage::BIRPackage() {}
-
 BIRPackage::BIRPackage(string orgName, string pkgName, string verName,
                        string srcFileName)
     : org(orgName), name(pkgName), version(verName),
@@ -133,7 +131,8 @@ void BIRPackage::addStringOffsetRelocationEntry(string eleType,
 
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
-void BIRPackage::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
+void BIRPackage::applyStringOffsetRelocations(__attribute__((unused))
+                                              LLVMModuleRef &modRef) {
   strBuilder->finalize();
   map<string, vector<LLVMValueRef>>::iterator itr;
   for (itr = structElementStoreInst.begin();
@@ -150,7 +149,7 @@ void BIRPackage::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
   }
 }
 
-LLVMValueRef BIRPackage::getFunctionRefBasedOnName (string arrayName) {
+LLVMValueRef BIRPackage::getFunctionRefBasedOnName(string arrayName) {
   map<string, LLVMValueRef>::iterator it;
   it = arrayFunctionRefs.find(arrayName);
 
@@ -159,5 +158,3 @@ LLVMValueRef BIRPackage::getFunctionRefBasedOnName (string arrayName) {
   } else
     return it->second;
 }
-
-BIRPackage::~BIRPackage() {}
