@@ -1,9 +1,9 @@
 #include "BIRReader.h"
 #include "BIR.h"
-#ifdef unix 
-    #include <libgen.h> 
-#else 
-    #define __attribute__(unused)
+#ifdef unix
+#include <libgen.h>
+#else
+#define __attribute__(unused)
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,33 +140,35 @@ bool ConstantPoolSet::getBooleanCp(uint32_t index) {
 // Search type from the constant pool based on index
 TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   ConstantPoolEntry *poolEntry = getEntry(index);
+
   assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
-  TypeDecl *typeDecl; // = new TypeDecl();
+
   std::string name = getStringCp(shapeCp->getNameIndex());
-  if (name == "") {
-    char newName[20];
-    char *p;
-    p = strcpy(newName, "anon-") + strlen("anon-");
-    sprintf(p, "%5ld",  (long) std::rand() % 100000);
-    typeDecl->setTypeDeclName(newName);
-  }
+  // if name is empty, create a random name anon-<5-digits>
+  if (name == "")
+    name.append("anon-" + std::to_string(random() % 100000));
+
   int type = shapeCp->getTypeTag();
+
+  // Handle voidToInt flag
   if (type == TYPE_TAG_NIL && voidToInt)
-    typeDecl = new TypeDecl(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
-  else if (type == TYPE_TAG_MAP) {
-    int memberShapeIndx = shapeCp->getConstraintTypeCpIndex();
-    ConstantPoolEntry *shapeEntry = getEntry(memberShapeIndx);
+    return new TypeDecl(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
+
+  // Handle Map type
+  if (type == TYPE_TAG_MAP) {
+    ConstantPoolEntry *shapeEntry =
+        getEntry(shapeCp->getConstraintTypeCpIndex());
     assert(shapeEntry->getTag() ==
            ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
     int memeberType = typeShapeCp->getTypeTag();
-    typeDecl = new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memeberType);
-  } else
-    typeDecl = new TypeDecl(type, name, shapeCp->getTypeFlag());
+    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memeberType);
+  }
 
-  return typeDecl;
+  // Default return
+  return new TypeDecl(type, name, shapeCp->getTypeFlag());
 }
 
 // Get the Type tag from the constant pool based on the index passed
@@ -663,7 +665,6 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     break;
   }
   case INSTRUCTION_KIND_MAP_STORE: {
-    // Add map store logic
     MapStoreInsn *mapStoreInsn =
         ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn();
     mapStoreInsn->setInstKind(insnKind);

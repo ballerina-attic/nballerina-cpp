@@ -139,7 +139,7 @@ private:
   uint32_t returnTypeIndex;
   uint32_t restTypeIndex;
   vector<uint32_t> params;
-  uint32_t constraintTypeCpIndex; // this should an typeStructure interface
+  uint32_t constraintTypeCpIndex;
 
 public:
   uint32_t getShapeLength() { return shapeLength; }
