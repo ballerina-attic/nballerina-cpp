@@ -105,4 +105,3 @@ Clone the nballerina source and run below commands.
 * Run nballerinacc against a BIR dump file to generate the .ll LLVM IR file
  
         nballerinacc.exe  ../../compiler/main-bir-dump -o main.ll
-
