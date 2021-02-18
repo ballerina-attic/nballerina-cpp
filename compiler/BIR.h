@@ -28,6 +28,9 @@
 using namespace std;
 using namespace llvm;
 
+// define global nil value name
+const string BAL_NIL_VALUE = "bal_nil_value";
+
 // Forward Declarations
 class TypeDecl;
 class BIRBasicBlock;

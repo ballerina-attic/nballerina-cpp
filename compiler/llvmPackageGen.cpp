@@ -45,8 +45,17 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
       globVarRef = wrap(gVar);
     }
     if (globVarRef)
-      globalVarRefs.insert({globVar->getVarName(), globVarRef});
+      globalVarRefs.insert({varName, globVarRef});
   }
+
+  // create global var for nil value  
+  Constant *nullValue = Constant::getNullValue(unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
+  GlobalVariable *gVar = new GlobalVariable(
+        *unwrap(modRef), unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
+        GlobalValue::ExternalLinkage, nullValue, BAL_NIL_VALUE.c_str(), 0);
+  gVar->setAlignment(Align(8));
+  LLVMValueRef globVarRef = wrap(gVar);
+  globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
 
   // creating struct smart pointer to store any type variables data.
   LLVMTypeRef structGen =
@@ -75,7 +84,8 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
       isVarArg = true;
 
     if (birFunc->getReturnVar())
-      retType = birFunc->getLLVMFuncRetTypeRefOfType(birFunc->getReturnVar());
+      retType = birFunc->getLLVMFuncRetTypeRefOfType(birFunc->getReturnVar(), 
+                                                                                                              birFunc->getName());
     for (unsigned i = 0; i < numParams; i++) {
       Operand *funcParam = birFunc->getParam(i);
       if (funcParam && funcParam->typeTag() == TYPE_TAG_ANY) {

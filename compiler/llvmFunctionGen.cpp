@@ -64,7 +64,7 @@ static bool isParamter(VarDecl *locVar) {
   }
 }
 
-LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
+LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl, string funcName) {
   int typeTag = 0;
   if (vDecl->getTypeDecl())
     typeTag = vDecl->getTypeDecl()->getTypeTag();
@@ -90,6 +90,11 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   case TYPE_TAG_CHAR_STRING:
   case TYPE_TAG_STRING:
   case TYPE_TAG_MAP:
+    return LLVMPointerType(LLVMInt8Type(), 0);
+  case TYPE_TAG_NIL:
+    if (funcName == "main") {
+      return LLVMVoidType();
+    }
     return LLVMPointerType(LLVMInt8Type(), 0);
   default:
     return LLVMVoidType();
@@ -166,6 +171,7 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   case TYPE_TAG_CHAR_STRING:
   case TYPE_TAG_STRING:
   case TYPE_TAG_MAP:
+  case TYPE_TAG_NIL:
     return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_ANY:
     return LLVMPointerType(LLVMInt64Type(), 0);
