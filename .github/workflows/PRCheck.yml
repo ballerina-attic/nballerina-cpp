@@ -11,12 +11,7 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - name: Install utils
-        run: (sudo apt update && sudo apt install -y llvm-11-dev cargo && cargo install cbindgen)
-
-      - name: Clone nballerina repository
-        id : cache-nballerina
-        uses: actions/checkout@v2
-
-      - name: Build nballerinacc
-        run: (cd "$GITHUB_WORKSPACE/build" && cmake -DCMAKE_BUILD_TYPE=Release ../ && make -j)
+      - name: Get jBallerina pack
+        run: |
+          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-Preview2-nballerina-r1/jballerina-tools-2.0.0-Preview2-nballerina-r1.zip -u "${{ secrets.BALLERINA_BOT_USERNAME }}:${{ secrets.BALLERINA_BOT_TOKEN }}" -o jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
+          du -hs jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
