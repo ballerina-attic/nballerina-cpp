@@ -34,11 +34,11 @@ target_link_libraries(nballerinacc PRIVATE ${llvm_libs})
 
 # Set extra warnings for nballerinacc
 if (MSVC)
-    set(DEBUG_OPTIONS /W4 /WX)
-    set(RELEASE_OPTIONS /W4)
+    set(DEBUG_OPTIONS /W4)
+    set(RELEASE_OPTIONS /W3 /WX)
 else()
     set(DEBUG_OPTIONS -Wall -Wextra -pedantic)
-    set(RELEASE_OPTIONS -Wall)
+    set(RELEASE_OPTIONS -Wall -Werror)
 endif()
 
 target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
