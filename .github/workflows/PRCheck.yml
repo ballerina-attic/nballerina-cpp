@@ -8,15 +8,20 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-20.04
     steps:
       - name: Install utils
-        run: (sudo apt update && sudo apt install -y llvm-11-dev cargo && cargo install cbindgen)
+        run: | 
+          sudo apt update
+          sudo apt install -y llvm-11-dev cargo
+          cargo install cbindgen
 
       - name: Clone nballerina repository
         id : cache-nballerina
         uses: actions/checkout@v2
 
       - name: Build nballerinacc
-        run: (cd "$GITHUB_WORKSPACE/build" && cmake -DCMAKE_BUILD_TYPE=Release ../ && make -j)
+        run: | 
+          cmake -DCMAKE_BUILD_TYPE=Release ../
+          make -j
+        working-directory: ./build
