@@ -5,20 +5,15 @@ ConditionBrInsn::ConditionBrInsn(Location *pos, InstructionKind kind,
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
 void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  LLVMBuilderRef builder;
-  string lhsName;
-  LLVMValueRef brCondition;
-  LLVMBasicBlockRef ifLLVMBB;
-  LLVMBasicBlockRef elseLLVMBB;
-  Operand *lhsOp = getLhsOperand();
 
-  if (getFunction() && lhsOp && lhsOp->getVarDecl()) {
-    builder = getFunction()->getLLVMBuilder();
-    lhsName = lhsOp->name();
-  }
-  if (getFunction() && lhsName != "") {
-    brCondition = getFunction()->getValueRefBasedOnName(lhsName);
-  }
+  Operand *lhsOp = getLhsOperand();
+  assert(lhsOp && lhsOp->getVarDecl());
+  assert(getFunction());
+  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+
+  string lhsName = lhsOp->name();
+  assert(lhsName != "");
+  LLVMValueRef brCondition = getFunction()->getValueRefBasedOnName(lhsName);
 
   if (!brCondition) {
     VarDecl *lhsVarDecl = getFunction()->getNameVarDecl(lhsName);
@@ -28,10 +23,12 @@ void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     }
   }
 
-  if (getIfThenBB() && getElseBB()) {
-    ifLLVMBB = getIfThenBB()->getLLVMBBRef();
-    elseLLVMBB = getElseBB()->getLLVMBBRef();
-  }
+  if (!getIfThenBB() || !getElseBB())
+    return;
+
+  LLVMBasicBlockRef ifLLVMBB = getIfThenBB()->getLLVMBBRef();
+  LLVMBasicBlockRef elseLLVMBB = getElseBB()->getLLVMBBRef();
+
   if (builder && brCondition && ifLLVMBB && elseLLVMBB) {
     LLVMBuildCondBr(builder, brCondition, ifLLVMBB, elseLLVMBB);
   }

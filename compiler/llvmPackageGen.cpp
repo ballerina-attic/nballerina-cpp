@@ -64,7 +64,6 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
     LLVMBuilderRef builder = LLVMCreateBuilder();
     birFunc->setLLVMBuilder(builder);
     LLVMTypeRef funcType;
-    LLVMTypeRef retType;
     unsigned int numParams = birFunc->getNumParams();
     LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
     bool isVarArg = false;
@@ -72,8 +71,13 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
     if (birFunc->getRestParam())
       isVarArg = true;
 
-    if (birFunc->getReturnVar())
-      retType = birFunc->getLLVMFuncRetTypeRefOfType(birFunc->getReturnVar());
+    if (!birFunc->getReturnVar())
+      continue;
+    LLVMTypeRef retType =
+        birFunc->getLLVMFuncRetTypeRefOfType(birFunc->getReturnVar());
+    if (!retType)
+      continue;
+
     for (unsigned i = 0; i < numParams; i++) {
       Operand *funcParam = birFunc->getParam(i);
       if (funcParam && funcParam->typeTag() == TYPE_TAG_ANY) {
@@ -83,13 +87,12 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
             funcParam->getVarDecl()->getTypeDecl());
       }
     }
-    if (retType) {
-      funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
-      const char *newFuncName = birFunc->getName().c_str();
-      if (funcType) {
-        birFunc->setNewFunctionRef(
-            LLVMAddFunction(modRef, newFuncName, funcType));
-      }
+
+    funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
+    const char *newFuncName = birFunc->getName().c_str();
+    if (funcType) {
+      birFunc->setNewFunctionRef(
+          LLVMAddFunction(modRef, newFuncName, funcType));
     }
   }
 

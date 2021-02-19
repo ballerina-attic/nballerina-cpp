@@ -5,21 +5,21 @@ ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
 void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  LLVMBuilderRef builder;
   BIRFunction *funcObj = getFunction();
-  VarDecl *returnVarDecl = NULL;
-  if (funcObj) {
-    builder = funcObj->getLLVMBuilder();
-    vector<VarDecl *> globalVarList = getPkgAddress()->getGlobalVars();
-    for (unsigned int i = 0; i < globalVarList.size(); i++) {
-      VarDecl *varDeclLoc = globalVarList[i];
-      string varDeclName = varDeclLoc->getVarName();
-      if (varDeclName == "_bal_result") {
-        returnVarDecl = varDeclLoc;
-        break;
-      }
+  VarDecl *returnVarDecl = nullptr;
+  assert(funcObj);
+
+  LLVMBuilderRef builder = funcObj->getLLVMBuilder();
+  vector<VarDecl *> globalVarList = getPkgAddress()->getGlobalVars();
+  for (unsigned int i = 0; i < globalVarList.size(); i++) {
+    VarDecl *varDeclLoc = globalVarList[i];
+    string varDeclName = varDeclLoc->getVarName();
+    if (varDeclName == "_bal_result") {
+      returnVarDecl = varDeclLoc;
+      break;
     }
   }
+
   if (funcObj->getName() == "main" && returnVarDecl) {
     if (builder && funcObj) {
       LLVMValueRef lhsRef =

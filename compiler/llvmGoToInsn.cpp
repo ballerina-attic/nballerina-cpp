@@ -5,9 +5,8 @@ GoToInsn::GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
 void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  LLVMBuilderRef builder;
-  if (getFunction())
-    builder = getFunction()->getLLVMBuilder();
+  assert(getFunction());
+  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
 
   if (builder && getNextBB() && getNextBB()->getLLVMBBRef())
     LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());

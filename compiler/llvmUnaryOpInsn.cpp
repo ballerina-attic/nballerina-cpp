@@ -5,42 +5,35 @@ UnaryOpInsn::UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
 
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
+  
   BIRFunction *funcObj = getFunction();
-  LLVMBuilderRef builder;
-  string lhstmpName;
-  LLVMValueRef lhsRef;
-  LLVMValueRef rhsOpref;
-  LLVMValueRef ifReturn;
+  assert(funcObj);
+  LLVMBuilderRef builder = funcObj->getLLVMBuilder();
+  assert(builder);
   Operand *lhsOp = getLhsOperand();
+  assert(lhsOp);
   string lhsName = lhsOp->name();
+  assert(lhsOp->getVarDecl());
+  string lhstmpName = lhsName + "_temp";
+  
+  LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
+  if (!lhsRef)
+    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
 
-  if (funcObj && lhsOp && lhsOp->getVarDecl()) {
-    builder = funcObj->getLLVMBuilder();
-    lhstmpName = lhsName + "_temp";
-    lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
+  assert(rhsOp);
+  LLVMValueRef rhsOpref = funcObj->getLocalToTempVar(rhsOp);
+  if (!rhsOpref)
+    return;
 
-    if (!lhsRef)
-      lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
+  switch (getInstKind()) {
+  case INSTRUCTION_KIND_UNARY_NOT:
+  case INSTRUCTION_KIND_UNARY_NEG: {
+    LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhstmpName.c_str());
+    LLVMBuildStore(builder, ifReturn, lhsRef);
+    break;
   }
-
-  if (funcObj && rhsOp)
-    rhsOpref = funcObj->getLocalToTempVar(rhsOp);
-
-  if (rhsOpref && builder) {
-    switch (getInstKind()) {
-    case INSTRUCTION_KIND_UNARY_NOT: {
-      ifReturn = LLVMBuildNot(builder, rhsOpref, lhstmpName.c_str());
-      break;
-    }
-    case INSTRUCTION_KIND_UNARY_NEG: {
-      ifReturn = LLVMBuildNeg(builder, rhsOpref, lhstmpName.c_str());
-      break;
-    }
-    default:
-      break;
-    }
-    if (ifReturn) {
-      LLVMBuildStore(builder, ifReturn, lhsRef);
-    }
+  default:
+    break;
   }
+  return;
 }
