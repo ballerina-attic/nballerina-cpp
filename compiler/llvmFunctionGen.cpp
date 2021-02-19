@@ -170,7 +170,6 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   case TYPE_TAG_STRING:
     return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_ANY:
-    return LLVMPointerType(LLVMInt64Type(), 0);
   case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt64Type(), 0);
   default:
