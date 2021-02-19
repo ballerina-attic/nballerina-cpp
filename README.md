@@ -4,7 +4,6 @@ Translate Ballerina IR to LLVM IR.
 ## Building from source in Ubuntu 20.04
 ### Prerequisites
 * `sudo apt install build-essential llvm-11-dev cmake cargo python3-pip`
-* `cargo install cbindgen`
 * `pip3 install lit filecheck`
 
 ### Build steps
@@ -14,7 +13,6 @@ Translate Ballerina IR to LLVM IR.
 
 This will build:
 * The Rust runtime : runtime/target/release/libballerina_rt.so
-* The C++ header for the runtime : runtime/include/ballerina_rt.h
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
 ### Run tests
@@ -38,14 +36,22 @@ This will build:
 * Running the a.out and checking the return value on the command-line by using "echo $?" will yield the int value returned by the function. 
 * The a.out can be disassembled using "objdump -d" to see the machine instructions
 
+### To codegen the C header for the Rust runtime lib
+1. Install cbindgen
+
+        cargo install cbindgen
+2. Execute build command
+
+        cd build/
+        make runtime_header
+3. The generated header will be at : runtime/include/ballerina_rt.h
+
 
 ## Building from source in MacOSX 10.15.0
 ### Prerequisites
 * If you haven’t installed xcode and brew yet, please install them. Following steps assumes that xcode and brew are already installed. 
 * `brew install llvm@11 rust python3`
 * `brew postinstall python3`
-* `cargo install cbindgen`
-* cargo installs the dependencies in user's home directory. Hence, add `~/.cargo/bin` to your `PATH` system variable. `export PATH=$PATH:~/.cargo/bin`
 * `pip3 install lit filecheck`
 
 ### Build steps
@@ -55,7 +61,6 @@ This will build:
 
 This will build:
 * The Rust runtime : runtime/target/release/libballerina_rt.so
-* The C++ header for the runtime : runtime/include/ballerina_rt.h
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
 ### Run tests
@@ -79,10 +84,21 @@ This will build:
 * Running the a.out and checking the return value on the command-line by using `echo $?` will yield the int value returned by the function. 
 * The a.out can be disassembled using `objdump -d` to see the machine instructions
 
+### To codegen the C header for the Rust runtime lib
+1. Install cbindgen
+
+        cargo install cbindgen
+  * cargo installs the dependencies in user's home directory. Hence, add `~/.cargo/bin` to your `PATH` system variable. `export PATH=$PATH:~/.cargo/bin`
+2. Execute build command
+
+        cd build/
+        make runtime_header
+3. The generated header will be at : runtime/include/ballerina_rt.h
+
 ## Building from source in Windows 10(x64)
 
 ### Prerequisites
-* Install [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) and run `cargo install cbindgen`
+* Install [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html)
 * Install [python-3](https://www.python.org/downloads/)
 * Build LLVM from source
   * Install [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019). Please make sure that tools should be installed with **C++ CMake tools for Windows** and **C++ ATL for latest v142 build tools (x86 & x64)** which are optional.
@@ -106,3 +122,5 @@ Clone the nballerina source and run below commands.
  
         nballerinacc.exe  ../../compiler/main-bir-dump -o main.ll
 
+### Run tests
+* Tests are currently not supported in Windows
