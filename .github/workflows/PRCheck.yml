@@ -13,15 +13,41 @@ jobs:
       - name: Install utils
         run: | 
           sudo apt update
-          sudo apt install -y llvm-11-dev cargo
+          sudo apt install -y llvm-11-dev cargo python3-pip
           cargo install cbindgen
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pip3 install lit filecheck
 
-      - name: Clone nballerina repository
-        id : cache-nballerina
+      - name: Install JRE 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+          java-package: jre
+          architecture: x64
+
+      - name: Clone nBallerina
         uses: actions/checkout@v2
 
       - name: Build nballerinacc
         run: | 
           cmake -DCMAKE_BUILD_TYPE=Release ../
           make -j
+        working-directory: ./build
+      
+      - name: Build runtime header
+        run: | 
+          make runtime_header
+        working-directory: ./build
+      
+      - name: Setup Ballerina pack
+        run: |
+          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-Preview2-nballerina-r1/jballerina-tools-2.0.0-Preview2-nballerina-r1.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
+          unzip -q jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
+          cd jballerina-tools-2.0.0-Preview2-nballerina-r1/bin
+          echo $(pwd) >> $GITHUB_PATH
+        working-directory: ./build
+
+      - name: Run LIT tests
+        run: | 
+          make check
         working-directory: ./build
