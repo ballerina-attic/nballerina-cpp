@@ -52,8 +52,7 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   Constant *nullValue = Constant::getNullValue(unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
   GlobalVariable *gVar = new GlobalVariable(
         *unwrap(modRef), unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
-        GlobalValue::ExternalLinkage, nullValue, BAL_NIL_VALUE.c_str(), 0);
-  gVar->setAlignment(Align(8));
+        GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, 0);
   LLVMValueRef globVarRef = wrap(gVar);
   globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
 
@@ -84,8 +83,8 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
       isVarArg = true;
 
     if (birFunc->getReturnVar())
-      retType = birFunc->getLLVMFuncRetTypeRefOfType(birFunc->getReturnVar(), 
-                                                                                                              birFunc->getName());
+      retType = birFunc->getLLVMFuncRetTypeRefOfType(
+          birFunc->getReturnVar(), birFunc->getName());
     for (unsigned i = 0; i < numParams; i++) {
       Operand *funcParam = birFunc->getParam(i);
       if (funcParam && funcParam->typeTag() == TYPE_TAG_ANY) {

@@ -69,16 +69,6 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl, string func
   if (vDecl->getTypeDecl())
     typeTag = vDecl->getTypeDecl()->getTypeTag();
 
-  // if main function return type is void, but user wants to return some
-  // value using _bal_result (global variable from BIR), change main function
-  // return type from void to global variable (_bal_result) type.
-  if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    VarDecl *globRetVar =
-        getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
-    if (globRetVar)
-      typeTag = globRetVar->getTypeDecl()->getTypeTag();
-  }
-
   switch (typeTag) {
   case TYPE_TAG_INT:
     return LLVMInt32Type();
@@ -91,11 +81,22 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl, string func
   case TYPE_TAG_STRING:
   case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt8Type(), 0);
-  case TYPE_TAG_NIL:
-    if (funcName == "main") {
-      return LLVMVoidType();
+  case TYPE_TAG_NIL : {
+    if (funcName != MAIN_FUNCTION_NAME) {
+      return LLVMPointerType(LLVMInt8Type(), 0);
     }
-    return LLVMPointerType(LLVMInt8Type(), 0);
+    // if main function return type is void, but user wants to return some
+    // value using _bal_result (global variable from BIR), change main function
+    // return type from void to global variable (_bal_result) type.
+    vector<VarDecl *> globVars = getPkgAddress()->getGlobalVars();
+    for (unsigned int i = 0; i < globVars.size(); i++) {
+      VarDecl *globVar = globVars[i];
+      if (globVar->getVarName() == "_bal_result") {
+        return getLLVMTypeRefOfType(globVar->getTypeDecl());
+      }
+    }
+    return LLVMVoidType();
+  }
   default:
     return LLVMVoidType();
   }

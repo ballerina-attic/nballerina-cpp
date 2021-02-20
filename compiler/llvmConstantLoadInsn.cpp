@@ -75,12 +75,13 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
       break;
     }
     case TYPE_TAG_NIL: {
+      string lhsOpName = lhsOp->getVarDecl()->getVarName();
       // check for the main function and () is assigned to 0%
-      if (getFunction() -> getName() == "main" && lhsOp -> getVarDecl() -> getVarName() == "%0") {
+      if (getFunction()->getName() == MAIN_FUNCTION_NAME && lhsOpName == "%0") {
         return; 
       }
       LLVMValueRef constTempRef =  getPkgAddress()->getGlobalVarRefUsingId(BAL_NIL_VALUE);
-      string tempName = BAL_NIL_VALUE + "_temp";
+      string tempName = std::string(BAL_NIL_VALUE) + "_" + lhsOpName + "_temp";
       constRef = LLVMBuildLoad(builder, constTempRef, tempName.c_str());
       break;
     }

@@ -19,28 +19,29 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
     if (globRetVar)
       returnVarDecl = globRetVar;
   }
-  
-  if (funcObj->getName() == "main") {
-    if (returnVarDecl) {
-      if (builder && funcObj) {
-        LLVMValueRef lhsRef =
-            funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
-        if (!lhsRef) {
-          lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
-              returnVarDecl->getVarName());
 
-          LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
-          if (retValRef)
-            LLVMBuildRet(builder, retValRef);
-        }
-      }  
-    } else {
-      LLVMBuildRetVoid(builder);
-      // Inside this block we have to handle the error? return scenario in main
-    }
-  } else {
+  if (funcObj->getName() != MAIN_FUNCTION_NAME) {
     LLVMValueRef retValueRef = LLVMBuildLoad(
     builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
     LLVMBuildRet(builder, retValueRef);  
+    return;
+  }
+
+  if (!returnVarDecl) {
+    LLVMBuildRetVoid(builder);
+    return;
+  }
+
+  if (builder && funcObj) {
+    LLVMValueRef lhsRef =
+        funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
+    if (lhsRef) {
+      return;
+    }
+    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(returnVarDecl->getVarName());
+    LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
+    if (retValRef) {
+      LLVMBuildRet(builder, retValRef);
+    }
   }
 }
