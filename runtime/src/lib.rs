@@ -23,12 +23,19 @@ use std::ffi::CStr;
 use std::mem;
 use std::os::raw::c_char;
 
+pub const BASE_TYPE_INDX: usize = 0;
+pub const ARRAY_MEMBER_TYPE_INDX: usize = 1;
+pub const ARRAY_SIZE_LSB_INDX: usize = 2;
+pub const ARRAY_SIZE_MSB_INDX: usize = 3;
+
 pub fn compute_size(type_string: &str) -> i32 {
-    let mut bits = String::new();
+    let mut hex_bits = String::new();
     //Index 2 and 3 represent the size
-    bits.push(type_string.chars().nth(2).unwrap());
-    bits.push(type_string.chars().nth(3).unwrap());
-    let total_bits: i32 = bits.parse().unwrap();
+    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_LSB_INDX).unwrap());
+    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_MSB_INDX).unwrap());
+    let bits: std::result::Result<i32, std::num::ParseIntError> =
+        i32::from_str_radix(&hex_bits, 32);
+    let total_bits: i32 = bits.unwrap();
     let mut length_bits = String::new();
     let index = 4;
     for i in 0..total_bits {
@@ -40,16 +47,35 @@ pub fn compute_size(type_string: &str) -> i32 {
     return size;
 }
 
-pub fn calculate_type_priority(type_string: &str) -> i32 {
-    let mut priority = 0;
-    match type_string.chars().nth(1) {
-        Some('C') => priority = 4,
-        Some('B') => priority = 1,
-        Some('F') | Some('I') => priority = 8,
-        Some('A') => priority = 16,
-        _ => println!("Unsupported type"),
+/*
+ * Type Notations -
+ * C represents character
+ * B represents boolean
+ * F represents float
+ * I represents integer
+ * S represents string
+ * X represents any*/
+pub fn calculate_type_priority(type_string: &str) -> Result<i32, &'static str> {
+    let priority: i32;
+    match type_string.chars().nth(ARRAY_MEMBER_TYPE_INDX) {
+        Some('C') | Some('B') => {
+            priority = 1;
+            Ok(priority)
+        }
+        Some('F') | Some('I') => {
+            priority = 8;
+            Ok(priority)
+        }
+        Some('S') => {
+            priority = 12;
+            Ok(priority)
+        }
+        Some('X') => {
+            priority = 16;
+            Ok(priority)
+        }
+        _ => Err("Unsupported type"),
     }
-    return priority;
 }
 
 /*
@@ -60,6 +86,8 @@ pub fn calculate_type_priority(type_string: &str) -> i32 {
  * */
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char) -> bool {
+    assert!(!src_type.is_null());
+    assert!(!dest_type.is_null());
     //Conversion to CStr
     let source_cstr: &CStr = unsafe { CStr::from_ptr(src_type) };
     let dest_cstr: &CStr = unsafe { CStr::from_ptr(dest_type) };
@@ -71,19 +99,24 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
         return true;
     }
     //Index 0 represents type of data structure
-    if source.chars().nth(0) != destination.chars().nth(0) {
+    if source.chars().nth(BASE_TYPE_INDX) != destination.chars().nth(BASE_TYPE_INDX) {
         return false;
     }
-    let mut src_priority = 0;
-    let mut dest_priority = 0;
-    match source.chars().nth(0) {
+    let mut src_priority: Result<i32, &'static str> = Ok(0);
+    let mut dest_priority: Result<i32, &'static str> = Ok(0);
+    match source.chars().nth(BASE_TYPE_INDX) {
         Some('A') => {
-            if source.chars().nth(1) != destination.chars().nth(1) {
+            if source.chars().nth(ARRAY_MEMBER_TYPE_INDX)
+                != destination.chars().nth(ARRAY_MEMBER_TYPE_INDX)
+            {
                 src_priority = calculate_type_priority(&source);
                 dest_priority = calculate_type_priority(&destination);
+                if src_priority.is_err() || dest_priority.is_err() {
+                    panic!("Unsupported type");
+                }
             }
             // If source type is bigger than destination, type cast is not possible
-            if src_priority > dest_priority {
+            if src_priority.unwrap() > dest_priority.unwrap() {
                 return false;
             }
             let src_size: i32 = compute_size(&source);
@@ -92,7 +125,7 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
                 return false;
             }
         }
-        _ => println!("Unsupported data structure"),
+        _ => return false,
     }
     //If all the checks are passed, type cast from source to destination is valid
     return true;
