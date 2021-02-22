@@ -2,14 +2,15 @@
 #define __BALINVOKABLETYPE__H__
 
 #include "BalTypeDecl.h"
+#include <memory>
 #include <vector>
 
 namespace nballerina {
 class InvokableType {
 private:
   std::vector<TypeDecl *> paramTypes;
-  const TypeDecl *restType;
-  const TypeDecl *returnType;
+  std::unique_ptr<TypeDecl> restType;
+  std::unique_ptr<TypeDecl> returnType;
 
 public:
   InvokableType() = delete;
