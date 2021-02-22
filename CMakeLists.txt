@@ -22,7 +22,10 @@ add_subdirectory(runtime)
 file(GLOB SOURCES
 ${PROJECT_SOURCE_DIR}/compiler/*.cpp
 )
-add_executable(nballerinacc ${SOURCES})
+file(GLOB CODEGEN
+${PROJECT_SOURCE_DIR}/compiler/codegen/*.cpp
+)
+add_executable(nballerinacc ${SOURCES} ${CODEGEN})
 
 add_dependencies(nballerinacc BallerinaRT)
 
