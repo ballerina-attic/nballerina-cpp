@@ -3,8 +3,8 @@
 
 #include <llvm-c/Types.h>
 #include <string>
-#include <vector>
 
+namespace nballerina {
 class TypeDecl {
 private:
   const int tag;
@@ -32,24 +32,6 @@ public:
   ~MapTypeDecl() = default;
   int getTypeMemberTag();
 };
-
-class InvokableType {
-private:
-  std::vector<TypeDecl *> paramTypes;
-  TypeDecl *restType;
-  TypeDecl *returnType;
-
-public:
-  InvokableType() = delete;
-  InvokableType(std::vector<TypeDecl *> paramTy, TypeDecl *restTy,
-                TypeDecl *retTy);
-  InvokableType(std::vector<TypeDecl *> paramTy, TypeDecl *retTy);
-  ~InvokableType() = default;
-
-  TypeDecl *getReturnType();
-  TypeDecl *getRestType();
-  TypeDecl *getParamType(int i);
-  size_t getParamTypeCount();
-};
+} // namespace nballerina
 
 #endif //!__BALTYPEDECL__H__

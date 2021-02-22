@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "BalInvokableType.h"
 #include "BalTypeDecl.h"
 #include "llvm-c/Core.h"
 #include "llvm/ADT/Triple.h"
@@ -32,6 +33,7 @@
 #define DEFAULT_VERSION 0
 using namespace std;
 using namespace llvm;
+using namespace nballerina;
 
 // Forward Declarations
 class BIRBasicBlock;

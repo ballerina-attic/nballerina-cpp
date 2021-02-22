@@ -1,14 +1,16 @@
 #include "BIR.h"
-#include "BalTypeDecl.h"
+#include "BalInvokableType.h"
 
+namespace nballerina {
 InvokableType::InvokableType(vector<TypeDecl *> paramTy, TypeDecl *restTy,
                              TypeDecl *retTy)
-    : paramTypes(paramTy), restType(restTy), returnType(retTy) {}
+    : paramTypes(std::move(paramTy)), restType(restTy), returnType(retTy) {}
 
 InvokableType::InvokableType(vector<TypeDecl *> paramTy, TypeDecl *retTy)
-    : paramTypes(paramTy), returnType(retTy) {}
+    : paramTypes(std::move(paramTy)), restType(nullptr), returnType(retTy) {}
 
-TypeDecl *InvokableType::getReturnType() { return returnType; }
-TypeDecl *InvokableType::getRestType() { return restType; }
+const TypeDecl *InvokableType::getReturnType() { return returnType; }
+const TypeDecl *InvokableType::getRestType() { return restType; }
 TypeDecl *InvokableType::getParamType(int i) { return paramTypes[i]; }
 size_t InvokableType::getParamTypeCount() { return paramTypes.size(); }
+}
