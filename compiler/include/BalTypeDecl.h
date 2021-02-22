@@ -12,8 +12,7 @@ private:
   int flags;
 
 public:
-  TypeDecl() = default;
-  TypeDecl(int tag, int flags);
+  TypeDecl() = delete;
   TypeDecl(int tag, std::string name, int flags);
   virtual ~TypeDecl() = default;
 
@@ -24,8 +23,6 @@ public:
   int getTypeTag() { return tag; }
   std::string getTypeDeclName() { return name; }
   int getFlags() { return flags; }
-
-  virtual void translate(LLVMModuleRef &modRef);
 };
 
 // Extend TypeDecl for MapTypeDecl; to store member type info
@@ -41,26 +38,23 @@ public:
   int getTypeMemberTag() { return memberTypeTag; }
 };
 
-class InvokableType : public TypeDecl {
+class InvokableType {
 private:
   std::vector<TypeDecl *> paramTypes;
   TypeDecl *restType;
   TypeDecl *returnType;
 
 public:
-  InvokableType() = default;
+  InvokableType() = delete;
   InvokableType(std::vector<TypeDecl *> paramTy, TypeDecl *restTy,
                 TypeDecl *retTy);
   InvokableType(std::vector<TypeDecl *> paramTy, TypeDecl *retTy);
   ~InvokableType() = default;
 
-  TypeDecl *getReturnType() { return returnType; }
-  TypeDecl *getRestType() { return restType; }
-  TypeDecl *getParamType(int i) { return paramTypes[i]; }
-  size_t getParamTypeCount() { return paramTypes.size(); }
-  void setReturnType(TypeDecl *ty) { returnType = ty; }
-  void setRestType(TypeDecl *ty) { restType = ty; }
-  void addParamType(TypeDecl *ty) { paramTypes.push_back(ty); }
+  TypeDecl *getReturnType();
+  TypeDecl *getRestType();
+  TypeDecl *getParamType(int i);
+  size_t getParamTypeCount();
 };
 
 #endif //!__BALTYPEDECL__H__

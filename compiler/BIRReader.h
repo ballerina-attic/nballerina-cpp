@@ -2,6 +2,7 @@
 #define BIRREADER_H
 
 #include "BIR.h"
+#include "BalTypeDecl.h"
 #include <fstream>
 
 class ConstantPoolSet;

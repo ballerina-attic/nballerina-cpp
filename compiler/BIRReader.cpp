@@ -182,22 +182,22 @@ TypeTagEnum ConstantPoolSet::getTypeTag(uint32_t index) {
 
 // Search type from the constant pool based on index
 InvokableType *ConstantPoolSet::getInvokableType(uint32_t index) {
-  InvokableType *invokableType = new InvokableType();
+
   ConstantPoolEntry *poolEntry = getEntry(index);
   assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
+  std::vector<TypeDecl *> paramTypes;
   for (unsigned int i = 0; i < shapeCp->getParamCount(); i++) {
     TypeDecl *typeDecl = getTypeCp(shapeCp->getParam(i), false);
-    invokableType->addParamType(typeDecl);
+    paramTypes.push_back(typeDecl);
   }
+  TypeDecl *returnTypeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
   if (shapeCp->getRestType()) {
-    TypeDecl *typeDecl = getTypeCp(shapeCp->getRestTypeIndex(), false);
-    invokableType->setRestType(typeDecl);
+    TypeDecl *restTypeDecl = getTypeCp(shapeCp->getRestTypeIndex(), false);
+    return new InvokableType(paramTypes, restTypeDecl, returnTypeDecl);
   }
-  TypeDecl *typeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
-  invokableType->setReturnType(typeDecl);
-  return invokableType;
+  return new InvokableType(paramTypes, returnTypeDecl);
 }
 
 // Read Global Variable and push it to BIRPackage
