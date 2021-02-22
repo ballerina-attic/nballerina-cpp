@@ -7,22 +7,18 @@
 
 class TypeDecl {
 private:
-  int tag;
+  const int tag;
   std::string name;
-  int flags;
+  const int flags;
 
 public:
   TypeDecl() = delete;
   TypeDecl(int tag, std::string name, int flags);
   virtual ~TypeDecl() = default;
 
-  void setTypeDeclName(std::string namep) { name = namep; }
-  void setTypeTag(int tagp) { tag = tagp; }
-  void setFlags(int flag) { flags = flag; }
-
-  int getTypeTag() { return tag; }
-  std::string getTypeDeclName() { return name; }
-  int getFlags() { return flags; }
+  int getTypeTag();
+  std::string getTypeDeclName();
+  int getFlags();
 };
 
 // Extend TypeDecl for MapTypeDecl; to store member type info
@@ -32,10 +28,9 @@ private:
 
 public:
   MapTypeDecl() = delete;
-  MapTypeDecl(int tag, std::string name, int flags, int memberTag)
-      : TypeDecl{tag, name, flags}, memberTypeTag{memberTag} {};
+  MapTypeDecl(int tag, std::string name, int flags, int memberTag);
   ~MapTypeDecl() = default;
-  int getTypeMemberTag() { return memberTypeTag; }
+  int getTypeMemberTag();
 };
 
 class InvokableType {
