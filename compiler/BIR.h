@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "BalInvokableType.h"
+#include "BalLocation.h"
 #include "BalTypeDecl.h"
 #include "llvm-c/Core.h"
 #include "llvm/ADT/Triple.h"
@@ -151,31 +152,6 @@ enum TypeTagEnum {
 };
 
 enum VarScope { VAR_SCOPE_GLOBAL = 1, VAR_SCOPE_FUNCTION = 2 };
-
-class Location {
-private:
-  string fileName;
-  int sLine;
-  int sCol;
-  int eLine;
-  int eCol;
-
-public:
-  Location() = default;
-  Location(string name, int sline, int scol, int eline, int ecol);
-  ~Location() = default;
-  void setFileName(string fname) { fileName = fname; }
-  void setStartLineNum(int sline) { sLine = sline; }
-  void setStartColumnNum(int scol) { sCol = scol; }
-  void setEndLineNum(int eline) { eLine = eline; }
-  void setEndColumnNum(int ecol) { eCol = ecol; }
-
-  string getFileName() { return fileName; }
-  int getStartLineNum() { return sLine; }
-  int getStartColumnNum() { return sCol; }
-  int getEndLineNum() { return eLine; }
-  int getEndColumnNum() { return eCol; }
-};
 
 class BIRNode {
 private:
