@@ -80,6 +80,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
     case TYPE_TAG_NIL:
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
+    case TYPE_TAG_UNION:
         return wrap(boxType);
     default:
         return LLVMInt32Type();
@@ -108,11 +109,10 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // creating struct smart pointer to store any type variables data.
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
-    LLVMTypeRef *structElementTypes = new LLVMTypeRef[3];
+    LLVMTypeRef *structElementTypes = new LLVMTypeRef[2];
     structElementTypes[0] = LLVMInt32Type();
-    structElementTypes[1] = LLVMInt32Type();
-    structElementTypes[2] = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMStructSetBody(structGen, structElementTypes, 3, 0);
+    structElementTypes[1] = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMStructSetBody(structGen, structElementTypes, 2, 0);
     boxType = llvm::unwrap<llvm::StructType>(structGen);
 
     // iterate over all global variables and translate
