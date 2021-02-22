@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "BalTypeDecl.h"
 #include "llvm-c/Core.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/IR/Constants.h"
@@ -33,7 +34,6 @@ using namespace std;
 using namespace llvm;
 
 // Forward Declarations
-class TypeDecl;
 class BIRBasicBlock;
 class VarDecl;
 class BIRFunction;
@@ -190,42 +190,6 @@ public:
   void setLocation(Location *newLoc) { loc = newLoc; }
   void setPkgAddress(BIRPackage *pkgAddr) { pkgAddress = pkgAddr; }
   virtual void translate(LLVMModuleRef &modRef);
-};
-
-class TypeDecl {
-private:
-  int tag;
-  string name;
-  int flags;
-
-public:
-  TypeDecl() = default;
-  TypeDecl(int tag, int flags);
-  TypeDecl(int tag, string name, int flags);
-  virtual ~TypeDecl() = default;
-
-  void setTypeDeclName(string namep) { name = namep; }
-  void setTypeTag(int tagp) { tag = tagp; }
-  void setFlags(int flag) { flags = flag; }
-
-  int getTypeTag() { return tag; }
-  string getTypeDeclName() { return name; }
-  int getFlags() { return flags; }
-
-  virtual void translate(LLVMModuleRef &modRef);
-};
-
-// Extend TypeDecl for MapTypeDecl; to store member type info
-class MapTypeDecl : public TypeDecl {
-private:
-  const int memberTypeTag;
-
-public:
-  MapTypeDecl() = delete;
-  MapTypeDecl(int tag, string name, int flags, int memberTag)
-      : TypeDecl{tag, name, flags}, memberTypeTag{memberTag} {};
-  ~MapTypeDecl() = default;
-  int getTypeMemberTag() { return memberTypeTag; }
 };
 
 class Operand : public BIRNode {
@@ -718,27 +682,6 @@ public:
   ~FuncParam() = default;
 
   bool hasDefaultValue() { return hasDefaultExpr; }
-};
-
-class InvokableType : public TypeDecl {
-private:
-  vector<TypeDecl *> paramTypes;
-  TypeDecl *restType;
-  TypeDecl *returnType;
-
-public:
-  InvokableType() = default;
-  InvokableType(vector<TypeDecl *> paramTy, TypeDecl *restTy, TypeDecl *retTy);
-  InvokableType(vector<TypeDecl *> paramTy, TypeDecl *retTy);
-  ~InvokableType() = default;
-
-  TypeDecl *getReturnType() { return returnType; }
-  TypeDecl *getRestType() { return restType; }
-  TypeDecl *getParamType(int i) { return paramTypes[i]; }
-  size_t getParamTypeCount() { return paramTypes.size(); }
-  void setReturnType(TypeDecl *ty) { returnType = ty; }
-  void setRestType(TypeDecl *ty) { restType = ty; }
-  void addParamType(TypeDecl *ty) { paramTypes.push_back(ty); }
 };
 
 class BIRFunction : public BIRNode {

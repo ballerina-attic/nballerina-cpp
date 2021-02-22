@@ -1,4 +1,5 @@
 #include "BIR.h"
+#include "BalTypeDecl.h"
 
 TypeDecl::TypeDecl(int tagp, int flagsp) : tag(tagp), flags(flagsp) {}
 

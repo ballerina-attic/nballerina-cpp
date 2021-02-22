@@ -1,4 +1,5 @@
 #include "BIR.h"
+#include "BalTypeDecl.h"
 
 InvokableType::InvokableType(vector<TypeDecl *> paramTy, TypeDecl *restTy,
                              TypeDecl *retTy)
