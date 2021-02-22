@@ -28,6 +28,7 @@ pub const ARRAY_MEMBER_TYPE_INDX: usize = 1;
 pub const ARRAY_SIZE_LSB_INDX: usize = 2;
 pub const ARRAY_SIZE_MSB_INDX: usize = 3;
 
+// Compute total elements present in the data structure
 pub fn compute_size(type_string: &str) -> i32 {
     let mut hex_bits = String::new();
     //Index 2 and 3 represent the size
@@ -48,6 +49,7 @@ pub fn compute_size(type_string: &str) -> i32 {
 }
 
 /*
+ * Computes size of the type
  * Type Notations -
  * C represents character
  * B represents boolean
@@ -55,34 +57,47 @@ pub fn compute_size(type_string: &str) -> i32 {
  * I represents integer
  * S represents string
  * X represents any*/
-pub fn calculate_type_priority(type_string: &str) -> Result<i32, &'static str> {
-    let priority: i32;
+pub fn type_size(type_string: &str) -> Result<i32, &'static str> {
+    let size: i32;
     match type_string.chars().nth(ARRAY_MEMBER_TYPE_INDX) {
         Some('C') | Some('B') => {
-            priority = 1;
-            Ok(priority)
+            size = 1;
+            Ok(size)
         }
         Some('F') | Some('I') => {
-            priority = 8;
-            Ok(priority)
+            size = 8;
+            Ok(size)
         }
         Some('S') => {
-            priority = 12;
-            Ok(priority)
+            size = 12;
+            Ok(size)
         }
         Some('X') => {
-            priority = 16;
-            Ok(priority)
+            size = 16;
+            Ok(size)
         }
         _ => Err("Unsupported type"),
     }
 }
 
 /*
- * Algorithm for checking whether typecast is possible from source to destination
+ * To checking whether typecast is possible from source to destination
+ * Example of a type string - "AI041024"
  * Index 0 - represents data structure
  * Index 1 - represents type
- * Index 2 and 3 - represents bits followed by its size
+ * Index 2 and 3 - represents bits in hex followed by its size in decimal
+ *
+ * Algorithm -
+ * a. Convert null terminated string to rust string.
+ * b. Return true if type strings are same.
+ * c. Return false if data structure is different.
+ * d. Compute type size - type_size()
+ * e. Return false if source type size > destination type size
+ * g. Compute data structure length - compute_length()
+ *
+ * Data Structure Notations -
+ * A - Array
+ * M - Map
  * */
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char) -> bool {
@@ -102,23 +117,24 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
     if source.chars().nth(BASE_TYPE_INDX) != destination.chars().nth(BASE_TYPE_INDX) {
         return false;
     }
-    let mut src_priority: Result<i32, &'static str> = Ok(0);
-    let mut dest_priority: Result<i32, &'static str> = Ok(0);
+    let mut src_type_size: Result<i32, &'static str> = Ok(0);
+    let mut dest_type_size: Result<i32, &'static str> = Ok(0);
     match source.chars().nth(BASE_TYPE_INDX) {
         Some('A') => {
             if source.chars().nth(ARRAY_MEMBER_TYPE_INDX)
                 != destination.chars().nth(ARRAY_MEMBER_TYPE_INDX)
             {
-                src_priority = calculate_type_priority(&source);
-                dest_priority = calculate_type_priority(&destination);
-                if src_priority.is_err() || dest_priority.is_err() {
+                src_type_size = type_size(&source);
+                dest_type_size = type_size(&destination);
+                if src_type_size.is_err() || dest_type_size.is_err() {
                     panic!("Unsupported type");
                 }
             }
             // If source type is bigger than destination, type cast is not possible
-            if src_priority.unwrap() > dest_priority.unwrap() {
+            if src_type_size.unwrap() > dest_type_size.unwrap() {
                 return false;
             }
+            // Compute total number of elements present in the data structure
             let src_size: i32 = compute_size(&source);
             let dest_size: i32 = compute_size(&destination);
             if src_size > dest_size {
