@@ -1,4 +1,4 @@
-#ifndef __BALVARDECL__H__nballerina
+#ifndef __BALVARDECL__H__
 #define __BALVARDECL__H__
 
 #include "BalTypeDecl.h"

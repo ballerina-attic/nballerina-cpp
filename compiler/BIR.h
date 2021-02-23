@@ -10,6 +10,7 @@
 #include "BalInvokableType.h"
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
+#include "BalOperand.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include "Translatable.h"
@@ -141,21 +142,6 @@ enum TypeTagEnum {
   TYPE_TAG_NEVER = 50,
   TYPE_TAG_NULL_SET = 51,
   TYPE_TAG_PARAMETERIZED_TYPE = 52
-};
-
-class Operand : public PackageNode {
-private:
-  VarDecl *varDecl;
-
-public:
-  Operand() = default;
-  Operand(VarDecl *vDecl);
-  ~Operand() = default;
-
-  VarDecl *getVarDecl() { return varDecl; }
-  void setVarDecl(VarDecl *newDecl) { varDecl = newDecl; }
-  string name();
-  int typeTag();
 };
 
 class AbstractInsn : public PackageNode, public Debuggable {
