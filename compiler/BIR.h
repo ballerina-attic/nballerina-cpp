@@ -12,6 +12,7 @@
 #include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
+#include "BalParam.h"
 #include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
@@ -48,7 +49,6 @@ using namespace nballerina;
 class BIRBasicBlock;
 class BIRFunction;
 class BIRPackage;
-class Param;
 
 enum SymbolKind { LOCAL_SYMBOL_KIND, GLOBAL_SYMBOL_KIND };
 
@@ -447,26 +447,6 @@ public:
   void addNonTermInsn(NonTerminatorInsn *insn) { instructions.push_back(insn); }
 
   void translate(LLVMModuleRef &modRef) final;
-};
-
-class Param : public PackageNode, public Debuggable {
-private:
-  string name;
-  int flags;
-  TypeDecl *type;
-
-public:
-  Param() = default;
-  Param(Location *pos, string name, int flags, TypeDecl *ty);
-  ~Param() = default;
-
-  int getFlags() { return flags; }
-  string getName() { return name; }
-  TypeDecl *getTypeDecl() { return type; }
-
-  void setFlags(int newFlags) { flags = newFlags; }
-  void setName(string newName) { name = newName; }
-  void setTypeDecl(TypeDecl *newType) { type = newType; }
 };
 
 class FuncParam : public VarDecl {
