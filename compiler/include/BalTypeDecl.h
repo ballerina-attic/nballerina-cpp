@@ -1,7 +1,6 @@
 #ifndef __BALTYPEDECL__H__
 #define __BALTYPEDECL__H__
 
-#include <llvm-c/Types.h>
 #include <string>
 
 namespace nballerina {

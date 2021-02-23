@@ -2,8 +2,9 @@
 
 BIRFunction::BIRFunction(Location *pos, string namep, int flagsp,
                          InvokableType *typep, string workerNamep)
-    : BIRNode(pos), name(namep), flags(flagsp), type(typep),
-      workerName(workerNamep) {}
+    : name(namep), flags(flagsp), type(typep), workerName(workerNamep) {
+  setLocation(pos);
+}
 
 // Search basic block based on the basic block ID
 BIRBasicBlock *BIRFunction::searchBb(std::string name) {

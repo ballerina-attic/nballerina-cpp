@@ -8,9 +8,10 @@
 #include <vector>
 
 #include "BalInvokableType.h"
-#include "BalLocation.h"
-#include "BalNode.h"
 #include "BalTypeDecl.h"
+#include "Debuggable.h"
+#include "PackageNode.h"
+#include "Translatable.h"
 #include "llvm-c/Core.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/IR/Constants.h"
@@ -154,7 +155,7 @@ enum TypeTagEnum {
 
 enum VarScope { VAR_SCOPE_GLOBAL = 1, VAR_SCOPE_FUNCTION = 2 };
 
-class Operand : public BIRNode {
+class Operand : public PackageNode {
 private:
   VarDecl *varDecl;
 
@@ -169,7 +170,7 @@ public:
   int typeTag();
 };
 
-class AbstractInsn : public BIRNode {
+class AbstractInsn : public PackageNode, public Debuggable {
 private:
   InstructionKind kind;
   Operand *lhsOp;
@@ -192,15 +193,16 @@ public:
   void setCurrentBB(BIRBasicBlock *currB) { currentBB = currB; }
 };
 
-class NonTerminatorInsn : public AbstractInsn {
+class NonTerminatorInsn : public AbstractInsn, public Translatable {
 private:
 public:
   NonTerminatorInsn() = default;
   NonTerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp);
   virtual ~NonTerminatorInsn() = default;
+  virtual void translate(LLVMModuleRef &modRef) override;
 };
 
-class TerminatorInsn : public AbstractInsn {
+class TerminatorInsn : public AbstractInsn, public Translatable {
 private:
   BIRBasicBlock *thenBB;
   bool patchRequire;
@@ -216,6 +218,7 @@ public:
 
   void setNextBB(BIRBasicBlock *block) { thenBB = block; }
   void setPatchStatus(bool patchrequire) { patchRequire = patchrequire; }
+  virtual void translate(LLVMModuleRef &modRef) override;
 };
 
 class MoveInsn : public NonTerminatorInsn {
@@ -230,7 +233,7 @@ public:
   Operand *getRhsOp() { return rhsOp; }
   void setRhsOp(Operand *rOp) { rhsOp = rOp; }
 
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class ConstantLoadInsn : public NonTerminatorInsn {
@@ -284,7 +287,7 @@ public:
   // Type.
   void setTypeTagNil(TypeTagEnum TypeTag) { typeTag = TypeTag; }
   TypeTagEnum getTypeTag() { return typeTag; }
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class BinaryOpInsn : public NonTerminatorInsn {
@@ -303,7 +306,7 @@ public:
   void setRhsOp1(Operand *op) { rhsOp1 = op; }
   void setRhsOp2(Operand *op) { rhsOp2 = op; }
 
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class UnaryOpInsn : public NonTerminatorInsn {
@@ -318,7 +321,7 @@ public:
 
   void setRhsOp(Operand *op) { rhsOp = op; }
 
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class TypeCastInsn : public NonTerminatorInsn {
@@ -339,7 +342,7 @@ public:
   void setRhsOp(Operand *op) { rhsOp = op; }
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
   void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class TypeTestInsn : public NonTerminatorInsn {
@@ -373,7 +376,7 @@ public:
 
   Operand *getSizeOp() { return sizeOp; }
   TypeDecl *getTypeDecl() { return typeDecl; }
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
   LLVMValueRef getNewArrayDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
   ~ArrayInsn() = default;
 };
@@ -400,7 +403,7 @@ public:
   Operand *getKeyOp() { return keyOp; }
   Operand *getRhsOp() { return rhsOp; }
   ~ArrayLoadInsn() = default;
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
   LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
@@ -418,7 +421,7 @@ public:
   Operand *getKeyOp() { return keyOp; }
   Operand *getRhsOp() { return rhsOp; }
   ~ArrayStoreInsn() = default;
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
   LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
@@ -438,7 +441,7 @@ public:
   Operand *getKeyOp() { return keyOp; }
   Operand *getRhsOp() { return rhsOp; }
   ~MapStoreInsn() = default;
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class ConditionBrInsn : public TerminatorInsn {
@@ -457,7 +460,7 @@ public:
   BIRBasicBlock *getIfThenBB() { return ifThenBB; }
   BIRBasicBlock *getElseBB() { return elseBB; }
 
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class GoToInsn : public TerminatorInsn {
@@ -473,7 +476,7 @@ public:
   LLVMValueRef getLLVMInsn() { return llvmInsn; }
   void setLLVMInsn(LLVMValueRef insn) { llvmInsn = insn; }
 
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class ReturnInsn : public TerminatorInsn {
@@ -484,7 +487,7 @@ public:
              BIRBasicBlock *nextBB);
   ~ReturnInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class TypeDescInsn : public NonTerminatorInsn {
@@ -504,7 +507,7 @@ public:
   ~StructureInsn() = default;
   Operand *getRhsOp() { return rhsOp; }
   void setRhsOp(Operand *op) { rhsOp = op; }
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class FunctionCallInsn : public TerminatorInsn {
@@ -533,10 +536,12 @@ public:
                    Operand *lhsOp, BIRBasicBlock *thenBB);
   Param *getRestParam() { return restParam; }
   ~FunctionCallInsn() = default;
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
-class BIRBasicBlock : public BIRNode {
+class BIRBasicBlock : public PackageNode,
+                      public Debuggable,
+                      public Translatable {
 private:
   string id;
   vector<NonTerminatorInsn *> instructions;
@@ -570,10 +575,10 @@ public:
   void setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
   void addNonTermInsn(NonTerminatorInsn *insn) { instructions.push_back(insn); }
 
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
-class VarDecl : public BIRNode {
+class VarDecl : public PackageNode, public Debuggable {
 private:
   TypeDecl *type;
   string varName;
@@ -613,7 +618,7 @@ public:
   void setIgnore(bool truth) { ignoreVariable = truth; }
 };
 
-class Param : public BIRNode {
+class Param : public PackageNode, public Debuggable {
 private:
   string name;
   int flags;
@@ -646,7 +651,7 @@ public:
   bool hasDefaultValue() { return hasDefaultExpr; }
 };
 
-class BIRFunction : public BIRNode {
+class BIRFunction : public PackageNode, public Debuggable, public Translatable {
 private:
   string name;
   int flags;
@@ -733,7 +738,7 @@ public:
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(string opName);
   const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 class BIRPackage : public Translatable {
@@ -791,7 +796,7 @@ public:
   }
   LLVMValueRef getFunctionRefBasedOnName(string arrayName);
   map<string, LLVMValueRef> getArrayFuncRefMap() { return arrayFunctionRefs; }
-  void translate(LLVMModuleRef &modRef) override;
+  void translate(LLVMModuleRef &modRef) final;
 };
 
 #endif // BIR_H

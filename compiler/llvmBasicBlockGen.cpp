@@ -2,8 +2,9 @@
 
 BIRBasicBlock::BIRBasicBlock(string pid) : id(pid) {}
 
-BIRBasicBlock::BIRBasicBlock(Location *loc, string pid)
-    : BIRNode(loc), id(pid) {}
+BIRBasicBlock::BIRBasicBlock(Location *loc, string pid) : id(pid) {
+  setLocation(loc);
+}
 
 void BIRBasicBlock::translate(LLVMModuleRef &modRef) {
   for (unsigned int i = 0; i < instructions.size(); i++) {

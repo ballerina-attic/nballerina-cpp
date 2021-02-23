@@ -3,7 +3,7 @@
 
 #include "BIR.h"
 #include "BalInvokableType.h"
-#include "BalNode.h"
+#include "BalLocation.h"
 #include "BalTypeDecl.h"
 #include <fstream>
 
