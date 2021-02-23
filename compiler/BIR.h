@@ -736,7 +736,7 @@ public:
   void translate(LLVMModuleRef &modRef) override;
 };
 
-class BIRPackage : public BIRNode {
+class BIRPackage : public Translatable {
 private:
   string org;
   string name;
