@@ -9,6 +9,7 @@
 
 #include "BalAbstractInsn.h"
 #include "BalInvokableType.h"
+#include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
 #include "BalTerminatorInsn.h"
@@ -104,21 +105,6 @@ enum TypeTagEnum {
   TYPE_TAG_NEVER = 50,
   TYPE_TAG_NULL_SET = 51,
   TYPE_TAG_PARAMETERIZED_TYPE = 52
-};
-
-class MoveInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
-
-public:
-  MoveInsn() = default;
-  MoveInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
-  ~MoveInsn() = default;
-
-  Operand *getRhsOp() { return rhsOp; }
-  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
-
-  void translate(LLVMModuleRef &modRef) final;
 };
 
 class ConstantLoadInsn : public NonTerminatorInsn {

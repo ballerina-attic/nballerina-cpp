@@ -1,5 +1,8 @@
-#include "BIR.h"
+// #include "BalMoveInsn.h"
+// #include "llvm-c/Core.h"
+#include "../BIR.h" // temp till package and func and available
 
+namespace nballerina {
 MoveInsn::MoveInsn(Location *pos, InstructionKind kind, Operand *lOp,
                    Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
@@ -29,3 +32,4 @@ void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   } else
     llvm_unreachable("Unknown varkind");
 }
+} // namespace nballerina
