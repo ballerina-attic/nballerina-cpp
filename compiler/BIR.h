@@ -9,6 +9,7 @@
 
 #include "BalInvokableType.h"
 #include "BalTypeDecl.h"
+#include "BalVarDecl.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include "Translatable.h"
@@ -40,23 +41,12 @@ using namespace nballerina;
 
 // Forward Declarations
 class BIRBasicBlock;
-class VarDecl;
 class BIRFunction;
 class NonTerminatorInsn;
 class BIRPackage;
 class Param;
 
 enum SymbolKind { LOCAL_SYMBOL_KIND, GLOBAL_SYMBOL_KIND };
-
-enum VarKind {
-  LOCAL_VAR_KIND = 1,
-  ARG_VAR_KIND = 2,
-  TEMP_VAR_KIND = 3,
-  RETURN_VAR_KIND = 4,
-  GLOBAL_VAR_KIND = 5,
-  SELF_VAR_KIND = 6,
-  CONSTANT_VAR_KIND = 7
-};
 
 enum InstructionKind {
   INSTRUCTION_KIND_GOTO = 1,
@@ -152,8 +142,6 @@ enum TypeTagEnum {
   TYPE_TAG_NULL_SET = 51,
   TYPE_TAG_PARAMETERIZED_TYPE = 52
 };
-
-enum VarScope { VAR_SCOPE_GLOBAL = 1, VAR_SCOPE_FUNCTION = 2 };
 
 class Operand : public PackageNode {
 private:
@@ -576,46 +564,6 @@ public:
   void addNonTermInsn(NonTerminatorInsn *insn) { instructions.push_back(insn); }
 
   void translate(LLVMModuleRef &modRef) final;
-};
-
-class VarDecl : public PackageNode, public Debuggable {
-private:
-  TypeDecl *type;
-  string varName;
-  string metaVarName;
-  VarKind kind;
-  VarScope scope;
-  bool ignoreVariable;
-  BIRBasicBlock *endBB;
-  BIRBasicBlock *startBB;
-  int insOffset;
-
-public:
-  VarDecl() = default;
-  VarDecl(Location *pos, string name, string metaName);
-  VarDecl(Location *pos, TypeDecl *ty, string name, string metaName, VarKind k,
-          VarScope sc, int offset);
-  virtual ~VarDecl() = default;
-
-  TypeDecl *getTypeDecl() { return type; }
-  VarKind getVarKind() { return kind; }
-  VarScope getVarScope() { return scope; }
-  BIRBasicBlock *getStartBB() { return startBB; }
-  BIRBasicBlock *getEndBB() { return endBB; }
-  string getVarName() { return varName; }
-  string getMetaVarName() { return metaVarName; }
-  int getInsOffset() { return insOffset; }
-  bool ignore() { return ignoreVariable; }
-
-  void setTypeDecl(TypeDecl *newType) { type = newType; }
-  void setVarKind(VarKind newKind) { kind = newKind; }
-  void setVarScope(VarScope newScope) { scope = newScope; }
-  void setStartBB(BIRBasicBlock *bb) { startBB = bb; }
-  void setEndBB(BIRBasicBlock *bb) { endBB = bb; }
-  void setVarName(string newName) { varName = newName; }
-  void setMetaVarName(string newName) { metaVarName = newName; }
-  void setInsOffset(int offset) { insOffset = offset; }
-  void setIgnore(bool truth) { ignoreVariable = truth; }
 };
 
 class Param : public PackageNode, public Debuggable {
