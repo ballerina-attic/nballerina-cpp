@@ -7,10 +7,11 @@
 #include <string>
 #include <vector>
 
+#include "BalAbstractInsn.h"
 #include "BalInvokableType.h"
+#include "BalOperand.h"
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
-#include "BalOperand.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include "Translatable.h"
@@ -48,46 +49,6 @@ class BIRPackage;
 class Param;
 
 enum SymbolKind { LOCAL_SYMBOL_KIND, GLOBAL_SYMBOL_KIND };
-
-enum InstructionKind {
-  INSTRUCTION_KIND_GOTO = 1,
-  INSTRUCTION_KIND_CALL = 2,
-  INSTRUCTION_KIND_CONDITIONAL_BRANCH = 3,
-  INSTRUCTION_KIND_RETURN = 4,
-  INSTRUCTION_KIND_BINARY_REF_EQUAL,
-  INSTRUCTION_KIND_BINARY_REF_NOT_EQUAL,
-  INSTRUCTION_KIND_BINARY_CLOSED_RANGE,
-  INSTRUCTION_KIND_BINARY_HALF_OPEN_RANGE,
-  INSTRUCTION_KIND_BINARY_ANNOT_ACCESS,
-  INSTRUCTION_KIND_BINARY_BITWISE_AND,
-  INSTRUCTION_KIND_BINARY_BITWISE_OR,
-  INSTRUCTION_KIND_BINARY_BITWISE_LEFT_SHIFT,
-  INSTRUCTION_KIND_MOVE = 20,
-  INSTRUCTION_KIND_CONST_LOAD = 21,
-  INSTRUCTION_KIND_NEW_STRUCTURE,
-  INSTRUCTION_KIND_MAP_STORE = 23,
-  INSTRUCTION_KIND_NEW_ARRAY = 25,
-  INSTRUCTION_KIND_ARRAY_STORE = 26,
-  INSTRUCTION_KIND_ARRAY_LOAD = 27,
-  INSTRUCTION_KIND_TYPE_CAST = 29,
-  INSTRUCTION_KIND_TYPE_TEST = 31,
-  INSTRUCTION_KIND_NEW_TYPEDESC = 52,
-  INSTRUCTION_KIND_BINARY_ADD = 61,
-  INSTRUCTION_KIND_BINARY_SUB,
-  INSTRUCTION_KIND_BINARY_MUL,
-  INSTRUCTION_KIND_BINARY_DIV,
-  INSTRUCTION_KIND_BINARY_MOD,
-  INSTRUCTION_KIND_BINARY_EQUAL = 66,
-  INSTRUCTION_KIND_BINARY_NOT_EQUAL = 67,
-  INSTRUCTION_KIND_BINARY_GREATER_THAN = 68,
-  INSTRUCTION_KIND_BINARY_GREATER_EQUAL = 69,
-  INSTRUCTION_KIND_BINARY_LESS_THAN = 70,
-  INSTRUCTION_KIND_BINARY_LESS_EQUAL = 71,
-  INSTRUCTION_KIND_UNARY_NOT = 81,
-  INSTRUCTION_KIND_UNARY_NEG,
-  INSTRUCTION_KIND_BINARY_BITWISE_XOR = 85,
-  INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
-}; // Enums are referred from bir-model.bal file
 
 enum TypeTagEnum {
   TYPE_TAG_INT = 1,
@@ -142,29 +103,6 @@ enum TypeTagEnum {
   TYPE_TAG_NEVER = 50,
   TYPE_TAG_NULL_SET = 51,
   TYPE_TAG_PARAMETERIZED_TYPE = 52
-};
-
-class AbstractInsn : public PackageNode, public Debuggable {
-private:
-  InstructionKind kind;
-  Operand *lhsOp;
-  BIRFunction *bFunc;
-  BIRBasicBlock *currentBB;
-
-public:
-  AbstractInsn() = default;
-  AbstractInsn(Location *pos, InstructionKind kind, Operand *lOp);
-  virtual ~AbstractInsn() = default;
-
-  InstructionKind getInstKind() { return kind; }
-  Operand *getLhsOperand() { return lhsOp; }
-  BIRFunction *getFunction() { return bFunc; }
-  BIRBasicBlock *getCurrentBB() { return currentBB; }
-
-  void setFunction(BIRFunction *func) { bFunc = func; }
-  void setInstKind(InstructionKind newKind) { kind = newKind; }
-  void setLhsOperand(Operand *lOp) { lhsOp = lOp; }
-  void setCurrentBB(BIRBasicBlock *currB) { currentBB = currB; }
 };
 
 class NonTerminatorInsn : public AbstractInsn, public Translatable {
