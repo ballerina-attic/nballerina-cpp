@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "BalAbstractInsn.h"
+#include "BalFuncParam.h"
 #include "BalInvokableType.h"
 #include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"
@@ -447,19 +448,6 @@ public:
   void addNonTermInsn(NonTerminatorInsn *insn) { instructions.push_back(insn); }
 
   void translate(LLVMModuleRef &modRef) final;
-};
-
-class FuncParam : public VarDecl {
-private:
-  bool hasDefaultExpr;
-
-public:
-  FuncParam() = default;
-  FuncParam(Location *pos, TypeDecl *ty, string name, string metaName,
-            VarKind k, VarScope sc, int off, bool hasDefExp);
-  ~FuncParam() = default;
-
-  bool hasDefaultValue() { return hasDefaultExpr; }
 };
 
 class BIRFunction : public PackageNode, public Debuggable, public Translatable {
