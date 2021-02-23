@@ -1,26 +1,22 @@
 #ifndef __BALNODE__H__
 #define __BALNODE__H__
 
-#include "BalLocation.h"
+#include "Debuggable.h"
 #include "Translatable.h"
 
 // forward declaration
 class BIRPackage;
 
 namespace nballerina {
-class BIRNode : Translatable {
+class BIRNode : public Translatable, public Debuggable {
 private:
-  Location *loc;
   BIRPackage *pkgAddress;
 
 public:
   BIRNode() = default;
   BIRNode(Location *pos);
   virtual ~BIRNode() = default;
-
   BIRPackage *getPkgAddress();
-  Location *getLocation();
-  void setLocation(Location *newLoc);
   void setPkgAddress(BIRPackage *pkgAddr);
   virtual void translate(LLVMModuleRef &modRef) override;
 };
