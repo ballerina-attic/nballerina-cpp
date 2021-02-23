@@ -9,6 +9,7 @@
 
 #include "BalAbstractInsn.h"
 #include "BalInvokableType.h"
+#include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
@@ -44,7 +45,6 @@ using namespace nballerina;
 // Forward Declarations
 class BIRBasicBlock;
 class BIRFunction;
-class NonTerminatorInsn;
 class BIRPackage;
 class Param;
 
@@ -103,15 +103,6 @@ enum TypeTagEnum {
   TYPE_TAG_NEVER = 50,
   TYPE_TAG_NULL_SET = 51,
   TYPE_TAG_PARAMETERIZED_TYPE = 52
-};
-
-class NonTerminatorInsn : public AbstractInsn, public Translatable {
-private:
-public:
-  NonTerminatorInsn() = default;
-  NonTerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp);
-  virtual ~NonTerminatorInsn() = default;
-  virtual void translate(LLVMModuleRef &modRef) override;
 };
 
 class TerminatorInsn : public AbstractInsn, public Translatable {
