@@ -1,7 +1,10 @@
-#include "BIR.h"
+//#include "BalFunction.h"
+#include "../BIR.h" // temp since package is not available
 
-BIRFunction::BIRFunction(Location *pos, string namep, int flagsp,
-                         InvokableType *typep, string workerNamep)
+namespace nballerina {
+
+BIRFunction::BIRFunction(Location *pos, std::string namep, int flagsp,
+                         InvokableType *typep, std::string workerNamep)
     : name(namep), flags(flagsp), type(typep), workerName(workerNamep) {
   setLocation(pos);
 }
@@ -17,8 +20,8 @@ BIRBasicBlock *BIRFunction::searchBb(std::string name) {
   return NULL;
 }
 
-LLVMValueRef BIRFunction::getValueRefBasedOnName(string lhsName) {
-  map<string, LLVMValueRef>::iterator it;
+LLVMValueRef BIRFunction::getValueRefBasedOnName(std::string lhsName) {
+  std::map<std::string, LLVMValueRef>::iterator it;
   it = branchComparisonList.find(lhsName);
 
   if (it == branchComparisonList.end()) {
@@ -27,8 +30,9 @@ LLVMValueRef BIRFunction::getValueRefBasedOnName(string lhsName) {
     return it->second;
 }
 
-LLVMValueRef BIRFunction::getLocalVarRefUsingId(string locVar) {
-  for (std::map<string, LLVMValueRef>::iterator iter = localVarRefs.begin();
+LLVMValueRef BIRFunction::getLocalVarRefUsingId(std::string locVar) {
+  for (std::map<std::string, LLVMValueRef>::iterator iter =
+           localVarRefs.begin();
        iter != localVarRefs.end(); iter++) {
     if (iter->first == locVar)
       return iter->second;
@@ -37,8 +41,8 @@ LLVMValueRef BIRFunction::getLocalVarRefUsingId(string locVar) {
 }
 
 LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand) {
-  string refOp = operand->getVarDecl()->getVarName();
-  string tempName = refOp + "_temp";
+  std::string refOp = operand->getVarDecl()->getVarName();
+  std::string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
   if (!locVRef)
     locVRef = getPkgAddress()->getGlobalVarRefUsingId(refOp);
@@ -69,7 +73,7 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    vector<VarDecl *> globVars = getPkgAddress()->getGlobalVars();
+    std::vector<VarDecl *> globVars = getPkgAddress()->getGlobalVars();
     for (unsigned int i = 0; i < globVars.size(); i++) {
       VarDecl *globVar = globVars[i];
       if (globVar->getVarName() == "_bal_result") {
@@ -114,7 +118,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
     localVarRefs.insert({locVar->getVarName(), localVarRef});
     if (isParamter(locVar)) {
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
-      string paramName = getParam(paramIndex)->getVarDecl()->getVarName();
+      std::string paramName = getParam(paramIndex)->getVarDecl()->getVarName();
       LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
       if (parmRef)
         LLVMBuildStore(builder, parmRef, localVarRef);
@@ -172,7 +176,7 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   }
 }
 
-VarDecl *BIRFunction::getNameVarDecl(string opName) {
+VarDecl *BIRFunction::getNameVarDecl(std::string opName) {
 
   auto varIt = localVars.find(opName);
   if (varIt == localVars.end())
@@ -198,3 +202,5 @@ const char *BIRFunction::getTypeNameOfTypeTag(TypeTagEnum typeTag) {
     return "";
   }
 }
+
+} // namespace nballerina

@@ -2,11 +2,9 @@
 #define __BALABSTRACTINSN__H__
 
 #include "BalOperand.h"
+#include "BalFunction.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
-
-// forward declaration
-class BIRFunction;
 
 namespace nballerina {
 
