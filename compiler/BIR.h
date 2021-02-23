@@ -9,6 +9,7 @@
 
 #include "BalInvokableType.h"
 #include "BalLocation.h"
+#include "BalNode.h"
 #include "BalTypeDecl.h"
 #include "llvm-c/Core.h"
 #include "llvm/ADT/Triple.h"
@@ -152,23 +153,6 @@ enum TypeTagEnum {
 };
 
 enum VarScope { VAR_SCOPE_GLOBAL = 1, VAR_SCOPE_FUNCTION = 2 };
-
-class BIRNode {
-private:
-  Location *loc;
-  BIRPackage *pkgAddress;
-
-public:
-  BIRNode() = default;
-  BIRNode(Location *pos);
-  virtual ~BIRNode() = default;
-
-  BIRPackage *getPkgAddress() { return pkgAddress; }
-  Location *getLocation() { return loc; }
-  void setLocation(Location *newLoc) { loc = newLoc; }
-  void setPkgAddress(BIRPackage *pkgAddr) { pkgAddress = pkgAddr; }
-  virtual void translate(LLVMModuleRef &modRef);
-};
 
 class Operand : public BIRNode {
 private:
