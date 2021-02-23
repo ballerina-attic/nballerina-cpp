@@ -11,6 +11,7 @@
 #include "BalInvokableType.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
+#include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
 #include "Debuggable.h"
@@ -103,25 +104,6 @@ enum TypeTagEnum {
   TYPE_TAG_NEVER = 50,
   TYPE_TAG_NULL_SET = 51,
   TYPE_TAG_PARAMETERIZED_TYPE = 52
-};
-
-class TerminatorInsn : public AbstractInsn, public Translatable {
-private:
-  BIRBasicBlock *thenBB;
-  bool patchRequire;
-
-public:
-  TerminatorInsn() = default;
-  TerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                 BIRBasicBlock *then);
-  virtual ~TerminatorInsn() = default;
-
-  BIRBasicBlock *getNextBB() { return thenBB; }
-  bool getPatchStatus() { return patchRequire; }
-
-  void setNextBB(BIRBasicBlock *block) { thenBB = block; }
-  void setPatchStatus(bool patchrequire) { patchRequire = patchrequire; }
-  virtual void translate(LLVMModuleRef &modRef) override;
 };
 
 class MoveInsn : public NonTerminatorInsn {
