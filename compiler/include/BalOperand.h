@@ -20,7 +20,7 @@ public:
 
   VarDecl *getVarDecl();
   void setVarDecl(VarDecl *newDecl);
-  std::string name();
+  std::string getName();
   int typeTag();
 };
 

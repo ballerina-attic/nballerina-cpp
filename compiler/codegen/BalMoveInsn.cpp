@@ -15,6 +15,9 @@ MoveInsn::MoveInsn(Location *pos, InstructionKind kind, Operand *lOp,
                    Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
 
+Operand *MoveInsn::getRhsOp() { return rhsOp; }
+void MoveInsn::setRhsOp(Operand *rOp) { rhsOp = rOp; }
+
 void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMValueRef lhsRef;
   Operand *lhsOp = getLhsOperand();
@@ -29,12 +32,12 @@ void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     return;
 
   if (varKind == GLOBAL_VAR_KIND) {
-    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->name());
+    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->getName());
     LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
     LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
   } else if (varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
              varKind == RETURN_VAR_KIND) {
-    lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->name());
+    lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->getName());
     LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
     LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
   } else

@@ -20,8 +20,8 @@ TypeCastInsn::TypeCastInsn(Location *pos, InstructionKind kind, Operand *lOp,
 
 void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  string lhsOpName = getLhsOperand()->name();
-  string rhsOpName = rhsOp->name();
+  string lhsOpName = getLhsOperand()->getName();
+  string rhsOpName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef rhsOpRef;
   LLVMValueRef lhsOpRef;
@@ -53,7 +53,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
                                           ->getTypeDecl()
                                           ->getTypeTag() == TYPE_TAG_ANY) {
       LLVMValueRef structAllocaRef =
-          funcObj->getLocalVarRefUsingId(getLhsOperand()->name());
+          funcObj->getLocalVarRefUsingId(getLhsOperand()->getName());
       StringTableBuilder *strTable = getPkgAddress()->getStrTableBuilder();
 
       // struct first element original type

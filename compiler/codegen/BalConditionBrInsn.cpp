@@ -30,7 +30,7 @@ void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   assert(getFunction());
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
 
-  string lhsName = lhsOp->name();
+  string lhsName = lhsOp->getName();
   assert(lhsName != "");
   LLVMValueRef brCondition = getFunction()->getValueRefBasedOnName(lhsName);
 

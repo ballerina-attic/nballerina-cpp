@@ -21,7 +21,7 @@ void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   assert(builder);
   Operand *lhsOp = getLhsOperand();
   assert(lhsOp);
-  string lhsName = lhsOp->name();
+  string lhsName = lhsOp->getName();
   assert(lhsOp->getVarDecl());
   string lhstmpName = lhsName + "_temp";
 

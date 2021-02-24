@@ -34,7 +34,7 @@ TypeDecl *ArrayInsn::getTypeDecl() { return typeDecl; }
 void ArrayInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->name();
+  string lhsName = getLhsOperand()->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
   LLVMValueRef localTempCarRef = funcObj->getLocalToTempVar(sizeOp);
@@ -86,8 +86,8 @@ Operand *ArrayLoadInsn::getRhsOp() { return rhsOp; }
 void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->name();
-  string rhsName = rhsOp->name();
+  string lhsName = getLhsOperand()->getName();
+  string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef ArrayLoadFunc =
       pkgObj->getFunctionRefBasedOnName("int_array_load");
@@ -136,8 +136,8 @@ Operand *ArrayStoreInsn::getRhsOp() { return rhsOp; }
 void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->name();
-  string rhsName = rhsOp->name();
+  string lhsName = getLhsOperand()->getName();
+  string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef ArrayLoadFunc =
       pkgObj->getFunctionRefBasedOnName("int_array_store");

@@ -56,7 +56,7 @@ void FunctionCallInsn::translate(__attribute__((unused))
   }
 
   assert(getLhsOperand() && getLhsOperand()->getVarDecl());
-  string lhsName = getLhsOperand()->name();
+  string lhsName = getLhsOperand()->getName();
   if (lhsName == "")
     return;
 

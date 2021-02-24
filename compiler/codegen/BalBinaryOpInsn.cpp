@@ -29,7 +29,7 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   assert(builder);
 
   assert(getLhsOperand() && getLhsOperand()->getVarDecl());
-  string lhsName = getLhsOperand()->name();
+  string lhsName = getLhsOperand()->getName();
   string lhstmpName = lhsName + "_temp";
   LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
   if (!lhsRef)

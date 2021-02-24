@@ -14,8 +14,8 @@ public:
   MoveInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
   ~MoveInsn() = default;
 
-  Operand *getRhsOp() { return rhsOp; }
-  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
+  Operand *getRhsOp();
+  void setRhsOp(Operand *rOp);
 
   void translate(LLVMModuleRef &modRef) final;
 };

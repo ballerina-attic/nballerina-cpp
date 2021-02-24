@@ -26,8 +26,8 @@ Operand *MapStoreInsn::getRhsOp() { return rhsOp; }
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->name();
-  string rhsName = rhsOp->name();
+  string lhsName = getLhsOperand()->getName();
+  string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
   // Find VarDecl corresponding to lhs to determine member type

@@ -66,12 +66,12 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   assert(lhsOp->getVarDecl());
 
   if (lhsOp->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
-    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->name());
+    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->getName());
   } else if (getFunction() &&
              (varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
               varKind == RETURN_VAR_KIND || varKind == SELF_VAR_KIND ||
               varKind == CONSTANT_VAR_KIND)) {
-    lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->name());
+    lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->getName());
   } else
     llvm_unreachable("Unknown Type");
 

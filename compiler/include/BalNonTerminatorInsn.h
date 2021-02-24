@@ -16,6 +16,7 @@ public:
   NonTerminatorInsn() = default;
   NonTerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp);
   virtual ~NonTerminatorInsn() = default;
+
   virtual void translate(LLVMModuleRef &modRef) override;
 };
 
