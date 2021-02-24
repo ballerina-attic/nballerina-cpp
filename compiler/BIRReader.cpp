@@ -534,7 +534,7 @@ ReturnInsn *ReadReturnInsn::readTerminatorInsn() {
 // BIR
 void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   NonTerminatorInsn *nonTerminatorInsn = new NonTerminatorInsn();
-  nonTerminatorInsn->setFunction(birFunction);
+  nonTerminatorInsn->setCurrentBB(basicBlock);
   uint32_t sLine = readS4be();
   uint32_t eLine = readS4be();
   uint32_t sCol = readS4be();
@@ -558,13 +558,14 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
     StructureInsn *structureInsn =
         ReadStructureInsn::readStructureInsn.readNonTerminatorInsn();
     structureInsn->setInstKind(insnKind);
+    structureInsn->setCurrentBB(basicBlock);
     nonTerminatorInsn = structureInsn;
     break;
   }
   case INSTRUCTION_KIND_CONST_LOAD: {
     ConstantLoadInsn *constantloadInsn =
         ReadConstLoadInsn::readConstLoadInsn.readNonTerminatorInsn();
-    constantloadInsn->setFunction(birFunction);
+    constantloadInsn->setCurrentBB(basicBlock);
     constantloadInsn->setInstKind(insnKind);
     nonTerminatorInsn = constantloadInsn;
     break;
@@ -572,6 +573,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_GOTO: {
     GoToInsn *gotoInsn = ReadGoToInsn::readGoToInsn.readTerminatorInsn();
     gotoInsn->setInstKind(insnKind);
+    gotoInsn->setCurrentBB(basicBlock);
     basicBlock->setTerminatorInsn(gotoInsn);
     nonTerminatorInsn = NULL;
     break;
@@ -580,6 +582,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
     ReturnInsn *returnInsn =
         ReadReturnInsn::readReturnInsn.readTerminatorInsn();
     returnInsn->setInstKind(insnKind);
+    returnInsn->setCurrentBB(basicBlock);
     basicBlock->setTerminatorInsn(returnInsn);
     nonTerminatorInsn = NULL;
     break;
@@ -598,6 +601,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_BINARY_MOD: {
     BinaryOpInsn *binaryOpInsn =
         ReadBinaryInsn::readBinaryInsn.readNonTerminatorInsn();
+    binaryOpInsn->setCurrentBB(basicBlock);
     binaryOpInsn->setInstKind(insnKind);
     nonTerminatorInsn = binaryOpInsn;
     break;
@@ -606,6 +610,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_UNARY_NOT: {
     UnaryOpInsn *unaryOpInsn =
         ReadUnaryInsn::readUnaryInsn.readNonTerminatorInsn();
+    unaryOpInsn->setCurrentBB(basicBlock);
     unaryOpInsn->setInstKind(insnKind);
     nonTerminatorInsn = unaryOpInsn;
     break;
@@ -615,12 +620,14 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
         ReadCondBrInsn::readCondBrInsn.readTerminatorInsn();
     conditionBrInsn->setInstKind(insnKind);
     basicBlock->setTerminatorInsn(conditionBrInsn);
+    conditionBrInsn->setCurrentBB(basicBlock);
     nonTerminatorInsn = NULL;
     break;
   }
   case INSTRUCTION_KIND_MOVE: {
     MoveInsn *moveInsn = ReadMoveInsn::readMoveInsn.readNonTerminatorInsn();
     moveInsn->setInstKind(insnKind);
+    moveInsn->setCurrentBB(basicBlock);
     nonTerminatorInsn = (moveInsn);
     break;
   }
@@ -628,6 +635,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
     FunctionCallInsn *functionCallInsn =
         ReadFuncCallInsn::readFuncCallInsn.readTerminatorInsn();
     functionCallInsn->setInstKind(insnKind);
+    functionCallInsn->setCurrentBB(basicBlock);
     basicBlock->setTerminatorInsn(functionCallInsn);
     nonTerminatorInsn = NULL;
     break;
@@ -635,6 +643,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_TYPE_CAST: {
     TypeCastInsn *typeCastInsn =
         ReadTypeCastInsn::readTypeCastInsn.readNonTerminatorInsn();
+    typeCastInsn->setCurrentBB(basicBlock);
     typeCastInsn->setInstKind(insnKind);
     nonTerminatorInsn = (typeCastInsn);
     break;
@@ -642,12 +651,14 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_TYPE_TEST: {
     TypeTestInsn *typeTestInsn =
         ReadTypeTestInsn::readTypeTestInsn.readNonTerminatorInsn();
+    typeTestInsn->setCurrentBB(basicBlock);
     typeTestInsn->setInstKind(insnKind);
     nonTerminatorInsn = (typeTestInsn);
     break;
   }
   case INSTRUCTION_KIND_NEW_ARRAY: {
     ArrayInsn *arrayInsn = ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
+    arrayInsn->setCurrentBB(basicBlock);
     arrayInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayInsn);
     break;
@@ -655,6 +666,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_ARRAY_STORE: {
     ArrayStoreInsn *arrayStoreInsn =
         ReadArrayStoreInsn::readArrayStoreInsn.readNonTerminatorInsn();
+    arrayStoreInsn->setCurrentBB(basicBlock);
     arrayStoreInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayStoreInsn);
     break;
@@ -662,6 +674,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_ARRAY_LOAD: {
     ArrayLoadInsn *arrayLoadInsn =
         ReadArrayLoadInsn::readArrayLoadInsn.readNonTerminatorInsn();
+    arrayLoadInsn->setCurrentBB(basicBlock);
     arrayLoadInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayLoadInsn);
     break;
@@ -669,6 +682,7 @@ void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_MAP_STORE: {
     MapStoreInsn *mapStoreInsn =
         ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn();
+    mapStoreInsn->setCurrentBB(basicBlock);
     mapStoreInsn->setInstKind(insnKind);
     nonTerminatorInsn = (mapStoreInsn);
     break;

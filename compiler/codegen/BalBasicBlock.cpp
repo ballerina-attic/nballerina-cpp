@@ -23,12 +23,8 @@ size_t BasicBlock::numInsns() { return instructions.size(); }
 LLVMBasicBlockRef BasicBlock::getLLVMBBRef() { return bbRefObj; }
 
 void BasicBlock::setId(std::string newId) { id = newId; }
-void BasicBlock::setTerminatorInsn(TerminatorInsn *insn) {
-  terminator = insn;
-}
-void BasicBlock::setLLVMBuilderRef(LLVMBuilderRef buildRef) {
-  bRef = buildRef;
-}
+void BasicBlock::setTerminatorInsn(TerminatorInsn *insn) { terminator = insn; }
+void BasicBlock::setLLVMBuilderRef(LLVMBuilderRef buildRef) { bRef = buildRef; }
 void BasicBlock::setFunction(Function *func) { bFunc = func; }
 void BasicBlock::setNextBB(BasicBlock *bb) { nextBB = bb; }
 void BasicBlock::setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
@@ -37,19 +33,11 @@ void BasicBlock::addNonTermInsn(NonTerminatorInsn *insn) {
 }
 
 void BasicBlock::translate(LLVMModuleRef &modRef) {
-  for (unsigned int i = 0; i < instructions.size(); i++) {
-    NonTerminatorInsn *insn = instructions[i];
-
-    insn->setFunction(bFunc);
-    insn->setCurrentBB(this);
-    insn->setPkgAddress(getPkgAddress());
-    insn->translate(modRef);
+  for (const auto &instruction : instructions) {
+    instruction->translate(modRef);
   }
 
   if (terminator) {
-    terminator->setFunction(bFunc);
-    terminator->setCurrentBB(this);
-    terminator->setPkgAddress(getPkgAddress());
     terminator->translate(modRef);
   }
 }

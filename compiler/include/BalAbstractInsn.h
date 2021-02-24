@@ -3,7 +3,6 @@
 
 #include "BalEnums.h"
 #include "interfaces/Debuggable.h"
-#include "interfaces/PackageNode.h"
 
 namespace nballerina {
 
@@ -11,12 +10,12 @@ namespace nballerina {
 class Operand;
 class Function;
 class BasicBlock;
+class Package;
 
-class AbstractInsn : public PackageNode, public Debuggable {
+class AbstractInsn : public Debuggable {
 private:
   InstructionKind kind;
   Operand *lhsOp;
-  Function *bFunc;
   BasicBlock *currentBB;
 
 public:
@@ -28,8 +27,8 @@ public:
   Operand *getLhsOperand();
   Function *getFunction();
   BasicBlock *getCurrentBB();
+  Package *getPkgAddress();
 
-  void setFunction(Function *func);
   void setInstKind(InstructionKind newKind);
   void setLhsOperand(Operand *lOp);
   void setCurrentBB(BasicBlock *currB);
