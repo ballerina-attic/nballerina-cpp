@@ -2,8 +2,8 @@
 #define __BALABSTRACTINSN__H__
 
 #include "BalEnums.h"
-#include "Debuggable.h"
-#include "PackageNode.h"
+#include "interfaces/Debuggable.h"
+#include "interfaces/PackageNode.h"
 
 namespace nballerina {
 

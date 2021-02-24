@@ -1,8 +1,8 @@
 #ifndef __BALPARAM__H__
 #define __BALPARAM__H__
 
-#include "Debuggable.h"
-#include "PackageNode.h"
+#include "interfaces/Debuggable.h"
+#include "interfaces/PackageNode.h"
 #include <string>
 
 namespace nballerina {

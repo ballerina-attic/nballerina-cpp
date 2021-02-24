@@ -2,9 +2,9 @@
 #define __BALFUNCTION__H__
 
 #include "BalEnums.h"
-#include "Debuggable.h"
-#include "PackageNode.h"
-#include "Translatable.h"
+#include "interfaces/Debuggable.h"
+#include "interfaces/PackageNode.h"
+#include "interfaces/Translatable.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -41,8 +41,8 @@ private:
 
 public:
   Function() = default;
-  Function(Location *pos, std::string pname, int pflags,
-              InvokableType *ptype, std::string pworkerName);
+  Function(Location *pos, std::string pname, int pflags, InvokableType *ptype,
+           std::string pworkerName);
   Function(const Function &) = delete;
   ~Function() = default;
 

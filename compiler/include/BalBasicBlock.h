@@ -1,9 +1,9 @@
 #ifndef __BALBASICBLOCK__H__
 #define __BALBASICBLOCK__H__
 
-#include "Debuggable.h"
-#include "PackageNode.h"
-#include "Translatable.h"
+#include "interfaces/Debuggable.h"
+#include "interfaces/PackageNode.h"
+#include "interfaces/Translatable.h"
 #include <string>
 #include <vector>
 
@@ -14,9 +14,7 @@ class Function;
 class TerminatorInsn;
 class NonTerminatorInsn;
 
-class BasicBlock : public PackageNode,
-                      public Debuggable,
-                      public Translatable {
+class BasicBlock : public PackageNode, public Debuggable, public Translatable {
 private:
   std::string id;
   std::vector<NonTerminatorInsn *> instructions;

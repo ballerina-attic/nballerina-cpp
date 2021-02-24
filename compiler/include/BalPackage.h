@@ -1,7 +1,7 @@
 #ifndef __BALPACKAGE__H__
 #define __BALPACKAGE__H__
 
-#include "Translatable.h"
+#include "interfaces/Translatable.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include <map>

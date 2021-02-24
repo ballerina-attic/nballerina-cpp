@@ -3,7 +3,7 @@
 
 #include "BalAbstractInsn.h"
 #include "BalEnums.h"
-#include "Translatable.h"
+#include "interfaces/Translatable.h"
 
 namespace nballerina {
 

@@ -1,7 +1,7 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
-#include "PackageNode.h"
+#include "interfaces/PackageNode.h"
 #include <string>
 
 namespace nballerina {
