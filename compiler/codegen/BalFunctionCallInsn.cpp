@@ -1,13 +1,39 @@
+#include "BalFunctionCallInsn.h"
 #include "BalBasicBlock.h"
 #include "BalFunction.h"
-#include "BalFunctionCallInsn.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
 #include "llvm-c/Core.h"
 
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
 using namespace std;
 
 namespace nballerina {
+
+void FunctionCallInsn::setIsVirtual(bool funcVirtual) {
+  isVirtual = funcVirtual;
+}
+void FunctionCallInsn::setFunctionName(std::string funcName) {
+  functionName = funcName;
+}
+void FunctionCallInsn::setArgCount(int argNumber) { argCount = argNumber; }
+void FunctionCallInsn::setArgumentsList(std::vector<Operand *> fnArgs) {
+  argsList = fnArgs;
+}
+void FunctionCallInsn::addArgumentToList(Operand *arg) {
+  argsList.push_back(arg);
+}
+void FunctionCallInsn::setRestParam(Param *rParam) { restParam = rParam; }
+
+bool FunctionCallInsn::getIsVirtual() { return isVirtual; }
+std::string FunctionCallInsn::getFunctionName() { return functionName; }
+int FunctionCallInsn::getArgCount() { return argCount; }
+Operand *FunctionCallInsn::getArgumentFromList(int i) { return argsList[i]; }
+std::vector<Operand *> FunctionCallInsn::getArgumentsList() { return argsList; }
+Param *FunctionCallInsn::getRestParam() { return restParam; }
 
 void FunctionCallInsn::translate(__attribute__((unused))
                                  LLVMModuleRef &modRef) {

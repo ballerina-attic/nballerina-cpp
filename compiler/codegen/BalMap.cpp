@@ -1,6 +1,6 @@
 #include "BalEnums.h"
 #include "BalFunction.h"
-#include "BalMapStoreInsn.h"
+#include "BalMapInsns.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
 #include "BalTypeDecl.h"
@@ -13,9 +13,15 @@ using namespace std;
 namespace nballerina {
 
 // new Map Instruction and Codegen logic are in the llvmStructure.cpp
+
 MapStoreInsn::MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp,
                            Operand *KOp, Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), keyOp(KOp), rhsOp(rOp) {}
+
+void MapStoreInsn::setKeyOp(Operand *kOp) { keyOp = kOp; }
+void MapStoreInsn::setRhsOp(Operand *rOp) { rhsOp = rOp; }
+Operand *MapStoreInsn::getKeyOp() { return keyOp; }
+Operand *MapStoreInsn::getRhsOp() { return rhsOp; }
 
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();

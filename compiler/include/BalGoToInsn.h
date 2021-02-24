@@ -15,8 +15,8 @@ public:
            BasicBlock *nextBB);
   ~GoToInsn() = default;
 
-  LLVMValueRef getLLVMInsn() { return llvmInsn; }
-  void setLLVMInsn(LLVMValueRef insn) { llvmInsn = insn; }
+  LLVMValueRef getLLVMInsn();
+  void setLLVMInsn(LLVMValueRef insn);
 
   void translate(LLVMModuleRef &modRef) final;
 };

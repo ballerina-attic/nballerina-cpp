@@ -18,22 +18,22 @@ private:
 
 public:
   FunctionCallInsn() = default;
-  void setIsVirtual(bool funcVirtual) { isVirtual = funcVirtual; }
-  void setFunctionName(std::string funcName) { functionName = funcName; }
-  void setArgCount(int argNumber) { argCount = argNumber; }
-  void setArgumentsList(std::vector<Operand *> fnArgs) { argsList = fnArgs; }
-  void addArgumentToList(Operand *arg) { argsList.push_back(arg); }
-  void setRestParam(Param *rParam) { restParam = rParam; }
-
-  bool getIsVirtual() { return isVirtual; }
-  std::string getFunctionName() { return functionName; }
-  int getArgCount() { return argCount; }
-  Operand *getArgumentFromList(int i) { return argsList[i]; }
-  std::vector<Operand *> getArgumentsList() { return argsList; }
-  FunctionCallInsn(std::string funcName, bool funcVirtual, int argNumber,
-                   Operand *lhsOp, BasicBlock *thenBB);
-  Param *getRestParam() { return restParam; }
   ~FunctionCallInsn() = default;
+
+  void setIsVirtual(bool funcVirtual);
+  void setFunctionName(std::string funcName);
+  void setArgCount(int argNumber);
+  void setArgumentsList(std::vector<Operand *> fnArgs);
+  void addArgumentToList(Operand *arg);
+  void setRestParam(Param *rParam);
+
+  bool getIsVirtual();
+  std::string getFunctionName();
+  int getArgCount();
+  Operand *getArgumentFromList(int i);
+  std::vector<Operand *> getArgumentsList();
+  Param *getRestParam();
+
   void translate(LLVMModuleRef &modRef) final;
 };
 

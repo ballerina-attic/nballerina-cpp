@@ -11,7 +11,7 @@
 #include "BalFunctionCallInsn.h"
 #include "BalGoToInsn.h"
 #include "BalInvokableType.h"
-#include "BalMapStoreInsn.h"
+#include "BalMapInsns.h"
 #include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
@@ -48,8 +48,7 @@ private:
   nballerina::StructureInsn *readStructureInsn();
   void readInsn(nballerina::Function *birFunction,
                 nballerina::BasicBlock *basicBlock);
-  nballerina::BasicBlock *
-  readBasicBlock(nballerina::Function *birFunction);
+  nballerina::BasicBlock *readBasicBlock(nballerina::Function *birFunction);
   void patchInsn(std::vector<nballerina::BasicBlock *> basicBlocks);
   nballerina::Function *readFunction();
   void readModule();

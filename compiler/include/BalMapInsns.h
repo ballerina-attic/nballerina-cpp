@@ -3,9 +3,8 @@
 
 #include "BalNonTerminatorInsn.h"
 
-namespace nballerina
-{
-    class MapStoreInsn : public NonTerminatorInsn {
+namespace nballerina {
+class MapStoreInsn : public NonTerminatorInsn {
 private:
   Operand *keyOp;
   Operand *rhsOp;
@@ -16,13 +15,15 @@ public:
   MapStoreInsn() = default;
   MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *KOp,
                Operand *ROp);
-  void setKeyOp(Operand *kOp) { keyOp = kOp; }
-  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
-  Operand *getKeyOp() { return keyOp; }
-  Operand *getRhsOp() { return rhsOp; }
   ~MapStoreInsn() = default;
+
+  void setKeyOp(Operand *kOp);
+  void setRhsOp(Operand *rOp);
+  Operand *getKeyOp();
+  Operand *getRhsOp();
+
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina
 
-#endif  //!__BALMAPSTOREINSN__H__
+#endif //!__BALMAPSTOREINSN__H__

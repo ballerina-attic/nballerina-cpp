@@ -1,6 +1,6 @@
+#include "BalGoToInsn.h"
 #include "BalBasicBlock.h"
 #include "BalFunction.h"
-#include "BalGoToInsn.h"
 #include "llvm-c/Core.h"
 
 #ifndef unix
@@ -12,6 +12,9 @@ namespace nballerina {
 GoToInsn::GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
                    BasicBlock *nextBB)
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
+
+LLVMValueRef GoToInsn::getLLVMInsn() { return llvmInsn; }
+void GoToInsn::setLLVMInsn(LLVMValueRef insn) { llvmInsn = insn; }
 
 void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   assert(getFunction());
