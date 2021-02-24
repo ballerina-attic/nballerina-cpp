@@ -1,11 +1,13 @@
 #include "BIRReader.h"
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifdef unix
 #include <libgen.h>
 #else
 #define __attribute__(unused)
 #endif
-#include <stdio.h>
-#include <stdlib.h>
+
 using namespace std;
 using namespace nballerina;
 
