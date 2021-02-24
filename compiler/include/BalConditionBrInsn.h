@@ -15,11 +15,12 @@ public:
   ConditionBrInsn(Location *pos, InstructionKind kind, Operand *lOp,
                   BasicBlock *nextB);
   ~ConditionBrInsn() = default;
-  void setIfThenBB(BasicBlock *ifBB) { ifThenBB = ifBB; }
-  void setElseBB(BasicBlock *elseB) { elseBB = elseB; }
 
-  BasicBlock *getIfThenBB() { return ifThenBB; }
-  BasicBlock *getElseBB() { return elseBB; }
+  void setIfThenBB(BasicBlock *ifBB);
+  void setElseBB(BasicBlock *elseB);
+
+  BasicBlock *getIfThenBB();
+  BasicBlock *getElseBB();
 
   void translate(LLVMModuleRef &modRef) final;
 };

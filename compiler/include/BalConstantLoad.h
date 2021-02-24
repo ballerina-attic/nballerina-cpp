@@ -1,14 +1,16 @@
 #ifndef __BALCONSTANTLOAD__H__
 #define __BALCONSTANTLOAD__H__
 
+#include "BalEnums.h"
 #include "BalNonTerminatorInsn.h"
 #include <string>
 
 namespace nballerina {
 
+// TODO Convert to template class
 class ConstantLoadInsn : public NonTerminatorInsn {
 private:
-  enum TypeTagEnum typeTag;
+  TypeTagEnum typeTag;
   union value {
     int intValue;
     double floatValue;
@@ -33,30 +35,18 @@ public:
                    std::string *strval);
   ~ConstantLoadInsn() = default;
 
-  int getIntValue() { return val.intValue; }
-  float getFloatValue() { return val.floatValue; }
-  bool getBoolValue() { return val.boolValue; }
-  std::string *getStringValue() { return val.strValue; }
-  void setIntValue(int intVal, TypeTagEnum TypeTag) {
-    val.intValue = intVal;
-    typeTag = TypeTag;
-  }
-  void setFloatValue(float floatVal, TypeTagEnum TypeTag) {
-    val.floatValue = floatVal;
-    typeTag = TypeTag;
-  }
-  void setBoolValue(bool boolVal, TypeTagEnum TypeTag) {
-    val.boolValue = boolVal;
-    typeTag = TypeTag;
-  }
-  void setStringValue(std::string *str, TypeTagEnum TypeTag) {
-    val.strValue = str;
-    typeTag = TypeTag;
-  }
-  // With Nil Type setting only Type Tag because value will be zero with NIL
-  // Type.
-  void setTypeTagNil(TypeTagEnum TypeTag) { typeTag = TypeTag; }
-  TypeTagEnum getTypeTag() { return typeTag; }
+  int getIntValue();
+  float getFloatValue();
+  bool getBoolValue();
+  std::string *getStringValue();
+  TypeTagEnum getTypeTag();
+
+  void setIntValue(int intVal, TypeTagEnum TypeTag);
+  void setFloatValue(float floatVal, TypeTagEnum TypeTag);
+  void setBoolValue(bool boolVal, TypeTagEnum TypeTag);
+  void setStringValue(std::string *str, TypeTagEnum TypeTag);
+  void setTypeTagNil(TypeTagEnum TypeTag);
+
   void translate(LLVMModuleRef &modRef) final;
 };
 

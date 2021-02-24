@@ -30,6 +30,31 @@ ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
                                    Operand *lOp, string *strval)
     : NonTerminatorInsn(pos, kind, lOp), val(strval) {}
 
+int ConstantLoadInsn::getIntValue() { return val.intValue; }
+float ConstantLoadInsn::getFloatValue() { return val.floatValue; }
+bool ConstantLoadInsn::getBoolValue() { return val.boolValue; }
+std::string *ConstantLoadInsn::getStringValue() { return val.strValue; }
+void ConstantLoadInsn::setIntValue(int intVal, TypeTagEnum TypeTag) {
+  val.intValue = intVal;
+  typeTag = TypeTag;
+}
+void ConstantLoadInsn::setFloatValue(float floatVal, TypeTagEnum TypeTag) {
+  val.floatValue = floatVal;
+  typeTag = TypeTag;
+}
+void ConstantLoadInsn::setBoolValue(bool boolVal, TypeTagEnum TypeTag) {
+  val.boolValue = boolVal;
+  typeTag = TypeTag;
+}
+void ConstantLoadInsn::setStringValue(std::string *str, TypeTagEnum TypeTag) {
+  val.strValue = str;
+  typeTag = TypeTag;
+}
+// With Nil Type setting only Type Tag because value will be zero with NIL
+// Type.
+void ConstantLoadInsn::setTypeTagNil(TypeTagEnum TypeTag) { typeTag = TypeTag; }
+TypeTagEnum ConstantLoadInsn::getTypeTag() { return typeTag; }
+
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef lhsRef;
   LLVMValueRef constRef;

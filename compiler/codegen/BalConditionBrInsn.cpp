@@ -1,5 +1,5 @@
-#include "BalBasicBlock.h"
 #include "BalConditionBrInsn.h"
+#include "BalBasicBlock.h"
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalTypeDecl.h"
@@ -17,6 +17,11 @@ namespace nballerina {
 ConditionBrInsn::ConditionBrInsn(Location *pos, InstructionKind kind,
                                  Operand *lOp, BasicBlock *nextBB)
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
+
+void ConditionBrInsn::setIfThenBB(BasicBlock *ifBB) { ifThenBB = ifBB; }
+void ConditionBrInsn::setElseBB(BasicBlock *elseB) { elseBB = elseB; }
+BasicBlock *ConditionBrInsn::getIfThenBB() { return ifThenBB; }
+BasicBlock *ConditionBrInsn::getElseBB() { return elseBB; }
 
 void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
