@@ -22,6 +22,7 @@
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
 #include "BalConstantLoad.h"
+#include "BalFunctionCallInsn.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include "Translatable.h"
@@ -271,35 +272,6 @@ public:
   ~StructureInsn() = default;
   Operand *getRhsOp() { return rhsOp; }
   void setRhsOp(Operand *op) { rhsOp = op; }
-  void translate(LLVMModuleRef &modRef) final;
-};
-
-class FunctionCallInsn : public TerminatorInsn {
-private:
-  bool isVirtual;
-  string functionName;
-  int argCount;
-  vector<Operand *> argsList;
-  Param *restParam;
-
-public:
-  FunctionCallInsn() = default;
-  void setIsVirtual(bool funcVirtual) { isVirtual = funcVirtual; }
-  void setFunctionName(string funcName) { functionName = funcName; }
-  void setArgCount(int argNumber) { argCount = argNumber; }
-  void setArgumentsList(vector<Operand *> fnArgs) { argsList = fnArgs; }
-  void addArgumentToList(Operand *arg) { argsList.push_back(arg); }
-  void setRestParam(Param *rParam) { restParam = rParam; }
-
-  bool getIsVirtual() { return isVirtual; }
-  string getFunctionName() { return functionName; }
-  int getArgCount() { return argCount; }
-  Operand *getArgumentFromList(int i) { return argsList[i]; }
-  vector<Operand *> getArgumentsList() { return argsList; }
-  FunctionCallInsn(string funcName, bool funcVirtual, int argNumber,
-                   Operand *lhsOp, BIRBasicBlock *thenBB);
-  Param *getRestParam() { return restParam; }
-  ~FunctionCallInsn() = default;
   void translate(LLVMModuleRef &modRef) final;
 };
 

@@ -1,4 +1,13 @@
-#include "BIR.h"
+#include "BalBasicBlock.h"
+#include "BalFunction.h"
+#include "BalFunctionCallInsn.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "llvm-c/Core.h"
+
+using namespace std;
+
+namespace nballerina {
 
 void FunctionCallInsn::translate(__attribute__((unused))
                                  LLVMModuleRef &modRef) {
@@ -42,3 +51,5 @@ void FunctionCallInsn::translate(__attribute__((unused))
   if (getNextBB())
     LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
 }
+
+} // namespace nballerina
