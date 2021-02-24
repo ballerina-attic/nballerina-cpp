@@ -5,12 +5,21 @@
 #include <llvm-c/Core.h>
 #include <string>
 
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
 using namespace std;
 
 namespace nballerina {
 BinaryOpInsn::BinaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
                            Operand *rOp1, Operand *rOp2)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp1(rOp1), rhsOp2(rOp2) {}
+
+Operand *BinaryOpInsn::getRhsOp1() { return rhsOp1; }
+Operand *BinaryOpInsn::getRhsOp2() { return rhsOp2; }
+void BinaryOpInsn::setRhsOp1(Operand *op) { rhsOp1 = op; }
+void BinaryOpInsn::setRhsOp2(Operand *op) { rhsOp2 = op; }
 
 void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
@@ -130,4 +139,4 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     break;
   }
 }
-}
+} // namespace nballerina

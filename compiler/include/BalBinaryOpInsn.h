@@ -5,7 +5,7 @@
 
 namespace nballerina {
 
-// Forward Declare
+// Forward Declaration
 class Operand;
 
 class BinaryOpInsn : public NonTerminatorInsn {
@@ -19,10 +19,10 @@ public:
                Operand *rOp2);
   ~BinaryOpInsn() = default;
 
-  Operand *getRhsOp1() { return rhsOp1; }
-  Operand *getRhsOp2() { return rhsOp2; }
-  void setRhsOp1(Operand *op) { rhsOp1 = op; }
-  void setRhsOp2(Operand *op) { rhsOp2 = op; }
+  Operand *getRhsOp1();
+  Operand *getRhsOp2();
+  void setRhsOp1(Operand *op);
+  void setRhsOp2(Operand *op);
 
   void translate(LLVMModuleRef &modRef) final;
 };
