@@ -1,11 +1,20 @@
-#include "BIR.h"
+#include "BalUnaryOpInsn.h"
+#include "BalFunction.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include <llvm-c/Core.h>
+#include <string>
+
+using namespace std;
+
+namespace nballerina {
 
 UnaryOpInsn::UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
                          Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
 
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  
+
   BIRFunction *funcObj = getFunction();
   assert(funcObj);
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
@@ -15,7 +24,7 @@ void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   string lhsName = lhsOp->name();
   assert(lhsOp->getVarDecl());
   string lhstmpName = lhsName + "_temp";
-  
+
   LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
   if (!lhsRef)
     lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
@@ -37,3 +46,5 @@ void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   }
   return;
 }
+
+} // namespace nballerina

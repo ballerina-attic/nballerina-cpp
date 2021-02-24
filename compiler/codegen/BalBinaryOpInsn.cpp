@@ -1,5 +1,13 @@
-#include "BIR.h"
+#include "BalBinaryOpInsn.h"
+#include "BalFunction.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include <llvm-c/Core.h>
+#include <string>
 
+using namespace std;
+
+namespace nballerina {
 BinaryOpInsn::BinaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
                            Operand *rOp1, Operand *rOp2)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp1(rOp1), rhsOp2(rOp2) {}
@@ -121,4 +129,5 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   default:
     break;
   }
+}
 }

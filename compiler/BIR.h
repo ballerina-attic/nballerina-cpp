@@ -55,39 +55,6 @@ using namespace nballerina;
 
 enum SymbolKind { LOCAL_SYMBOL_KIND, GLOBAL_SYMBOL_KIND };
 
-class BinaryOpInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp1;
-  Operand *rhsOp2;
-
-public:
-  BinaryOpInsn() = default;
-  BinaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp1,
-               Operand *rOp2);
-  ~BinaryOpInsn() = default;
-
-  Operand *getRhsOp1() { return rhsOp1; }
-  Operand *getRhsOp2() { return rhsOp2; }
-  void setRhsOp1(Operand *op) { rhsOp1 = op; }
-  void setRhsOp2(Operand *op) { rhsOp2 = op; }
-
-  void translate(LLVMModuleRef &modRef) final;
-};
-
-class UnaryOpInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
-
-public:
-  UnaryOpInsn() = default;
-  UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
-  ~UnaryOpInsn() = default;
-  Operand *getRhsOp() { return rhsOp; }
-
-  void setRhsOp(Operand *op) { rhsOp = op; }
-
-  void translate(LLVMModuleRef &modRef) final;
-};
 
 
 

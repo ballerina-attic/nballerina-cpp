@@ -5,6 +5,7 @@
 #include "BalAbstractInsn.h"
 #include "BalArrayInsn.h"
 #include "BalBasicBlock.h"
+#include "BalBinaryOpInsn.h"
 #include "BalConditionBrInsn.h"
 #include "BalFuncParam.h"
 #include "BalFunction.h"
@@ -21,6 +22,7 @@
 #include "BalTypeDecl.h"
 #include "BalTypeDescInsn.h"
 #include "BalTypeTestInsn.h"
+#include "BalUnaryOpInsn.h"
 #include <fstream>
 
 class ConstantPoolSet;
