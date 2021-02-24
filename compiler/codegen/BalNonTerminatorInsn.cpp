@@ -1,5 +1,9 @@
 #include "BalNonTerminatorInsn.h"
 
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
 namespace nballerina {
 
 NonTerminatorInsn::NonTerminatorInsn(Location *posi, InstructionKind kindP,

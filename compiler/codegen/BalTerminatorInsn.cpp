@@ -1,5 +1,9 @@
 #include "BalTerminatorInsn.h"
 
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
 namespace nballerina {
 
 TerminatorInsn::TerminatorInsn(Location *pos, InstructionKind kind,

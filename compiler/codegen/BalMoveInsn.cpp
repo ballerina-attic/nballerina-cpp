@@ -5,6 +5,10 @@
 #include "BalVarDecl.h"
 #include "llvm-c/Core.h"
 
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
 namespace nballerina {
 
 MoveInsn::MoveInsn(Location *pos, InstructionKind kind, Operand *lOp,
