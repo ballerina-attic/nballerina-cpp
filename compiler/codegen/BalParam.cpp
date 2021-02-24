@@ -1,6 +1,7 @@
 #include "BalParam.h"
 
 namespace nballerina {
+
 Param::Param(Location *pos, std::string namep, int flagsp, TypeDecl *typep)
     : name(namep), flags(flagsp), type(typep) {
   setLocation(pos);

@@ -1,10 +1,15 @@
-#include "BIR.h"
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
+#include "BalFunction.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "BalVarDecl.h"
+#include "llvm-c/Core.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Module.h"
 
 using namespace std;
+
+namespace nballerina {
 
 BIRPackage::BIRPackage(string orgName, string pkgName, string verName,
                        string srcFileName)
@@ -24,7 +29,7 @@ LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
 
 void BIRPackage::translate(LLVMModuleRef &modRef) {
   // String Table initialization
-  strBuilder = new StringTableBuilder(StringTableBuilder::RAW, 1);
+  strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
   // iterate over all global variables and translate
   for (unsigned int i = 0; i < globalVars.size(); i++) {
     LLVMValueRef globVarRef;
@@ -35,11 +40,12 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
     string varName = globVar->getVarName();
     if (varTyperef && modRef) {
       // emit/adding the global variable.
-      Constant *initValue = Constant::getNullValue(unwrap(varTyperef));
-      GlobalVariable *gVar = new GlobalVariable(
-          *unwrap(modRef), unwrap(varTyperef), false,
-          GlobalValue::ExternalLinkage, initValue, varName.c_str(), 0);
-      gVar->setAlignment(Align(4));
+      llvm::Constant *initValue =
+          llvm::Constant::getNullValue(llvm::unwrap(varTyperef));
+      llvm::GlobalVariable *gVar = new llvm::GlobalVariable(
+          *llvm::unwrap(modRef), llvm::unwrap(varTyperef), false,
+          llvm::GlobalValue::ExternalLinkage, initValue, varName.c_str(), 0);
+      gVar->setAlignment(llvm::Align(4));
       globVarRef = wrap(gVar);
       if (globVarRef)
         globalVarRefs.insert({globVar->getVarName(), globVarRef});
@@ -54,7 +60,7 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   structElementTypes[1] = LLVMInt32Type();
   structElementTypes[2] = LLVMPointerType(LLVMInt8Type(), 0);
   LLVMStructSetBody(structGen, structElementTypes, 3, 0);
-  structType = unwrap<StructType>(structGen);
+  structType = llvm::unwrap<llvm::StructType>(structGen);
 
   // iterating over each function, first create function definition
   // (without function body) and adding to Module.
@@ -161,3 +167,5 @@ LLVMValueRef BIRPackage::getFunctionRefBasedOnName(string arrayName) {
   } else
     return it->second;
 }
+
+} // namespace nballerina

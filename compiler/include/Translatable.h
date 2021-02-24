@@ -4,6 +4,7 @@
 #include <llvm/IR/Type.h>
 
 namespace nballerina {
+
 class Translatable {
 public:
   virtual void translate(LLVMModuleRef &modRef) = 0;

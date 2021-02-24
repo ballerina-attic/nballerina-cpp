@@ -4,6 +4,7 @@
 #include "BalNonTerminatorInsn.h"
 
 namespace nballerina {
+
 class MoveInsn : public NonTerminatorInsn {
 private:
   Operand *rhsOp;
@@ -18,6 +19,7 @@ public:
 
   void translate(LLVMModuleRef &modRef) final;
 };
+
 } // namespace nballerina
 
 #endif //!__BALMOVEINSN__H__

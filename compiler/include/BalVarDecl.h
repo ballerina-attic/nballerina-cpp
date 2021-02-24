@@ -8,7 +8,7 @@
 
 namespace nballerina {
 
-// forward declare
+// Forward Declaration
 class BIRBasicBlock;
 class TypeDecl;
 
@@ -51,6 +51,7 @@ public:
   void setInsOffset(int offset);
   void setIgnore(bool truth);
 };
+
 } // namespace nballerina
 
 #endif //!__BALVARDECL__H__

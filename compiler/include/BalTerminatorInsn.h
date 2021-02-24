@@ -7,7 +7,7 @@
 
 namespace nballerina {
 
-// forward declaration
+// Forward Declaration
 class BIRBasicBlock;
 class Operand;
 
@@ -29,6 +29,7 @@ public:
   void setPatchStatus(bool patchrequire);
   virtual void translate(LLVMModuleRef &modRef) override;
 };
+
 } // namespace nballerina
 
 #endif //!__BALTERMINATORINSN__H__

@@ -4,6 +4,7 @@
 #include <string>
 
 namespace nballerina {
+
 class Location {
 private:
   std::string fileName;
@@ -23,6 +24,7 @@ public:
   int getEndLineNum();
   int getEndColumnNum();
 };
+
 } // namespace nballerina
 
 #endif //!__BALLOCATIO__H__

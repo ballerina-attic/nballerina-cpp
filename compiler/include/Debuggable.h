@@ -4,6 +4,7 @@
 #include "BalLocation.h"
 
 namespace nballerina {
+
 class Debuggable {
   Location *pos;
 

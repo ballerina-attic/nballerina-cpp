@@ -7,7 +7,7 @@
 
 namespace nballerina {
 
-// forward declaration
+// Forward Declaration
 class Operand;
 class BIRFunction;
 class BIRBasicBlock;
@@ -34,6 +34,7 @@ public:
   void setLhsOperand(Operand *lOp);
   void setCurrentBB(BIRBasicBlock *currB);
 };
+
 } // namespace nballerina
 
 #endif //!__BALABSTRACTINSN__H__

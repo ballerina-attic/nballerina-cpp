@@ -7,7 +7,7 @@
 
 namespace nballerina {
 
-// forward declaration
+// Forward Declaration
 class TypeDecl;
 
 class Param : public PackageNode, public Debuggable {
@@ -29,6 +29,7 @@ public:
   void setName(std::string newName);
   void setTypeDecl(TypeDecl *newType);
 };
+
 } // namespace nballerina
 
 #endif //!__BALPARAM__H__

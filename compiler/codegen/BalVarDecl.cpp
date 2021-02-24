@@ -1,6 +1,7 @@
 #include "BalVarDecl.h"
 
 namespace nballerina {
+
 VarDecl::VarDecl(Location *loc, std::string pname, std::string pmetaVarName)
     : varName(pname), metaVarName(pmetaVarName) {
   setLocation(loc);
@@ -12,6 +13,7 @@ VarDecl::VarDecl(Location *loc, TypeDecl *ty, std::string name,
       insOffset(offset) {
   setLocation(loc);
 }
+
 TypeDecl *VarDecl::getTypeDecl() { return type; }
 VarKind VarDecl::getVarKind() { return kind; }
 VarScope VarDecl::getVarScope() { return scope; }

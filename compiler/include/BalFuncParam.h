@@ -5,6 +5,7 @@
 #include <string>
 
 namespace nballerina {
+
 class FuncParam : public VarDecl {
 private:
   bool hasDefaultExpr;
@@ -17,5 +18,7 @@ public:
 
   bool hasDefaultValue() { return hasDefaultExpr; }
 };
+
 } // namespace nballerina
+
 #endif //!__BALFUNCPARAM__H__

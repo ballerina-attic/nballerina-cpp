@@ -9,7 +9,7 @@
 
 namespace nballerina {
 
-// forward declare
+// Forward Declaration
 class BIRFunction;
 class TerminatorInsn;
 class NonTerminatorInsn;
@@ -54,6 +54,7 @@ public:
 
   void translate(LLVMModuleRef &modRef) final;
 };
+
 } // namespace nballerina
 
 #endif //!__BALBASICBLOCK__H__

@@ -5,7 +5,7 @@
 
 namespace nballerina {
 
-// forward declaration
+// Forward Declaration
 class TypeDecl;
 
 class InvokableType {
@@ -26,6 +26,7 @@ public:
   TypeDecl *getParamType(int i);
   size_t getParamTypeCount();
 };
+
 } // namespace nballerina
 
 #endif //!__BALINVOKABLETYPE__H__

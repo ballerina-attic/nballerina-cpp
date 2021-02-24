@@ -1,20 +1,17 @@
 #ifndef __BALFUNCTION__H__
 #define __BALFUNCTION__H__
 
+#include "BalEnums.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include "Translatable.h"
 #include <map>
 #include <string>
 #include <vector>
-#include "BalEnums.h"
-
-// forward declare
-class Function;
 
 namespace nballerina {
 
-// forward declare
+// Forward Declaration
 class BIRBasicBlock;
 class FuncParam;
 class Operand;
@@ -107,7 +104,7 @@ public:
   LLVMValueRef getLocalVarRefUsingId(std::string locVar);
   LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);
-  void patchInsn(Function *llvnFun);
+  // void patchInsn(llvm::Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(std::string opName);
   const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);

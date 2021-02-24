@@ -7,7 +7,7 @@
 
 namespace nballerina {
 
-// class AbstractInsn;
+// Forward Declaration
 class Operand;
 
 class NonTerminatorInsn : public AbstractInsn, public Translatable {
@@ -18,6 +18,7 @@ public:
   virtual ~NonTerminatorInsn() = default;
   virtual void translate(LLVMModuleRef &modRef) override;
 };
+
 } // namespace nballerina
 
 #endif //!__BALNONTERMINATORINSN__H__

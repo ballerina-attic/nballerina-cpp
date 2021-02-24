@@ -2,6 +2,7 @@
 #define __BALINSTRUCTIONKIND__H__
 
 namespace nballerina {
+
 enum InstructionKind {
   INSTRUCTION_KIND_GOTO = 1,
   INSTRUCTION_KIND_CALL = 2,

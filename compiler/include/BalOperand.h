@@ -6,7 +6,7 @@
 
 namespace nballerina {
 
-// forward declare
+// Forward Declaration
 class VarDecl;
 
 class Operand : public PackageNode {
@@ -23,6 +23,7 @@ public:
   std::string name();
   int typeTag();
 };
+
 } // namespace nballerina
 
 #endif //!__BALOPERAND__H__

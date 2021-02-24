@@ -16,6 +16,7 @@
 #include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
+#include "BalPackage.h"
 #include "BalParam.h"
 #include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
@@ -351,64 +352,6 @@ public:
                    Operand *lhsOp, BIRBasicBlock *thenBB);
   Param *getRestParam() { return restParam; }
   ~FunctionCallInsn() = default;
-  void translate(LLVMModuleRef &modRef) final;
-};
-
-class BIRPackage : public Translatable {
-private:
-  string org;
-  string name;
-  string version;
-  string sourceFileName;
-  vector<BIRFunction *> functions;
-  vector<VarDecl *> globalVars;
-  map<string, LLVMValueRef> globalVarRefs;
-  map<string, BIRFunction *> functionLookUp;
-  StructType *structType;
-  StringTableBuilder *strBuilder;
-  map<string, vector<LLVMValueRef>> structElementStoreInst;
-  map<string, LLVMValueRef> arrayFunctionRefs;
-
-public:
-  BIRPackage() = default;
-  BIRPackage(string orgName, string pkgName, string verName,
-             string srcFileName);
-  ~BIRPackage() = default;
-
-  string getOrgName() { return org; }
-  string getPackageName() { return name; }
-  string getVersion() { return version; }
-  string getSrcFileName() { return sourceFileName; }
-  StringTableBuilder *getStrTableBuilder() { return strBuilder; }
-  void setOrgName(string orgName) { org = orgName; }
-  void setPackageName(string pkgName) { name = pkgName; }
-  void setVersion(string verName) { version = verName; }
-  void setSrcFileName(string srcFileName) { sourceFileName = srcFileName; }
-  vector<BIRFunction *> getFunctions() { return functions; }
-  BIRFunction *getFunction(int i) { return functions[i]; }
-  vector<VarDecl *> getGlobalVars() { return globalVars; }
-  map<string, LLVMValueRef> getGlobalVarRefs() { return globalVarRefs; }
-  StructType *getStructType() { return structType; }
-  void setFunctions(vector<BIRFunction *> f) { functions = f; }
-  void addFunction(BIRFunction *f) { functions.push_back(f); }
-  void addGlobalVar(VarDecl *g) { globalVars.push_back(g); }
-
-  void addFunctionLookUpEntry(string funcName, BIRFunction *BIRfunction) {
-    functionLookUp.insert(pair<string, BIRFunction *>(funcName, BIRfunction));
-  }
-  BIRFunction *getFunctionLookUp(string funcName) {
-    return functionLookUp.at(funcName);
-  }
-  size_t numFunctions() { return functions.size(); }
-  LLVMValueRef getGlobalVarRefUsingId(string globVar);
-  void addStringOffsetRelocationEntry(string eleType, LLVMValueRef storeInsn);
-  void applyStringOffsetRelocations(LLVMModuleRef &modRef);
-  void addArrayFunctionRef(string arrayName, LLVMValueRef functionRef) {
-    arrayFunctionRefs.insert(
-        std::pair<string, LLVMValueRef>(arrayName, functionRef));
-  }
-  LLVMValueRef getFunctionRefBasedOnName(string arrayName);
-  map<string, LLVMValueRef> getArrayFuncRefMap() { return arrayFunctionRefs; }
   void translate(LLVMModuleRef &modRef) final;
 };
 

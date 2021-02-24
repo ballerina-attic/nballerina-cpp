@@ -4,6 +4,7 @@
 #include <string>
 
 namespace nballerina {
+
 class TypeDecl {
 private:
   const int tag;
@@ -31,6 +32,7 @@ public:
   ~MapTypeDecl() = default;
   int getTypeMemberTag();
 };
+
 } // namespace nballerina
 
 #endif //!__BALTYPEDECL__H__

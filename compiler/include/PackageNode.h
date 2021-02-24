@@ -1,10 +1,10 @@
 #ifndef __PACKAGENODE__H__
 #define __PACKAGENODE__H__
 
-// forward declaration
-class BIRPackage;
-
 namespace nballerina {
+
+// Forward Declaration
+class BIRPackage;
 
 class PackageNode {
 private:
