@@ -9,6 +9,7 @@
 #include "BalFunction.h"
 #include "BalGoToInsn.h"
 #include "BalInvokableType.h"
+#include "BalMapStoreInsn.h"
 #include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"

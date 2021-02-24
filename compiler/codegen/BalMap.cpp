@@ -1,7 +1,18 @@
-#include "BIR.h"
+#include "BalEnums.h"
+#include "BalFunction.h"
+#include "BalMapStoreInsn.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "BalTypeDecl.h"
+#include "BalVarDecl.h"
+#include "llvm-c/Core.h"
+#include <iostream>
+
+using namespace std;
+
+namespace nballerina {
 
 // new Map Instruction and Codegen logic are in the llvmStructure.cpp
-
 MapStoreInsn::MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp,
                            Operand *KOp, Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), keyOp(KOp), rhsOp(rOp) {}
@@ -63,3 +74,5 @@ LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef,
   pkg->addArrayFunctionRef("map_store_int", addedFuncRef);
   return addedFuncRef;
 }
+
+} // namespace nballerina

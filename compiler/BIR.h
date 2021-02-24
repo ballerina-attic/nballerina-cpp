@@ -190,24 +190,7 @@ public:
   LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
-class MapStoreInsn : public NonTerminatorInsn {
-private:
-  Operand *keyOp;
-  Operand *rhsOp;
-  LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef,
-                                         BIRPackage *pkg);
 
-public:
-  MapStoreInsn() = default;
-  MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *KOp,
-               Operand *ROp);
-  void setKeyOp(Operand *kOp) { keyOp = kOp; }
-  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
-  Operand *getKeyOp() { return keyOp; }
-  Operand *getRhsOp() { return rhsOp; }
-  ~MapStoreInsn() = default;
-  void translate(LLVMModuleRef &modRef) final;
-};
 
 
 
