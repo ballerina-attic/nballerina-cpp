@@ -10,9 +10,8 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                     Operand *sOp, TypeDecl *tDecl)
-    : NonTerminatorInsn(pos, kind, lOp), sizeOp(sOp), typeDecl(tDecl) {}
+ArrayInsn::ArrayInsn(Operand *lOp, Operand *sOp, TypeDecl *tDecl)
+    : NonTerminatorInsn(lOp), sizeOp(sOp), typeDecl(tDecl) {}
 
 LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
                                                Package *pkg) {
@@ -24,9 +23,6 @@ LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
   pkg->addArrayFunctionRef("new_int_array", addedFuncRef);
   return addedFuncRef;
 }
-
-void ArrayInsn::setSizeOp(Operand *Size) { sizeOp = Size; }
-void ArrayInsn::setTypeDecl(TypeDecl *Type) { typeDecl = Type; }
 
 Operand *ArrayInsn::getSizeOp() { return sizeOp; }
 TypeDecl *ArrayInsn::getTypeDecl() { return typeDecl; }
@@ -54,10 +50,10 @@ void ArrayInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Load Instruction
-ArrayLoadInsn::ArrayLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                             bool opFA, bool fR, Operand *KOp, Operand *ROp)
-    : NonTerminatorInsn(pos, kind, lOp), optionalFieldAccess(opFA),
-      fillingRead(fR), keyOp(KOp), rhsOp(ROp) {}
+ArrayLoadInsn::ArrayLoadInsn(Operand *lOp, bool opFA, bool fR, Operand *KOp,
+                             Operand *ROp)
+    : NonTerminatorInsn(lOp), optionalFieldAccess(opFA), fillingRead(fR),
+      keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef,
                                                     Package *pkg) {
@@ -72,12 +68,6 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef,
   return addedFuncRef;
 }
 
-void ArrayLoadInsn::setOptionalFieldAccess(bool OpFAccess) {
-  optionalFieldAccess = OpFAccess;
-}
-void ArrayLoadInsn::setFillingRead(bool fRead) { fillingRead = fRead; }
-void ArrayLoadInsn::setKeyOp(Operand *kOp) { keyOp = kOp; }
-void ArrayLoadInsn::setRhsOp(Operand *rOp) { rhsOp = rOp; }
 bool ArrayLoadInsn::getOptionalFieldAccess() { return optionalFieldAccess; }
 bool ArrayLoadInsn::getFillingRead() { return fillingRead; }
 Operand *ArrayLoadInsn::getKeyOp() { return keyOp; }
@@ -110,9 +100,8 @@ void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Store Instruction
-ArrayStoreInsn::ArrayStoreInsn(Location *pos, InstructionKind kind,
-                               Operand *lOp, Operand *KOp, Operand *rOp)
-    : NonTerminatorInsn(pos, kind, lOp), keyOp(KOp), rhsOp(rOp) {}
+ArrayStoreInsn::ArrayStoreInsn(Operand *lOp, Operand *KOp, Operand *rOp)
+    : NonTerminatorInsn(lOp), keyOp(KOp), rhsOp(rOp) {}
 
 LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef,
                                                       Package *pkg) {
@@ -128,8 +117,6 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef,
   return addedFuncRef;
 }
 
-void ArrayStoreInsn::setKeyOp(Operand *kOp) { keyOp = kOp; }
-void ArrayStoreInsn::setRhsOp(Operand *rOp) { rhsOp = rOp; }
 Operand *ArrayStoreInsn::getKeyOp() { return keyOp; }
 Operand *ArrayStoreInsn::getRhsOp() { return rhsOp; }
 

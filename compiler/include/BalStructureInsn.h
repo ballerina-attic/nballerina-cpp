@@ -1,6 +1,7 @@
 #ifndef __BALSTRUCTUREINSN__H__
 #define __BALSTRUCTUREINSN__H__
 
+#include "BalEnums.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalVarDecl.h"
 
@@ -13,12 +14,11 @@ private:
   LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef, Package *pkg);
 
 public:
-  StructureInsn() = default;
+  StructureInsn() = delete;
+  StructureInsn(Operand *lOp, Operand *rhsOp);
   ~StructureInsn() = default;
 
   Operand *getRhsOp();
-  void setRhsOp(Operand *op);
-
   void translate(LLVMModuleRef &modRef) final;
 };
 

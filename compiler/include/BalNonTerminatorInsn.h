@@ -2,7 +2,6 @@
 #define __BALNONTERMINATORINSN__H__
 
 #include "BalAbstractInsn.h"
-#include "BalEnums.h"
 #include "interfaces/Translatable.h"
 
 namespace nballerina {
@@ -13,8 +12,8 @@ class Operand;
 class NonTerminatorInsn : public AbstractInsn, public Translatable {
 private:
 public:
-  NonTerminatorInsn() = default;
-  NonTerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp);
+  NonTerminatorInsn() = delete;
+  NonTerminatorInsn(Operand *lOp);
   virtual ~NonTerminatorInsn() = default;
 
   virtual void translate(LLVMModuleRef &modRef) override;

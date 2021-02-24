@@ -11,6 +11,9 @@ using namespace llvm;
 
 namespace nballerina {
 
+StructureInsn::StructureInsn(Operand *lOp, Operand *_rhsOp)
+    : NonTerminatorInsn(lOp), rhsOp(_rhsOp) {}
+
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
@@ -76,6 +79,5 @@ LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
 }
 
 Operand *StructureInsn::getRhsOp() { return rhsOp; }
-void StructureInsn::setRhsOp(Operand *op) { rhsOp = op; }
 
 } // namespace nballerina

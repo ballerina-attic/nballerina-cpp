@@ -17,14 +17,12 @@ private:
   Param *restParam;
 
 public:
-  FunctionCallInsn() = default;
+  FunctionCallInsn() = delete;
+  FunctionCallInsn(bool funcVirtual, std::string _funcName, int argNumber,
+                   BasicBlock *nextBB, Operand *lhsOp,
+                   std::vector<Operand *> &fnArgs);
   ~FunctionCallInsn() = default;
 
-  void setIsVirtual(bool funcVirtual);
-  void setFunctionName(std::string funcName);
-  void setArgCount(int argNumber);
-  void setArgumentsList(std::vector<Operand *> fnArgs);
-  void addArgumentToList(Operand *arg);
   void setRestParam(Param *rParam);
 
   bool getIsVirtual();

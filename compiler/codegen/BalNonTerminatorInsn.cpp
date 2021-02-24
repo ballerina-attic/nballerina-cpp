@@ -6,9 +6,7 @@
 
 namespace nballerina {
 
-NonTerminatorInsn::NonTerminatorInsn(Location *posi, InstructionKind kindP,
-                                     Operand *lOp)
-    : AbstractInsn(posi, kindP, lOp) {}
+NonTerminatorInsn::NonTerminatorInsn(Operand *lOp) : AbstractInsn(lOp) {}
 
 void NonTerminatorInsn::translate(__attribute__((unused))
                                   LLVMModuleRef &modRef) {}

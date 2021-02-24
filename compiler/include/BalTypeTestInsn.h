@@ -15,16 +15,12 @@ private:
   TypeDecl *typeDecl;
 
 public:
-  TypeTestInsn() = default;
-  TypeTestInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp,
-               TypeDecl *tDecl);
+  TypeTestInsn() = delete;
+  TypeTestInsn(Operand *lOp, Operand *rOp, TypeDecl *tDecl);
   ~TypeTestInsn() = default;
 
   Operand *getRhsOp();
   TypeDecl *getTypeDecl();
-
-  void setRhsOp(Operand *op);
-  void setTypeDecl(TypeDecl *tDecl);
 };
 
 } // namespace nballerina

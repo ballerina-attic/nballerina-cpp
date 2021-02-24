@@ -9,9 +9,9 @@
 
 namespace nballerina {
 
-GoToInsn::GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   BasicBlock *nextBB)
-    : TerminatorInsn(pos, kind, lOp, nextBB) {}
+GoToInsn::GoToInsn(BasicBlock *nextBB) : TerminatorInsn(nullptr, nextBB, true) {
+  kind = INSTRUCTION_KIND_GOTO;
+}
 
 LLVMValueRef GoToInsn::getLLVMInsn() { return llvmInsn; }
 void GoToInsn::setLLVMInsn(LLVMValueRef insn) { llvmInsn = insn; }

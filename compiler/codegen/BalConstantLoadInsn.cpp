@@ -14,26 +14,13 @@ using namespace llvm;
 
 namespace nballerina {
 
-ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
-                                   Operand *lOp, int intval)
-    : NonTerminatorInsn(pos, kind, lOp), val(intval) {}
-
-ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
-                                   Operand *lOp, float fval)
-    : NonTerminatorInsn(pos, kind, lOp), val(fval) {}
-
-ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
-                                   Operand *lOp, bool boolval)
-    : NonTerminatorInsn(pos, kind, lOp), val(boolval) {}
-
-ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
-                                   Operand *lOp, string *strval)
-    : NonTerminatorInsn(pos, kind, lOp), val(strval) {}
+ConstantLoadInsn::ConstantLoadInsn(Operand *lOp) : NonTerminatorInsn(lOp) {}
 
 int ConstantLoadInsn::getIntValue() { return val.intValue; }
 float ConstantLoadInsn::getFloatValue() { return val.floatValue; }
 bool ConstantLoadInsn::getBoolValue() { return val.boolValue; }
 std::string *ConstantLoadInsn::getStringValue() { return val.strValue; }
+
 void ConstantLoadInsn::setIntValue(int intVal, TypeTagEnum TypeTag) {
   val.intValue = intVal;
   typeTag = TypeTag;
@@ -53,6 +40,7 @@ void ConstantLoadInsn::setStringValue(std::string *str, TypeTagEnum TypeTag) {
 // With Nil Type setting only Type Tag because value will be zero with NIL
 // Type.
 void ConstantLoadInsn::setTypeTagNil(TypeTagEnum TypeTag) { typeTag = TypeTag; }
+
 TypeTagEnum ConstantLoadInsn::getTypeTag() { return typeTag; }
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {

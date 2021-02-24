@@ -10,9 +10,8 @@ private:
   LLVMValueRef llvmInsn;
 
 public:
-  GoToInsn() = default;
-  GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-           BasicBlock *nextBB);
+  GoToInsn() = delete;
+  GoToInsn(BasicBlock *nextBB);
   ~GoToInsn() = default;
 
   LLVMValueRef getLLVMInsn();

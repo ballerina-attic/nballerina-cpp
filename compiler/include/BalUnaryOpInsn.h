@@ -13,12 +13,9 @@ private:
   Operand *rhsOp;
 
 public:
-  UnaryOpInsn() = default;
-  UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
+  UnaryOpInsn() = delete;
+  UnaryOpInsn(Operand *lOp, Operand *rOp);
   ~UnaryOpInsn() = default;
-
-  Operand *getRhsOp();
-  void setRhsOp(Operand *op);
 
   void translate(LLVMModuleRef &modRef) final;
 };

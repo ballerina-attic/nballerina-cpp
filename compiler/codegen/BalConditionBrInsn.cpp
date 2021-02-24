@@ -14,14 +14,16 @@ using namespace std;
 
 namespace nballerina {
 
-ConditionBrInsn::ConditionBrInsn(Location *pos, InstructionKind kind,
-                                 Operand *lOp, BasicBlock *nextBB)
-    : TerminatorInsn(pos, kind, lOp, nextBB) {}
+ConditionBrInsn::ConditionBrInsn(Operand *lOp, BasicBlock *_ifThenBB,
+                                 BasicBlock *_elseBB)
+    : TerminatorInsn(lOp, nullptr, true), ifThenBB(_ifThenBB), elseBB(_elseBB) {
+  kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
+}
 
-void ConditionBrInsn::setIfThenBB(BasicBlock *ifBB) { ifThenBB = ifBB; }
-void ConditionBrInsn::setElseBB(BasicBlock *elseB) { elseBB = elseB; }
 BasicBlock *ConditionBrInsn::getIfThenBB() { return ifThenBB; }
 BasicBlock *ConditionBrInsn::getElseBB() { return elseBB; }
+void ConditionBrInsn::setIfThenBB(BasicBlock *bb) { ifThenBB = bb; }
+void ConditionBrInsn::setElseBB(BasicBlock *bb) { elseBB = bb; }
 
 void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 

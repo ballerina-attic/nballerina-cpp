@@ -24,15 +24,8 @@ private:
   } val;
 
 public:
-  ConstantLoadInsn() = default;
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   int intval);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   float floatval);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   bool boolval);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   std::string *strval);
+  ConstantLoadInsn() = delete;
+  ConstantLoadInsn(Operand *lOp);
   ~ConstantLoadInsn() = default;
 
   int getIntValue();

@@ -13,12 +13,8 @@ using namespace std;
 
 namespace nballerina {
 
-UnaryOpInsn::UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                         Operand *rOp)
-    : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
-
-Operand *UnaryOpInsn::getRhsOp() { return rhsOp; }
-void UnaryOpInsn::setRhsOp(Operand *op) { rhsOp = op; }
+UnaryOpInsn::UnaryOpInsn(Operand *lOp, Operand *rOp)
+    : NonTerminatorInsn(lOp), rhsOp(rOp) {}
 
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
@@ -41,16 +37,8 @@ void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   if (!rhsOpref)
     return;
 
-  switch (getInstKind()) {
-  case INSTRUCTION_KIND_UNARY_NOT:
-  case INSTRUCTION_KIND_UNARY_NEG: {
-    LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhstmpName.c_str());
-    LLVMBuildStore(builder, ifReturn, lhsRef);
-    break;
-  }
-  default:
-    break;
-  }
+  LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhstmpName.c_str());
+  LLVMBuildStore(builder, ifReturn, lhsRef);
   return;
 }
 

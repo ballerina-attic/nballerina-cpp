@@ -8,17 +8,13 @@ class MapStoreInsn : public NonTerminatorInsn {
 private:
   Operand *keyOp;
   Operand *rhsOp;
-  LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef,
-                                         Package *pkg);
+  LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef, Package *pkg);
 
 public:
-  MapStoreInsn() = default;
-  MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *KOp,
-               Operand *ROp);
+  MapStoreInsn() = delete;
+  MapStoreInsn(Operand *lOp, Operand *KOp, Operand *ROp);
   ~MapStoreInsn() = default;
 
-  void setKeyOp(Operand *kOp);
-  void setRhsOp(Operand *rOp);
   Operand *getKeyOp();
   Operand *getRhsOp();
 

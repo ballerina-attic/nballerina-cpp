@@ -11,16 +11,15 @@ private:
   BasicBlock *elseBB;
 
 public:
-  ConditionBrInsn() = default;
-  ConditionBrInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                  BasicBlock *nextB);
+  ConditionBrInsn() = delete;
+  ConditionBrInsn(Operand *lOp, BasicBlock *_ifThenBB, BasicBlock *_elseBB);
   ~ConditionBrInsn() = default;
-
-  void setIfThenBB(BasicBlock *ifBB);
-  void setElseBB(BasicBlock *elseB);
 
   BasicBlock *getIfThenBB();
   BasicBlock *getElseBB();
+
+  void setIfThenBB(BasicBlock *bb);
+  void setElseBB(BasicBlock *bb);
 
   void translate(LLVMModuleRef &modRef) final;
 };

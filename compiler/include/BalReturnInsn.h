@@ -8,9 +8,7 @@ namespace nballerina {
 class ReturnInsn : public TerminatorInsn {
 private:
 public:
-  ReturnInsn() = default;
-  ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
-             BasicBlock *nextBB);
+  ReturnInsn();
   ~ReturnInsn() = default;
 
   void translate(LLVMModuleRef &modRef) final;

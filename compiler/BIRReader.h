@@ -46,8 +46,7 @@ private:
   nballerina::VarDecl *readLocalVar();
   nballerina::TypeDescInsn *readTypeDescInsn();
   nballerina::StructureInsn *readStructureInsn();
-  void readInsn(nballerina::Function *birFunction,
-                nballerina::BasicBlock *basicBlock);
+  void readInsn(nballerina::BasicBlock *basicBlock);
   nballerina::BasicBlock *readBasicBlock(nballerina::Function *birFunction);
   void patchInsn(std::vector<nballerina::BasicBlock *> basicBlocks);
   nballerina::Function *readFunction();

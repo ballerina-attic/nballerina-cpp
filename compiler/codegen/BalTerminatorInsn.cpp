@@ -6,17 +6,15 @@
 
 namespace nballerina {
 
-TerminatorInsn::TerminatorInsn(Location *pos, InstructionKind kind,
-                               Operand *lOp, BasicBlock *then)
-    : AbstractInsn(pos, kind, lOp), thenBB(then) {}
+TerminatorInsn::TerminatorInsn(Operand *lOp, BasicBlock *then,
+                               bool _patchRequire)
+    : AbstractInsn(lOp), thenBB(then), patchRequire(_patchRequire) {}
 
 BasicBlock *TerminatorInsn::getNextBB() { return thenBB; }
 bool TerminatorInsn::getPatchStatus() { return patchRequire; }
-
-void TerminatorInsn::setNextBB(BasicBlock *block) { thenBB = block; }
-void TerminatorInsn::setPatchStatus(bool patchrequire) {
-  patchRequire = patchrequire;
-}
+InstructionKind TerminatorInsn::getInstKind() { return kind; }
+void TerminatorInsn::setPatched() { patchRequire = false; }
+void TerminatorInsn::setNextBB(BasicBlock *bb) { thenBB = bb; }
 
 void TerminatorInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {}
 

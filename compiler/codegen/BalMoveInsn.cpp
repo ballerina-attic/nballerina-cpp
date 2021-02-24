@@ -11,12 +11,10 @@
 
 namespace nballerina {
 
-MoveInsn::MoveInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   Operand *rOp)
-    : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
+MoveInsn::MoveInsn(Operand *lOp, Operand *rOp)
+    : NonTerminatorInsn(lOp), rhsOp(rOp) {}
 
 Operand *MoveInsn::getRhsOp() { return rhsOp; }
-void MoveInsn::setRhsOp(Operand *rOp) { rhsOp = rOp; }
 
 void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMValueRef lhsRef;

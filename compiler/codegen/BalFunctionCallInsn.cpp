@@ -13,19 +13,15 @@ using namespace std;
 
 namespace nballerina {
 
-void FunctionCallInsn::setIsVirtual(bool funcVirtual) {
-  isVirtual = funcVirtual;
+FunctionCallInsn::FunctionCallInsn(bool funcVirtual, std::string funcName,
+                                   int argNumber, BasicBlock *nextBB,
+                                   Operand *lhsOp,
+                                   std::vector<Operand *> &fnArgs)
+    : TerminatorInsn(lhsOp, nextBB, true), isVirtual(funcVirtual),
+      functionName(funcName), argCount(argNumber), argsList(std::move(fnArgs)) {
+  kind = INSTRUCTION_KIND_CALL;
 }
-void FunctionCallInsn::setFunctionName(std::string funcName) {
-  functionName = funcName;
-}
-void FunctionCallInsn::setArgCount(int argNumber) { argCount = argNumber; }
-void FunctionCallInsn::setArgumentsList(std::vector<Operand *> fnArgs) {
-  argsList = fnArgs;
-}
-void FunctionCallInsn::addArgumentToList(Operand *arg) {
-  argsList.push_back(arg);
-}
+
 void FunctionCallInsn::setRestParam(Param *rParam) { restParam = rParam; }
 
 bool FunctionCallInsn::getIsVirtual() { return isVirtual; }

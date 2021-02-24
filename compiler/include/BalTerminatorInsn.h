@@ -16,17 +16,21 @@ private:
   BasicBlock *thenBB;
   bool patchRequire;
 
+protected:
+  InstructionKind kind;
+
 public:
-  TerminatorInsn() = default;
-  TerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                 BasicBlock *then);
+  TerminatorInsn() = delete;
+  TerminatorInsn(Operand *lOp, BasicBlock *then, bool _patchRequire);
   virtual ~TerminatorInsn() = default;
 
   BasicBlock *getNextBB();
   bool getPatchStatus();
+  InstructionKind getInstKind();
 
-  void setNextBB(BasicBlock *block);
-  void setPatchStatus(bool patchrequire);
+  void setPatched();
+  void setNextBB(BasicBlock *bb);
+
   virtual void translate(LLVMModuleRef &modRef) override;
 };
 

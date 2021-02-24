@@ -10,12 +10,11 @@ private:
   Operand *rhsOp;
 
 public:
-  MoveInsn() = default;
-  MoveInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
+  MoveInsn() = delete;
+  MoveInsn(Operand *lOp, Operand *rOp);
   ~MoveInsn() = default;
 
   Operand *getRhsOp();
-  void setRhsOp(Operand *rOp);
 
   void translate(LLVMModuleRef &modRef) final;
 };

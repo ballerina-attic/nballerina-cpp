@@ -16,18 +16,13 @@ private:
   bool checkTypes;
 
 public:
-  TypeCastInsn() = default;
-  TypeCastInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp,
-               TypeDecl *tDecl, bool checkTypes);
+  TypeCastInsn() = delete;
+  TypeCastInsn(Operand *lOp, Operand *rOp, TypeDecl *tDecl, bool checkTypes);
   ~TypeCastInsn() = default;
 
   Operand *getRhsOp();
   TypeDecl *getTypeDecl();
   bool mustCheckTypes();
-
-  void setRhsOp(Operand *op);
-  void setTypeDecl(TypeDecl *tDecl);
-  void setTypesChecking(bool checktypes);
 
   void translate(LLVMModuleRef &modRef) final;
 };
