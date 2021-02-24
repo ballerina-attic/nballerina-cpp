@@ -8,6 +8,10 @@
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
 
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
 using namespace std;
 using namespace llvm;
 
@@ -17,6 +21,16 @@ TypeCastInsn::TypeCastInsn(Location *pos, InstructionKind kind, Operand *lOp,
                            Operand *rOp, TypeDecl *tDecl, bool checkTypes)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp), typeDecl(tDecl),
       checkTypes(checkTypes) {}
+
+Operand *TypeCastInsn::getRhsOp() { return rhsOp; }
+TypeDecl *TypeCastInsn::getTypeDecl() { return typeDecl; }
+bool TypeCastInsn::mustCheckTypes() { return checkTypes; }
+
+void TypeCastInsn::setRhsOp(Operand *op) { rhsOp = op; }
+void TypeCastInsn::setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
+void TypeCastInsn::setTypesChecking(bool checktypes) {
+  checkTypes = checktypes;
+}
 
 void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();

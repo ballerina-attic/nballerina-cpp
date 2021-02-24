@@ -1,7 +1,7 @@
+#include "BalStructureInsn.h"
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
-#include "BalStructureInsn.h"
 #include "BalTypeDecl.h"
 #include "llvm-c/Core.h"
 #include <iostream>
@@ -74,5 +74,8 @@ LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
   pkg->addArrayFunctionRef("map_new_int", addedFuncRef);
   return addedFuncRef;
 }
+
+Operand *StructureInsn::getRhsOp() { return rhsOp; }
+void StructureInsn::setRhsOp(Operand *op) { rhsOp = op; }
 
 } // namespace nballerina

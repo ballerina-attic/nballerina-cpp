@@ -21,12 +21,14 @@ public:
                TypeDecl *tDecl, bool checkTypes);
   ~TypeCastInsn() = default;
 
-  Operand *getRhsOp() { return rhsOp; }
-  TypeDecl *getTypeDecl() { return typeDecl; }
-  bool mustCheckTypes() { return checkTypes; }
-  void setRhsOp(Operand *op) { rhsOp = op; }
-  void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
-  void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
+  Operand *getRhsOp();
+  TypeDecl *getTypeDecl();
+  bool mustCheckTypes();
+
+  void setRhsOp(Operand *op);
+  void setTypeDecl(TypeDecl *tDecl);
+  void setTypesChecking(bool checktypes);
+
   void translate(LLVMModuleRef &modRef) final;
 };
 

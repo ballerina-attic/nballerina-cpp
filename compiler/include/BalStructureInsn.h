@@ -15,8 +15,10 @@ private:
 public:
   StructureInsn() = default;
   ~StructureInsn() = default;
-  Operand *getRhsOp() { return rhsOp; }
-  void setRhsOp(Operand *op) { rhsOp = op; }
+
+  Operand *getRhsOp();
+  void setRhsOp(Operand *op);
+
   void translate(LLVMModuleRef &modRef) final;
 };
 
