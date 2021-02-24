@@ -11,12 +11,6 @@ fi
 
 ballerina build --dump-bir-file=$filename-bir-dump $1 1>out.log 2>err.log
 
-if [ -s ./err.log ]
-then
-  echo "JBallerina error . Check err.log"
-  exit 1
-fi
-
 $2 $filename-bir-dump  2>err.log
 
 if [ -s ./err.log ]
@@ -25,7 +19,7 @@ then
   exit 1
 fi
 
-clang -O0 -o $filename.out $filename-bir-dump.ll 2>err.log
+clang -O0 -o $filename.out $filename-bir-dump.ll -L../../../runtime/target/release -lballerina_rt 2>err.log
 
 if [ -s ./err.log ]
 then
@@ -33,7 +27,8 @@ then
   exit 1
 fi
 
-./$filename.out
-echo RETVAL=$?
+export LD_LIBRARY_PATH=../../../runtime/target/release
+
+echo RETVAL=$(./$filename.out)
 
 rm $filename-bir-dump.ll $filename.out
