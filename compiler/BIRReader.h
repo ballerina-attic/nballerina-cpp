@@ -19,6 +19,7 @@
 #include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
 #include "BalTypeDescInsn.h"
+#include "BalTypeTestInsn.h"
 #include <fstream>
 
 class ConstantPoolSet;

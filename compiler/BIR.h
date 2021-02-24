@@ -110,22 +110,6 @@ public:
   void translate(LLVMModuleRef &modRef) final;
 };
 
-class TypeTestInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
-  TypeDecl *typeDecl;
-
-public:
-  TypeTestInsn() = default;
-  TypeTestInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp,
-               TypeDecl *tDecl);
-  ~TypeTestInsn() = default;
-
-  Operand *getRhsOp() { return rhsOp; }
-  TypeDecl *getTypeDecl() { return typeDecl; }
-  void setRhsOp(Operand *op) { rhsOp = op; }
-  void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
-};
 
 
 
