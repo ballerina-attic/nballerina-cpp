@@ -1,4 +1,17 @@
-#include "BIR.h"
+#include "BalTypeCastInsn.h"
+#include "BalEnums.h"
+#include "BalFunction.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "BalTypeDecl.h"
+#include "BalVarDecl.h"
+#include "llvm-c/Core.h"
+#include "llvm/IR/Constants.h"
+
+using namespace std;
+using namespace llvm;
+
+namespace nballerina {
 
 TypeCastInsn::TypeCastInsn(Location *pos, InstructionKind kind, Operand *lOp,
                            Operand *rOp, TypeDecl *tDecl, bool checkTypes)
@@ -85,3 +98,5 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     }
   }
 }
+
+} // namespace nballerina

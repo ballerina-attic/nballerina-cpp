@@ -17,6 +17,7 @@
 #include "BalParam.h"
 #include "BalReturnInsn.h"
 #include "BalTerminatorInsn.h"
+#include "BalTypeCastInsn.h"
 #include "BalTypeDecl.h"
 #include "BalTypeDescInsn.h"
 #include "BalTypeTestInsn.h"
