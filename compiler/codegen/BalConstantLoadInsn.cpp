@@ -1,4 +1,18 @@
-#include "BIR.h"
+#include "BalConstantLoad.h"
+#include "BalFunction.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "BalVarDecl.h"
+#include "llvm-c/Core.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Module.h"
+
+using namespace std;
+using namespace llvm;
+
+namespace nballerina {
 
 ConstantLoadInsn::ConstantLoadInsn(Location *pos, InstructionKind kind,
                                    Operand *lOp, int intval)
@@ -66,7 +80,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     GV->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
     GV->setAlignment(llvm::Align(1));
 
-    paramTypes[0] = wrap(unwrap(builder)->getInt64(0));
+    paramTypes[0] = wrap(unwrap(builder)->getInt64(0)); //
     paramTypes[1] = wrap(unwrap(builder)->getInt64(0));
     constRef = LLVMBuildInBoundsGEP(builder, wrap(GV), paramTypes, 2, "simple");
     break;
@@ -81,3 +95,5 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   if (constRef && lhsRef)
     LLVMBuildStore(builder, constRef, lhsRef);
 }
+
+} // namespace nballerina

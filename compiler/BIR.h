@@ -21,6 +21,7 @@
 #include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
+#include "BalConstantLoad.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include "Translatable.h"
@@ -52,59 +53,6 @@ using namespace nballerina;
 
 enum SymbolKind { LOCAL_SYMBOL_KIND, GLOBAL_SYMBOL_KIND };
 
-class ConstantLoadInsn : public NonTerminatorInsn {
-private:
-  enum TypeTagEnum typeTag;
-  union value {
-    int intValue;
-    double floatValue;
-    bool boolValue;
-    string *strValue;
-    value() {}
-    value(int x) : intValue(x) {}
-    value(float x) : floatValue(x) {}
-    value(bool x) : boolValue(x) {}
-    value(string *x) : strValue(x) {}
-  } val;
-
-public:
-  ConstantLoadInsn() = default;
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   int intval);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   float floatval);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   bool boolval);
-  ConstantLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   string *strval);
-  ~ConstantLoadInsn() = default;
-
-  int getIntValue() { return val.intValue; }
-  float getFloatValue() { return val.floatValue; }
-  bool getBoolValue() { return val.boolValue; }
-  string *getStringValue() { return val.strValue; }
-  void setIntValue(int intVal, TypeTagEnum TypeTag) {
-    val.intValue = intVal;
-    typeTag = TypeTag;
-  }
-  void setFloatValue(float floatVal, TypeTagEnum TypeTag) {
-    val.floatValue = floatVal;
-    typeTag = TypeTag;
-  }
-  void setBoolValue(bool boolVal, TypeTagEnum TypeTag) {
-    val.boolValue = boolVal;
-    typeTag = TypeTag;
-  }
-  void setStringValue(string *str, TypeTagEnum TypeTag) {
-    val.strValue = str;
-    typeTag = TypeTag;
-  }
-  // With Nil Type setting only Type Tag because value will be zero with NIL
-  // Type.
-  void setTypeTagNil(TypeTagEnum TypeTag) { typeTag = TypeTag; }
-  TypeTagEnum getTypeTag() { return typeTag; }
-  void translate(LLVMModuleRef &modRef) final;
-};
 
 class BinaryOpInsn : public NonTerminatorInsn {
 private:
