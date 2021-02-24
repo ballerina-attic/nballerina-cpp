@@ -1,4 +1,10 @@
-#include "BIR.h"
+#include "BalBasicBlock.h"
+#include "BalNonTerminatorInsn.h"
+#include "BalTerminatorInsn.h"
+
+using namespace std;
+
+namespace nballerina {
 
 BIRBasicBlock::BIRBasicBlock(string pid) : id(pid) {}
 
@@ -23,3 +29,5 @@ void BIRBasicBlock::translate(LLVMModuleRef &modRef) {
     terminator->translate(modRef);
   }
 }
+
+} // namespace nballerina
