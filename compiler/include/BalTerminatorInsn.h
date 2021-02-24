@@ -2,9 +2,15 @@
 #define __BALTERMINATORINSN__H__
 
 #include "BalAbstractInsn.h"
+#include "BalEnums.h"
 #include "Translatable.h"
 
 namespace nballerina {
+
+// forward declaration
+class BIRBasicBlock;
+class Operand;
+
 class TerminatorInsn : public AbstractInsn, public Translatable {
 private:
   BIRBasicBlock *thenBB;

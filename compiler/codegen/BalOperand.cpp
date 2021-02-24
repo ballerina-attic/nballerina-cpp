@@ -1,4 +1,6 @@
 #include "BalOperand.h"
+#include "BalVarDecl.h"
+#include "BalTypeDecl.h"
 
 namespace nballerina {
 Operand::Operand(VarDecl *vDecl) : varDecl(vDecl) {}

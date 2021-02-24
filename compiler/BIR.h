@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "BalAbstractInsn.h"
+#include "BalBasicBlock.h"
+#include "BalEnums.h"
 #include "BalFuncParam.h"
 #include "BalFunction.h"
 #include "BalInvokableType.h"
@@ -46,10 +48,6 @@
 using namespace std;
 using namespace llvm;
 using namespace nballerina;
-
-// Forward Declarations
-class BIRBasicBlock;
-class BIRPackage;
 
 enum SymbolKind { LOCAL_SYMBOL_KIND, GLOBAL_SYMBOL_KIND };
 
@@ -353,45 +351,6 @@ public:
                    Operand *lhsOp, BIRBasicBlock *thenBB);
   Param *getRestParam() { return restParam; }
   ~FunctionCallInsn() = default;
-  void translate(LLVMModuleRef &modRef) final;
-};
-
-class BIRBasicBlock : public PackageNode,
-                      public Debuggable,
-                      public Translatable {
-private:
-  string id;
-  vector<NonTerminatorInsn *> instructions;
-  TerminatorInsn *terminator;
-  LLVMBuilderRef bRef;
-  BIRFunction *bFunc;
-  BIRBasicBlock *nextBB;
-  LLVMBasicBlockRef bbRefObj;
-
-public:
-  BIRBasicBlock() = default;
-  BIRBasicBlock(string id);
-  ~BIRBasicBlock() = default;
-  BIRBasicBlock(Location *pos, string id);
-
-  string getId() { return id; }
-  TerminatorInsn *getTerminatorInsn() { return terminator; }
-  LLVMBuilderRef getLLVMBuilderRef() { return bRef; }
-  BIRFunction *getBIRFunction() { return bFunc; }
-  BIRBasicBlock *getNextBB() { return nextBB; }
-  vector<NonTerminatorInsn *> getNonTerminatorInsn() { return instructions; }
-  NonTerminatorInsn *getInsn(int i) { return instructions[i]; }
-  size_t numInsns() { return instructions.size(); }
-  LLVMBasicBlockRef getLLVMBBRef() { return bbRefObj; }
-
-  void setId(string newId) { id = newId; }
-  void setTerminatorInsn(TerminatorInsn *insn) { terminator = insn; }
-  void setLLVMBuilderRef(LLVMBuilderRef buildRef) { bRef = buildRef; }
-  void setBIRFunction(BIRFunction *func) { bFunc = func; }
-  void setNextBB(BIRBasicBlock *bb) { nextBB = bb; }
-  void setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
-  void addNonTermInsn(NonTerminatorInsn *insn) { instructions.push_back(insn); }
-
   void translate(LLVMModuleRef &modRef) final;
 };
 

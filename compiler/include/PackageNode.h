@@ -5,6 +5,7 @@
 class BIRPackage;
 
 namespace nballerina {
+
 class PackageNode {
 private:
   BIRPackage *pkg;

@@ -1,11 +1,14 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
-#include "BalVarDecl.h"
 #include "PackageNode.h"
 #include <string>
 
 namespace nballerina {
+
+// forward declare
+class VarDecl;
+
 class Operand : public PackageNode {
 private:
   VarDecl *varDecl;

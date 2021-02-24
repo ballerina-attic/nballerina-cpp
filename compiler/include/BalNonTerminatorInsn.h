@@ -2,9 +2,14 @@
 #define __BALNONTERMINATORINSN__H__
 
 #include "BalAbstractInsn.h"
+#include "BalEnums.h"
 #include "Translatable.h"
 
 namespace nballerina {
+
+// class AbstractInsn;
+class Operand;
+
 class NonTerminatorInsn : public AbstractInsn, public Translatable {
 private:
 public:

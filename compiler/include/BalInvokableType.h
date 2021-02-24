@@ -1,16 +1,18 @@
 #ifndef __BALINVOKABLETYPE__H__
 #define __BALINVOKABLETYPE__H__
 
-#include "BalTypeDecl.h"
-#include <memory>
 #include <vector>
 
 namespace nballerina {
+
+// forward declaration
+class TypeDecl;
+
 class InvokableType {
 private:
   std::vector<TypeDecl *> paramTypes;
-  std::unique_ptr<TypeDecl> restType;
-  std::unique_ptr<TypeDecl> returnType;
+  TypeDecl *restType;
+  TypeDecl *returnType;
 
 public:
   InvokableType() = delete;

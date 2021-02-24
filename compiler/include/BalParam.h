@@ -1,12 +1,15 @@
 #ifndef __BALPARAM__H__
 #define __BALPARAM__H__
 
-#include "BalTypeDecl.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include <string>
 
 namespace nballerina {
+
+// forward declaration
+class TypeDecl;
+
 class Param : public PackageNode, public Debuggable {
 private:
   std::string name;

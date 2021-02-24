@@ -1,5 +1,4 @@
 #include "BIRReader.h"
-#include "BIR.h"
 #ifdef unix
 #include <libgen.h>
 #else

@@ -1,27 +1,16 @@
 #ifndef __BALVARDECL__H__
 #define __BALVARDECL__H__
 
-#include "BalTypeDecl.h"
+#include "BalEnums.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include <string>
 
-// forward declare
-class BIRBasicBlock;
-
 namespace nballerina {
 
-enum VarKind {
-  LOCAL_VAR_KIND = 1,
-  ARG_VAR_KIND = 2,
-  TEMP_VAR_KIND = 3,
-  RETURN_VAR_KIND = 4,
-  GLOBAL_VAR_KIND = 5,
-  SELF_VAR_KIND = 6,
-  CONSTANT_VAR_KIND = 7
-};
-
-enum VarScope { VAR_SCOPE_GLOBAL = 1, VAR_SCOPE_FUNCTION = 2 };
+// forward declare
+class BIRBasicBlock;
+class TypeDecl;
 
 class VarDecl : public PackageNode, public Debuggable {
 private:

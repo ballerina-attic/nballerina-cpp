@@ -106,7 +106,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   LLVMPositionBuilderAtEnd(builder, BbRef);
 
   // iterate through all local vars.
-  for (auto const it : localVars) {
+  for (auto const &it : localVars) {
     VarDecl *locVar = it.second;
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef;
