@@ -255,10 +255,4 @@ public:
   void translate(LLVMModuleRef &modRef) final;
 };
 
-class TypeDescInsn : public NonTerminatorInsn {
-public:
-  TypeDescInsn() = default;
-  ~TypeDescInsn() = default;
-};
-
 #endif // BIR_H

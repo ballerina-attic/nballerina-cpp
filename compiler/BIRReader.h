@@ -1,6 +1,9 @@
 #ifndef BIRREADER_H
 #define BIRREADER_H
 
+#include "BIR.h"
+#include "BalAbstractInsn.h"
+#include "BalBasicBlock.h"
 #include "BalFuncParam.h"
 #include "BalFunction.h"
 #include "BalInvokableType.h"
@@ -10,9 +13,7 @@
 #include "BalParam.h"
 #include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
-#include "BalAbstractInsn.h"
-#include "BalBasicBlock.h"
-#include "BIR.h"
+#include "BalTypeDescInsn.h"
 #include <fstream>
 
 class ConstantPoolSet;
