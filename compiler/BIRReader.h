@@ -4,6 +4,7 @@
 #include "BIR.h"
 #include "BalAbstractInsn.h"
 #include "BalBasicBlock.h"
+#include "BalConditionBrInsn.h"
 #include "BalFuncParam.h"
 #include "BalFunction.h"
 #include "BalGoToInsn.h"
