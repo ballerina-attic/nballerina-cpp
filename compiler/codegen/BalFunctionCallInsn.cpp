@@ -11,7 +11,7 @@ namespace nballerina {
 
 void FunctionCallInsn::translate(__attribute__((unused))
                                  LLVMModuleRef &modRef) {
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   LLVMValueRef *ParamRefs = new LLVMValueRef[argCount];
   string funName;
 
@@ -19,7 +19,7 @@ void FunctionCallInsn::translate(__attribute__((unused))
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   assert(getPkgAddress());
 
-  BIRFunction *birFunc = getPkgAddress()->getFunctionLookUp(functionName);
+  Function *birFunc = getPkgAddress()->getFunctionLookUp(functionName);
   assert(birFunc);
   LLVMValueRef namedFuncRef = birFunc->getNewFunctionRef();
 

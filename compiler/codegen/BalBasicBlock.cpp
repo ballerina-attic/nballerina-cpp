@@ -13,7 +13,7 @@ BasicBlock::BasicBlock(Location *loc, std::string pid) : id(pid) {
 std::string BasicBlock::getId() { return id; }
 TerminatorInsn *BasicBlock::getTerminatorInsn() { return terminator; }
 LLVMBuilderRef BasicBlock::getLLVMBuilderRef() { return bRef; }
-BIRFunction *BasicBlock::getBIRFunction() { return bFunc; }
+Function *BasicBlock::getFunction() { return bFunc; }
 BasicBlock *BasicBlock::getNextBB() { return nextBB; }
 std::vector<NonTerminatorInsn *> BasicBlock::getNonTerminatorInsn() {
   return instructions;
@@ -29,7 +29,7 @@ void BasicBlock::setTerminatorInsn(TerminatorInsn *insn) {
 void BasicBlock::setLLVMBuilderRef(LLVMBuilderRef buildRef) {
   bRef = buildRef;
 }
-void BasicBlock::setBIRFunction(BIRFunction *func) { bFunc = func; }
+void BasicBlock::setFunction(Function *func) { bFunc = func; }
 void BasicBlock::setNextBB(BasicBlock *bb) { nextBB = bb; }
 void BasicBlock::setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
 void BasicBlock::addNonTermInsn(NonTerminatorInsn *insn) {

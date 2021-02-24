@@ -20,7 +20,7 @@ class InvokableType;
 class Param;
 class TypeDecl;
 
-class BIRFunction : public PackageNode, public Debuggable, public Translatable {
+class Function : public PackageNode, public Debuggable, public Translatable {
 private:
   std::string name;
   int flags;
@@ -31,7 +31,6 @@ private:
   int paramCount;
   std::map<std::string, VarDecl *> localVars;
   VarDecl *returnVar;
-
   std::vector<BasicBlock *> basicBlocks;
   std::string workerName;
   LLVMBuilderRef builder;
@@ -41,62 +40,49 @@ private:
   std::map<std::string, LLVMValueRef> branchComparisonList;
 
 public:
-  BIRFunction() = default;
-  BIRFunction(Location *pos, std::string pname, int pflags,
+  Function() = default;
+  Function(Location *pos, std::string pname, int pflags,
               InvokableType *ptype, std::string pworkerName);
-  BIRFunction(const BIRFunction &) = delete;
-  ~BIRFunction() = default;
+  Function(const Function &) = delete;
+  ~Function() = default;
 
-  std::string getName() { return name; }
-  int getFlags() { return flags; }
-  InvokableType *getInvokableType() { return type; }
-  std::vector<Operand *> getParams() { return requiredParams; }
-  Operand *getParam(int i) { return requiredParams[i]; }
-  VarDecl *getReceiver() { return receiver; }
-  Param *getRestParam() { return restParam; }
-
-  VarDecl *getReturnVar() { return returnVar; }
-  std::vector<BasicBlock *> getBasicBlocks() { return basicBlocks; }
-  size_t numBasicBlocks() { return basicBlocks.size(); }
-  BasicBlock *getBasicBlock(int i) { return basicBlocks[i]; }
-  std::string getWorkerName() { return workerName; }
-  LLVMBuilderRef getLLVMBuilder() { return builder; }
-  int getNumParams() { return paramCount; }
-  LLVMValueRef getNewFunctionRef() { return newFunction; }
-  std::map<std::string, LLVMValueRef> getLocalVarRefs() { return localVarRefs; }
-  std::map<std::string, LLVMValueRef> getBranchComparisonList() {
-    return branchComparisonList;
-  }
+  std::string getName();
+  int getFlags();
+  InvokableType *getInvokableType();
+  std::vector<Operand *> getParams();
+  Operand *getParam(int i);
+  VarDecl *getReceiver();
+  Param *getRestParam();
+  VarDecl *getReturnVar();
+  std::vector<BasicBlock *> getBasicBlocks();
+  size_t numBasicBlocks();
+  BasicBlock *getBasicBlock(int i);
+  std::string getWorkerName();
+  LLVMBuilderRef getLLVMBuilder();
+  int getNumParams();
+  LLVMValueRef getNewFunctionRef();
+  std::map<std::string, LLVMValueRef> getLocalVarRefs();
+  std::map<std::string, LLVMValueRef> getBranchComparisonList();
   LLVMValueRef getValueRefBasedOnName(std::string lhsName);
 
-  void setName(std::string newName) { name = newName; }
-  void setFlags(int newFlags) { flags = newFlags; }
-  void setInvokableType(InvokableType *t) { type = t; }
-  void setParams(std::vector<Operand *> p) { requiredParams = p; }
-  void setParam(Operand *param) { requiredParams.push_back(param); }
-  void setReceiver(VarDecl *var) { receiver = var; }
-  void setRestParam(Param *param) { restParam = param; }
-  void setNumParams(int paramcount) { paramCount = paramcount; }
-  void setLocalVar(std::string name, VarDecl *var) {
-    localVars.insert(std::pair<std::string, VarDecl *>(name, var));
-  }
-  void setReturnVar(VarDecl *var) { returnVar = var; }
-  void setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }
-  void addBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
-  void setWorkerName(std::string newName) { workerName = newName; }
-  void setLLVMBuilder(LLVMBuilderRef b) { builder = b; }
-  void setLocalVarRefs(std::map<std::string, LLVMValueRef> newLocalVarRefs) {
-    localVarRefs = newLocalVarRefs;
-  }
-  void setNewFunctionRef(LLVMValueRef newFuncRef) { newFunction = newFuncRef; }
-
-  void setBranchComparisonlist(std::map<std::string, LLVMValueRef> brCompl) {
-    branchComparisonList = brCompl;
-  }
-  void addNewbranchComparison(std::string name, LLVMValueRef compRef) {
-    branchComparisonList.insert(
-        std::pair<std::string, LLVMValueRef>(name, compRef));
-  }
+  void setName(std::string newName);
+  void setFlags(int newFlags);
+  void setInvokableType(InvokableType *t);
+  void setParams(std::vector<Operand *> p);
+  void setParam(Operand *param);
+  void setReceiver(VarDecl *var);
+  void setRestParam(Param *param);
+  void setNumParams(int paramcount);
+  void setLocalVar(std::string name, VarDecl *var);
+  void setReturnVar(VarDecl *var);
+  void setBasicBlocks(std::vector<BasicBlock *> b);
+  void addBasicBlock(BasicBlock *bb);
+  void setWorkerName(std::string newName);
+  void setLLVMBuilder(LLVMBuilderRef b);
+  void setLocalVarRefs(std::map<std::string, LLVMValueRef> newLocalVarRefs);
+  void setNewFunctionRef(LLVMValueRef newFuncRef);
+  void setBranchComparisonlist(std::map<std::string, LLVMValueRef> brCompl);
+  void addNewbranchComparison(std::string name, LLVMValueRef compRef);
 
   BasicBlock *searchBb(std::string name);
 

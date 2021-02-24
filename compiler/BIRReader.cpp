@@ -532,7 +532,7 @@ ReturnInsn *ReadReturnInsn::readTerminatorInsn() {
 
 // Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the
 // BIR
-void BIRReader::readInsn(BIRFunction *birFunction, BasicBlock *basicBlock) {
+void BIRReader::readInsn(Function *birFunction, BasicBlock *basicBlock) {
   NonTerminatorInsn *nonTerminatorInsn = new NonTerminatorInsn();
   nonTerminatorInsn->setFunction(birFunction);
   uint32_t sLine = readS4be();
@@ -683,11 +683,11 @@ void BIRReader::readInsn(BIRFunction *birFunction, BasicBlock *basicBlock) {
 }
 
 // Read Basic Block from the BIR
-BasicBlock *BIRReader::readBasicBlock(BIRFunction *birFunction) {
+BasicBlock *BIRReader::readBasicBlock(Function *birFunction) {
   BasicBlock *basicBlock = new BasicBlock();
   uint32_t nameCpIndex = readS4be();
   basicBlock->setId(constantPool->getStringCp(nameCpIndex));
-  basicBlock->setBIRFunction(birFunction);
+  basicBlock->setFunction(birFunction);
 
   uint32_t insnCount = readS4be();
   for (unsigned int i = 0; i < insnCount; i++) {
@@ -701,7 +701,7 @@ BasicBlock *BIRReader::readBasicBlock(BIRFunction *birFunction) {
 void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
   for (unsigned int i = 0; i < basicBlocks.size(); i++) {
     BasicBlock *basicBlock = basicBlocks[i];
-    BIRFunction *curFunc = basicBlock->getBIRFunction();
+    Function *curFunc = basicBlock->getFunction();
     TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
     if (terminator && terminator->getPatchStatus()) {
       switch (terminator->getInstKind()) {
@@ -748,8 +748,8 @@ void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
 }
 
 // Reads BIR function
-BIRFunction *BIRReader::readFunction() {
-  BIRFunction *birFunction = new BIRFunction();
+Function *BIRReader::readFunction() {
+  Function *birFunction = new Function();
   uint32_t sLine = readS4be();
   uint32_t eLine = readS4be();
   uint32_t sCol = readS4be();
@@ -1065,7 +1065,7 @@ void ConstantPoolSet::read() {
 // Assigns Type Decl to function parameters
 void BIRReader::patchTypesToFuncParam() {
   for (size_t i = 0; i < birPackage.numFunctions(); i++) {
-    BIRFunction *curFunc = birPackage.getFunction(i);
+    Function *curFunc = birPackage.getFunction(i);
     for (size_t i = 0; i < curFunc->numBasicBlocks(); i++) {
       BasicBlock *birBasicBlock = curFunc->getBasicBlock(i);
       for (size_t i = 0; i < birBasicBlock->numInsns(); i++) {
@@ -1076,7 +1076,7 @@ void BIRReader::patchTypesToFuncParam() {
             FunctionCallInsn *Terminator =
                 (static_cast<FunctionCallInsn *>(terminator));
             for (int i = 0; i < Terminator->getArgCount(); i++) {
-              BIRFunction *patchCallFunction =
+              Function *patchCallFunction =
                   birPackage.getFunctionLookUp(Terminator->getFunctionName());
               InvokableType *invokableType =
                   patchCallFunction->getInvokableType();
@@ -1150,7 +1150,7 @@ void BIRReader::readModule() {
   std::string startFuncName = "..<start>";
   std::string stopFuncName = "..<stop>";
   for (unsigned int i = 0; i < functionCount; i++) {
-    BIRFunction *curFunc = readFunction();
+    Function *curFunc = readFunction();
     if (!(initFuncName.compare(curFunc->getName()) == 0 ||
           startFuncName.compare(curFunc->getName()) == 0 ||
           stopFuncName.compare(curFunc->getName()) == 0))

@@ -8,14 +8,14 @@
 
 namespace nballerina {
 
-BIRFunction::BIRFunction(Location *pos, std::string namep, int flagsp,
+Function::Function(Location *pos, std::string namep, int flagsp,
                          InvokableType *typep, std::string workerNamep)
     : name(namep), flags(flagsp), type(typep), workerName(workerNamep) {
   setLocation(pos);
 }
 
 // Search basic block based on the basic block ID
-BasicBlock *BIRFunction::searchBb(std::string name) {
+BasicBlock *Function::searchBb(std::string name) {
   std::vector<BasicBlock *>::iterator itr;
   for (itr = basicBlocks.begin(); itr != basicBlocks.end(); itr++) {
     if ((*itr)->getId() == name) {
@@ -25,7 +25,29 @@ BasicBlock *BIRFunction::searchBb(std::string name) {
   return NULL;
 }
 
-LLVMValueRef BIRFunction::getValueRefBasedOnName(std::string lhsName) {
+std::string Function::getName() { return name; }
+int Function::getFlags() { return flags; }
+InvokableType *Function::getInvokableType() { return type; }
+std::vector<Operand *> Function::getParams() { return requiredParams; }
+Operand *Function::getParam(int i) { return requiredParams[i]; }
+VarDecl *Function::getReceiver() { return receiver; }
+Param *Function::getRestParam() { return restParam; }
+VarDecl *Function::getReturnVar() { return returnVar; }
+std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
+size_t Function::numBasicBlocks() { return basicBlocks.size(); }
+BasicBlock *Function::getBasicBlock(int i) { return basicBlocks[i]; }
+std::string Function::getWorkerName() { return workerName; }
+LLVMBuilderRef Function::getLLVMBuilder() { return builder; }
+int Function::getNumParams() { return paramCount; }
+LLVMValueRef Function::getNewFunctionRef() { return newFunction; }
+std::map<std::string, LLVMValueRef> Function::getLocalVarRefs() {
+  return localVarRefs;
+}
+std::map<std::string, LLVMValueRef> Function::getBranchComparisonList() {
+  return branchComparisonList;
+}
+
+LLVMValueRef Function::getValueRefBasedOnName(std::string lhsName) {
   std::map<std::string, LLVMValueRef>::iterator it;
   it = branchComparisonList.find(lhsName);
 
@@ -35,7 +57,7 @@ LLVMValueRef BIRFunction::getValueRefBasedOnName(std::string lhsName) {
     return it->second;
 }
 
-LLVMValueRef BIRFunction::getLocalVarRefUsingId(std::string locVar) {
+LLVMValueRef Function::getLocalVarRefUsingId(std::string locVar) {
   for (std::map<std::string, LLVMValueRef>::iterator iter =
            localVarRefs.begin();
        iter != localVarRefs.end(); iter++) {
@@ -45,7 +67,7 @@ LLVMValueRef BIRFunction::getLocalVarRefUsingId(std::string locVar) {
   return NULL;
 }
 
-LLVMValueRef BIRFunction::getLocalToTempVar(Operand *operand) {
+LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
   std::string refOp = operand->getVarDecl()->getVarName();
   std::string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
@@ -70,7 +92,7 @@ static bool isParamter(VarDecl *locVar) {
   }
 }
 
-LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
+LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   int typeTag = 0;
   if (vDecl->getTypeDecl())
     typeTag = vDecl->getTypeDecl()->getTypeTag();
@@ -104,7 +126,7 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   }
 }
 
-void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
+void Function::translateFunctionBody(LLVMModuleRef &modRef) {
   LLVMBasicBlockRef BbRef;
   int paramIndex = 0;
   BbRef = LLVMAppendBasicBlock(newFunction, "entry");
@@ -138,7 +160,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
     LLVMBasicBlockRef bbRef =
         LLVMAppendBasicBlock(this->getNewFunctionRef(), bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
-    bb->setBIRFunction(this);
+    bb->setFunction(this);
     bb->setLLVMBuilderRef(builder);
     bb->setPkgAddress(getPkgAddress());
   }
@@ -156,11 +178,47 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   }
 }
 
-void BIRFunction::translate(LLVMModuleRef &modRef) {
+void Function::translate(LLVMModuleRef &modRef) {
   translateFunctionBody(modRef);
 }
 
-LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
+void Function::setName(std::string newName) { name = newName; }
+void Function::setFlags(int newFlags) { flags = newFlags; }
+void Function::setInvokableType(InvokableType *t) { type = t; }
+void Function::setParams(std::vector<Operand *> p) { requiredParams = p; }
+void Function::setParam(Operand *param) { requiredParams.push_back(param); }
+void Function::setReceiver(VarDecl *var) { receiver = var; }
+void Function::setRestParam(Param *param) { restParam = param; }
+void Function::setNumParams(int paramcount) { paramCount = paramcount; }
+void Function::setLocalVar(std::string name, VarDecl *var) {
+  localVars.insert(std::pair<std::string, VarDecl *>(name, var));
+}
+void Function::setReturnVar(VarDecl *var) { returnVar = var; }
+void Function::setBasicBlocks(std::vector<BasicBlock *> b) {
+  basicBlocks = b;
+}
+void Function::addBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
+void Function::setWorkerName(std::string newName) { workerName = newName; }
+void Function::setLLVMBuilder(LLVMBuilderRef b) { builder = b; }
+void Function::setLocalVarRefs(
+    std::map<std::string, LLVMValueRef> newLocalVarRefs) {
+  localVarRefs = newLocalVarRefs;
+}
+void Function::setNewFunctionRef(LLVMValueRef newFuncRef) {
+  newFunction = newFuncRef;
+}
+
+void Function::setBranchComparisonlist(
+    std::map<std::string, LLVMValueRef> brCompl) {
+  branchComparisonList = brCompl;
+}
+void Function::addNewbranchComparison(std::string name,
+                                         LLVMValueRef compRef) {
+  branchComparisonList.insert(
+      std::pair<std::string, LLVMValueRef>(name, compRef));
+}
+
+LLVMTypeRef Function::getLLVMTypeRefOfType(TypeDecl *typeD) {
   int typeTag = typeD->getTypeTag();
   switch (typeTag) {
   case TYPE_TAG_INT:
@@ -181,7 +239,7 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   }
 }
 
-VarDecl *BIRFunction::getNameVarDecl(std::string opName) {
+VarDecl *Function::getNameVarDecl(std::string opName) {
 
   auto varIt = localVars.find(opName);
   if (varIt == localVars.end())
@@ -190,7 +248,7 @@ VarDecl *BIRFunction::getNameVarDecl(std::string opName) {
   return varIt->second;
 }
 
-const char *BIRFunction::getTypeNameOfTypeTag(TypeTagEnum typeTag) {
+const char *Function::getTypeNameOfTypeTag(TypeTagEnum typeTag) {
   switch (typeTag) {
   case TYPE_TAG_INT:
     return "int";

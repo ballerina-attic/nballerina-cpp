@@ -19,7 +19,7 @@ TypeCastInsn::TypeCastInsn(Location *pos, InstructionKind kind, Operand *lOp,
       checkTypes(checkTypes) {}
 
 void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   string lhsOpName = getLhsOperand()->name();
   string rhsOpName = rhsOp->name();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();

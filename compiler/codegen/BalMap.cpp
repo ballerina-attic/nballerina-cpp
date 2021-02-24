@@ -18,7 +18,7 @@ MapStoreInsn::MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp,
     : NonTerminatorInsn(pos, kind, lOp), keyOp(KOp), rhsOp(rOp) {}
 
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->name();
   string rhsName = rhsOp->name();

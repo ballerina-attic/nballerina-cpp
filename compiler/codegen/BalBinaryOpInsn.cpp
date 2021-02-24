@@ -23,7 +23,7 @@ void BinaryOpInsn::setRhsOp2(Operand *op) { rhsOp2 = op; }
 
 void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   assert(funcObj);
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   assert(builder);

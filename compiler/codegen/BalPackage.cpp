@@ -34,7 +34,7 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   for (unsigned int i = 0; i < globalVars.size(); i++) {
     LLVMValueRef globVarRef;
     VarDecl *globVar = globalVars[i];
-    BIRFunction *funcObj = new BIRFunction();
+    Function *funcObj = new Function();
     LLVMTypeRef varTyperef =
         funcObj->getLLVMTypeRefOfType(globVar->getTypeDecl());
     string varName = globVar->getVarName();
@@ -64,9 +64,9 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
 
   // iterating over each function, first create function definition
   // (without function body) and adding to Module.
-  map<string, BIRFunction *>::iterator it;
+  map<string, Function *>::iterator it;
   for (it = functionLookUp.begin(); it != functionLookUp.end(); it++) {
-    BIRFunction *birFunc = it->second;
+    Function *birFunc = it->second;
     LLVMBuilderRef builder = LLVMCreateBuilder();
     birFunc->setLLVMBuilder(builder);
     LLVMTypeRef funcType;
@@ -103,9 +103,9 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   }
 
   // iterating over each function translate the function body.
-  map<string, BIRFunction *>::iterator it1;
+  map<string, Function *>::iterator it1;
   for (it1 = functionLookUp.begin(); it1 != functionLookUp.end(); it1++) {
-    BIRFunction *birFunc = it1->second;
+    Function *birFunc = it1->second;
     birFunc->setPkgAddress(this);
     birFunc->translate(modRef);
   }

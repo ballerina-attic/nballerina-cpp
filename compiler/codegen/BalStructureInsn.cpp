@@ -13,7 +13,7 @@ namespace nballerina {
 
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   string lhsName = getLhsOperand()->name();
 
   // Find VarDecl corresponding to lhs to determine structure and member type
@@ -35,7 +35,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 
 void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
 
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   string lhsName = getLhsOperand()->name();

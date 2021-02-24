@@ -19,7 +19,7 @@ ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
 void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   VarDecl *returnVarDecl = nullptr;
   assert(funcObj);
 

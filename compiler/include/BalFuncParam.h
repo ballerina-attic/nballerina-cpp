@@ -16,7 +16,7 @@ public:
             VarKind k, VarScope sc, int off, bool hasDefExp);
   ~FuncParam() = default;
 
-  bool hasDefaultValue() { return hasDefaultExpr; }
+  bool hasDefaultValue();
 };
 
 } // namespace nballerina

@@ -32,7 +32,7 @@ Operand *ArrayInsn::getSizeOp() { return sizeOp; }
 TypeDecl *ArrayInsn::getTypeDecl() { return typeDecl; }
 
 void ArrayInsn::translate(LLVMModuleRef &modRef) {
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->name();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
@@ -84,7 +84,7 @@ Operand *ArrayLoadInsn::getKeyOp() { return keyOp; }
 Operand *ArrayLoadInsn::getRhsOp() { return rhsOp; }
 
 void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->name();
   string rhsName = rhsOp->name();
@@ -134,7 +134,7 @@ Operand *ArrayStoreInsn::getKeyOp() { return keyOp; }
 Operand *ArrayStoreInsn::getRhsOp() { return rhsOp; }
 
 void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   BIRPackage *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->name();
   string rhsName = rhsOp->name();

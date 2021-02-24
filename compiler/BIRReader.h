@@ -46,12 +46,12 @@ private:
   nballerina::VarDecl *readLocalVar();
   nballerina::TypeDescInsn *readTypeDescInsn();
   nballerina::StructureInsn *readStructureInsn();
-  void readInsn(nballerina::BIRFunction *birFunction,
+  void readInsn(nballerina::Function *birFunction,
                 nballerina::BasicBlock *basicBlock);
   nballerina::BasicBlock *
-  readBasicBlock(nballerina::BIRFunction *birFunction);
+  readBasicBlock(nballerina::Function *birFunction);
   void patchInsn(std::vector<nballerina::BasicBlock *> basicBlocks);
-  nballerina::BIRFunction *readFunction();
+  nballerina::Function *readFunction();
   void readModule();
 
   // Read bytes functions

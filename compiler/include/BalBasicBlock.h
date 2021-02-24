@@ -10,7 +10,7 @@
 namespace nballerina {
 
 // Forward Declaration
-class BIRFunction;
+class Function;
 class TerminatorInsn;
 class NonTerminatorInsn;
 
@@ -22,7 +22,7 @@ private:
   std::vector<NonTerminatorInsn *> instructions;
   TerminatorInsn *terminator;
   LLVMBuilderRef bRef;
-  BIRFunction *bFunc;
+  Function *bFunc;
   BasicBlock *nextBB;
   LLVMBasicBlockRef bbRefObj;
 
@@ -35,7 +35,7 @@ public:
   std::string getId();
   TerminatorInsn *getTerminatorInsn();
   LLVMBuilderRef getLLVMBuilderRef();
-  BIRFunction *getBIRFunction();
+  Function *getFunction();
   BasicBlock *getNextBB();
   std::vector<NonTerminatorInsn *> getNonTerminatorInsn();
   NonTerminatorInsn *getInsn(int i);
@@ -45,7 +45,7 @@ public:
   void setId(std::string newId);
   void setTerminatorInsn(TerminatorInsn *insn);
   void setLLVMBuilderRef(LLVMBuilderRef buildRef);
-  void setBIRFunction(BIRFunction *func);
+  void setFunction(Function *func);
   void setNextBB(BasicBlock *bb);
   void setLLVMBBRef(LLVMBasicBlockRef bbRef);
   void addNonTermInsn(NonTerminatorInsn *insn);

@@ -3,6 +3,7 @@
 
 namespace nballerina {
 
+// TODO move to BIRReader and don't use it in codegen classes
 enum InstructionKind {
   INSTRUCTION_KIND_GOTO = 1,
   INSTRUCTION_KIND_CALL = 2,

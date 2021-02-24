@@ -8,4 +8,6 @@ FuncParam::FuncParam(Location *pos, TypeDecl *ty, std::string name,
     : VarDecl(pos, ty, name, metaVarName, kind, scope, off),
       hasDefaultExpr(hasDefExp) {}
 
+bool FuncParam::hasDefaultValue() { return hasDefaultExpr; }
+
 } // namespace nballerina

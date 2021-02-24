@@ -11,7 +11,7 @@
 namespace nballerina {
 
 // Forward Declaration
-class BIRFunction;
+class Function;
 class VarDecl;
 
 class BIRPackage : public Translatable {
@@ -20,10 +20,10 @@ private:
   std::string name;
   std::string version;
   std::string sourceFileName;
-  std::vector<BIRFunction *> functions;
+  std::vector<Function *> functions;
   std::vector<VarDecl *> globalVars;
   std::map<std::string, LLVMValueRef> globalVarRefs;
-  std::map<std::string, BIRFunction *> functionLookUp;
+  std::map<std::string, Function *> functionLookUp;
   llvm::StructType *structType;
   llvm::StringTableBuilder *strBuilder;
   std::map<std::string, std::vector<LLVMValueRef>> structElementStoreInst;
@@ -44,22 +44,22 @@ public:
   void setPackageName(std::string pkgName) { name = pkgName; }
   void setVersion(std::string verName) { version = verName; }
   void setSrcFileName(std::string srcFileName) { sourceFileName = srcFileName; }
-  std::vector<BIRFunction *> getFunctions() { return functions; }
-  BIRFunction *getFunction(int i) { return functions[i]; }
+  std::vector<Function *> getFunctions() { return functions; }
+  Function *getFunction(int i) { return functions[i]; }
   std::vector<VarDecl *> getGlobalVars() { return globalVars; }
   std::map<std::string, LLVMValueRef> getGlobalVarRefs() {
     return globalVarRefs;
   }
   llvm::StructType *getStructType() { return structType; }
-  void setFunctions(std::vector<BIRFunction *> f) { functions = f; }
-  void addFunction(BIRFunction *f) { functions.push_back(f); }
+  void setFunctions(std::vector<Function *> f) { functions = f; }
+  void addFunction(Function *f) { functions.push_back(f); }
   void addGlobalVar(VarDecl *g) { globalVars.push_back(g); }
 
-  void addFunctionLookUpEntry(std::string funcName, BIRFunction *BIRfunction) {
+  void addFunctionLookUpEntry(std::string funcName, Function *BIRfunction) {
     functionLookUp.insert(
-        std::pair<std::string, BIRFunction *>(funcName, BIRfunction));
+        std::pair<std::string, Function *>(funcName, BIRfunction));
   }
-  BIRFunction *getFunctionLookUp(std::string funcName) {
+  Function *getFunctionLookUp(std::string funcName) {
     return functionLookUp.at(funcName);
   }
   size_t numFunctions() { return functions.size(); }

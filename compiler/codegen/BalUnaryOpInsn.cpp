@@ -15,7 +15,7 @@ UnaryOpInsn::UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
 
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
-  BIRFunction *funcObj = getFunction();
+  Function *funcObj = getFunction();
   assert(funcObj);
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   assert(builder);
