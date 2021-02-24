@@ -7,19 +7,19 @@ namespace nballerina {
 
 class ConditionBrInsn : public TerminatorInsn {
 private:
-  BIRBasicBlock *ifThenBB;
-  BIRBasicBlock *elseBB;
+  BasicBlock *ifThenBB;
+  BasicBlock *elseBB;
 
 public:
   ConditionBrInsn() = default;
   ConditionBrInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                  BIRBasicBlock *nextB);
+                  BasicBlock *nextB);
   ~ConditionBrInsn() = default;
-  void setIfThenBB(BIRBasicBlock *ifBB) { ifThenBB = ifBB; }
-  void setElseBB(BIRBasicBlock *elseB) { elseBB = elseB; }
+  void setIfThenBB(BasicBlock *ifBB) { ifThenBB = ifBB; }
+  void setElseBB(BasicBlock *elseB) { elseBB = elseB; }
 
-  BIRBasicBlock *getIfThenBB() { return ifThenBB; }
-  BIRBasicBlock *getElseBB() { return elseBB; }
+  BasicBlock *getIfThenBB() { return ifThenBB; }
+  BasicBlock *getElseBB() { return elseBB; }
 
   void translate(LLVMModuleRef &modRef) final;
 };

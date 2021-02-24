@@ -7,13 +7,13 @@
 namespace nballerina {
 
 TerminatorInsn::TerminatorInsn(Location *pos, InstructionKind kind,
-                               Operand *lOp, BIRBasicBlock *then)
+                               Operand *lOp, BasicBlock *then)
     : AbstractInsn(pos, kind, lOp), thenBB(then) {}
 
-BIRBasicBlock *TerminatorInsn::getNextBB() { return thenBB; }
+BasicBlock *TerminatorInsn::getNextBB() { return thenBB; }
 bool TerminatorInsn::getPatchStatus() { return patchRequire; }
 
-void TerminatorInsn::setNextBB(BIRBasicBlock *block) { thenBB = block; }
+void TerminatorInsn::setNextBB(BasicBlock *block) { thenBB = block; }
 void TerminatorInsn::setPatchStatus(bool patchrequire) {
   patchRequire = patchrequire;
 }

@@ -15,7 +15,7 @@ using namespace std;
 namespace nballerina {
 
 ConditionBrInsn::ConditionBrInsn(Location *pos, InstructionKind kind,
-                                 Operand *lOp, BIRBasicBlock *nextBB)
+                                 Operand *lOp, BasicBlock *nextBB)
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
 void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {

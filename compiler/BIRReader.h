@@ -47,10 +47,10 @@ private:
   nballerina::TypeDescInsn *readTypeDescInsn();
   nballerina::StructureInsn *readStructureInsn();
   void readInsn(nballerina::BIRFunction *birFunction,
-                nballerina::BIRBasicBlock *basicBlock);
-  nballerina::BIRBasicBlock *
+                nballerina::BasicBlock *basicBlock);
+  nballerina::BasicBlock *
   readBasicBlock(nballerina::BIRFunction *birFunction);
-  void patchInsn(std::vector<nballerina::BIRBasicBlock *> basicBlocks);
+  void patchInsn(std::vector<nballerina::BasicBlock *> basicBlocks);
   nballerina::BIRFunction *readFunction();
   void readModule();
 

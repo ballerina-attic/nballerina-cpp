@@ -14,7 +14,7 @@ class BIRFunction;
 class TerminatorInsn;
 class NonTerminatorInsn;
 
-class BIRBasicBlock : public PackageNode,
+class BasicBlock : public PackageNode,
                       public Debuggable,
                       public Translatable {
 private:
@@ -23,34 +23,32 @@ private:
   TerminatorInsn *terminator;
   LLVMBuilderRef bRef;
   BIRFunction *bFunc;
-  BIRBasicBlock *nextBB;
+  BasicBlock *nextBB;
   LLVMBasicBlockRef bbRefObj;
 
 public:
-  BIRBasicBlock() = default;
-  BIRBasicBlock(std::string id);
-  ~BIRBasicBlock() = default;
-  BIRBasicBlock(Location *pos, std::string id);
+  BasicBlock() = default;
+  BasicBlock(std::string id);
+  BasicBlock(Location *pos, std::string id);
+  ~BasicBlock() = default;
 
-  std::string getId() { return id; }
-  TerminatorInsn *getTerminatorInsn() { return terminator; }
-  LLVMBuilderRef getLLVMBuilderRef() { return bRef; }
-  BIRFunction *getBIRFunction() { return bFunc; }
-  BIRBasicBlock *getNextBB() { return nextBB; }
-  std::vector<NonTerminatorInsn *> getNonTerminatorInsn() {
-    return instructions;
-  }
-  NonTerminatorInsn *getInsn(int i) { return instructions[i]; }
-  size_t numInsns() { return instructions.size(); }
-  LLVMBasicBlockRef getLLVMBBRef() { return bbRefObj; }
+  std::string getId();
+  TerminatorInsn *getTerminatorInsn();
+  LLVMBuilderRef getLLVMBuilderRef();
+  BIRFunction *getBIRFunction();
+  BasicBlock *getNextBB();
+  std::vector<NonTerminatorInsn *> getNonTerminatorInsn();
+  NonTerminatorInsn *getInsn(int i);
+  size_t numInsns();
+  LLVMBasicBlockRef getLLVMBBRef();
 
-  void setId(std::string newId) { id = newId; }
-  void setTerminatorInsn(TerminatorInsn *insn) { terminator = insn; }
-  void setLLVMBuilderRef(LLVMBuilderRef buildRef) { bRef = buildRef; }
-  void setBIRFunction(BIRFunction *func) { bFunc = func; }
-  void setNextBB(BIRBasicBlock *bb) { nextBB = bb; }
-  void setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
-  void addNonTermInsn(NonTerminatorInsn *insn) { instructions.push_back(insn); }
+  void setId(std::string newId);
+  void setTerminatorInsn(TerminatorInsn *insn);
+  void setLLVMBuilderRef(LLVMBuilderRef buildRef);
+  void setBIRFunction(BIRFunction *func);
+  void setNextBB(BasicBlock *bb);
+  void setLLVMBBRef(LLVMBasicBlockRef bbRef);
+  void addNonTermInsn(NonTerminatorInsn *insn);
 
   void translate(LLVMModuleRef &modRef) final;
 };

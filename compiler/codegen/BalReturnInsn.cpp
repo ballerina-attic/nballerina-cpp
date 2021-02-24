@@ -15,7 +15,7 @@ using namespace llvm;
 namespace nballerina {
 
 ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                       BIRBasicBlock *nextBB)
+                       BasicBlock *nextBB)
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
 void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {

@@ -31,7 +31,7 @@ public:
   Operand *getArgumentFromList(int i) { return argsList[i]; }
   std::vector<Operand *> getArgumentsList() { return argsList; }
   FunctionCallInsn(std::string funcName, bool funcVirtual, int argNumber,
-                   Operand *lhsOp, BIRBasicBlock *thenBB);
+                   Operand *lhsOp, BasicBlock *thenBB);
   Param *getRestParam() { return restParam; }
   ~FunctionCallInsn() = default;
   void translate(LLVMModuleRef &modRef) final;

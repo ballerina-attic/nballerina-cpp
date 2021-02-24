@@ -9,7 +9,7 @@
 namespace nballerina {
 
 // Forward Declaration
-class BIRBasicBlock;
+class BasicBlock;
 class TypeDecl;
 
 class VarDecl : public PackageNode, public Debuggable {
@@ -20,8 +20,8 @@ private:
   VarKind kind;
   VarScope scope;
   bool ignoreVariable;
-  BIRBasicBlock *endBB;
-  BIRBasicBlock *startBB;
+  BasicBlock *endBB;
+  BasicBlock *startBB;
   int insOffset;
 
 public:
@@ -34,8 +34,8 @@ public:
   TypeDecl *getTypeDecl();
   VarKind getVarKind();
   VarScope getVarScope();
-  BIRBasicBlock *getStartBB();
-  BIRBasicBlock *getEndBB();
+  BasicBlock *getStartBB();
+  BasicBlock *getEndBB();
   std::string getVarName();
   std::string getMetaVarName();
   int getInsOffset();
@@ -44,8 +44,8 @@ public:
   void setTypeDecl(TypeDecl *newType);
   void setVarKind(VarKind newKind);
   void setVarScope(VarScope newScope);
-  void setStartBB(BIRBasicBlock *bb);
-  void setEndBB(BIRBasicBlock *bb);
+  void setStartBB(BasicBlock *bb);
+  void setEndBB(BasicBlock *bb);
   void setVarName(std::string newName);
   void setMetaVarName(std::string newName);
   void setInsOffset(int offset);

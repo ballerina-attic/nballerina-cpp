@@ -10,14 +10,14 @@ namespace nballerina {
 // Forward Declaration
 class Operand;
 class BIRFunction;
-class BIRBasicBlock;
+class BasicBlock;
 
 class AbstractInsn : public PackageNode, public Debuggable {
 private:
   InstructionKind kind;
   Operand *lhsOp;
   BIRFunction *bFunc;
-  BIRBasicBlock *currentBB;
+  BasicBlock *currentBB;
 
 public:
   AbstractInsn() = default;
@@ -27,12 +27,12 @@ public:
   InstructionKind getInstKind();
   Operand *getLhsOperand();
   BIRFunction *getFunction();
-  BIRBasicBlock *getCurrentBB();
+  BasicBlock *getCurrentBB();
 
   void setFunction(BIRFunction *func);
   void setInstKind(InstructionKind newKind);
   void setLhsOperand(Operand *lOp);
-  void setCurrentBB(BIRBasicBlock *currB);
+  void setCurrentBB(BasicBlock *currB);
 };
 
 } // namespace nballerina

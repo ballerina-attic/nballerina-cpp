@@ -12,7 +12,7 @@ private:
 public:
   GoToInsn() = default;
   GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-           BIRBasicBlock *nextBB);
+           BasicBlock *nextBB);
   ~GoToInsn() = default;
 
   LLVMValueRef getLLVMInsn() { return llvmInsn; }

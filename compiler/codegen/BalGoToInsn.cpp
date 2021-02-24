@@ -10,7 +10,7 @@
 namespace nballerina {
 
 GoToInsn::GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                   BIRBasicBlock *nextBB)
+                   BasicBlock *nextBB)
     : TerminatorInsn(pos, kind, lOp, nextBB) {}
 
 void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {

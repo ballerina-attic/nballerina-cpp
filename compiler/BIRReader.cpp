@@ -378,11 +378,11 @@ ConditionBrInsn *ReadCondBrInsn::readTerminatorInsn() {
   uint32_t trueBbIdNameCpIndex = readerRef.readS4be();
   uint32_t falseBbIdNameCpIndex = readerRef.readS4be();
 
-  BIRBasicBlock *trueDummybasicBlock = new BIRBasicBlock(
+  BasicBlock *trueDummybasicBlock = new BasicBlock(
       readerRef.constantPool->getStringCp(trueBbIdNameCpIndex));
   conditionBrInsn->setIfThenBB(trueDummybasicBlock);
 
-  BIRBasicBlock *falseDummybasicBlock = new BIRBasicBlock(
+  BasicBlock *falseDummybasicBlock = new BasicBlock(
       readerRef.constantPool->getStringCp(falseBbIdNameCpIndex));
   conditionBrInsn->setElseBB(falseDummybasicBlock);
 
@@ -426,7 +426,7 @@ FunctionCallInsn *ReadFuncCallInsn::readTerminatorInsn() {
     functionCallInsn->setLhsOperand(lhsOp);
   }
   uint32_t thenBbIdNameCpIndex = readerRef.readS4be();
-  BIRBasicBlock *dummybasicBlock = new BIRBasicBlock(
+  BasicBlock *dummybasicBlock = new BasicBlock(
       readerRef.constantPool->getStringCp(thenBbIdNameCpIndex));
   functionCallInsn->setNextBB(dummybasicBlock);
   functionCallInsn->setPatchStatus(true);
@@ -518,8 +518,8 @@ MapStoreInsn *ReadMapStoreInsn::readNonTerminatorInsn() {
 GoToInsn *ReadGoToInsn::readTerminatorInsn() {
   GoToInsn *gotoInsn = new GoToInsn();
   uint32_t nameId = readerRef.readS4be();
-  BIRBasicBlock *dummybasicBlock =
-      new BIRBasicBlock(readerRef.constantPool->getStringCp(nameId));
+  BasicBlock *dummybasicBlock =
+      new BasicBlock(readerRef.constantPool->getStringCp(nameId));
   gotoInsn->setNextBB(dummybasicBlock);
   gotoInsn->setPatchStatus(true);
   return gotoInsn;
@@ -532,7 +532,7 @@ ReturnInsn *ReadReturnInsn::readTerminatorInsn() {
 
 // Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the
 // BIR
-void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
+void BIRReader::readInsn(BIRFunction *birFunction, BasicBlock *basicBlock) {
   NonTerminatorInsn *nonTerminatorInsn = new NonTerminatorInsn();
   nonTerminatorInsn->setFunction(birFunction);
   uint32_t sLine = readS4be();
@@ -683,8 +683,8 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
 }
 
 // Read Basic Block from the BIR
-BIRBasicBlock *BIRReader::readBasicBlock(BIRFunction *birFunction) {
-  BIRBasicBlock *basicBlock = new BIRBasicBlock();
+BasicBlock *BIRReader::readBasicBlock(BIRFunction *birFunction) {
+  BasicBlock *basicBlock = new BasicBlock();
   uint32_t nameCpIndex = readS4be();
   basicBlock->setId(constantPool->getStringCp(nameCpIndex));
   basicBlock->setBIRFunction(birFunction);
@@ -698,9 +698,9 @@ BIRBasicBlock *BIRReader::readBasicBlock(BIRFunction *birFunction) {
 }
 
 // Patches the Terminator Insn with destination Basic Block
-void BIRReader::patchInsn(vector<BIRBasicBlock *> basicBlocks) {
+void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
   for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-    BIRBasicBlock *basicBlock = basicBlocks[i];
+    BasicBlock *basicBlock = basicBlocks[i];
     BIRFunction *curFunc = basicBlock->getBIRFunction();
     TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
     if (terminator && terminator->getPatchStatus()) {
@@ -708,12 +708,12 @@ void BIRReader::patchInsn(vector<BIRBasicBlock *> basicBlocks) {
       case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
         ConditionBrInsn *Terminator =
             (static_cast<ConditionBrInsn *>(terminator));
-        BIRBasicBlock *trueBB =
+        BasicBlock *trueBB =
             curFunc->searchBb(Terminator->getIfThenBB()->getId());
-        BIRBasicBlock *falseBB =
+        BasicBlock *falseBB =
             curFunc->searchBb(Terminator->getElseBB()->getId());
-        BIRBasicBlock *danglingTrueBB = Terminator->getIfThenBB();
-        BIRBasicBlock *danglingFalseBB = Terminator->getElseBB();
+        BasicBlock *danglingTrueBB = Terminator->getIfThenBB();
+        BasicBlock *danglingFalseBB = Terminator->getElseBB();
         delete danglingTrueBB;
         delete danglingFalseBB;
         Terminator->setIfThenBB(trueBB);
@@ -722,18 +722,18 @@ void BIRReader::patchInsn(vector<BIRBasicBlock *> basicBlocks) {
         break;
       }
       case INSTRUCTION_KIND_GOTO: {
-        BIRBasicBlock *destBB =
+        BasicBlock *destBB =
             curFunc->searchBb(terminator->getNextBB()->getId());
-        BIRBasicBlock *danglingBB = terminator->getNextBB();
+        BasicBlock *danglingBB = terminator->getNextBB();
         delete danglingBB;
         terminator->setNextBB(destBB);
         terminator->setPatchStatus(false);
         break;
       }
       case INSTRUCTION_KIND_CALL: {
-        BIRBasicBlock *destBB =
+        BasicBlock *destBB =
             curFunc->searchBb(terminator->getNextBB()->getId());
-        BIRBasicBlock *danglingBB = terminator->getNextBB();
+        BasicBlock *danglingBB = terminator->getNextBB();
         delete danglingBB;
         terminator->setNextBB(destBB);
         break;
@@ -859,17 +859,17 @@ BIRFunction *BIRReader::readFunction() {
 
   uint32_t BBCount = readS4be();
   for (unsigned int i = 0; i < BBCount; i++) {
-    BIRBasicBlock *basicBlock = readBasicBlock(birFunction);
-    birFunction->addBIRBasicBlock(basicBlock);
+    BasicBlock *basicBlock = readBasicBlock(birFunction);
+    birFunction->addBasicBlock(basicBlock);
     // Create links between the basic blocks
     if (i > 0) {
-      BIRBasicBlock *prevBasicBlock = birFunction->getBasicBlock(i - 1);
+      BasicBlock *prevBasicBlock = birFunction->getBasicBlock(i - 1);
       prevBasicBlock->setNextBB(basicBlock);
     }
   }
 
   // Patching the insn
-  vector<BIRBasicBlock *> basicBlocks = birFunction->getBasicBlocks();
+  vector<BasicBlock *> basicBlocks = birFunction->getBasicBlocks();
   patchInsn(basicBlocks);
 
   uint32_t errorEntriesCount __attribute__((unused)) = readS4be();
@@ -1067,7 +1067,7 @@ void BIRReader::patchTypesToFuncParam() {
   for (size_t i = 0; i < birPackage.numFunctions(); i++) {
     BIRFunction *curFunc = birPackage.getFunction(i);
     for (size_t i = 0; i < curFunc->numBasicBlocks(); i++) {
-      BIRBasicBlock *birBasicBlock = curFunc->getBasicBlock(i);
+      BasicBlock *birBasicBlock = curFunc->getBasicBlock(i);
       for (size_t i = 0; i < birBasicBlock->numInsns(); i++) {
         TerminatorInsn *terminator = birBasicBlock->getTerminatorInsn();
         if (terminator && terminator->getPatchStatus()) {

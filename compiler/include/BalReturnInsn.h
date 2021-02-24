@@ -10,7 +10,7 @@ private:
 public:
   ReturnInsn() = default;
   ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
-             BIRBasicBlock *nextBB);
+             BasicBlock *nextBB);
   ~ReturnInsn() = default;
 
   void translate(LLVMModuleRef &modRef) final;

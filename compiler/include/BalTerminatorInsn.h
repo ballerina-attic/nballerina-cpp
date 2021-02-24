@@ -8,24 +8,24 @@
 namespace nballerina {
 
 // Forward Declaration
-class BIRBasicBlock;
+class BasicBlock;
 class Operand;
 
 class TerminatorInsn : public AbstractInsn, public Translatable {
 private:
-  BIRBasicBlock *thenBB;
+  BasicBlock *thenBB;
   bool patchRequire;
 
 public:
   TerminatorInsn() = default;
   TerminatorInsn(Location *pos, InstructionKind kind, Operand *lOp,
-                 BIRBasicBlock *then);
+                 BasicBlock *then);
   virtual ~TerminatorInsn() = default;
 
-  BIRBasicBlock *getNextBB();
+  BasicBlock *getNextBB();
   bool getPatchStatus();
 
-  void setNextBB(BIRBasicBlock *block);
+  void setNextBB(BasicBlock *block);
   void setPatchStatus(bool patchrequire);
   virtual void translate(LLVMModuleRef &modRef) override;
 };

@@ -12,7 +12,7 @@
 namespace nballerina {
 
 // Forward Declaration
-class BIRBasicBlock;
+class BasicBlock;
 class FuncParam;
 class Operand;
 class VarDecl;
@@ -32,11 +32,11 @@ private:
   std::map<std::string, VarDecl *> localVars;
   VarDecl *returnVar;
 
-  std::vector<BIRBasicBlock *> basicBlocks;
+  std::vector<BasicBlock *> basicBlocks;
   std::string workerName;
   LLVMBuilderRef builder;
   LLVMValueRef newFunction;
-  std::map<FuncParam *, std::vector<BIRBasicBlock *>> params;
+  std::map<FuncParam *, std::vector<BasicBlock *>> params;
   std::map<std::string, LLVMValueRef> localVarRefs;
   std::map<std::string, LLVMValueRef> branchComparisonList;
 
@@ -56,9 +56,9 @@ public:
   Param *getRestParam() { return restParam; }
 
   VarDecl *getReturnVar() { return returnVar; }
-  std::vector<BIRBasicBlock *> getBasicBlocks() { return basicBlocks; }
+  std::vector<BasicBlock *> getBasicBlocks() { return basicBlocks; }
   size_t numBasicBlocks() { return basicBlocks.size(); }
-  BIRBasicBlock *getBasicBlock(int i) { return basicBlocks[i]; }
+  BasicBlock *getBasicBlock(int i) { return basicBlocks[i]; }
   std::string getWorkerName() { return workerName; }
   LLVMBuilderRef getLLVMBuilder() { return builder; }
   int getNumParams() { return paramCount; }
@@ -81,8 +81,8 @@ public:
     localVars.insert(std::pair<std::string, VarDecl *>(name, var));
   }
   void setReturnVar(VarDecl *var) { returnVar = var; }
-  void setBIRBasicBlocks(std::vector<BIRBasicBlock *> b) { basicBlocks = b; }
-  void addBIRBasicBlock(BIRBasicBlock *bb) { basicBlocks.push_back(bb); }
+  void setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }
+  void addBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
   void setWorkerName(std::string newName) { workerName = newName; }
   void setLLVMBuilder(LLVMBuilderRef b) { builder = b; }
   void setLocalVarRefs(std::map<std::string, LLVMValueRef> newLocalVarRefs) {
@@ -98,7 +98,7 @@ public:
         std::pair<std::string, LLVMValueRef>(name, compRef));
   }
 
-  BIRBasicBlock *searchBb(std::string name);
+  BasicBlock *searchBb(std::string name);
 
   LLVMTypeRef getLLVMTypeRefOfType(TypeDecl *typeD);
   LLVMValueRef getLocalVarRefUsingId(std::string locVar);

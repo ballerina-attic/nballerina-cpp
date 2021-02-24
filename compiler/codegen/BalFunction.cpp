@@ -15,8 +15,8 @@ BIRFunction::BIRFunction(Location *pos, std::string namep, int flagsp,
 }
 
 // Search basic block based on the basic block ID
-BIRBasicBlock *BIRFunction::searchBb(std::string name) {
-  std::vector<BIRBasicBlock *>::iterator itr;
+BasicBlock *BIRFunction::searchBb(std::string name) {
+  std::vector<BasicBlock *>::iterator itr;
   for (itr = basicBlocks.begin(); itr != basicBlocks.end(); itr++) {
     if ((*itr)->getId() == name) {
       return (*itr);
@@ -134,7 +134,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   // iterate through with each basic block in the function and create them
   // first.
   for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-    BIRBasicBlock *bb = basicBlocks[i];
+    BasicBlock *bb = basicBlocks[i];
     LLVMBasicBlockRef bbRef =
         LLVMAppendBasicBlock(this->getNewFunctionRef(), bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
@@ -150,7 +150,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
 
   // Now translate the basic blocks (essentially add the instructions in them)
   for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-    BIRBasicBlock *bb = basicBlocks[i];
+    BasicBlock *bb = basicBlocks[i];
     LLVMPositionBuilderAtEnd(builder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
