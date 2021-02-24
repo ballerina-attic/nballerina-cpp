@@ -15,7 +15,7 @@ ArrayInsn::ArrayInsn(Location *pos, InstructionKind kind, Operand *lOp,
     : NonTerminatorInsn(pos, kind, lOp), sizeOp(sOp), typeDecl(tDecl) {}
 
 LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
-                                               BIRPackage *pkg) {
+                                               Package *pkg) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
   paramTypes[0] = LLVMInt32Type();
   LLVMTypeRef funcType = LLVMFunctionType(LLVMInt32Type(), paramTypes, 1, 0);
@@ -33,7 +33,7 @@ TypeDecl *ArrayInsn::getTypeDecl() { return typeDecl; }
 
 void ArrayInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  BIRPackage *pkgObj = getPkgAddress();
+  Package *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
@@ -60,7 +60,7 @@ ArrayLoadInsn::ArrayLoadInsn(Location *pos, InstructionKind kind, Operand *lOp,
       fillingRead(fR), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef,
-                                                    BIRPackage *pkg) {
+                                                    Package *pkg) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
   paramTypes[0] = int32PtrType;
@@ -85,7 +85,7 @@ Operand *ArrayLoadInsn::getRhsOp() { return rhsOp; }
 
 void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  BIRPackage *pkgObj = getPkgAddress();
+  Package *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->getName();
   string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
@@ -115,7 +115,7 @@ ArrayStoreInsn::ArrayStoreInsn(Location *pos, InstructionKind kind,
     : NonTerminatorInsn(pos, kind, lOp), keyOp(KOp), rhsOp(rOp) {}
 
 LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef,
-                                                      BIRPackage *pkg) {
+                                                      Package *pkg) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
   paramTypes[0] = int32PtrType;
@@ -135,7 +135,7 @@ Operand *ArrayStoreInsn::getRhsOp() { return rhsOp; }
 
 void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  BIRPackage *pkgObj = getPkgAddress();
+  Package *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->getName();
   string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();

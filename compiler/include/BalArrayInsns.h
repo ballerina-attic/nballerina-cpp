@@ -25,7 +25,7 @@ public:
   Operand *getSizeOp();
   TypeDecl *getTypeDecl();
 
-  LLVMValueRef getNewArrayDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
+  LLVMValueRef getNewArrayDeclaration(LLVMModuleRef &modRef, Package *pkg);
   void translate(LLVMModuleRef &modRef) final;
 };
 
@@ -52,7 +52,7 @@ public:
   Operand *getKeyOp();
   Operand *getRhsOp();
 
-  LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
+  LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, Package *pkg);
   void translate(LLVMModuleRef &modRef) final;
 };
 
@@ -73,7 +73,7 @@ public:
   Operand *getKeyOp();
   Operand *getRhsOp();
 
-  LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
+  LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, Package *pkg);
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina

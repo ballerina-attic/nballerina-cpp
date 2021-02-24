@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
   BIRReader::reader.setFileStream(inFileName);
   BIRReader::reader.deserialize();
-  BIRPackage &birPackage = BIRReader::reader.birPackage;
+  Package &birPackage = BIRReader::reader.birPackage;
   char *message;
   bool dumpLlvm = true; // temp value
   string moduleName = birPackage.getOrgName() + birPackage.getPackageName() +

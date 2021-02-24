@@ -10,7 +10,7 @@ class StructureInsn : public NonTerminatorInsn {
 private:
   Operand *rhsOp;
   void mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef);
-  LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
+  LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef, Package *pkg);
 
 public:
   StructureInsn() = default;

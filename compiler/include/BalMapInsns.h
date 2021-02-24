@@ -9,7 +9,7 @@ private:
   Operand *keyOp;
   Operand *rhsOp;
   LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef,
-                                         BIRPackage *pkg);
+                                         Package *pkg);
 
 public:
   MapStoreInsn() = default;

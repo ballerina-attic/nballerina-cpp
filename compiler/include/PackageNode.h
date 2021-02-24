@@ -4,17 +4,17 @@
 namespace nballerina {
 
 // Forward Declaration
-class BIRPackage;
+class Package;
 
 class PackageNode {
 private:
-  BIRPackage *pkg;
+  Package *pkg;
 
 public:
   PackageNode() = default;
   virtual ~PackageNode() = default;
-  BIRPackage *getPkgAddress() { return pkg; };
-  void setPkgAddress(BIRPackage *pkgPtr) { pkg = pkgPtr; };
+  Package *getPkgAddress() { return pkg; };
+  void setPkgAddress(Package *pkgPtr) { pkg = pkgPtr; };
 };
 
 } // namespace nballerina

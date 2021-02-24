@@ -36,7 +36,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
-  BIRPackage *pkgObj = getPkgAddress();
+  Package *pkgObj = getPkgAddress();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   string lhsName = getLhsOperand()->getName();
   LLVMValueRef lhsOpRef = funcObj->getLocalVarRefUsingId(lhsName);
@@ -67,7 +67,7 @@ void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
 
 // Declaration for new map<int> function
 LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
-                                                    BIRPackage *pkg) {
+                                                    Package *pkg) {
   LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt64Type(), 0);
   LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
   LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "map_new_int", funcType);

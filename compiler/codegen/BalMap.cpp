@@ -25,7 +25,7 @@ Operand *MapStoreInsn::getRhsOp() { return rhsOp; }
 
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  BIRPackage *pkgObj = getPkgAddress();
+  Package *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->getName();
   string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
@@ -66,7 +66,7 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
 
 // Declaration for map<int> type store function
 LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef,
-                                                     BIRPackage *pkg) {
+                                                     Package *pkg) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
   LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);

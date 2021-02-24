@@ -61,7 +61,7 @@ private:
   uint64_t readS8be();
 
 public:
-  nballerina::BIRPackage birPackage;
+  nballerina::Package birPackage;
   static BIRReader reader;
   static BIRReader &getInstance() { return reader; }
   void setFileStream(std::string FileName) {

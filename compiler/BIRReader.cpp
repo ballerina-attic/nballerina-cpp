@@ -1064,7 +1064,7 @@ void ConstantPoolSet::read() {
 
 // Assigns Type Decl to function parameters
 void BIRReader::patchTypesToFuncParam() {
-  for (size_t i = 0; i < birPackage.numFunctions(); i++) {
+  for (size_t i = 0; i < birPackage.getNumFunctions(); i++) {
     Function *curFunc = birPackage.getFunction(i);
     for (size_t i = 0; i < curFunc->numBasicBlocks(); i++) {
       BasicBlock *birBasicBlock = curFunc->getBasicBlock(i);

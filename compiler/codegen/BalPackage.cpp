@@ -1,6 +1,6 @@
+#include "BalPackage.h"
 #include "BalFunction.h"
 #include "BalOperand.h"
-#include "BalPackage.h"
 #include "BalVarDecl.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
@@ -11,13 +11,13 @@ using namespace std;
 
 namespace nballerina {
 
-BIRPackage::BIRPackage(string orgName, string pkgName, string verName,
+Package::Package(string orgName, string pkgName, string verName,
                        string srcFileName)
     : org(orgName), name(pkgName), version(verName),
       sourceFileName(srcFileName) {}
 
 // return ValueRef of global variable based on variable name.
-LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
+LLVMValueRef Package::getGlobalVarRefUsingId(string globVar) {
   map<string, LLVMValueRef>::iterator it;
   it = globalVarRefs.find(globVar);
   if (it == globalVarRefs.end()) {
@@ -27,7 +27,48 @@ LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
   }
 }
 
-void BIRPackage::translate(LLVMModuleRef &modRef) {
+std::string Package::getOrgName() { return org; }
+std::string Package::getPackageName() { return name; }
+std::string Package::getVersion() { return version; }
+std::string Package::getSrcFileName() { return sourceFileName; }
+llvm::StringTableBuilder *Package::getStrTableBuilder() {
+  return strBuilder;
+}
+void Package::setOrgName(std::string orgName) { org = orgName; }
+void Package::setPackageName(std::string pkgName) { name = pkgName; }
+void Package::setVersion(std::string verName) { version = verName; }
+void Package::setSrcFileName(std::string srcFileName) {
+  sourceFileName = srcFileName;
+}
+std::vector<Function *> Package::getFunctions() { return functions; }
+Function *Package::getFunction(int i) { return functions[i]; }
+std::vector<VarDecl *> Package::getGlobalVars() { return globalVars; }
+std::map<std::string, LLVMValueRef> Package::getGlobalVarRefs() {
+  return globalVarRefs;
+}
+llvm::StructType *Package::getStructType() { return structType; }
+void Package::setFunctions(std::vector<Function *> f) { functions = f; }
+void Package::addFunction(Function *f) { functions.push_back(f); }
+void Package::addGlobalVar(VarDecl *g) { globalVars.push_back(g); }
+void Package::addFunctionLookUpEntry(std::string funcName,
+                                        Function *BIRfunction) {
+  functionLookUp.insert(
+      std::pair<std::string, Function *>(funcName, BIRfunction));
+}
+Function *Package::getFunctionLookUp(std::string funcName) {
+  return functionLookUp.at(funcName);
+}
+size_t Package::getNumFunctions() { return functions.size(); }
+void Package::addArrayFunctionRef(std::string arrayName,
+                                     LLVMValueRef functionRef) {
+  arrayFunctionRefs.insert(
+      std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
+}
+std::map<std::string, LLVMValueRef> Package::getArrayFuncRefMap() {
+  return arrayFunctionRefs;
+}
+
+void Package::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
   // iterate over all global variables and translate
@@ -115,7 +156,7 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
     applyStringOffsetRelocations(modRef);
 }
 
-void BIRPackage::addStringOffsetRelocationEntry(string eleType,
+void Package::addStringOffsetRelocationEntry(string eleType,
                                                 LLVMValueRef storeInsn) {
   if (structElementStoreInst.size() == 0) {
     vector<LLVMValueRef> temp;
@@ -140,7 +181,7 @@ void BIRPackage::addStringOffsetRelocationEntry(string eleType,
 
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
-void BIRPackage::applyStringOffsetRelocations(__attribute__((unused))
+void Package::applyStringOffsetRelocations(__attribute__((unused))
                                               LLVMModuleRef &modRef) {
   strBuilder->finalize();
   map<string, vector<LLVMValueRef>>::iterator itr;
@@ -158,7 +199,7 @@ void BIRPackage::applyStringOffsetRelocations(__attribute__((unused))
   }
 }
 
-LLVMValueRef BIRPackage::getFunctionRefBasedOnName(string arrayName) {
+LLVMValueRef Package::getFunctionRefBasedOnName(string arrayName) {
   map<string, LLVMValueRef>::iterator it;
   it = arrayFunctionRefs.find(arrayName);
 
