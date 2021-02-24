@@ -20,6 +20,7 @@
 // Rust Library
 
 use std::ffi::CStr;
+use std::ffi::CString;
 use std::mem;
 use std::os::raw::c_char;
 
@@ -49,7 +50,7 @@ pub fn compute_size(type_string: &str) -> i32 {
 }
 
 /*
- * Computes size of the type
+ * Returns size of the type
  * Type Notations -
  * C represents character
  * B represents boolean
@@ -238,4 +239,82 @@ pub extern "C" fn int_array_load(arr_ptr: *mut Vec<*mut i32>, n: i32) -> *mut i3
     let return_val = arr[n_size];
     mem::forget(arr);
     return return_val;
+}
+
+#[test]
+fn src_type_size_less_than_dest() {
+    let src = CString::new("AF03122").unwrap();
+    let dest = CString::new("AX03122").unwrap();
+    assert_eq!(
+        is_same_type(
+            src.as_ptr() as *const c_char,
+            dest.as_ptr() as *const c_char
+        ),
+        true
+    );
+}
+
+#[test]
+fn src_type_size_greater_than_dest() {
+    let src = CString::new("AS03122").unwrap();
+    let dest = CString::new("AB03122").unwrap();
+    assert_eq!(
+        is_same_type(
+            src.as_ptr() as *const c_char,
+            dest.as_ptr() as *const c_char
+        ),
+        false
+    );
+}
+
+#[test]
+fn src_elements_less_than_dest() {
+    let src = CString::new("AB041023").unwrap();
+    let dest = CString::new("AX041024").unwrap();
+    assert_eq!(
+        is_same_type(
+            src.as_ptr() as *const c_char,
+            dest.as_ptr() as *const c_char
+        ),
+        true
+    );
+}
+
+#[test]
+fn src_elements_greater_than_dest() {
+    let src = CString::new("AC0519999").unwrap();
+    let dest = CString::new("AX03199").unwrap();
+    assert_eq!(
+        is_same_type(
+            src.as_ptr() as *const c_char,
+            dest.as_ptr() as *const c_char
+        ),
+        false
+    );
+}
+
+#[test]
+fn src_type_string_equal_to_dest() {
+    let src = CString::new("AF0599999").unwrap();
+    let dest = CString::new("AF0599999").unwrap();
+    assert_eq!(
+        is_same_type(
+            src.as_ptr() as *const c_char,
+            dest.as_ptr() as *const c_char
+        ),
+        true
+    );
+}
+
+#[test]
+fn map_test() {
+    let src = CString::new("MX0599999").unwrap();
+    let dest = CString::new("MF0599999").unwrap();
+    assert_eq!(
+        is_same_type(
+            src.as_ptr() as *const c_char,
+            dest.as_ptr() as *const c_char
+        ),
+        false
+    );
 }
