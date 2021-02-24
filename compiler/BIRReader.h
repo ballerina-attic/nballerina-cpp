@@ -3,6 +3,7 @@
 
 #include "BIR.h"
 #include "BalAbstractInsn.h"
+#include "BalArrayInsn.h"
 #include "BalBasicBlock.h"
 #include "BalConditionBrInsn.h"
 #include "BalFuncParam.h"
