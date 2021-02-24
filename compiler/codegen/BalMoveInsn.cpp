@@ -1,6 +1,9 @@
-// #include "BalMoveInsn.h"
-// #include "llvm-c/Core.h"
-#include "../BIR.h" // temp till package and func and available
+#include "BalMoveInsn.h"
+#include "BalFunction.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "BalVarDecl.h"
+#include "llvm-c/Core.h"
 
 namespace nballerina {
 

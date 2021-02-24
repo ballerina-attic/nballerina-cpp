@@ -1,5 +1,10 @@
-//#include "BalFunction.h"
-#include "../BIR.h" // temp since package is not available
+#include "BalFunction.h"
+#include "BalBasicBlock.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "BalTypeDecl.h"
+#include "BalVarDecl.h"
+#include "llvm-c/Core.h"
 
 namespace nballerina {
 
