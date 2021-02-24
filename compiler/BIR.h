@@ -146,6 +146,10 @@ enum TypeTagEnum {
 
 enum VarScope { VAR_SCOPE_GLOBAL = 1, VAR_SCOPE_FUNCTION = 2 };
 
+// Function flags
+static const long PUBLIC = 1;
+static const long NATIVE = PUBLIC << 1;
+
 class Location {
 private:
   string fileName;

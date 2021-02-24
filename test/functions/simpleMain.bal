@@ -3,7 +3,6 @@
 public function printu32(int val) = external;
 
 public function main() {
-    int a = 58;
-    printu32(a);
+    printu32(128);
 }
-// CHECK: RETVAL=58
+// CHECK: RETVAL=128
