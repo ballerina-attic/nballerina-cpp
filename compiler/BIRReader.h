@@ -2,7 +2,7 @@
 #define BIRREADER_H
 
 #include "BalAbstractInsn.h"
-#include "BalArrayInsn.h"
+#include "BalArrayInsns.h"
 #include "BalBasicBlock.h"
 #include "BalBinaryOpInsn.h"
 #include "BalConditionBrInsn.h"
