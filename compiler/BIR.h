@@ -9,20 +9,21 @@
 
 #include "BalAbstractInsn.h"
 #include "BalBasicBlock.h"
+#include "BalConstantLoad.h"
 #include "BalEnums.h"
 #include "BalFuncParam.h"
 #include "BalFunction.h"
+#include "BalFunctionCallInsn.h"
 #include "BalInvokableType.h"
 #include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
 #include "BalParam.h"
+#include "BalStructureInsn.h"
 #include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
 #include "BalVarDecl.h"
-#include "BalConstantLoad.h"
-#include "BalFunctionCallInsn.h"
 #include "Debuggable.h"
 #include "PackageNode.h"
 #include "Translatable.h"
@@ -53,7 +54,6 @@ using namespace llvm;
 using namespace nballerina;
 
 enum SymbolKind { LOCAL_SYMBOL_KIND, GLOBAL_SYMBOL_KIND };
-
 
 class BinaryOpInsn : public NonTerminatorInsn {
 private:
@@ -259,20 +259,6 @@ class TypeDescInsn : public NonTerminatorInsn {
 public:
   TypeDescInsn() = default;
   ~TypeDescInsn() = default;
-};
-
-class StructureInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
-  void mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef);
-  LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
-
-public:
-  StructureInsn() = default;
-  ~StructureInsn() = default;
-  Operand *getRhsOp() { return rhsOp; }
-  void setRhsOp(Operand *op) { rhsOp = op; }
-  void translate(LLVMModuleRef &modRef) final;
 };
 
 #endif // BIR_H

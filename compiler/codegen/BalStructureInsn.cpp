@@ -1,4 +1,15 @@
-#include "BIR.h"
+#include "BalFunction.h"
+#include "BalOperand.h"
+#include "BalPackage.h"
+#include "BalStructureInsn.h"
+#include "BalTypeDecl.h"
+#include "llvm-c/Core.h"
+#include <iostream>
+
+using namespace std;
+using namespace llvm;
+
+namespace nballerina {
 
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
@@ -63,3 +74,5 @@ LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
   pkg->addArrayFunctionRef("map_new_int", addedFuncRef);
   return addedFuncRef;
 }
+
+} // namespace nballerina
