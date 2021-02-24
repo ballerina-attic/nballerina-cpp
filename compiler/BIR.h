@@ -244,15 +244,6 @@ public:
   void translate(LLVMModuleRef &modRef) final;
 };
 
-class ReturnInsn : public TerminatorInsn {
-private:
-public:
-  ReturnInsn() = default;
-  ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
-             BIRBasicBlock *nextBB);
-  ~ReturnInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) final;
-};
 
 #endif // BIR_H

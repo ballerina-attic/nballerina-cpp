@@ -11,6 +11,7 @@
 #include "BalNonTerminatorInsn.h"
 #include "BalOperand.h"
 #include "BalParam.h"
+#include "BalReturnInsn.h"
 #include "BalTerminatorInsn.h"
 #include "BalTypeDecl.h"
 #include "BalTypeDescInsn.h"

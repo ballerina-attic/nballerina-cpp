@@ -1,4 +1,18 @@
-#include "BIR.h"
+#include "BalReturnInsn.h"
+#include "BalFunction.h"
+#include "BalPackage.h"
+#include "BalTypeDecl.h"
+#include "BalVarDecl.h"
+#include "llvm-c/Core.h"
+
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
+using namespace std;
+using namespace llvm;
+
+namespace nballerina {
 
 ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
                        BIRBasicBlock *nextBB)
@@ -45,3 +59,5 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     }
   }
 }
+
+} // namespace nballerina
