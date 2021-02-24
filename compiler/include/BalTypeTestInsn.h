@@ -20,10 +20,11 @@ public:
                TypeDecl *tDecl);
   ~TypeTestInsn() = default;
 
-  Operand *getRhsOp() { return rhsOp; }
-  TypeDecl *getTypeDecl() { return typeDecl; }
-  void setRhsOp(Operand *op) { rhsOp = op; }
-  void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
+  Operand *getRhsOp();
+  TypeDecl *getTypeDecl();
+
+  void setRhsOp(Operand *op);
+  void setTypeDecl(TypeDecl *tDecl);
 };
 
 } // namespace nballerina

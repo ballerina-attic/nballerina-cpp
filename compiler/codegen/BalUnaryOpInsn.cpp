@@ -5,6 +5,10 @@
 #include <llvm-c/Core.h>
 #include <string>
 
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
 using namespace std;
 
 namespace nballerina {
@@ -12,6 +16,9 @@ namespace nballerina {
 UnaryOpInsn::UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp,
                          Operand *rOp)
     : NonTerminatorInsn(pos, kind, lOp), rhsOp(rOp) {}
+
+Operand *UnaryOpInsn::getRhsOp() { return rhsOp; }
+void UnaryOpInsn::setRhsOp(Operand *op) { rhsOp = op; }
 
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 

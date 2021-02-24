@@ -16,9 +16,9 @@ public:
   UnaryOpInsn() = default;
   UnaryOpInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *rOp);
   ~UnaryOpInsn() = default;
-  Operand *getRhsOp() { return rhsOp; }
 
-  void setRhsOp(Operand *op) { rhsOp = op; }
+  Operand *getRhsOp();
+  void setRhsOp(Operand *op);
 
   void translate(LLVMModuleRef &modRef) final;
 };
