@@ -2,6 +2,7 @@
 
 public function main() {
   () nilVal = bar();
+  foo();
 }
 
 function foo() {
