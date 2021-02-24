@@ -21,10 +21,11 @@ void MoveInsn::setRhsOp(Operand *rOp) { rhsOp = rOp; }
 void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMValueRef lhsRef;
   Operand *lhsOp = getLhsOperand();
-  VarKind varKind;
-  if (lhsOp->getVarDecl())
-    varKind = lhsOp->getVarDecl()->getVarKind();
 
+  if (!lhsOp->getVarDecl())
+    return;
+
+  VarKind varKind = lhsOp->getVarDecl()->getVarKind();
   assert(getFunction());
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
 
