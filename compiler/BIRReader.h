@@ -6,6 +6,7 @@
 #include "BalBasicBlock.h"
 #include "BalFuncParam.h"
 #include "BalFunction.h"
+#include "BalGoToInsn.h"
 #include "BalInvokableType.h"
 #include "BalMoveInsn.h"
 #include "BalNonTerminatorInsn.h"

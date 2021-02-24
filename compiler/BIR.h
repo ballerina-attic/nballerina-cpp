@@ -228,21 +228,6 @@ public:
   void translate(LLVMModuleRef &modRef) final;
 };
 
-class GoToInsn : public TerminatorInsn {
-private:
-  LLVMValueRef llvmInsn;
-
-public:
-  GoToInsn() = default;
-  GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
-           BIRBasicBlock *nextBB);
-  ~GoToInsn() = default;
-
-  LLVMValueRef getLLVMInsn() { return llvmInsn; }
-  void setLLVMInsn(LLVMValueRef insn) { llvmInsn = insn; }
-
-  void translate(LLVMModuleRef &modRef) final;
-};
 
 
 

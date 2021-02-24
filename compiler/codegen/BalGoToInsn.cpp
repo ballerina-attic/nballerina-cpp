@@ -1,4 +1,13 @@
-#include "BIR.h"
+#include "BalBasicBlock.h"
+#include "BalFunction.h"
+#include "BalGoToInsn.h"
+#include "llvm-c/Core.h"
+
+#ifndef unix
+#define __attribute__(unused)
+#endif
+
+namespace nballerina {
 
 GoToInsn::GoToInsn(Location *pos, InstructionKind kind, Operand *lOp,
                    BIRBasicBlock *nextBB)
@@ -15,3 +24,5 @@ void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
             __FILE__, __LINE__);
   }
 }
+
+} // namespace nballerina
