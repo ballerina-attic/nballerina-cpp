@@ -21,23 +21,21 @@ void BinaryOpInsn::setInstKind(InstructionKind _kind) { kind = _kind; }
 void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
-  assert(funcObj);
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  assert(builder);
 
   assert(getLhsOperand() && getLhsOperand()->getVarDecl());
+
   string lhsName = getLhsOperand()->getName();
   string lhstmpName = lhsName + "_temp";
   LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
   if (!lhsRef)
     lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
 
-  assert(rhsOp1 && rhsOp2);
   LLVMValueRef rhsOp1ref = funcObj->getLocalToTempVar(rhsOp1);
   LLVMValueRef rhsOp2ref = funcObj->getLocalToTempVar(rhsOp2);
 
-  if (!(rhsOp1ref && rhsOp2ref && builder))
-    return;
+  if (!(rhsOp1ref && rhsOp2ref))
+    llvm_unreachable("Unknown State");
 
   LLVMValueRef ifReturn;
   switch (kind) {

@@ -50,8 +50,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   Operand *lhsOp = getLhsOperand();
   VarKind varKind = lhsOp->getVarDecl()->getVarKind();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-  assert(builder);
-  assert(lhsOp);
+
   assert(lhsOp->getVarDecl());
 
   if (lhsOp->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {

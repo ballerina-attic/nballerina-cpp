@@ -15,14 +15,12 @@ GoToInsn::GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB)
 }
 
 void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  assert(getFunction());
-  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
 
-  if (builder && getNextBB() && getNextBB()->getLLVMBBRef())
+  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+  if (getNextBB()->getLLVMBBRef())
     LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
   else {
-    fprintf(stderr, "%s:%d LLVM Basic Block not found for GOTO instruction.\n",
-            __FILE__, __LINE__);
+    llvm_unreachable("LLVM Basic Block not found for GOTO instruction");
   }
 }
 

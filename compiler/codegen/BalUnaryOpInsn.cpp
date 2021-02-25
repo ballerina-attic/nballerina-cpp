@@ -19,11 +19,8 @@ UnaryOpInsn::UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp)
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
-  assert(funcObj);
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  assert(builder);
   Operand *lhsOp = getLhsOperand();
-  assert(lhsOp);
   string lhsName = lhsOp->getName();
   assert(lhsOp->getVarDecl());
   string lhstmpName = lhsName + "_temp";

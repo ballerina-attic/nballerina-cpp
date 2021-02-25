@@ -30,14 +30,15 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   assert(lhsVar);
   assert(lhsVar->getVarKind() == LOCAL_VAR_KIND);
   assert(lhsVar->getTypeDecl()->getTypeTag() == TYPE_TAG_MAP);
+
   MapTypeDecl *mapTypeDelare =
       static_cast<MapTypeDecl *>(lhsVar->getTypeDecl());
   int memberTypeTag = mapTypeDelare->getTypeMemberTag();
 
   // Only handle Int type
   if (memberTypeTag != TYPE_TAG_INT) {
-    std::cerr << "Non INT type maps are currently not supported" << std::endl;
-    assert(false);
+    std::cerr << "Non int type maps are currently not supported" << std::endl;
+    llvm_unreachable("");
   }
 
   // Codegen for Map of Int type store

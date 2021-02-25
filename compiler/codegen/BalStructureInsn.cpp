@@ -32,7 +32,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
   if (structType != TYPE_TAG_MAP) {
     std::cerr << "Non MAP type structs are currently not supported"
               << std::endl;
-    assert(false);
+    llvm_unreachable("");
   }
   mapInsnTranslate(lhsVar, modRef);
 }
@@ -56,7 +56,7 @@ void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
   // Only handle Int type
   if (memberTypeTag != TYPE_TAG_INT) {
     std::cerr << "Non INT type maps are currently not supported" << std::endl;
-    assert(false);
+    llvm_unreachable("");
   }
 
   // Codegen for Map of Int type

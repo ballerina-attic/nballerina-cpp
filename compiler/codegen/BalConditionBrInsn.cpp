@@ -29,10 +29,9 @@ void ConditionBrInsn::setElseBB(BasicBlock *bb) { elseBB = bb; }
 void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   Operand *lhsOp = getLhsOperand();
-  assert(lhsOp && lhsOp->getVarDecl());
-  assert(getFunction());
-  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+  assert(lhsOp->getVarDecl());
 
+  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
   string lhsName = lhsOp->getName();
   assert(lhsName != "");
   LLVMValueRef brCondition = getFunction()->getValueRefBasedOnName(lhsName);
@@ -45,15 +44,13 @@ void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     }
   }
 
-  if (!ifThenBB || !elseBB)
-    return;
-
   LLVMBasicBlockRef ifLLVMBB = ifThenBB->getLLVMBBRef();
   LLVMBasicBlockRef elseLLVMBB = elseBB->getLLVMBBRef();
 
-  if (builder && brCondition && ifLLVMBB && elseLLVMBB) {
+  if (brCondition && ifLLVMBB && elseLLVMBB) {
     LLVMBuildCondBr(builder, brCondition, ifLLVMBB, elseLLVMBB);
-  }
+  } else
+    llvm_unreachable("Unknown State");
 }
 
 } // namespace nballerina

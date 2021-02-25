@@ -33,10 +33,7 @@ void FunctionCallInsn::translate(__attribute__((unused))
   LLVMValueRef *ParamRefs = new LLVMValueRef[argCount];
   string funName;
 
-  assert(funcObj);
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  assert(getPkgAddress());
-
   Function *birFunc = getPkgAddress()->getFunctionLookUp(functionName);
   assert(birFunc);
   LLVMValueRef namedFuncRef = birFunc->getNewFunctionRef();

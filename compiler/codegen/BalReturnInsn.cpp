@@ -20,7 +20,6 @@ ReturnInsn::ReturnInsn(BasicBlock *currentBB)
 void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   VarDecl *returnVarDecl = nullptr;
-  assert(funcObj);
 
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   vector<VarDecl *> globalVarList = getPkgAddress()->getGlobalVars();
@@ -47,8 +46,7 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
       }
     }
   } else {
-    assert(funcObj && funcObj->getReturnVar() &&
-           funcObj->getReturnVar()->getTypeDecl());
+    assert(funcObj->getReturnVar()->getTypeDecl());
     if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
       LLVMValueRef retValueRef = LLVMBuildLoad(
           builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
