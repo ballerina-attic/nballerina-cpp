@@ -27,6 +27,16 @@ LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
 void BIRPackage::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new StringTableBuilder(StringTableBuilder::RAW, 1);
+  // creating external char pointer to store string table offset values.
+  string charName = "__string_table_ptr";
+  LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
+  Constant *charValue = Constant::getNullValue(unwrap(charPtrType));
+  GlobalVariable *charVar = new GlobalVariable(
+          *unwrap(modRef), unwrap(charPtrType), false,
+          GlobalValue::ExternalLinkage, charValue, charName.c_str(), 0);
+  charVar->setAlignment(Align(4));
+  globalVarRefs.insert({charName, wrap(charVar)});
+
   // iterate over all global variables and translate
   for (unsigned int i = 0; i < globalVars.size(); i++) {
     LLVMValueRef globVarRef;
@@ -60,13 +70,14 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
 
   // iterating over each function, first create function definition
   // (without function body) and adding to Module.
+  LLVMBuilderRef builder;
   map<string, BIRFunction *>::iterator it;
   for (it = functionLookUp.begin(); it != functionLookUp.end(); it++) {
     BIRFunction *birFunc = it->second;
-    LLVMBuilderRef builder = LLVMCreateBuilder();
+    builder = LLVMCreateBuilder();
     birFunc->setLLVMBuilder(builder);
-    LLVMTypeRef funcType;
-    LLVMTypeRef retType;
+    LLVMTypeRef funcType = NULL;
+    LLVMTypeRef retType = NULL;
     unsigned int numParams = birFunc->getNumParams();
     LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
     bool isVarArg = false;
@@ -104,8 +115,19 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   }
   // This Api will finalize the string table builder if table size is not
   // zero.
-  if (strBuilder->getSize() != 0)
+  if (strBuilder->getSize() != 0) {
     applyStringOffsetRelocations(modRef);
+
+  // here, storing String builder table address into global char pointer.
+  // like below example.
+  // char arr[100] = { 'a' };
+  // char *ptr = arr;
+    LLVMValueRef stringTableAddr = getGlobalVarRefUsingId("__string_table");
+    LLVMValueRef stringTablePtrAddress = getGlobalVarRefUsingId("__string_table_ptr");
+    LLVMValueRef bitCastRes = LLVMBuildBitCast(
+          builder, stringTableAddr, LLVMPointerType(LLVMInt8Type(), 0), "");
+    LLVMSetInitializer(stringTablePtrAddress, bitCastRes);
+  }
 }
 
 void BIRPackage::addStringOffsetRelocationEntry(string eleType,
@@ -134,13 +156,20 @@ void BIRPackage::addStringOffsetRelocationEntry(string eleType,
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
 void BIRPackage::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
-  strBuilder->finalize();
+  strBuilder->finalizeInOrder();
+  size_t strTblSize = strBuilder->getSize();
   map<string, vector<LLVMValueRef>>::iterator itr;
+  unsigned char *concatString = new unsigned char[strTblSize];
+  char* charPtr = (char*)concatString;
   for (itr = structElementStoreInst.begin();
        itr != structElementStoreInst.end(); itr++) {
-    size_t finalOrigOffset = strBuilder->getOffset(itr->first);
+    string typeString = itr->first;
+    charPtr = stpcpy((char*)charPtr, typeString.c_str());
+    charPtr++;
+    size_t finalOrigOffset = strBuilder->getOffset(typeString);
     vector<LLVMValueRef> temp = itr->second;
     LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
+    // iterate through same type values.
     for (unsigned int i = 0; i < temp.size(); i++) {
       LLVMValueRef storeInsn = temp[i];
       LLVMValueRef constOperand = LLVMGetOperand(storeInsn, 0);
@@ -148,6 +177,16 @@ void BIRPackage::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
       break;
     }
   }
+  LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), sizeof(concatString)+1);
+  LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(
+                                modRef, arraType, "__string_table", 0);
+  globalVarRefs.insert({"__string_table", createAddrsSpace});
+
+  LLVMValueRef constString = LLVMConstString((const char *) concatString, sizeof(concatString),
+                                      false);
+  // Initializing global address space with generated string(concat all the strings from 
+  // string builder table).
+  LLVMSetInitializer(createAddrsSpace, constString);
 }
 
 LLVMValueRef BIRPackage::getFunctionRefBasedOnName (string arrayName) {

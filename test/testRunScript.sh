@@ -25,7 +25,7 @@ then
   exit 1
 fi
 
-clang -O0 -o $filename.out $filename-bir-dump.ll 2>err.log
+clang -O0 -o $filename.out $filename-bir-dump.ll --target=x86_64-unknown-linux-gnu -L../runtime/target/release -llib 2>err.log
 
 if [ -s ./err.log ]
 then
