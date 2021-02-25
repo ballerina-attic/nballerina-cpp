@@ -14,12 +14,11 @@ private:
   VarDecl *varDecl;
 
 public:
-  Operand() = default;
+  Operand() = delete;
   Operand(VarDecl *vDecl);
   ~Operand() = default;
 
   VarDecl *getVarDecl();
-  void setVarDecl(VarDecl *newDecl);
   std::string getName();
   int typeTag();
 };
