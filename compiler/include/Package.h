@@ -47,7 +47,7 @@ class Package : public Translatable {
     llvm::StringTableBuilder *strBuilder;
     std::map<std::string, std::vector<LLVMValueRef>> structElementStoreInst;
     std::map<std::string, LLVMValueRef> functionRefs;
-    void applyStringOffsetRelocations();
+    void applyStringOffsetRelocations(LLVMModuleRef &modRef);
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
 
   public:

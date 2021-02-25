@@ -55,6 +55,8 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     std::map<std::string, LLVMValueRef> localVarRefs;
     std::vector<FunctionParam *> requiredParams;
     inline static const std::string MAIN_FUNCTION_NAME = "main";
+    LLVMValueRef generateAbortInsn(LLVMModuleRef &modRef);
+    void splitBBIfPossible(LLVMModuleRef &modRef);
 
   public:
     Function() = delete;

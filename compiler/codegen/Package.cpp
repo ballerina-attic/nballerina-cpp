@@ -24,10 +24,10 @@
 #include "Variable.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/Module.h"
+#include "llvm/IR/IRBuilder.h"
 
 using namespace std;
+using namespace llvm;
 
 namespace nballerina {
 
@@ -77,6 +77,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
+    case TYPE_TAG_ARRAY:
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_NIL:
         return LLVMPointerType(LLVMInt8Type(), 0);
@@ -91,6 +92,14 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // String Table initialization
     strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
+    // creating external char pointer to store string builder table.
+    const char *strTablePtr = "__string_table_ptr";
+    LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
+    llvm::Constant *charValue = llvm::Constant::getNullValue(unwrap(charPtrType));
+    llvm::GlobalVariable *charGloablVar = new llvm::GlobalVariable(
+        *unwrap(modRef), unwrap(charPtrType), false, llvm::GlobalValue::InternalLinkage, charValue, strTablePtr, 0);
+    charGloablVar->setAlignment(Align(4));
+    globalVarRefs.insert({strTablePtr, wrap(charGloablVar)});
 
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {
@@ -126,8 +135,9 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.
+    LLVMBuilderRef llvmBuilder = LLVMCreateBuilder();
     for (const auto &function : functions) {
-        function->setLLVMBuilder(LLVMCreateBuilder());
+        function->setLLVMBuilder(llvmBuilder);
         size_t numParams = function->getNumParams();
         LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
         bool isVarArg = false;
@@ -157,7 +167,18 @@ void Package::translate(LLVMModuleRef &modRef) {
     // This Api will finalize the string table builder if table size is not
     // zero.
     if (strBuilder->getSize() != 0) {
-        applyStringOffsetRelocations();
+        applyStringOffsetRelocations(modRef);
+        // here, storing String builder table address into global char pointer.
+        // like below example.
+        // char arr[100] = { 'a' };
+        // char *ptr = arr;
+        const char *stringTblChar = "__string_table";
+        const char *stringTblPtrChar = "__string_table_ptr";
+        LLVMValueRef stringTableAddr = getGlobalLLVMVar(stringTblChar);
+        LLVMValueRef stringTablePtrAddress = getGlobalLLVMVar(stringTblPtrChar);
+        LLVMValueRef bitCastRes =
+            LLVMBuildBitCast(llvmBuilder, stringTableAddr, LLVMPointerType(LLVMInt8Type(), 0), "");
+        LLVMSetInitializer(stringTablePtrAddress, bitCastRes);
     }
 }
 
@@ -167,18 +188,36 @@ void Package::addStringOffsetRelocationEntry(const std::string &eleType, LLVMVal
 
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
-void Package::applyStringOffsetRelocations() {
+void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
-    strBuilder->finalize();
+    strBuilder->finalizeInOrder();
+    unsigned char *concatString = new unsigned char[strBuilder->getSize()];
+    char *charPtr = (char *)concatString;
     for (const auto &element : structElementStoreInst) {
+        const std::string &eleType = element.first;
+        charPtr = stpcpy((char *)charPtr, eleType.c_str());
+        charPtr++;
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
         LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
         for (const auto &insn : element.second) {
-            LLVMValueRef constOperand = LLVMGetOperand(insn, 0);
+            LLVMValueRef constOperand;
+            llvm::GetElementPtrInst *GEPInst = dyn_cast<llvm::GetElementPtrInst>(unwrap(insn));
+            if (GEPInst)
+                constOperand = LLVMGetOperand(insn, 1);
+            else
+                constOperand = LLVMGetOperand(insn, 0);
             LLVMReplaceAllUsesWith(constOperand, tempVal);
-            break;
+            // break;
         }
     }
+    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), sizeof(concatString) + 1);
+    LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, "__string_table", 0);
+    globalVarRefs.insert({"__string_table", createAddrsSpace});
+
+    LLVMValueRef constString = LLVMConstString((const char *)concatString, sizeof(concatString), false);
+    // Initializing global address space with generated string(concat all the
+    // strings from string builder table).
+    LLVMSetInitializer(createAddrsSpace, constString);
 }
 
 LLVMValueRef Package::getFunctionRef(const std::string &arrayName) {
