@@ -1,6 +1,5 @@
 #include "BIR.h"
 #include "BIRReader.h"
-#include <ballerina_rt.h>
 #include <fstream>
 #include <iostream>
 #include <string>

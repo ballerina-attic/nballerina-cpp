@@ -10,7 +10,7 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 add_definitions(${LLVM_DEFINITIONS})
 
 # Include and lib directories
-include_directories(${LLVM_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/runtime/include)
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS}) 
 link_directories(${CMAKE_SOURCE_DIR}/runtime/target/release)
 
 # Add runtime project
