@@ -14,8 +14,6 @@ public:
   MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
   ~MoveInsn() = default;
 
-  Operand *getRhsOp();
-
   void translate(LLVMModuleRef &modRef) final;
 };
 

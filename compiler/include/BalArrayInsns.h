@@ -18,10 +18,6 @@ public:
   ArrayInsn() = delete;
   ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp, TypeDecl *TDecl);
   ~ArrayInsn() = default;
-
-  Operand *getSizeOp();
-  TypeDecl *getTypeDecl();
-
   void translate(LLVMModuleRef &modRef) final;
 };
 
@@ -31,19 +27,13 @@ private:
   bool fillingRead;
   Operand *keyOp;
   Operand *rhsOp;
+  LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, Package *pkg);
 
 public:
   ArrayLoadInsn() = delete;
   ArrayLoadInsn(Operand *lOp, BasicBlock *currentBB, bool opFA, bool fR,
                 Operand *KOp, Operand *ROp);
   ~ArrayLoadInsn() = default;
-
-  bool getOptionalFieldAccess();
-  bool getFillingRead();
-  Operand *getKeyOp();
-  Operand *getRhsOp();
-
-  LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, Package *pkg);
   void translate(LLVMModuleRef &modRef) final;
 };
 
@@ -58,9 +48,6 @@ public:
   ArrayStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp,
                  Operand *ROp);
   ~ArrayStoreInsn() = default;
-
-  Operand *getKeyOp();
-  Operand *getRhsOp();
 
   void translate(LLVMModuleRef &modRef) final;
 };

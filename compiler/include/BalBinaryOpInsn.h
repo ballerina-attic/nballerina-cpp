@@ -22,9 +22,6 @@ public:
                Operand *rOp2);
   ~BinaryOpInsn() = default;
 
-  Operand *getRhsOp1();
-  Operand *getRhsOp2();
-  InstructionKind getInstKind();
   void setInstKind(InstructionKind _kind);
   void translate(LLVMModuleRef &modRef) final;
 };

@@ -14,9 +14,6 @@ GoToInsn::GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB)
   kind = INSTRUCTION_KIND_GOTO;
 }
 
-LLVMValueRef GoToInsn::getLLVMInsn() { return llvmInsn; }
-void GoToInsn::setLLVMInsn(LLVMValueRef insn) { llvmInsn = insn; }
-
 void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   assert(getFunction());
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();

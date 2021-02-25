@@ -22,10 +22,6 @@ TypeCastInsn::TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
     : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp), typeDecl(tDecl),
       checkTypes(checkTypes) {}
 
-Operand *TypeCastInsn::getRhsOp() { return rhsOp; }
-TypeDecl *TypeCastInsn::getTypeDecl() { return typeDecl; }
-bool TypeCastInsn::mustCheckTypes() { return checkTypes; }
-
 void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   string lhsOpName = getLhsOperand()->getName();

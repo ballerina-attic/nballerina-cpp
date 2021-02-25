@@ -16,17 +16,16 @@ private:
   Operand *lhsOp;
   BasicBlock *currentBB;
 
+protected:
+  Operand *getLhsOperand();
+  Function *getFunction();
+  Package *getPkgAddress();
+
 public:
   AbstractInsn() = delete;
   AbstractInsn(Operand *lOp, BasicBlock *currentBB);
   virtual ~AbstractInsn() = default;
 
-  Operand *getLhsOperand();
-  Function *getFunction();
-  BasicBlock *getCurrentBB();
-  Package *getPkgAddress();
-
-  // void setCurrentBB(BasicBlock *currB);
 };
 
 } // namespace nballerina

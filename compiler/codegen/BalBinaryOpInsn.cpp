@@ -16,11 +16,7 @@ BinaryOpInsn::BinaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp1,
                            Operand *rOp2)
     : NonTerminatorInsn(lOp, currentBB), rhsOp1(rOp1), rhsOp2(rOp2) {}
 
-InstructionKind BinaryOpInsn::getInstKind() { return kind; }
 void BinaryOpInsn::setInstKind(InstructionKind _kind) { kind = _kind; }
-
-Operand *BinaryOpInsn::getRhsOp1() { return rhsOp1; }
-Operand *BinaryOpInsn::getRhsOp2() { return rhsOp2; }
 
 void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 

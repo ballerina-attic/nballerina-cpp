@@ -15,9 +15,6 @@ public:
   MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp, Operand *ROp);
   ~MapStoreInsn() = default;
 
-  Operand *getKeyOp();
-  Operand *getRhsOp();
-
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina

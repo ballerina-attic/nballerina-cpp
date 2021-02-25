@@ -79,6 +79,4 @@ LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
   return addedFuncRef;
 }
 
-Operand *StructureInsn::getRhsOp() { return rhsOp; }
-
 } // namespace nballerina

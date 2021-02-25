@@ -6,16 +6,10 @@
 namespace nballerina {
 
 class GoToInsn : public TerminatorInsn {
-private:
-  LLVMValueRef llvmInsn;
-
 public:
   GoToInsn() = delete;
   GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB);
   ~GoToInsn() = default;
-
-  LLVMValueRef getLLVMInsn();
-  void setLLVMInsn(LLVMValueRef insn);
 
   void translate(LLVMModuleRef &modRef) final;
 };

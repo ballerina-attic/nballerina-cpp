@@ -45,11 +45,11 @@ void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     }
   }
 
-  if (!getIfThenBB() || !getElseBB())
+  if (!ifThenBB || !elseBB)
     return;
 
-  LLVMBasicBlockRef ifLLVMBB = getIfThenBB()->getLLVMBBRef();
-  LLVMBasicBlockRef elseLLVMBB = getElseBB()->getLLVMBBRef();
+  LLVMBasicBlockRef ifLLVMBB = ifThenBB->getLLVMBBRef();
+  LLVMBasicBlockRef elseLLVMBB = elseBB->getLLVMBBRef();
 
   if (builder && brCondition && ifLLVMBB && elseLLVMBB) {
     LLVMBuildCondBr(builder, brCondition, ifLLVMBB, elseLLVMBB);

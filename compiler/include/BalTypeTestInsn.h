@@ -16,11 +16,9 @@ private:
 
 public:
   TypeTestInsn() = delete;
-  TypeTestInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp, TypeDecl *tDecl);
+  TypeTestInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
+               TypeDecl *tDecl);
   ~TypeTestInsn() = default;
-
-  Operand *getRhsOp();
-  TypeDecl *getTypeDecl();
 };
 
 } // namespace nballerina

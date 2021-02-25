@@ -23,14 +23,9 @@ FunctionCallInsn::FunctionCallInsn(bool funcVirtual, std::string funcName,
   kind = INSTRUCTION_KIND_CALL;
 }
 
-void FunctionCallInsn::setRestParam(Param *rParam) { restParam = rParam; }
-
-bool FunctionCallInsn::getIsVirtual() { return isVirtual; }
 std::string FunctionCallInsn::getFunctionName() { return functionName; }
 int FunctionCallInsn::getArgCount() { return argCount; }
 Operand *FunctionCallInsn::getArgumentFromList(int i) { return argsList[i]; }
-std::vector<Operand *> FunctionCallInsn::getArgumentsList() { return argsList; }
-Param *FunctionCallInsn::getRestParam() { return restParam; }
 
 void FunctionCallInsn::translate(__attribute__((unused))
                                  LLVMModuleRef &modRef) {

@@ -28,7 +28,6 @@ public:
   BasicBlock *getNextBB();
   bool getPatchStatus();
   InstructionKind getInstKind();
-
   void setPatched();
   void setNextBB(BasicBlock *bb);
 

@@ -18,7 +18,6 @@ public:
   StructureInsn(Operand *lOp, BasicBlock *currentBB, Operand *rhsOp);
   ~StructureInsn() = default;
 
-  Operand *getRhsOp();
   void translate(LLVMModuleRef &modRef) final;
 };
 

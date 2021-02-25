@@ -21,10 +21,6 @@ public:
                TypeDecl *tDecl, bool checkTypes);
   ~TypeCastInsn() = default;
 
-  Operand *getRhsOp();
-  TypeDecl *getTypeDecl();
-  bool mustCheckTypes();
-
   void translate(LLVMModuleRef &modRef) final;
 };
 

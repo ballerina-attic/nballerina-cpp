@@ -9,7 +9,6 @@ namespace nballerina {
 class BasicBlock;
 
 class ReturnInsn : public TerminatorInsn {
-private:
 public:
   ReturnInsn(BasicBlock *currentBB);
   ~ReturnInsn() = default;

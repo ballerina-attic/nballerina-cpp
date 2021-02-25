@@ -8,7 +8,6 @@ AbstractInsn::AbstractInsn(Operand *lOp, BasicBlock *currB)
     : lhsOp(lOp), currentBB(currB) {}
 Operand *AbstractInsn::getLhsOperand() { return lhsOp; }
 Function *AbstractInsn::getFunction() { return currentBB->getFunction(); }
-BasicBlock *AbstractInsn::getCurrentBB() { return currentBB; }
 Package *AbstractInsn::getPkgAddress() {
   return currentBB->getFunction()->getPkgAddress();
 }

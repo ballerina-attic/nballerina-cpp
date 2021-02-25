@@ -25,9 +25,6 @@ LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
   return addedFuncRef;
 }
 
-Operand *ArrayInsn::getSizeOp() { return sizeOp; }
-TypeDecl *ArrayInsn::getTypeDecl() { return typeDecl; }
-
 void ArrayInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   Package *pkgObj = getPkgAddress();
@@ -68,11 +65,6 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef,
   pkg->addArrayFunctionRef("int_array_load", addedFuncRef);
   return addedFuncRef;
 }
-
-bool ArrayLoadInsn::getOptionalFieldAccess() { return optionalFieldAccess; }
-bool ArrayLoadInsn::getFillingRead() { return fillingRead; }
-Operand *ArrayLoadInsn::getKeyOp() { return keyOp; }
-Operand *ArrayLoadInsn::getRhsOp() { return rhsOp; }
 
 void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
@@ -118,9 +110,6 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef,
   pkg->addArrayFunctionRef("int_array_store", addedFuncRef);
   return addedFuncRef;
 }
-
-Operand *ArrayStoreInsn::getKeyOp() { return keyOp; }
-Operand *ArrayStoreInsn::getRhsOp() { return rhsOp; }
 
 void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();

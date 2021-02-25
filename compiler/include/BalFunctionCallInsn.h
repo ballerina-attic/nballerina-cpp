@@ -23,14 +23,9 @@ public:
                    std::vector<Operand *> &fnArgs, BasicBlock *currentBB);
   ~FunctionCallInsn() = default;
 
-  void setRestParam(Param *rParam);
-
-  bool getIsVirtual();
   std::string getFunctionName();
   int getArgCount();
   Operand *getArgumentFromList(int i);
-  std::vector<Operand *> getArgumentsList();
-  Param *getRestParam();
 
   void translate(LLVMModuleRef &modRef) final;
 };
