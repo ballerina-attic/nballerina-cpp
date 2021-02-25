@@ -12,8 +12,8 @@ private:
 
 public:
   FuncParam() = default;
-  FuncParam(Location *pos, TypeDecl *ty, std::string name, std::string metaName,
-            VarKind k, VarScope sc, int off, bool hasDefExp);
+  FuncParam(TypeDecl *ty, std::string name, std::string metaName, VarKind k,
+            VarScope sc, int off, bool hasDefExp);
   ~FuncParam() = default;
 
   bool hasDefaultValue();

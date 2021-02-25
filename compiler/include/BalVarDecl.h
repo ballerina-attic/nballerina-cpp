@@ -2,7 +2,6 @@
 #define __BALVARDECL__H__
 
 #include "BalEnums.h"
-#include "interfaces/Debuggable.h"
 #include "interfaces/PackageNode.h"
 #include <string>
 
@@ -12,7 +11,7 @@ namespace nballerina {
 class BasicBlock;
 class TypeDecl;
 
-class VarDecl : public PackageNode, public Debuggable {
+class VarDecl : public PackageNode {
 private:
   TypeDecl *type;
   std::string varName;
@@ -25,10 +24,13 @@ private:
   int insOffset;
 
 public:
-  VarDecl() = default;
-  VarDecl(Location *pos, std::string name, std::string metaName);
-  VarDecl(Location *pos, TypeDecl *ty, std::string name, std::string metaName,
-          VarKind k, VarScope sc, int offset);
+  VarDecl() = delete;
+  // For global vars, local  ,arg, return
+  VarDecl(TypeDecl *ty, std::string name, VarKind k);
+  // No type - for function params
+  VarDecl(std::string name);
+  // Read operad - typedcl could be null
+  VarDecl(TypeDecl *ty, std::string name, VarKind k, VarScope sc, bool ignore);
   virtual ~VarDecl() = default;
 
   TypeDecl *getTypeDecl();

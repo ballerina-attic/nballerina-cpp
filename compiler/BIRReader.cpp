@@ -204,12 +204,9 @@ InvokableType *ConstantPoolSet::getInvokableType(uint32_t index) {
 
 // Read Global Variable and push it to BIRPackage
 VarDecl *BIRReader::readGlobalVar() {
-  VarDecl *varDecl = new VarDecl();
   uint8_t kind = readU1();
-  varDecl->setVarKind((VarKind)kind);
 
   uint32_t varDclNameCpIndex = readS4be();
-  varDecl->setVarName((constantPool->getStringCp(varDclNameCpIndex)));
 
   uint32_t flags __attribute__((unused)) = readS4be();
   uint32_t length __attribute__((unused)) = readS4be();
@@ -221,22 +218,20 @@ VarDecl *BIRReader::readGlobalVar() {
   }
   uint32_t typeCpIndex = readS4be();
   TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
-  varDecl->setTypeDecl(typeDecl);
+  VarDecl *varDecl = new VarDecl(
+      typeDecl, (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
   birPackage.addGlobalVar(varDecl);
   return varDecl;
 }
 
 VarDecl *BIRReader::readLocalVar() {
-  VarDecl *varDecl = new VarDecl();
   uint8_t kind = readU1();
-  varDecl->setVarKind((VarKind)kind);
-
   uint32_t typeCpIndex = readS4be();
   TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
-  varDecl->setTypeDecl(typeDecl);
-
   uint32_t nameCpIndex = readS4be();
-  varDecl->setVarName(constantPool->getStringCp(nameCpIndex));
+
+  VarDecl *varDecl = new VarDecl(
+      typeDecl, constantPool->getStringCp(nameCpIndex), (VarKind)kind);
 
   if (kind == ARG_VAR_KIND) {
     uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
@@ -251,24 +246,24 @@ VarDecl *BIRReader::readLocalVar() {
 
 // Read Local Variable and return VarDecl pointer
 Operand *BIRReader::readOperand() {
-  VarDecl *varDecl = new VarDecl();
   uint8_t ignoredVar = readU1();
-  varDecl->setIgnore((bool)ignoredVar);
 
   uint8_t kind = readU1();
-  varDecl->setVarKind((VarKind)kind);
 
   uint8_t scope = readU1();
-  varDecl->setVarScope((VarScope)scope);
 
   uint32_t varDclNameCpIndex = readS4be();
-  varDecl->setVarName((constantPool->getStringCp(varDclNameCpIndex)));
 
-  if (varDecl->getVarKind() == GLOBAL_VAR_KIND) {
+  TypeDecl *typedcl = nullptr;
+  if ((VarKind)kind == GLOBAL_VAR_KIND) {
     uint32_t packageIndex __attribute__((unused)) = readS4be();
     uint32_t typeCpIndex = readS4be();
-    varDecl->setTypeDecl(constantPool->getTypeCp(typeCpIndex, false));
+    typedcl = constantPool->getTypeCp(typeCpIndex, false);
   }
+
+  VarDecl *varDecl =
+      new VarDecl(typedcl, constantPool->getStringCp(varDclNameCpIndex),
+                  (VarKind)kind, (VarScope)scope, (bool)ignoredVar);
   Operand *operand = new Operand(varDecl);
   return operand;
 }
@@ -720,8 +715,7 @@ Function *BIRReader::readFunction() {
   // Params
   for (unsigned int i = 0; i < requiredParamCount; i++) {
     uint32_t paramNameCpIndex = readS4be();
-    VarDecl *varDecl = new VarDecl();
-    varDecl->setVarName(constantPool->getStringCp(paramNameCpIndex));
+    VarDecl *varDecl = new VarDecl(constantPool->getStringCp(paramNameCpIndex));
     Operand *param = new Operand(varDecl);
     uint32_t paramFlags __attribute__((unused)) = readS4be();
     birFunction->setParam(param);
@@ -748,18 +742,13 @@ Function *BIRReader::readFunction() {
   uint8_t hasReturnVar = readU1();
 
   if (hasReturnVar) {
-    VarDecl *varDecl = new VarDecl();
-
     uint8_t kind = readU1();
-    varDecl->setVarKind((VarKind)kind);
-
     uint32_t typeCpIndex = readS4be();
     TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
-    varDecl->setTypeDecl(typeDecl);
-
     uint32_t nameCpIndex = readS4be();
-    varDecl->setVarName(constantPool->getStringCp(nameCpIndex));
 
+    VarDecl *varDecl = new VarDecl(
+        typeDecl, constantPool->getStringCp(nameCpIndex), (VarKind)kind);
     birFunction->setReturnVar(varDecl);
   }
 

@@ -2,11 +2,11 @@
 
 namespace nballerina {
 
-FuncParam::FuncParam(Location *pos, TypeDecl *ty, std::string name,
-                     std::string metaVarName, VarKind kind, VarScope scope,
-                     int off, bool hasDefExp)
-    : VarDecl(pos, ty, name, metaVarName, kind, scope, off),
-      hasDefaultExpr(hasDefExp) {}
+FuncParam::FuncParam(TypeDecl *ty, std::string name, std::string metaVarName,
+                     VarKind kind, VarScope scope, int off, bool hasDefExp)
+    : VarDecl(ty, name, kind, scope, off), hasDefaultExpr(hasDefExp) {
+      setMetaVarName(metaVarName);
+    }
 
 bool FuncParam::hasDefaultValue() { return hasDefaultExpr; }
 

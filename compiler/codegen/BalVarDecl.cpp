@@ -2,17 +2,14 @@
 
 namespace nballerina {
 
-VarDecl::VarDecl(Location *loc, std::string pname, std::string pmetaVarName)
-    : varName(pname), metaVarName(pmetaVarName) {
-  setLocation(loc);
-}
+VarDecl::VarDecl(std::string name) : varName(name) {}
 
-VarDecl::VarDecl(Location *loc, TypeDecl *ty, std::string name,
-                 std::string metaName, VarKind k, VarScope sc, int offset)
-    : type(ty), varName(name), metaVarName(metaName), kind(k), scope(sc),
-      insOffset(offset) {
-  setLocation(loc);
-}
+VarDecl::VarDecl(TypeDecl *ty, std::string name, VarKind k)
+    : type(ty), varName(name), kind(k) {}
+
+VarDecl::VarDecl(TypeDecl *ty, std::string name, VarKind k, VarScope sc,
+                 bool ignore)
+    : type(ty), varName(name), kind(k), scope(sc), ignoreVariable(ignore) {}
 
 TypeDecl *VarDecl::getTypeDecl() { return type; }
 VarKind VarDecl::getVarKind() { return kind; }
