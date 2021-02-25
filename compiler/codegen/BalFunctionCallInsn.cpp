@@ -16,8 +16,9 @@ namespace nballerina {
 FunctionCallInsn::FunctionCallInsn(bool funcVirtual, std::string funcName,
                                    int argNumber, BasicBlock *nextBB,
                                    Operand *lhsOp,
-                                   std::vector<Operand *> &fnArgs)
-    : TerminatorInsn(lhsOp, nextBB, true), isVirtual(funcVirtual),
+                                   std::vector<Operand *> &fnArgs,
+                                   BasicBlock *currentBB)
+    : TerminatorInsn(lhsOp, currentBB, nextBB, true), isVirtual(funcVirtual),
       functionName(funcName), argCount(argNumber), argsList(std::move(fnArgs)) {
   kind = INSTRUCTION_KIND_CALL;
 }

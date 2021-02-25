@@ -8,6 +8,7 @@ namespace nballerina {
 
 // Forward Declaration
 class Operand;
+class BasicBlock;
 
 class BinaryOpInsn : public NonTerminatorInsn {
 private:
@@ -17,7 +18,8 @@ private:
 
 public:
   BinaryOpInsn() = delete;
-  BinaryOpInsn(Operand *lOp, Operand *rOp1, Operand *rOp2);
+  BinaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp1,
+               Operand *rOp2);
   ~BinaryOpInsn() = default;
 
   Operand *getRhsOp1();

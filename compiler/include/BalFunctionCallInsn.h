@@ -20,7 +20,7 @@ public:
   FunctionCallInsn() = delete;
   FunctionCallInsn(bool funcVirtual, std::string _funcName, int argNumber,
                    BasicBlock *nextBB, Operand *lhsOp,
-                   std::vector<Operand *> &fnArgs);
+                   std::vector<Operand *> &fnArgs, BasicBlock *currentBB);
   ~FunctionCallInsn() = default;
 
   void setRestParam(Param *rParam);

@@ -14,8 +14,8 @@ namespace nballerina {
 
 // new Map Instruction and Codegen logic are in the llvmStructure.cpp
 
-MapStoreInsn::MapStoreInsn(Operand *lOp, Operand *KOp, Operand *rOp)
-    : NonTerminatorInsn(lOp), keyOp(KOp), rhsOp(rOp) {}
+MapStoreInsn::MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp, Operand *rOp)
+    : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
 Operand *MapStoreInsn::getKeyOp() { return keyOp; }
 Operand *MapStoreInsn::getRhsOp() { return rhsOp; }

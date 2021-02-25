@@ -14,7 +14,8 @@ using namespace llvm;
 
 namespace nballerina {
 
-ConstantLoadInsn::ConstantLoadInsn(Operand *lOp) : NonTerminatorInsn(lOp) {}
+ConstantLoadInsn::ConstantLoadInsn(Operand *lOp, BasicBlock *currentBB)
+    : NonTerminatorInsn(lOp, currentBB) {}
 
 int ConstantLoadInsn::getIntValue() { return val.intValue; }
 float ConstantLoadInsn::getFloatValue() { return val.floatValue; }

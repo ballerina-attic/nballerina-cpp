@@ -15,7 +15,7 @@ private:
 
 public:
   StructureInsn() = delete;
-  StructureInsn(Operand *lOp, Operand *rhsOp);
+  StructureInsn(Operand *lOp, BasicBlock *currentBB, Operand *rhsOp);
   ~StructureInsn() = default;
 
   Operand *getRhsOp();

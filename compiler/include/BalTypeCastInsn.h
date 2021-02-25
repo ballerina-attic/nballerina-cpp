@@ -17,7 +17,8 @@ private:
 
 public:
   TypeCastInsn() = delete;
-  TypeCastInsn(Operand *lOp, Operand *rOp, TypeDecl *tDecl, bool checkTypes);
+  TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
+               TypeDecl *tDecl, bool checkTypes);
   ~TypeCastInsn() = default;
 
   Operand *getRhsOp();

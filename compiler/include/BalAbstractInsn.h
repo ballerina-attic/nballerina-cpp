@@ -18,7 +18,7 @@ private:
 
 public:
   AbstractInsn() = delete;
-  AbstractInsn(Operand *lOp);
+  AbstractInsn(Operand *lOp, BasicBlock *currentBB);
   virtual ~AbstractInsn() = default;
 
   Operand *getLhsOperand();
@@ -26,7 +26,7 @@ public:
   BasicBlock *getCurrentBB();
   Package *getPkgAddress();
 
-  void setCurrentBB(BasicBlock *currB);
+  // void setCurrentBB(BasicBlock *currB);
 };
 
 } // namespace nballerina

@@ -9,7 +9,8 @@
 
 namespace nballerina {
 
-GoToInsn::GoToInsn(BasicBlock *nextBB) : TerminatorInsn(nullptr, nextBB, true) {
+GoToInsn::GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB)
+    : TerminatorInsn(nullptr, currentBB, nextBB, true) {
   kind = INSTRUCTION_KIND_GOTO;
 }
 

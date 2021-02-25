@@ -12,7 +12,7 @@ private:
 
 public:
   MapStoreInsn() = delete;
-  MapStoreInsn(Operand *lOp, Operand *KOp, Operand *ROp);
+  MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp, Operand *ROp);
   ~MapStoreInsn() = default;
 
   Operand *getKeyOp();

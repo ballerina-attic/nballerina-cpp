@@ -14,7 +14,8 @@ using namespace llvm;
 
 namespace nballerina {
 
-ReturnInsn::ReturnInsn() : TerminatorInsn(nullptr, nullptr, false) {}
+ReturnInsn::ReturnInsn(BasicBlock *currentBB)
+    : TerminatorInsn(nullptr, currentBB, nullptr, false) {}
 
 void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();

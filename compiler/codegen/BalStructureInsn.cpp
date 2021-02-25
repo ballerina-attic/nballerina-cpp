@@ -11,8 +11,9 @@ using namespace llvm;
 
 namespace nballerina {
 
-StructureInsn::StructureInsn(Operand *lOp, Operand *_rhsOp)
-    : NonTerminatorInsn(lOp), rhsOp(_rhsOp) {}
+StructureInsn::StructureInsn(Operand *lOp, BasicBlock *currentBB,
+                             Operand *_rhsOp)
+    : NonTerminatorInsn(lOp, currentBB), rhsOp(_rhsOp) {}
 
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 

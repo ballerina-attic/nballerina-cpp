@@ -13,8 +13,8 @@ using namespace std;
 
 namespace nballerina {
 
-UnaryOpInsn::UnaryOpInsn(Operand *lOp, Operand *rOp)
-    : NonTerminatorInsn(lOp), rhsOp(rOp) {}
+UnaryOpInsn::UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp)
+    : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp) {}
 
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 

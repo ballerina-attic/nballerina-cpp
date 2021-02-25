@@ -274,28 +274,30 @@ Operand *BIRReader::readOperand() {
 }
 
 // Read TYPEDESC Insn
-TypeDescInsn *ReadTypeDescInsn::readNonTerminatorInsn() {
+TypeDescInsn *ReadTypeDescInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *lhsOp = readerRef.readOperand();
   uint32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
-  return new TypeDescInsn(lhsOp);
+  return new TypeDescInsn(lhsOp, currentBB);
 }
 
 // Read STRUCTURE Insn
-StructureInsn *ReadStructureInsn::readNonTerminatorInsn() {
+StructureInsn *ReadStructureInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *rhsOp = readerRef.readOperand();
   Operand *lhsOp = readerRef.readOperand();
-  return new StructureInsn(lhsOp, rhsOp);
+  return new StructureInsn(lhsOp, currentBB, rhsOp);
 }
 
 // Read CONST_LOAD Insn
-ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
+ConstantLoadInsn *
+ReadConstLoadInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint32_t typeCpIndex = readerRef.readS4be();
   TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
 
   Operand *lhsOperand = readerRef.readOperand();
   lhsOperand->getVarDecl()->setTypeDecl(typeDecl);
 
-  ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn(lhsOperand);
+  ConstantLoadInsn *constantloadInsn =
+      new ConstantLoadInsn(lhsOperand, currentBB);
 
   TypeTagEnum typeTag = readerRef.constantPool->getTypeTag(typeCpIndex);
   switch (typeTag) {
@@ -342,22 +344,22 @@ ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
 }
 
 // Read Unary Operand
-UnaryOpInsn *ReadUnaryInsn::readNonTerminatorInsn() {
+UnaryOpInsn *ReadUnaryInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *rhsOp = readerRef.readOperand();
   Operand *lhsOp = readerRef.readOperand();
-  return new UnaryOpInsn(lhsOp, rhsOp);
+  return new UnaryOpInsn(lhsOp, currentBB, rhsOp);
 }
 
 // Read Binary Operand
-BinaryOpInsn *ReadBinaryInsn::readNonTerminatorInsn() {
+BinaryOpInsn *ReadBinaryInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *rhsOp1 = readerRef.readOperand();
   Operand *rhsOp2 = readerRef.readOperand();
   Operand *lhsOp = readerRef.readOperand();
-  return new BinaryOpInsn(lhsOp, rhsOp1, rhsOp2);
+  return new BinaryOpInsn(lhsOp, currentBB, rhsOp1, rhsOp2);
 }
 
 // Read BRANCH Insn
-ConditionBrInsn *ReadCondBrInsn::readTerminatorInsn() {
+ConditionBrInsn *ReadCondBrInsn::readTerminatorInsn(BasicBlock *currentBB) {
   Operand *lhsOp = readerRef.readOperand();
   uint32_t trueBbIdNameCpIndex = readerRef.readS4be();
   uint32_t falseBbIdNameCpIndex = readerRef.readS4be();
@@ -368,19 +370,20 @@ ConditionBrInsn *ReadCondBrInsn::readTerminatorInsn() {
   BasicBlock *falseDummybasicBlock =
       new BasicBlock(readerRef.constantPool->getStringCp(falseBbIdNameCpIndex));
 
-  return new ConditionBrInsn(lhsOp, trueDummybasicBlock, falseDummybasicBlock);
+  return new ConditionBrInsn(lhsOp, currentBB, trueDummybasicBlock,
+                             falseDummybasicBlock);
 }
 
 // Read MOV Insn
-MoveInsn *ReadMoveInsn::readNonTerminatorInsn() {
+MoveInsn *ReadMoveInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *rhsOp = readerRef.readOperand();
   Operand *lhsOp = readerRef.readOperand();
 
-  return new MoveInsn(lhsOp, rhsOp);
+  return new MoveInsn(lhsOp, currentBB, rhsOp);
 }
 
 // Read Function Call
-FunctionCallInsn *ReadFuncCallInsn::readTerminatorInsn() {
+FunctionCallInsn *ReadFuncCallInsn::readTerminatorInsn(BasicBlock *currentBB) {
   uint8_t isVirtual = readerRef.readU1();
   uint32_t packageIndex __attribute__((unused)) = readerRef.readS4be();
   uint32_t callNameCpIndex = readerRef.readS4be();
@@ -403,11 +406,11 @@ FunctionCallInsn *ReadFuncCallInsn::readTerminatorInsn() {
       new BasicBlock(readerRef.constantPool->getStringCp(thenBbIdNameCpIndex));
 
   return new FunctionCallInsn((bool)isVirtual, funcName, argumentsCount,
-                              dummybasicBlock, lhsOp, fnArgs);
+                              dummybasicBlock, lhsOp, fnArgs, currentBB);
 }
 
 // Read TypeCast Insn
-TypeCastInsn *ReadTypeCastInsn::readNonTerminatorInsn() {
+TypeCastInsn *ReadTypeCastInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *lhsOperand = readerRef.readOperand();
   Operand *rhsOperand = readerRef.readOperand();
 
@@ -415,62 +418,66 @@ TypeCastInsn *ReadTypeCastInsn::readNonTerminatorInsn() {
   TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
   uint8_t isCheckTypes = readerRef.readU1();
 
-  return new TypeCastInsn(lhsOperand, rhsOperand, typeDecl, (bool)isCheckTypes);
+  return new TypeCastInsn(lhsOperand, currentBB, rhsOperand, typeDecl,
+                          (bool)isCheckTypes);
 }
 
 // Read Type Test Insn
-TypeTestInsn *ReadTypeTestInsn::readNonTerminatorInsn() {
+TypeTestInsn *ReadTypeTestInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint32_t typeCpIndex = readerRef.readS4be();
   TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
   Operand *lhsOperand = readerRef.readOperand();
   Operand *rhsOperand = readerRef.readOperand();
-  return new TypeTestInsn(lhsOperand, rhsOperand, typeDecl);
+  return new TypeTestInsn(lhsOperand, currentBB, rhsOperand, typeDecl);
 }
 
 // Read Array Insn
-ArrayInsn *ReadArrayInsn::readNonTerminatorInsn() {
+ArrayInsn *ReadArrayInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint32_t typeCpIndex = readerRef.readS4be();
   TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
   Operand *lhsOperand = readerRef.readOperand();
   Operand *sizeOperand = readerRef.readOperand();
-  return new ArrayInsn(lhsOperand, sizeOperand, typeDecl);
+  return new ArrayInsn(lhsOperand, currentBB, sizeOperand, typeDecl);
 }
 
 // Read Array Store Insn
-ArrayStoreInsn *ReadArrayStoreInsn::readNonTerminatorInsn() {
+ArrayStoreInsn *
+ReadArrayStoreInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *lhsOperand = readerRef.readOperand();
   Operand *keyOperand = readerRef.readOperand();
   Operand *rhsOperand = readerRef.readOperand();
-  return new ArrayStoreInsn(lhsOperand, keyOperand, rhsOperand);
+  return new ArrayStoreInsn(lhsOperand, currentBB, keyOperand, rhsOperand);
 }
 
 // Read Array Load Insn
-ArrayLoadInsn *ReadArrayLoadInsn::readNonTerminatorInsn() {
+ArrayLoadInsn *ReadArrayLoadInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint8_t optionalFieldAccess = readerRef.readU1();
   uint8_t fillingRead = readerRef.readU1();
   Operand *lhsOperand = readerRef.readOperand();
   Operand *keyOperand = readerRef.readOperand();
   Operand *rhsOperand = readerRef.readOperand();
-  return new ArrayLoadInsn(lhsOperand, (bool)optionalFieldAccess,
+  return new ArrayLoadInsn(lhsOperand, currentBB, (bool)optionalFieldAccess,
                            (bool)fillingRead, keyOperand, rhsOperand);
 }
 
 // Read Map Store Insn
-MapStoreInsn *ReadMapStoreInsn::readNonTerminatorInsn() {
+MapStoreInsn *ReadMapStoreInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *lhsOperand = readerRef.readOperand();
   Operand *keyOperand = readerRef.readOperand();
   Operand *rhsOperand = readerRef.readOperand();
-  return new MapStoreInsn(lhsOperand, keyOperand, rhsOperand);
+  return new MapStoreInsn(lhsOperand, currentBB, keyOperand, rhsOperand);
 }
 
-GoToInsn *ReadGoToInsn::readTerminatorInsn() {
+GoToInsn *ReadGoToInsn::readTerminatorInsn(BasicBlock *currentBB) {
   uint32_t nameId = readerRef.readS4be();
   BasicBlock *dummybasicBlock =
       new BasicBlock(readerRef.constantPool->getStringCp(nameId));
-  return new GoToInsn(dummybasicBlock);
+  return new GoToInsn(dummybasicBlock, currentBB);
 }
 
-ReturnInsn *ReadReturnInsn::readTerminatorInsn() { return new ReturnInsn(); }
+ReturnInsn *ReadReturnInsn::readTerminatorInsn(BasicBlock *currentBB) {
+  return new ReturnInsn(currentBB);
+}
 
 // Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the
 // BIR
@@ -490,35 +497,32 @@ void BIRReader::readInsn(BasicBlock *basicBlock) {
   switch (insnKind) {
   case INSTRUCTION_KIND_NEW_TYPEDESC: {
     TypeDescInsn *typeDescInsn =
-        ReadTypeDescInsn::readTypeDescInsn.readNonTerminatorInsn();
+        ReadTypeDescInsn::readTypeDescInsn.readNonTerminatorInsn(basicBlock);
     delete typeDescInsn;
     break;
   }
   case INSTRUCTION_KIND_NEW_STRUCTURE: {
     StructureInsn *structureInsn =
-        ReadStructureInsn::readStructureInsn.readNonTerminatorInsn();
-    structureInsn->setCurrentBB(basicBlock);
+        ReadStructureInsn::readStructureInsn.readNonTerminatorInsn(basicBlock);
     structureInsn->setLocation(location);
     basicBlock->addNonTermInsn(structureInsn);
     break;
   }
   case INSTRUCTION_KIND_CONST_LOAD: {
     ConstantLoadInsn *constantloadInsn =
-        ReadConstLoadInsn::readConstLoadInsn.readNonTerminatorInsn();
-    constantloadInsn->setCurrentBB(basicBlock);
+        ReadConstLoadInsn::readConstLoadInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(constantloadInsn);
     break;
   }
   case INSTRUCTION_KIND_GOTO: {
-    GoToInsn *gotoInsn = ReadGoToInsn::readGoToInsn.readTerminatorInsn();
-    gotoInsn->setCurrentBB(basicBlock);
+    GoToInsn *gotoInsn =
+        ReadGoToInsn::readGoToInsn.readTerminatorInsn(basicBlock);
     basicBlock->setTerminatorInsn(gotoInsn);
     break;
   }
   case INSTRUCTION_KIND_RETURN: {
     ReturnInsn *returnInsn =
-        ReadReturnInsn::readReturnInsn.readTerminatorInsn();
-    returnInsn->setCurrentBB(basicBlock);
+        ReadReturnInsn::readReturnInsn.readTerminatorInsn(basicBlock);
     basicBlock->setTerminatorInsn(returnInsn);
     break;
   }
@@ -535,8 +539,7 @@ void BIRReader::readInsn(BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_BINARY_BITWISE_XOR:
   case INSTRUCTION_KIND_BINARY_MOD: {
     BinaryOpInsn *binaryOpInsn =
-        ReadBinaryInsn::readBinaryInsn.readNonTerminatorInsn();
-    binaryOpInsn->setCurrentBB(basicBlock);
+        ReadBinaryInsn::readBinaryInsn.readNonTerminatorInsn(basicBlock);
     binaryOpInsn->setInstKind(insnKind);
     basicBlock->addNonTermInsn(binaryOpInsn);
     break;
@@ -544,69 +547,62 @@ void BIRReader::readInsn(BasicBlock *basicBlock) {
   case INSTRUCTION_KIND_UNARY_NEG:
   case INSTRUCTION_KIND_UNARY_NOT: {
     UnaryOpInsn *unaryOpInsn =
-        ReadUnaryInsn::readUnaryInsn.readNonTerminatorInsn();
-    unaryOpInsn->setCurrentBB(basicBlock);
+        ReadUnaryInsn::readUnaryInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(unaryOpInsn);
     break;
   }
   case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
     ConditionBrInsn *conditionBrInsn =
-        ReadCondBrInsn::readCondBrInsn.readTerminatorInsn();
-    conditionBrInsn->setCurrentBB(basicBlock);
+        ReadCondBrInsn::readCondBrInsn.readTerminatorInsn(basicBlock);
     basicBlock->setTerminatorInsn(conditionBrInsn);
     break;
   }
   case INSTRUCTION_KIND_MOVE: {
-    MoveInsn *moveInsn = ReadMoveInsn::readMoveInsn.readNonTerminatorInsn();
-    moveInsn->setCurrentBB(basicBlock);
+    MoveInsn *moveInsn =
+        ReadMoveInsn::readMoveInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(moveInsn);
     break;
   }
   case INSTRUCTION_KIND_CALL: {
     FunctionCallInsn *functionCallInsn =
-        ReadFuncCallInsn::readFuncCallInsn.readTerminatorInsn();
-    functionCallInsn->setCurrentBB(basicBlock);
+        ReadFuncCallInsn::readFuncCallInsn.readTerminatorInsn(basicBlock);
     basicBlock->setTerminatorInsn(functionCallInsn);
     break;
   }
   case INSTRUCTION_KIND_TYPE_CAST: {
     TypeCastInsn *typeCastInsn =
-        ReadTypeCastInsn::readTypeCastInsn.readNonTerminatorInsn();
-    typeCastInsn->setCurrentBB(basicBlock);
+        ReadTypeCastInsn::readTypeCastInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(typeCastInsn);
     break;
   }
   case INSTRUCTION_KIND_TYPE_TEST: {
     TypeTestInsn *typeTestInsn =
-        ReadTypeTestInsn::readTypeTestInsn.readNonTerminatorInsn();
-    typeTestInsn->setCurrentBB(basicBlock);
+        ReadTypeTestInsn::readTypeTestInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(typeTestInsn);
     break;
   }
   case INSTRUCTION_KIND_NEW_ARRAY: {
-    ArrayInsn *arrayInsn = ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
-    arrayInsn->setCurrentBB(basicBlock);
+    ArrayInsn *arrayInsn =
+        ReadArrayInsn::readArrayInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(arrayInsn);
     break;
   }
   case INSTRUCTION_KIND_ARRAY_STORE: {
     ArrayStoreInsn *arrayStoreInsn =
-        ReadArrayStoreInsn::readArrayStoreInsn.readNonTerminatorInsn();
-    arrayStoreInsn->setCurrentBB(basicBlock);
+        ReadArrayStoreInsn::readArrayStoreInsn.readNonTerminatorInsn(
+            basicBlock);
     basicBlock->addNonTermInsn(arrayStoreInsn);
     break;
   }
   case INSTRUCTION_KIND_ARRAY_LOAD: {
     ArrayLoadInsn *arrayLoadInsn =
-        ReadArrayLoadInsn::readArrayLoadInsn.readNonTerminatorInsn();
-    arrayLoadInsn->setCurrentBB(basicBlock);
+        ReadArrayLoadInsn::readArrayLoadInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(arrayLoadInsn);
     break;
   }
   case INSTRUCTION_KIND_MAP_STORE: {
     MapStoreInsn *mapStoreInsn =
-        ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn();
-    mapStoreInsn->setCurrentBB(basicBlock);
+        ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn(basicBlock);
     basicBlock->addNonTermInsn(mapStoreInsn);
     break;
   }

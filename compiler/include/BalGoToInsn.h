@@ -11,7 +11,7 @@ private:
 
 public:
   GoToInsn() = delete;
-  GoToInsn(BasicBlock *nextBB);
+  GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB);
   ~GoToInsn() = default;
 
   LLVMValueRef getLLVMInsn();

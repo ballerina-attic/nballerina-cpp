@@ -17,9 +17,9 @@ using namespace llvm;
 
 namespace nballerina {
 
-TypeCastInsn::TypeCastInsn(Operand *lOp, Operand *rOp, TypeDecl *tDecl,
-                           bool checkTypes)
-    : NonTerminatorInsn(lOp), rhsOp(rOp), typeDecl(tDecl),
+TypeCastInsn::TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
+                           TypeDecl *tDecl, bool checkTypes)
+    : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp), typeDecl(tDecl),
       checkTypes(checkTypes) {}
 
 Operand *TypeCastInsn::getRhsOp() { return rhsOp; }

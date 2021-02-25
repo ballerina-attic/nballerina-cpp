@@ -11,8 +11,8 @@
 
 namespace nballerina {
 
-MoveInsn::MoveInsn(Operand *lOp, Operand *rOp)
-    : NonTerminatorInsn(lOp), rhsOp(rOp) {}
+MoveInsn::MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp)
+    : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp) {}
 
 Operand *MoveInsn::getRhsOp() { return rhsOp; }
 

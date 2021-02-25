@@ -11,7 +11,7 @@ private:
 
 public:
   MoveInsn() = delete;
-  MoveInsn(Operand *lOp, Operand *rOp);
+  MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
   ~MoveInsn() = default;
 
   Operand *getRhsOp();

@@ -21,7 +21,8 @@ protected:
 
 public:
   TerminatorInsn() = delete;
-  TerminatorInsn(Operand *lOp, BasicBlock *then, bool _patchRequire);
+  TerminatorInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *then,
+                 bool _patchRequire);
   virtual ~TerminatorInsn() = default;
 
   BasicBlock *getNextBB();

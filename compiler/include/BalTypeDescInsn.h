@@ -7,7 +7,8 @@ namespace nballerina {
 
 class TypeDescInsn : public NonTerminatorInsn {
 public:
-  TypeDescInsn(Operand *lOp) : NonTerminatorInsn(lOp){};
+  TypeDescInsn(Operand *lOp, BasicBlock *currentBB)
+      : NonTerminatorInsn(lOp, currentBB){};
   ~TypeDescInsn() = default;
 };
 

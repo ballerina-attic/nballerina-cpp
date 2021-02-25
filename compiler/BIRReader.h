@@ -305,16 +305,16 @@ class ReadNonTerminatorInstruction : public ReadInsn {
 public:
   ReadNonTerminatorInstruction() {}
   ~ReadNonTerminatorInstruction() {}
-  virtual nballerina::NonTerminatorInsn *readNonTerminatorInsn() {
-    return NULL;
-  }
+  virtual nballerina::NonTerminatorInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) = 0;
 };
 
 class ReadTerminatorInstruction : public ReadInsn {
 public:
   ReadTerminatorInstruction() {}
   ~ReadTerminatorInstruction() {}
-  virtual nballerina::TerminatorInsn *readTerminatorInsn() { return NULL; }
+  virtual nballerina::TerminatorInsn *
+  readTerminatorInsn(nballerina::BasicBlock *currentBB) = 0;
 };
 
 class ReadCondBrInsn : public ReadTerminatorInstruction {
@@ -322,7 +322,8 @@ public:
   static ReadCondBrInsn readCondBrInsn;
   ReadCondBrInsn() {}
   ~ReadCondBrInsn() {}
-  nballerina::ConditionBrInsn *readTerminatorInsn();
+  nballerina::ConditionBrInsn *
+  readTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadFuncCallInsn : public ReadTerminatorInstruction {
@@ -330,7 +331,8 @@ public:
   static ReadFuncCallInsn readFuncCallInsn;
   ReadFuncCallInsn() {}
   ~ReadFuncCallInsn() {}
-  nballerina::FunctionCallInsn *readTerminatorInsn();
+  nballerina::FunctionCallInsn *
+  readTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadGoToInsn : public ReadTerminatorInstruction {
@@ -338,7 +340,8 @@ public:
   static ReadGoToInsn readGoToInsn;
   ReadGoToInsn() {}
   ~ReadGoToInsn() {}
-  nballerina::GoToInsn *readTerminatorInsn();
+  nballerina::GoToInsn *
+  readTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadReturnInsn : public ReadTerminatorInstruction {
@@ -346,7 +349,8 @@ public:
   static ReadReturnInsn readReturnInsn;
   ReadReturnInsn() {}
   ~ReadReturnInsn() {}
-  nballerina::ReturnInsn *readTerminatorInsn();
+  nballerina::ReturnInsn *
+  readTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadBinaryInsn : public ReadNonTerminatorInstruction {
@@ -354,7 +358,8 @@ public:
   static ReadBinaryInsn readBinaryInsn;
   ReadBinaryInsn() {}
   ~ReadBinaryInsn() {}
-  nballerina::BinaryOpInsn *readNonTerminatorInsn();
+  nballerina::BinaryOpInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadUnaryInsn : public ReadNonTerminatorInstruction {
@@ -362,7 +367,8 @@ public:
   static ReadUnaryInsn readUnaryInsn;
   ReadUnaryInsn() {}
   ~ReadUnaryInsn() {}
-  nballerina::UnaryOpInsn *readNonTerminatorInsn();
+  nballerina::UnaryOpInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadConstLoadInsn : public ReadNonTerminatorInstruction {
@@ -370,7 +376,8 @@ public:
   static ReadConstLoadInsn readConstLoadInsn;
   ReadConstLoadInsn() {}
   ~ReadConstLoadInsn() {}
-  nballerina::ConstantLoadInsn *readNonTerminatorInsn();
+  nballerina::ConstantLoadInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadMoveInsn : public ReadNonTerminatorInstruction {
@@ -378,7 +385,8 @@ public:
   static ReadMoveInsn readMoveInsn;
   ReadMoveInsn() {}
   ~ReadMoveInsn() {}
-  nballerina::MoveInsn *readNonTerminatorInsn();
+  nballerina::MoveInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadTypeDescInsn : public ReadNonTerminatorInstruction {
@@ -386,7 +394,8 @@ public:
   static ReadTypeDescInsn readTypeDescInsn;
   ReadTypeDescInsn() {}
   ~ReadTypeDescInsn() {}
-  nballerina::TypeDescInsn *readNonTerminatorInsn();
+  nballerina::TypeDescInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadStructureInsn : public ReadNonTerminatorInstruction {
@@ -394,7 +403,8 @@ public:
   static ReadStructureInsn readStructureInsn;
   ReadStructureInsn() {}
   ~ReadStructureInsn() {}
-  nballerina::StructureInsn *readNonTerminatorInsn();
+  nballerina::StructureInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadTypeCastInsn : public ReadNonTerminatorInstruction {
@@ -402,7 +412,8 @@ public:
   static ReadTypeCastInsn readTypeCastInsn;
   ReadTypeCastInsn() {}
   ~ReadTypeCastInsn() {}
-  nballerina::TypeCastInsn *readNonTerminatorInsn();
+  nballerina::TypeCastInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadTypeTestInsn : public ReadNonTerminatorInstruction {
@@ -410,7 +421,8 @@ public:
   ReadTypeTestInsn() {}
   static ReadTypeTestInsn readTypeTestInsn;
   ~ReadTypeTestInsn() {}
-  nballerina::TypeTestInsn *readNonTerminatorInsn();
+  nballerina::TypeTestInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadArrayInsn : public ReadNonTerminatorInstruction {
@@ -418,7 +430,8 @@ public:
   ReadArrayInsn() {}
   static ReadArrayInsn readArrayInsn;
   ~ReadArrayInsn() {}
-  nballerina::ArrayInsn *readNonTerminatorInsn();
+  nballerina::ArrayInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadArrayStoreInsn : public ReadNonTerminatorInstruction {
@@ -426,7 +439,8 @@ public:
   ReadArrayStoreInsn() {}
   static ReadArrayStoreInsn readArrayStoreInsn;
   ~ReadArrayStoreInsn() {}
-  nballerina::ArrayStoreInsn *readNonTerminatorInsn();
+  nballerina::ArrayStoreInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadArrayLoadInsn : public ReadNonTerminatorInstruction {
@@ -434,7 +448,8 @@ public:
   ReadArrayLoadInsn() {}
   static ReadArrayLoadInsn readArrayLoadInsn;
   ~ReadArrayLoadInsn() {}
-  nballerina::ArrayLoadInsn *readNonTerminatorInsn();
+  nballerina::ArrayLoadInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 class ReadMapStoreInsn : public ReadNonTerminatorInstruction {
@@ -442,7 +457,8 @@ public:
   ReadMapStoreInsn() {}
   static ReadMapStoreInsn readMapStoreInsn;
   ~ReadMapStoreInsn() {}
-  nballerina::MapStoreInsn *readNonTerminatorInsn();
+  nballerina::MapStoreInsn *
+  readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 #endif // BIRREADER_H

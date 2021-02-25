@@ -5,10 +5,13 @@
 
 namespace nballerina {
 
+// Forward Declaration
+class BasicBlock;
+
 class ReturnInsn : public TerminatorInsn {
 private:
 public:
-  ReturnInsn();
+  ReturnInsn(BasicBlock *currentBB);
   ~ReturnInsn() = default;
 
   void translate(LLVMModuleRef &modRef) final;

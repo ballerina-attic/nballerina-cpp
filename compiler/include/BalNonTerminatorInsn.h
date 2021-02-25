@@ -13,7 +13,7 @@ class NonTerminatorInsn : public AbstractInsn, public Translatable {
 private:
 public:
   NonTerminatorInsn() = delete;
-  NonTerminatorInsn(Operand *lOp);
+  NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB);
   virtual ~NonTerminatorInsn() = default;
 
   virtual void translate(LLVMModuleRef &modRef) override;

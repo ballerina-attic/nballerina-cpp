@@ -10,8 +10,9 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(Operand *lOp, Operand *sOp, TypeDecl *tDecl)
-    : NonTerminatorInsn(lOp), sizeOp(sOp), typeDecl(tDecl) {}
+ArrayInsn::ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp,
+                     TypeDecl *tDecl)
+    : NonTerminatorInsn(lOp, currentBB), sizeOp(sOp), typeDecl(tDecl) {}
 
 LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
                                                Package *pkg) {
@@ -50,10 +51,10 @@ void ArrayInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Load Instruction
-ArrayLoadInsn::ArrayLoadInsn(Operand *lOp, bool opFA, bool fR, Operand *KOp,
-                             Operand *ROp)
-    : NonTerminatorInsn(lOp), optionalFieldAccess(opFA), fillingRead(fR),
-      keyOp(KOp), rhsOp(ROp) {}
+ArrayLoadInsn::ArrayLoadInsn(Operand *lOp, BasicBlock *currentBB, bool opFA,
+                             bool fR, Operand *KOp, Operand *ROp)
+    : NonTerminatorInsn(lOp, currentBB), optionalFieldAccess(opFA),
+      fillingRead(fR), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef,
                                                     Package *pkg) {
@@ -100,8 +101,9 @@ void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Store Instruction
-ArrayStoreInsn::ArrayStoreInsn(Operand *lOp, Operand *KOp, Operand *rOp)
-    : NonTerminatorInsn(lOp), keyOp(KOp), rhsOp(rOp) {}
+ArrayStoreInsn::ArrayStoreInsn(Operand *lOp, BasicBlock *currentBB,
+                               Operand *KOp, Operand *rOp)
+    : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
 LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef,
                                                       Package *pkg) {

@@ -25,7 +25,7 @@ private:
 
 public:
   ConstantLoadInsn() = delete;
-  ConstantLoadInsn(Operand *lOp);
+  ConstantLoadInsn(Operand *lOp, BasicBlock *currentBB);
   ~ConstantLoadInsn() = default;
 
   int getIntValue();

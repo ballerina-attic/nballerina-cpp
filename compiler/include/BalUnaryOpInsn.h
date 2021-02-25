@@ -14,7 +14,7 @@ private:
 
 public:
   UnaryOpInsn() = delete;
-  UnaryOpInsn(Operand *lOp, Operand *rOp);
+  UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
   ~UnaryOpInsn() = default;
 
   void translate(LLVMModuleRef &modRef) final;

@@ -2,8 +2,9 @@
 
 namespace nballerina {
 
-TypeTestInsn::TypeTestInsn(Operand *lOp, Operand *rOp, TypeDecl *tDecl)
-    : NonTerminatorInsn(lOp), rhsOp(rOp), typeDecl(tDecl) {}
+TypeTestInsn::TypeTestInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
+                           TypeDecl *tDecl)
+    : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp), typeDecl(tDecl) {}
 
 Operand *TypeTestInsn::getRhsOp() { return rhsOp; }
 TypeDecl *TypeTestInsn::getTypeDecl() { return typeDecl; }

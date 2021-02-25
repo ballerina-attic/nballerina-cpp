@@ -16,7 +16,7 @@ private:
 
 public:
   ArrayInsn() = delete;
-  ArrayInsn(Operand *lOp, Operand *sOp, TypeDecl *TDecl);
+  ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp, TypeDecl *TDecl);
   ~ArrayInsn() = default;
 
   Operand *getSizeOp();
@@ -34,7 +34,8 @@ private:
 
 public:
   ArrayLoadInsn() = delete;
-  ArrayLoadInsn(Operand *lOp, bool opFA, bool fR, Operand *KOp, Operand *ROp);
+  ArrayLoadInsn(Operand *lOp, BasicBlock *currentBB, bool opFA, bool fR,
+                Operand *KOp, Operand *ROp);
   ~ArrayLoadInsn() = default;
 
   bool getOptionalFieldAccess();
@@ -54,7 +55,8 @@ private:
 
 public:
   ArrayStoreInsn() = delete;
-  ArrayStoreInsn(Operand *lOp, Operand *KOp, Operand *ROp);
+  ArrayStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp,
+                 Operand *ROp);
   ~ArrayStoreInsn() = default;
 
   Operand *getKeyOp();

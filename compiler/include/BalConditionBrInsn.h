@@ -12,7 +12,8 @@ private:
 
 public:
   ConditionBrInsn() = delete;
-  ConditionBrInsn(Operand *lOp, BasicBlock *_ifThenBB, BasicBlock *_elseBB);
+  ConditionBrInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *_ifThenBB,
+                  BasicBlock *_elseBB);
   ~ConditionBrInsn() = default;
 
   BasicBlock *getIfThenBB();

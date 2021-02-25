@@ -12,8 +12,9 @@
 using namespace std;
 
 namespace nballerina {
-BinaryOpInsn::BinaryOpInsn(Operand *lOp, Operand *rOp1, Operand *rOp2)
-    : NonTerminatorInsn(lOp), rhsOp1(rOp1), rhsOp2(rOp2) {}
+BinaryOpInsn::BinaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp1,
+                           Operand *rOp2)
+    : NonTerminatorInsn(lOp, currentBB), rhsOp1(rOp1), rhsOp2(rOp2) {}
 
 InstructionKind BinaryOpInsn::getInstKind() { return kind; }
 void BinaryOpInsn::setInstKind(InstructionKind _kind) { kind = _kind; }
