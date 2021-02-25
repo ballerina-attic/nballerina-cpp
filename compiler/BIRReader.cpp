@@ -117,7 +117,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 // Search float from the constant pool based on index
 float ConstantPoolSet::getFloatCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
   FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
   return floatCp->getValue();
@@ -126,7 +126,7 @@ float ConstantPoolSet::getFloatCp(uint32_t index) {
 // Search boolean from the constant pool based on index
 bool ConstantPoolSet::getBooleanCp(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
-  assert(poolEntry->getTag() !=
+  assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
   BooleanCpInfo *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
   return booleanCp->getValue();
