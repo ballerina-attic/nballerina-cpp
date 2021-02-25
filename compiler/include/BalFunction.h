@@ -13,7 +13,6 @@ namespace nballerina {
 
 // Forward Declaration
 class BasicBlock;
-class FuncParam;
 class Operand;
 class VarDecl;
 class InvokableType;
@@ -35,7 +34,6 @@ private:
   std::string workerName;
   LLVMBuilderRef builder;
   LLVMValueRef newFunction;
-  std::map<FuncParam *, std::vector<BasicBlock *>> params;
   std::map<std::string, LLVMValueRef> localVarRefs;
   std::map<std::string, LLVMValueRef> branchComparisonList;
 
