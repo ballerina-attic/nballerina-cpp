@@ -1,7 +1,6 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
-#include "interfaces/PackageNode.h"
 #include <string>
 
 namespace nballerina {
@@ -9,7 +8,7 @@ namespace nballerina {
 // Forward Declaration
 class VarDecl;
 
-class Operand : public PackageNode {
+class Operand {
 private:
   VarDecl *varDecl;
 

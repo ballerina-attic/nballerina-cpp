@@ -246,11 +246,11 @@ VarDecl *BIRReader::readLocalVar() {
 
 // Read Local Variable and return VarDecl pointer
 Operand *BIRReader::readOperand() {
-  uint8_t ignoredVar = readU1();
+  uint8_t ignoredVar __attribute__((unused)) = readU1();
 
   uint8_t kind = readU1();
 
-  uint8_t scope = readU1();
+  uint8_t scope __attribute__((unused))= readU1();
 
   uint32_t varDclNameCpIndex = readS4be();
 
@@ -263,7 +263,7 @@ Operand *BIRReader::readOperand() {
 
   VarDecl *varDecl =
       new VarDecl(typedcl, constantPool->getStringCp(varDclNameCpIndex),
-                  (VarKind)kind, (VarScope)scope, (bool)ignoredVar);
+                  (VarKind)kind);
   Operand *operand = new Operand(varDecl);
   return operand;
 }
