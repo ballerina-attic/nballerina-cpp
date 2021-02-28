@@ -27,15 +27,15 @@ LLVMValueRef BIRPackage::getGlobalVarRefUsingId(string globVar) {
 void BIRPackage::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new StringTableBuilder(StringTableBuilder::RAW, 1);
-  // creating external char pointer to store string table offset values.
+  // creating external char pointer to store string builder table.
   string charName = "__string_table_ptr";
   LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   Constant *charValue = Constant::getNullValue(unwrap(charPtrType));
-  GlobalVariable *charVar = new GlobalVariable(
+  GlobalVariable *charGloablVar = new GlobalVariable(
           *unwrap(modRef), unwrap(charPtrType), false,
           GlobalValue::ExternalLinkage, charValue, charName.c_str(), 0);
-  charVar->setAlignment(Align(4));
-  globalVarRefs.insert({charName, wrap(charVar)});
+  charGloablVar->setAlignment(Align(4));
+  globalVarRefs.insert({charName, wrap(charGloablVar)});
 
   // iterate over all global variables and translate
   for (auto const it : globalVars) {

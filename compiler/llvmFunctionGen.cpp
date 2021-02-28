@@ -99,13 +99,17 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   }
 }
 
-static LLVMValueRef generateAbortInsn (LLVMBuilderRef &builder, 
-		LLVMModuleRef &modRef) {
-  unsigned int numParams = 0;
-  LLVMValueRef *paramRefs = new LLVMValueRef[numParams];
-  LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
-  LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 0, 0);
-  LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "abort", funcType);
+LLVMValueRef BIRFunction::generateAbortInsn (LLVMBuilderRef &builder,
+                LLVMModuleRef &modRef) {
+  BIRPackage *pkgObj  = getPkgAddress();
+  LLVMValueRef addedFuncRef = pkgObj->getFunctionRefBasedOnName ("abort");
+  LLVMValueRef *paramRefs = new LLVMValueRef[0];
+  if (!addedFuncRef) {
+    LLVMTypeRef *paramTypes = new LLVMTypeRef[0];
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 0, 0);
+    addedFuncRef = LLVMAddFunction(modRef, "abort", funcType);
+    pkgObj->addArrayFunctionRef("abort", addedFuncRef);
+  }
   return LLVMBuildCall(builder, addedFuncRef, paramRefs, 0, "");
 }
 
@@ -183,6 +187,8 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
 	  BasicBlock *New = Block->splitBasicBlock(
 	     ++I, Block->getName() + ".split");
 	  LLVMValueRef lastInsn = LLVMGetLastInstruction(wrap(Block));
+	  // branch intruction to the split BB is creating in BB2 (last BB) basicblock,
+	  // removing from BB2 and insert this branch instruction into BB0(split original BB).
 	  LLVMInstructionRemoveFromParent(lastInsn);
 	  // Creating abortBB (elseBB).
           LLVMBasicBlockRef elseLLVMBB = LLVMCreateBasicBlockInContext(
@@ -195,6 +201,7 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
           Block->getInstList().push_back(unwrap<Instruction>(Comp));
 	  LLVMValueRef newBBLastInsn = LLVMGetLastInstruction(wrap(New));
           LLVMBasicBlockRef elseBBSucc = LLVMGetSuccessor(newBBLastInsn, 0);
+	  // creating branch to else basicblock.
 	  LLVMValueRef brInsn = LLVMBuildBr(builder, elseBBSucc);
 	  LLVMInstructionRemoveFromParent(brInsn);
 	  // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
