@@ -1,6 +1,6 @@
 #include "BIR.h"
-#ifndef unix 
-    #define __attribute__(unused)
+#ifndef unix
+#define __attribute__(unused)
 #endif
 
 TypeCastInsn::TypeCastInsn() {}
@@ -32,41 +32,50 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     StringTableBuilder *strTable = getPkgAddress()->getStrTableBuilder();
     if (orignamVarDecl &&
         orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-      
-      // GEP of last type of smart pointer(original type of any variable(smart pointer))
+
+      // GEP of last type of smart pointer(original type of any variable(smart
+      // pointer))
       LLVMValueRef lastTypeIdx =
           LLVMBuildStructGEP(builder, rhsOpRef, 1, "lastTypeIdx");
       LLVMValueRef lastTypeLoad = LLVMBuildLoad(builder, lastTypeIdx, "");
       // sign extent of GEP to i64.
-      LLVMValueRef sExt = LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
+      LLVMValueRef sExt =
+          LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
       // Data object of smart pointer.
       LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 2, "data");
       LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
 
-      LLVMValueRef strTblPtr = getPkgAddress()->getGlobalVarRefUsingId("__string_table_ptr");
+      LLVMValueRef strTblPtr =
+          getPkgAddress()->getGlobalVarRefUsingId("__string_table_ptr");
       LLVMValueRef strTblLoad = LLVMBuildLoad(builder, strTblPtr, "");
       LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
       sizeOpValueRef[0] = sExt;
-      LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
+      LLVMValueRef gepOfStr =
+          LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
 
-      // get the mangled name of the lhs type and store it to string 
+      // get the mangled name of the lhs type and store it to string
       // builder table.
       VarDecl *origVarDecl = funcObj->getNameVarDecl(lhsOpName);
       assert(origVarDecl->getTypeDecl()->getTypeTag());
       TypeTagEnum lhsTypeTag =
           TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
-      char const* lhsTypeName = typeStringMangleName(lhsOpRef, lhsTypeTag, funcObj);
+      char const *lhsTypeName =
+          typeStringMangleName(lhsOpRef, lhsTypeTag, funcObj);
       if (!strTable->contains(lhsTypeName))
         strTable->add(lhsTypeName);
-      LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), -1, 0);
+      int tempRandNum = rand() % 1000 + 1;
+      LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
       sizeOpValueRef[0] = constValue;
-      LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
-      // call is_same_type rust function to check LHS and RHS type are same or not.
+      LLVMValueRef lhsGep =
+          LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
+      // call is_same_type rust function to check LHS and RHS type are same or
+      // not.
       LLVMValueRef sameTypeResult = isSameType(modRef, lhsGep, gepOfStr);
       // creating branch condition using is_same_type() function result.
-      LLVMValueRef brCondition __attribute__((unused)) = LLVMBuildIsNotNull(
-          builder, sameTypeResult, "");
- 
+      LLVMValueRef brCondition __attribute__((unused)) =
+          LLVMBuildIsNotNull(builder, sameTypeResult, "");
+      getPkgAddress()->addStringOffsetRelocationEntry(lhsTypeName, lhsGep);
+
       LLVMValueRef castResult =
           LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
       LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
@@ -84,10 +93,12 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       assert(origVarDecl->getTypeDecl()->getTypeTag());
       TypeTagEnum origTypeTag =
           TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
-      char const* origTypeName = typeStringMangleName(lhsOpRef, origTypeTag, funcObj);
+      char const *origTypeName =
+          typeStringMangleName(lhsOpRef, origTypeTag, funcObj);
       if (!strTable->contains(origTypeName))
         strTable->add(origTypeName);
-      LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), -1, 0);
+      int tempRandNum1 = rand() % 1000 + 1;
+      LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
       LLVMValueRef origStoreRef =
           LLVMBuildStore(builder, constValue, origTypeIdx);
       getPkgAddress()->addStringOffsetRelocationEntry(origTypeName,
@@ -99,10 +110,12 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
       TypeTagEnum lastTypeTag =
           TypeTagEnum(lastTypeVarDecl->getTypeDecl()->getTypeTag());
-      char const* lastTypeName = typeStringMangleName(rhsOpRef, lastTypeTag, funcObj);
+      char const *lastTypeName =
+          typeStringMangleName(rhsOpRef, lastTypeTag, funcObj);
       if (!strTable->contains(lastTypeName))
         strTable->add(lastTypeName);
-      LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), -2, 0);
+      int tempRandNum2 = rand() % 1000 + 1;
+      LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), tempRandNum2, 0);
       LLVMValueRef lastStoreRef =
           LLVMBuildStore(builder, constValue1, lastTypeIdx);
       getPkgAddress()->addStringOffsetRelocationEntry(lastTypeName,
@@ -120,8 +133,10 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
   }
 }
 
-LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration (LLVMModuleRef &modRef,
-                BIRPackage *pkg, LLVMValueRef lhsRef, LLVMValueRef rhsRef) {
+LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(LLVMModuleRef &modRef,
+                                                    BIRPackage *pkg,
+                                                    LLVMValueRef lhsRef,
+                                                    LLVMValueRef rhsRef) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
   paramTypes[0] = LLVMTypeOf(lhsRef);
   paramTypes[1] = LLVMTypeOf(rhsRef);
@@ -131,23 +146,25 @@ LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration (LLVMModuleRef &modRef,
   return addedFuncRef;
 }
 
-LLVMValueRef TypeCastInsn::isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef,
-                LLVMValueRef rhsRef) {
+LLVMValueRef TypeCastInsn::isSameType(LLVMModuleRef &modRef,
+                                      LLVMValueRef lhsRef,
+                                      LLVMValueRef rhsRef) {
   BIRFunction *funcObj = getFunction();
-  BIRPackage *pkgObj  = getPkgAddress();
+  BIRPackage *pkgObj = getPkgAddress();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef *paramRefs = new LLVMValueRef[2];
-  LLVMValueRef addedFuncRef = pkgObj->getFunctionRefBasedOnName ("is_same_type");
+  LLVMValueRef addedFuncRef = pkgObj->getFunctionRefBasedOnName("is_same_type");
   if (!addedFuncRef)
-    addedFuncRef = getIsSameTypeDeclaration (modRef, pkgObj, lhsRef, rhsRef);
+    addedFuncRef = getIsSameTypeDeclaration(modRef, pkgObj, lhsRef, rhsRef);
   paramRefs[0] = lhsRef;
   paramRefs[1] = rhsRef;
   return LLVMBuildCall(builder, addedFuncRef, paramRefs, 2, "call");
 }
 
-char const* TypeCastInsn::typeStringMangleName(LLVMValueRef typeVal, TypeTagEnum typeTag,
-                                       BIRFunction *funcObj) {
-  char const* finalString;
+char const *TypeCastInsn::typeStringMangleName(LLVMValueRef typeVal,
+                                               TypeTagEnum typeTag,
+                                               BIRFunction *funcObj) {
+  char const *finalString;
   switch (typeTag) {
   case TYPE_TAG_INT: {
     finalString = "__I";
@@ -171,6 +188,7 @@ char const* TypeCastInsn::typeStringMangleName(LLVMValueRef typeVal, TypeTagEnum
   }
   case TYPE_TAG_ARRAY: {
     LLVMTypeRef valType = LLVMTypeOf(typeVal);
+    // TODO Need to add Size of the array.
     if (unwrap(valType)->getPointerElementType()->isIntegerTy())
       finalString = "__AI";
     else

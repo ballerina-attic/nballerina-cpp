@@ -40,13 +40,12 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
   } else {
     assert(funcObj && funcObj->getReturnVar() &&
            funcObj->getReturnVar()->getTypeDecl());
-    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() !=
-        TYPE_TAG_NIL) {
+    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
       LLVMValueRef retValueRef = LLVMBuildLoad(
           builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
       LLVMBuildRet(builder, retValueRef);
     } else if (builder) {
-        LLVMBuildRetVoid(builder);
+      LLVMBuildRetVoid(builder);
     }
   }
 }

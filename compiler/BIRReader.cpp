@@ -1,9 +1,9 @@
 #include "BIRReader.h"
 #include "BIR.h"
-#ifdef unix 
-    #include <libgen.h> 
-#else 
-    #define __attribute__(unused)
+#ifdef unix
+#include <libgen.h>
+#else
+#define __attribute__(unused)
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -148,7 +148,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
     char newName[20];
     char *p;
     p = strcpy(newName, "anon-") + strlen("anon-");
-    sprintf(p, "%5ld",  (long) std::rand() % 100000);
+    sprintf(p, "%5ld", (long)std::rand() % 100000);
     typeDecl->setTypeDeclName(newName);
   }
   typeDecl->setTypeTag(shapeCp->getTypeTag());
@@ -305,7 +305,7 @@ ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
   case TYPE_TAG_BOOLEAN: {
     uint8_t valueCpIndex = readerRef.readU1();
     constantloadInsn->setBoolValue(
-	readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
+        readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
     break;
   }
   case TYPE_TAG_FLOAT: {
@@ -619,8 +619,7 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     break;
   }
   case INSTRUCTION_KIND_NEW_ARRAY: {
-    ArrayInsn *arrayInsn =
-        ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
+    ArrayInsn *arrayInsn = ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
     arrayInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayInsn);
     break;
