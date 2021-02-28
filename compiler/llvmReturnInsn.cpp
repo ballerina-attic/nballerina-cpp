@@ -22,7 +22,7 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
 
   if (funcObj->getName() != MAIN_FUNCTION_NAME) {
     LLVMValueRef retValueRef = LLVMBuildLoad(
-    builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
+    builder, funcObj->getLocalVarRefUsingId("%0"), "return_temp");
     LLVMBuildRet(builder, retValueRef);  
     return;
   }
@@ -35,11 +35,8 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
   if (builder && funcObj) {
     LLVMValueRef lhsRef =
         funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
-    if (lhsRef) {
-      return;
-    }
     lhsRef = getPkgAddress()->getGlobalVarRefUsingId(returnVarDecl->getVarName());
-    LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
+    LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "return_temp");
     if (retValRef) {
       LLVMBuildRet(builder, retValRef);
     }

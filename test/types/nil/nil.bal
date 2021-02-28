@@ -3,6 +3,7 @@
 public function main() {
   () nilVal = bar();
   foo();
+  () n = baz();
 }
 
 function foo() {
@@ -11,6 +12,11 @@ function foo() {
 
 function bar() returns () {
   return ();
+}
+
+function baz() returns () {
+  () nilVal = ();
+  return nilVal;
 }
 
 // CHECK: RETVAL=0

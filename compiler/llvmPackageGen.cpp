@@ -84,7 +84,7 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
 
     if (birFunc->getReturnVar())
       retType = birFunc->getLLVMFuncRetTypeRefOfType(
-          birFunc->getReturnVar(), birFunc->getName());
+          birFunc->getReturnVar());
     for (unsigned i = 0; i < numParams; i++) {
       Operand *funcParam = birFunc->getParam(i);
       if (funcParam && funcParam->typeTag() == TYPE_TAG_ANY) {

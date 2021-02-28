@@ -64,7 +64,7 @@ static bool isParamter(VarDecl *locVar) {
   }
 }
 
-LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl, string funcName) {
+LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   int typeTag = 0;
   if (vDecl->getTypeDecl())
     typeTag = vDecl->getTypeDecl()->getTypeTag();
@@ -82,7 +82,7 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl, string func
   case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_NIL : {
-    if (funcName != MAIN_FUNCTION_NAME) {
+    if (name != MAIN_FUNCTION_NAME) {
       return LLVMPointerType(LLVMInt8Type(), 0);
     }
     // if main function return type is void, but user wants to return some
