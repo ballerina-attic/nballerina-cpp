@@ -405,10 +405,8 @@ public:
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
   void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
   void translate(LLVMModuleRef &modRef);
-  LLVMValueRef getCanTypeCastDeclaration (LLVMModuleRef &modRef,
+  LLVMValueRef getIsSameTypeDeclaration (LLVMModuleRef &modRef,
                 BIRPackage *pkg, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-  LLVMValueRef canTypeCast(LLVMModuleRef &modRef, LLVMValueRef lhsRef,
-                LLVMValueRef rhsRef);
   LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef,
                 LLVMValueRef rhsRef);
   char const* typeStringMangleName(LLVMValueRef typeVal, TypeTagEnum typeTag,
@@ -815,6 +813,8 @@ public:
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(string opName);
   const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);
+  LLVMValueRef generateAbortInsn (LLVMBuilderRef &builder,
+                LLVMModuleRef &modRef);
   void translate(LLVMModuleRef &modRef);
 };
 
