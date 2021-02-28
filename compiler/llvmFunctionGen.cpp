@@ -99,10 +99,10 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   }
 }
 
-LLVMValueRef BIRFunction::generateAbortInsn (LLVMBuilderRef &builder,
-                LLVMModuleRef &modRef) {
-  BIRPackage *pkgObj  = getPkgAddress();
-  LLVMValueRef addedFuncRef = pkgObj->getFunctionRefBasedOnName ("abort");
+LLVMValueRef BIRFunction::generateAbortInsn(LLVMBuilderRef &builder,
+                                            LLVMModuleRef &modRef) {
+  BIRPackage *pkgObj = getPkgAddress();
+  LLVMValueRef addedFuncRef = pkgObj->getFunctionRefBasedOnName("abort");
   LLVMValueRef *paramRefs = new LLVMValueRef[0];
   if (!addedFuncRef) {
     LLVMTypeRef *paramTypes = new LLVMTypeRef[0];
@@ -163,59 +163,66 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
     bb->translate(modRef);
   }
 
-  // Splitting Basicblock after 'is_same_type()' function call and 
+  // Splitting Basicblock after 'is_same_type()' function call and
   // based on is_same_type() function result, crating branch condition using
   // New Basicblock (ifBB) and abortBB(elseBB).
   // In IfBB we are doing casing and from ElseBB Aborting.
 
   unsigned totalBB = LLVMCountBasicBlocks(getNewFunctionRef());
-  LLVMBasicBlockRef currentBB = LLVMGetFirstBasicBlock(getNewFunctionRef());;
+  LLVMBasicBlockRef currentBB = LLVMGetFirstBasicBlock(getNewFunctionRef());
+  ;
   for (unsigned i = 0; i < totalBB; i++) {
     BasicBlock *Block = unwrap(currentBB);
     for (BasicBlock::iterator I = Block->begin(); I != Block->end(); ++I) {
       CallInst *CI = dyn_cast<CallInst>(&*I);
       if (CI) {
-	string insnName;
-	if (CI->getNumOperands() == 2)
-	  insnName = CI->getOperand(1)->getName().data();
-	else if (CI->getNumOperands() == 3)
-	  insnName = CI->getOperand(2)->getName().data();
-	if (insnName == "is_same_type") {
-	  advance(I,1);
-	  Instruction  *compInsn = &*I;
-	  // Splitting BasicBlock.
-	  BasicBlock *New = Block->splitBasicBlock(
-	     ++I, Block->getName() + ".split");
-	  LLVMValueRef lastInsn = LLVMGetLastInstruction(wrap(Block));
-	  // branch intruction to the split BB is creating in BB2 (last BB) basicblock,
-	  // removing from BB2 and insert this branch instruction into BB0(split original BB).
-	  LLVMInstructionRemoveFromParent(lastInsn);
-	  // Creating abortBB (elseBB).
-          LLVMBasicBlockRef elseLLVMBB = LLVMCreateBasicBlockInContext(
-			  LLVMGetGlobalContext(), "abortBB");
-	  // Creating Branch condition using if and else BB's.
-	  LLVMValueRef Comp = LLVMBuildCondBr(builder, wrap(compInsn), wrap(New), elseLLVMBB);
-	  // branch to abortBB instruction is generating in last(e.g bb2 BB) basicblock.
-	  // here, moving from bb2 to bb0.split basicblock.
-	  LLVMInstructionRemoveFromParent(Comp);
+        string insnName;
+        if (CI->getNumOperands() == 2)
+          insnName = CI->getOperand(1)->getName().data();
+        else if (CI->getNumOperands() == 3)
+          insnName = CI->getOperand(2)->getName().data();
+        if (insnName == "is_same_type") {
+          advance(I, 1);
+          Instruction *compInsn = &*I;
+          // Splitting BasicBlock.
+          BasicBlock *New =
+              Block->splitBasicBlock(++I, Block->getName() + ".split");
+          LLVMValueRef lastInsn = LLVMGetLastInstruction(wrap(Block));
+          // branch intruction to the split BB is creating in BB2 (last BB)
+          // basicblock, removing from BB2 and insert this branch instruction
+          // into BB0(split original BB).
+          LLVMInstructionRemoveFromParent(lastInsn);
+          // Creating abortBB (elseBB).
+          LLVMBasicBlockRef elseLLVMBB =
+              LLVMCreateBasicBlockInContext(LLVMGetGlobalContext(), "abortBB");
+          // Creating Branch condition using if and else BB's.
+          LLVMValueRef Comp =
+              LLVMBuildCondBr(builder, wrap(compInsn), wrap(New), elseLLVMBB);
+          // branch to abortBB instruction is generating in last(e.g bb2 BB)
+          // basicblock. here, moving from bb2 to bb0.split basicblock.
+          LLVMInstructionRemoveFromParent(Comp);
           Block->getInstList().push_back(unwrap<Instruction>(Comp));
-	  LLVMValueRef newBBLastInsn = LLVMGetLastInstruction(wrap(New));
+          LLVMValueRef newBBLastInsn = LLVMGetLastInstruction(wrap(New));
           LLVMBasicBlockRef elseBBSucc = LLVMGetSuccessor(newBBLastInsn, 0);
-	  // creating branch to else basicblock.
-	  LLVMValueRef brInsn = LLVMBuildBr(builder, elseBBSucc);
-	  LLVMInstructionRemoveFromParent(brInsn);
-	  // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
-	  LLVMValueRef abortInsn = generateAbortInsn (builder, modRef);
-	  LLVMInstructionRemoveFromParent(abortInsn);
-	  // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).
-	  unwrap(elseLLVMBB)->getInstList().push_back(unwrap<Instruction>(abortInsn));
-	  unwrap(elseLLVMBB)->getInstList().push_back(unwrap<Instruction>(brInsn));
-	  // Inserting elseLLVMBB (abort BB) after New (bb0.split) basicblock.
-	  New->getParent()->getBasicBlockList().insertAfter(New->getIterator(),
-                                                      unwrap(elseLLVMBB));
-	  currentBB = LLVMGetNextBasicBlock(currentBB);
-	  break;
-	}
+          // creating branch to else basicblock.
+          LLVMValueRef brInsn = LLVMBuildBr(builder, elseBBSucc);
+          LLVMInstructionRemoveFromParent(brInsn);
+          // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
+          LLVMValueRef abortInsn = generateAbortInsn(builder, modRef);
+          LLVMInstructionRemoveFromParent(abortInsn);
+          // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).
+          unwrap(elseLLVMBB)
+              ->getInstList()
+              .push_back(unwrap<Instruction>(abortInsn));
+          unwrap(elseLLVMBB)
+              ->getInstList()
+              .push_back(unwrap<Instruction>(brInsn));
+          // Inserting elseLLVMBB (abort BB) after New (bb0.split) basicblock.
+          New->getParent()->getBasicBlockList().insertAfter(New->getIterator(),
+                                                            unwrap(elseLLVMBB));
+          currentBB = LLVMGetNextBasicBlock(currentBB);
+          break;
+        }
       }
     }
     currentBB = LLVMGetNextBasicBlock(currentBB);

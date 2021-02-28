@@ -43,12 +43,12 @@ void FunctionCallInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef callResult;
   if (builder && namedFuncRef) {
     if (birFunc->getReturnVar()->getTypeDecl()->getTypeTag() == TYPE_TAG_NIL)
-    callResult =
-        LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "");
+      callResult =
+          LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "");
     else
-    callResult =
-        LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
-    if (callResult && lhsRef && !unwrap(callResult)->getType()->isVoidTy ()) {
+      callResult =
+          LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
+    if (callResult && lhsRef && !unwrap(callResult)->getType()->isVoidTy()) {
       LLVMBuildStore(builder, callResult, lhsRef);
     }
   }
