@@ -17,14 +17,19 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
   string lhsOpName = getLhsOperand()->name();
   string rhsOpName = rhsOp->name();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  LLVMValueRef rhsOpRef = NULL;
-  LLVMValueRef lhsOpRef = NULL;
-  LLVMTypeRef lhsTypeRef = NULL;
+  LLVMValueRef rhsOpRef;
+  LLVMValueRef lhsOpRef;
+  LLVMTypeRef lhsTypeRef;
   if (funcObj) {
     rhsOpRef = funcObj->getLocalVarRefUsingId(rhsOpName);
+    if (!rhsOpRef)
+      rhsOpRef = getPkgAddress()->getGlobalVarRefUsingId(rhsOpName);
     lhsOpRef = funcObj->getLocalVarRefUsingId(lhsOpName);
-    lhsTypeRef = wrap(unwrap(lhsOpRef)->getType());
+    if (!lhsOpRef)
+      lhsOpRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOpName);
+    lhsTypeRef = LLVMTypeOf(lhsOpRef);
     VarDecl *orignamVarDecl = funcObj->getNameVarDecl(rhsOpName);
+    StringTableBuilder *strTable = getPkgAddress()->getStrTableBuilder();
     if (orignamVarDecl &&
         orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
       
@@ -36,7 +41,6 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       LLVMValueRef sExt = LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
       // Data object of smart pointer.
       LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 2, "data");
-
       LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
 
       LLVMValueRef strTblPtr = getPkgAddress()->getGlobalVarRefUsingId("__string_table_ptr");
@@ -44,11 +48,24 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
       sizeOpValueRef[0] = sExt;
       LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
+
+      // get the mangled name of the lhs type and store it to string 
+      // builder table.
+      VarDecl *origVarDecl = funcObj->getNameVarDecl(lhsOpName);
+      assert(origVarDecl->getTypeDecl()->getTypeTag());
+      TypeTagEnum lhsTypeTag =
+          TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
+      char const* lhsTypeName = typeStringMangleName(lhsOpRef, lhsTypeTag, funcObj);
+      if (!strTable->contains(lhsTypeName))
+        strTable->add(lhsTypeName);
+      LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), -1, 0);
+      sizeOpValueRef[0] = constValue;
+      LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
       // call is_same_type rust function to check LHS and RHS type are same or not.
-      LLVMValueRef sameTypeResult = isSameType(modRef, lhsOpRef, gepOfStr);
+      LLVMValueRef sameTypeResult = isSameType(modRef, lhsGep, gepOfStr);
       // creating branch condition using is_same_type() function result.
       LLVMValueRef brCondition __attribute__((unused)) = LLVMBuildIsNotNull(
-          builder, sameTypeResult, "");     
+          builder, sameTypeResult, "");
  
       LLVMValueRef castResult =
           LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
@@ -59,7 +76,6 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
                                           ->getTypeTag() == TYPE_TAG_ANY) {
       LLVMValueRef structAllocaRef =
           funcObj->getLocalVarRefUsingId(getLhsOperand()->name());
-      StringTableBuilder *strTable = getPkgAddress()->getStrTableBuilder();
 
       // struct first element original type
       LLVMValueRef origTypeIdx =
@@ -104,41 +120,26 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
   }
 }
 
-LLVMValueRef TypeCastInsn::getCanTypeCastDeclaration (LLVMModuleRef &modRef,
+LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration (LLVMModuleRef &modRef,
                 BIRPackage *pkg, LLVMValueRef lhsRef, LLVMValueRef rhsRef) {
-  unsigned int numParams = 2;
-  LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
+  LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
   paramTypes[0] = LLVMTypeOf(lhsRef);
   paramTypes[1] = LLVMTypeOf(rhsRef);
   LLVMTypeRef funcType = LLVMFunctionType(LLVMInt8Type(), paramTypes, 2, 0);
-  LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "can_TypeCast", funcType);
-  pkg->addArrayFunctionRef("can_TypeCast", addedFuncRef);
+  LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "is_same_type", funcType);
+  pkg->addArrayFunctionRef("is_same_type", addedFuncRef);
   return addedFuncRef;
-}
-
-LLVMValueRef TypeCastInsn::canTypeCast(LLVMModuleRef &modRef, LLVMValueRef lhsRef,
-                LLVMValueRef rhsRef) {
-  BIRFunction *funcObj = getFunction();
-  BIRPackage *pkgObj = getPkgAddress();
-  LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  LLVMValueRef *paramRefs = new LLVMValueRef[2];
-    LLVMValueRef typeCastFuncRef = getCanTypeCastDeclaration (modRef, pkgObj, lhsRef, rhsRef);
-  paramRefs[0] = lhsRef;
-  paramRefs[1] = rhsRef;
-  return LLVMBuildCall(builder, typeCastFuncRef, paramRefs, 2, "call");
 }
 
 LLVMValueRef TypeCastInsn::isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef,
                 LLVMValueRef rhsRef) {
   BIRFunction *funcObj = getFunction();
+  BIRPackage *pkgObj  = getPkgAddress();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  unsigned int numParams = 2;
-  LLVMValueRef *paramRefs = new LLVMValueRef[numParams];
-  LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
-  paramTypes[0] = LLVMTypeOf(lhsRef);
-  paramTypes[1] = LLVMTypeOf(rhsRef);
-  LLVMTypeRef funcType = LLVMFunctionType(LLVMInt8Type(), paramTypes, 2, 0);
-  LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "is_same_type", funcType);
+  LLVMValueRef *paramRefs = new LLVMValueRef[2];
+  LLVMValueRef addedFuncRef = pkgObj->getFunctionRefBasedOnName ("is_same_type");
+  if (!addedFuncRef)
+    addedFuncRef = getIsSameTypeDeclaration (modRef, pkgObj, lhsRef, rhsRef);
   paramRefs[0] = lhsRef;
   paramRefs[1] = rhsRef;
   return LLVMBuildCall(builder, addedFuncRef, paramRefs, 2, "call");
@@ -185,4 +186,3 @@ char const* TypeCastInsn::typeStringMangleName(LLVMValueRef typeVal, TypeTagEnum
   }
   return finalString;
 }
-
