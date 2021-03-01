@@ -19,22 +19,40 @@
 
 // Rust Library
 
+extern crate num;
+extern crate num_derive;
+
+use num::FromPrimitive;
+use num_derive::FromPrimitive;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::mem;
 use std::os::raw::c_char;
 
-pub const BASE_TYPE_INDX: usize = 0;
-pub const ARRAY_MEMBER_TYPE_INDX: usize = 1;
-pub const ARRAY_SIZE_LSB_INDX: usize = 2;
-pub const ARRAY_SIZE_MSB_INDX: usize = 3;
+const BASE_TYPE_INDEX: usize = 0;
+const ARRAY_MEMBER_TYPE_INDEX: usize = 1;
+const ARRAY_SIZE_LSB_INDEX: usize = 2;
+const ARRAY_SIZE_MSB_INDEX: usize = 3;
+
+#[derive(Debug, PartialEq, FromPrimitive)]
+#[repr(u32)]
+enum BalType {
+    Nil = 'N' as u32,
+    Boolean = 'B' as u32,
+    Int = 'I' as u32,
+    Float = 'F' as u32,
+    Decimal = 'D' as u32,
+    String = 'S' as u32,
+    Array = 'A' as u32,
+    Any = 'X' as u32,
+}
 
 // Compute total elements present in the data structure
 pub fn compute_size(type_string: &str) -> i32 {
     let mut hex_bits = String::new();
     //Index 2 and 3 represent the size
-    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_LSB_INDX).unwrap());
-    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_MSB_INDX).unwrap());
+    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_LSB_INDEX).unwrap());
+    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_MSB_INDEX).unwrap());
     let bits: std::result::Result<i32, std::num::ParseIntError> =
         i32::from_str_radix(&hex_bits, 32);
     let total_bits: i32 = bits.unwrap();
@@ -49,35 +67,25 @@ pub fn compute_size(type_string: &str) -> i32 {
     return size;
 }
 
-/*
- * Returns size of the type
- * Type Notations -
- * C represents character
- * B represents boolean
- * F represents float
- * I represents integer
- * S represents string
- * X represents any*/
-pub fn type_size(type_string: &str) -> Result<i32, &'static str> {
-    let size: i32;
-    match type_string.chars().nth(ARRAY_MEMBER_TYPE_INDX) {
-        Some('C') | Some('B') => {
-            size = 1;
-            Ok(size)
+pub fn type_size(type_string: &str) -> i32 {
+    let type_char = type_string
+        .chars()
+        .nth(ARRAY_MEMBER_TYPE_INDEX)
+        .unwrap_or_else(|| panic!("Illegal type descriptor '{}', wrong length", type_string));
+    let bal_type = FromPrimitive::from_u32(type_char as u32).unwrap_or_else(|| {
+        panic!(
+            "Illegal type tag '{}' in type descriptor '{}'",
+            type_char, type_string
+        )
+    });
+    match bal_type {
+        BalType::Boolean => 1,
+        BalType::Int | BalType::Float => 8,
+        BalType::String => 12,
+        BalType::Any => 16,
+        _ => {
+            unimplemented!("type_size for '{:?}'", bal_type)
         }
-        Some('F') | Some('I') => {
-            size = 8;
-            Ok(size)
-        }
-        Some('S') => {
-            size = 12;
-            Ok(size)
-        }
-        Some('X') => {
-            size = 16;
-            Ok(size)
-        }
-        _ => Err("Unsupported type"),
     }
 }
 
@@ -115,25 +123,19 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
         return true;
     }
     //Index 0 represents type of data structure
-    if source.chars().nth(BASE_TYPE_INDX) != destination.chars().nth(BASE_TYPE_INDX) {
+    if source.chars().nth(BASE_TYPE_INDEX) != destination.chars().nth(BASE_TYPE_INDEX) {
         return false;
     }
-    let mut src_type_size: Result<i32, &'static str> = Ok(0);
-    let mut dest_type_size: Result<i32, &'static str> = Ok(0);
-    match source.chars().nth(BASE_TYPE_INDX) {
+    match source.chars().nth(BASE_TYPE_INDEX) {
         Some('A') => {
-            if source.chars().nth(ARRAY_MEMBER_TYPE_INDX)
-                != destination.chars().nth(ARRAY_MEMBER_TYPE_INDX)
+            if source.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
+                != destination.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
             {
-                src_type_size = type_size(&source);
-                dest_type_size = type_size(&destination);
-                if src_type_size.is_err() || dest_type_size.is_err() {
-                    panic!("Unsupported type");
+                let src_type_size: i32 = type_size(&source);
+                let dest_type_size: i32 = type_size(&destination);
+                if src_type_size > dest_type_size {
+                    return false;
                 }
-            }
-            // If source type is bigger than destination, type cast is not possible
-            if src_type_size.unwrap() > dest_type_size.unwrap() {
-                return false;
             }
             // Compute total number of elements present in the data structure
             let src_size: i32 = compute_size(&source);
@@ -282,7 +284,7 @@ fn src_elements_less_than_dest() {
 
 #[test]
 fn src_elements_greater_than_dest() {
-    let src = CString::new("AC0519999").unwrap();
+    let src = CString::new("AB0519999").unwrap();
     let dest = CString::new("AX03199").unwrap();
     assert_eq!(
         is_same_type(
