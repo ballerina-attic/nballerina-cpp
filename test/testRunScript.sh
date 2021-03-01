@@ -25,7 +25,7 @@ then
   exit 1
 fi
 
-clang -O0 -o $filename.out $filename-bir-dump.ll 2>err.log
+clang -O0 -o $filename.out $filename-bir-dump.ll -L../../../runtime/target/release -lballerina_rt 2>err.log
 
 if [ -s ./err.log ]
 then
