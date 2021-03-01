@@ -33,6 +33,8 @@ then
   exit 1
 fi
 
+export LD_LIBRARY_PATH=../../../runtime/target/release
+
 ./$filename.out
 echo RETVAL=$?
 
