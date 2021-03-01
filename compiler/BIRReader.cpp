@@ -765,9 +765,9 @@ BIRFunction *BIRReader::readFunction() {
   std::string initFuncName = "..<init>";
   std::string startFuncName = "..<start>";
   std::string stopFuncName = "..<stop>";
-  if (!(initFuncName.compare(birFunction->getName()) == 0 ||
-        startFuncName.compare(birFunction->getName()) == 0 ||
-        stopFuncName.compare(birFunction->getName()) == 0))
+  if (!(birFunction->getName().rfind(initFuncName, 0) == 0 ||
+        birFunction->getName().rfind(startFuncName, 0) == 0 ||
+        birFunction->getName().rfind(stopFuncName, 0) == 0))
     birPackage.addFunctionLookUpEntry(birFunction->getName(), birFunction);
 
   uint32_t workdernameCpIndex = readS4be();
