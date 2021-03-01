@@ -9,5 +9,4 @@ public function main() {
   _bal_result = arr1[0] + arr1[1] + arr1[3];
 }
 
-// CHECK: RETVAL
-// CHECK-SAME: 16
+// CHECK: RETVAL=16
