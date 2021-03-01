@@ -68,11 +68,13 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   int typeTag = 0;
   if (vDecl->getTypeDecl())
     typeTag = vDecl->getTypeDecl()->getTypeTag();
+
   // if main function return type is void, but user wants to return some
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    VarDecl *globRetVar = getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+    VarDecl *globRetVar =
+        getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
     if (globRetVar)
       typeTag = globRetVar->getTypeDecl()->getTypeTag();
   }
@@ -87,6 +89,7 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
     return LLVMInt8Type();
   case TYPE_TAG_CHAR_STRING:
   case TYPE_TAG_STRING:
+  case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt8Type(), 0);
   default:
     return LLVMVoidType();
@@ -163,9 +166,9 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
     return LLVMInt8Type();
   case TYPE_TAG_CHAR_STRING:
   case TYPE_TAG_STRING:
+  case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_ANY:
-  case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt64Type(), 0);
   default:
     return LLVMInt32Type();

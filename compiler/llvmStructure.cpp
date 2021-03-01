@@ -61,7 +61,7 @@ void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
 // Declaration for new map<int> function
 LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
                                                     BIRPackage *pkg) {
-  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt64Type(), 0);
+  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
   LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "map_new_int", funcType);
   pkg->addArrayFunctionRef("map_new_int", addedFuncRef);

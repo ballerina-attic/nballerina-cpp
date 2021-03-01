@@ -59,7 +59,7 @@ LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef,
   LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
   LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt64Type(), 0);
+  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   paramTypes[0] = memPtrType;
   paramTypes[1] = charArrayPtrType;
   paramTypes[2] = int32PtrType;
