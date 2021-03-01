@@ -6,5 +6,4 @@ public function main() {
   _bal_result = 1;
 }
 
-// CHECK: RETVAL
-// CHECK-SAME: 1
+// CHECK: RETVAL=1

@@ -14,5 +14,4 @@ public function main() {
   _bal_result = test(arr1);
 }
 
-// CHECK: RETVAL
-// CHECK-SAME: 16
+// CHECK: RETVAL=16
