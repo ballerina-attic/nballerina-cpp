@@ -163,8 +163,8 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
     assert(shapeEntry->getTag() ==
            ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-    int memeberType = typeShapeCp->getTypeTag();
-    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memeberType);
+    int memberType = typeShapeCp->getTypeTag();
+    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memberType);
   }
 
   // Default return
@@ -846,10 +846,9 @@ BIRFunction *BIRReader::readFunction() {
   }
 
   uint32_t localVarCount = readS4be();
-  std::vector<VarDecl *> localvars;
   for (unsigned int i = 0; i < localVarCount; i++) {
     VarDecl *varDecl = readLocalVar();
-    birFunction->setLocalVar(varDecl->getVarName(), varDecl);
+    birFunction->insertLocalVar(varDecl->getVarName(), varDecl);
   }
   for (unsigned int i = 0; i < defaultParamValue; i++) {
     uint32_t basicBlocksCount __attribute__((unused)) = readS4be();

@@ -818,7 +818,7 @@ public:
   void setReceiver(VarDecl *var) { receiver = var; }
   void setRestParam(Param *param) { restParam = param; }
   void setNumParams(int paramcount) { paramCount = paramcount; }
-  void setLocalVar(string name, VarDecl *var) {
+  void insertLocalVar(string name, VarDecl *var) {
     localVars.insert(pair<string, VarDecl *>(name, var));
   }
   void setReturnVar(VarDecl *var) { returnVar = var; }

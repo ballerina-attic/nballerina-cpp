@@ -25,7 +25,7 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   // Only handle Int type
   if (memberTypeTag != TYPE_TAG_INT) {
     std::cerr << "Non INT type maps are currently not supported" << std::endl;
-    assert(false);
+    llvm_unreachable("Unknown Type");
   }
 
   // Codegen for Map of Int type store
