@@ -280,7 +280,7 @@ public:
 class TerminatorInsn : public AbstractInsn {
 private:
   BIRBasicBlock *thenBB;
-  bool patchRequire;
+  bool patchRequire = false;
 
 public:
   TerminatorInsn();
@@ -818,8 +818,8 @@ public:
   void setReceiver(VarDecl *var) { receiver = var; }
   void setRestParam(Param *param) { restParam = param; }
   void setNumParams(int paramcount) { paramCount = paramcount; }
-  void insertLocalVar(string name, VarDecl *var) {
-    localVars.insert(pair<string, VarDecl *>(name, var));
+  void insertLocalVar(VarDecl *var) {
+    localVars.insert(pair<string, VarDecl *>(var->getVarName(), var));
   }
   void setReturnVar(VarDecl *var) { returnVar = var; }
   void setBIRBasicBlocks(vector<BIRBasicBlock *> b) { basicBlocks = b; }
@@ -846,7 +846,7 @@ public:
   void translateFunctionBody(LLVMModuleRef &modRef);
   void patchInsn(Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
-  VarDecl *getNameVarDecl(string opName);
+  VarDecl *getLocalVarDeclFromName(string name);
   const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);
   void translate(LLVMModuleRef &modRef);
 };
@@ -858,7 +858,7 @@ private:
   string version;
   string sourceFileName;
   vector<BIRFunction *> functions;
-  vector<VarDecl *> globalVars;
+  map<string, VarDecl *> globalVars;
   map<string, LLVMValueRef> globalVarRefs;
   map<string, BIRFunction *> functionLookUp;
   StructType *structType;
@@ -883,12 +883,14 @@ public:
   void setSrcFileName(string srcFileName) { sourceFileName = srcFileName; }
   vector<BIRFunction *> getFunctions() { return functions; }
   BIRFunction *getFunction(int i) { return functions[i]; }
-  vector<VarDecl *> getGlobalVars() { return globalVars; }
+  VarDecl *getGlobalVarDeclFromName(string name);
   map<string, LLVMValueRef> getGlobalVarRefs() { return globalVarRefs; }
   StructType *getStructType() { return structType; }
   void setFunctions(vector<BIRFunction *> f) { functions = f; }
   void addFunction(BIRFunction *f) { functions.push_back(f); }
-  void addGlobalVar(VarDecl *g) { globalVars.push_back(g); }
+  void insertGlobalVar(VarDecl *g) {
+    globalVars.insert(pair<string, VarDecl *>(g->getVarName(), g));
+  }
 
   void addFunctionLookUpEntry(string funcName, BIRFunction *BIRfunction) {
     functionLookUp.insert(pair<string, BIRFunction *>(funcName, BIRfunction));

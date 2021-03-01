@@ -220,7 +220,7 @@ VarDecl *BIRReader::readGlobalVar() {
   uint32_t typeCpIndex = readS4be();
   TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
   varDecl->setTypeDecl(typeDecl);
-  birPackage.addGlobalVar(varDecl);
+  birPackage.insertGlobalVar(varDecl);
   return varDecl;
 }
 
@@ -848,7 +848,7 @@ BIRFunction *BIRReader::readFunction() {
   uint32_t localVarCount = readS4be();
   for (unsigned int i = 0; i < localVarCount; i++) {
     VarDecl *varDecl = readLocalVar();
-    birFunction->insertLocalVar(varDecl->getVarName(), varDecl);
+    birFunction->insertLocalVar(varDecl);
   }
   for (unsigned int i = 0; i < defaultParamValue; i++) {
     uint32_t basicBlocksCount __attribute__((unused)) = readS4be();
@@ -1135,7 +1135,7 @@ void BIRReader::readModule() {
   if (globalVarCount > 0) {
     for (unsigned int i = 0; i < globalVarCount; i++) {
       VarDecl *varDecl = readGlobalVar();
-      birPackage.addGlobalVar(varDecl);
+      birPackage.insertGlobalVar(varDecl);
     }
   }
 

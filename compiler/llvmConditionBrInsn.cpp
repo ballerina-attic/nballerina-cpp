@@ -23,7 +23,7 @@ void ConditionBrInsn::translate(LLVMModuleRef &modRef) {
   }
 
   if (!brCondition) {
-    VarDecl *lhsVarDecl = getFunction()->getNameVarDecl(lhsName);
+    VarDecl *lhsVarDecl = getFunction()->getLocalVarDeclFromName(lhsName);
     if (lhsVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_BOOLEAN) {
       brCondition = LLVMBuildIsNotNull(
           builder, getFunction()->getLocalToTempVar(lhsOp), lhsName.c_str());

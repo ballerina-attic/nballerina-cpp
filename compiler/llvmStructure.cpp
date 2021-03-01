@@ -3,14 +3,18 @@
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
   BIRFunction *funcObj = getFunction();
+  BIRPackage *pkgObj = getPkgAddress();
+
   string lhsName = getLhsOperand()->name();
 
   // Find VarDecl corresponding to lhs to determine structure and member type
-  VarDecl *lhsVar = funcObj->getNameVarDecl(lhsName);
+  VarDecl *lhsVar = funcObj->getLocalVarDeclFromName(lhsName);
+  if (!lhsVar) {
+    lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
+  }
   assert(lhsVar);
 
   // Determine structure type
-  assert(lhsVar->getVarKind() == LOCAL_VAR_KIND);
   int structType = lhsVar->getTypeDecl()->getTypeTag();
 
   // Only handle Map type

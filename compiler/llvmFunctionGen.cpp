@@ -72,14 +72,9 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    vector<VarDecl *> globVars = getPkgAddress()->getGlobalVars();
-    for (unsigned int i = 0; i < globVars.size(); i++) {
-      VarDecl *globVar = globVars[i];
-      if (globVar->getVarName() == "_bal_result") {
-        typeTag = globVar->getTypeDecl()->getTypeTag();
-        break;
-      }
-    }
+    VarDecl *globRetVar = getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+    if (globRetVar)
+      typeTag = globRetVar->getTypeDecl()->getTypeTag();
   }
 
   switch (typeTag) {
@@ -177,7 +172,7 @@ LLVMTypeRef BIRFunction::getLLVMTypeRefOfType(TypeDecl *typeD) {
   }
 }
 
-VarDecl *BIRFunction::getNameVarDecl(string opName) {
+VarDecl *BIRFunction::getLocalVarDeclFromName(string opName) {
 
   auto varIt = localVars.find(opName);
   if (varIt == localVars.end())

@@ -14,9 +14,12 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
   // Find VarDecl corresponding to lhs to determine member type
-  VarDecl *lhsVar = funcObj->getNameVarDecl(lhsName);
+  VarDecl *lhsVar = funcObj->getLocalVarDeclFromName(lhsName);
+  if (!lhsVar) {
+    lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
+  }
   assert(lhsVar);
-  assert(lhsVar->getVarKind() == LOCAL_VAR_KIND);
+
   assert(lhsVar->getTypeDecl()->getTypeTag() == TYPE_TAG_MAP);
   MapTypeDecl *mapTypeDelare =
       static_cast<MapTypeDecl *>(lhsVar->getTypeDecl());
@@ -37,6 +40,9 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef lhsOpTempRef = funcObj->getLocalToTempVar(getLhsOperand());
 
   LLVMValueRef rhsOpRef = funcObj->getLocalVarRefUsingId(rhsName);
+  if (!rhsOpRef)
+    rhsOpRef = pkgObj->getGlobalVarRefUsingId(rhsName);
+
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
   assert(mapStoreFunc && lhsOpTempRef && rhsOpRef && keyRef);
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
