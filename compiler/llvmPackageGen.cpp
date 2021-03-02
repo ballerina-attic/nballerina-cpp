@@ -32,7 +32,7 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   Constant *charValue = Constant::getNullValue(unwrap(charPtrType));
   GlobalVariable *charGloablVar = new GlobalVariable(
-      *unwrap(modRef), unwrap(charPtrType), false, GlobalValue::ExternalLinkage,
+      *unwrap(modRef), unwrap(charPtrType), false, GlobalValue::InternalLinkage,
       charValue, charName.c_str(), 0);
   charGloablVar->setAlignment(Align(4));
   globalVarRefs.insert({charName, wrap(charGloablVar)});

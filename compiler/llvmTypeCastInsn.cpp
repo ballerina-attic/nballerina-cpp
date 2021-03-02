@@ -60,7 +60,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       TypeTagEnum lhsTypeTag =
           TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
       char const *lhsTypeName =
-          typeStringMangleName(lhsOpRef, lhsTypeTag, funcObj);
+          typeStringMangleName(lhsOpRef, lhsTypeTag);
       if (!strTable->contains(lhsTypeName))
         strTable->add(lhsTypeName);
       int tempRandNum = rand() % 1000 + 1;
@@ -94,7 +94,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       TypeTagEnum origTypeTag =
           TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
       char const *origTypeName =
-          typeStringMangleName(lhsOpRef, origTypeTag, funcObj);
+          typeStringMangleName(lhsOpRef, origTypeTag);
       if (!strTable->contains(origTypeName))
         strTable->add(origTypeName);
       int tempRandNum1 = rand() % 1000 + 1;
@@ -111,7 +111,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       TypeTagEnum lastTypeTag =
           TypeTagEnum(lastTypeVarDecl->getTypeDecl()->getTypeTag());
       char const *lastTypeName =
-          typeStringMangleName(rhsOpRef, lastTypeTag, funcObj);
+          typeStringMangleName(rhsOpRef, lastTypeTag);
       if (!strTable->contains(lastTypeName))
         strTable->add(lastTypeName);
       int tempRandNum2 = rand() % 1000 + 1;
@@ -162,8 +162,7 @@ LLVMValueRef TypeCastInsn::isSameType(LLVMModuleRef &modRef,
 }
 
 char const *TypeCastInsn::typeStringMangleName(LLVMValueRef typeVal,
-                                               TypeTagEnum typeTag,
-                                               BIRFunction *funcObj) {
+                                               TypeTagEnum typeTag) {
   char const *finalString;
   switch (typeTag) {
   case TYPE_TAG_INT: {

@@ -391,6 +391,8 @@ private:
   Operand *rhsOp;
   TypeDecl *typeDecl;
   bool checkTypes;
+  LLVMValueRef getIsSameTypeDeclaration (LLVMModuleRef &modRef,
+                BIRPackage *pkg, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
 
 public:
   TypeCastInsn();
@@ -405,12 +407,9 @@ public:
   void setTypeDecl(TypeDecl *tDecl) { typeDecl = tDecl; }
   void setTypesChecking(bool checktypes) { checkTypes = checktypes; }
   void translate(LLVMModuleRef &modRef);
-  LLVMValueRef getIsSameTypeDeclaration (LLVMModuleRef &modRef,
-                BIRPackage *pkg, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
   LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef,
                 LLVMValueRef rhsRef);
-  char const* typeStringMangleName(LLVMValueRef typeVal, TypeTagEnum typeTag,
-                                BIRFunction *funcObj);
+  char const* typeStringMangleName(LLVMValueRef typeVal, TypeTagEnum typeTag);
 };
 
 class TypeTestInsn : public NonTerminatorInsn {
@@ -745,6 +744,8 @@ private:
   map<FuncParam *, vector<BIRBasicBlock *>> params;
   map<string, LLVMValueRef> localVarRefs;
   map<string, LLVMValueRef> branchComparisonList;
+  LLVMValueRef generateAbortInsn (LLVMBuilderRef &builder,
+                LLVMModuleRef &modRef);
 
 public:
   BIRFunction();
@@ -813,8 +814,7 @@ public:
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(string opName);
   const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);
-  LLVMValueRef generateAbortInsn (LLVMBuilderRef &builder,
-                LLVMModuleRef &modRef);
+  void splitBBIfPossible (LLVMModuleRef &modRef);
   void translate(LLVMModuleRef &modRef);
 };
 
