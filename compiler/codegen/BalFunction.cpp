@@ -31,7 +31,7 @@ InvokableType *Function::getInvokableType() { return type; }
 std::vector<Operand *> Function::getParams() { return requiredParams; }
 Operand *Function::getParam(int i) { return requiredParams[i]; }
 Variable *Function::getReceiver() { return receiver; }
-Param *Function::getRestParam() { return restParam; }
+RestParam *Function::getRestParam() { return restParam; }
 Variable *Function::getReturnVar() { return returnVar; }
 std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
 size_t Function::numBasicBlocks() { return basicBlocks.size(); }
@@ -183,7 +183,7 @@ void Function::setInvokableType(InvokableType *t) { type = t; }
 void Function::setParams(std::vector<Operand *> p) { requiredParams = p; }
 void Function::setParam(Operand *param) { requiredParams.push_back(param); }
 void Function::setReceiver(Variable *var) { receiver = var; }
-void Function::setRestParam(Param *param) { restParam = param; }
+void Function::setRestParam(RestParam *param) { restParam = param; }
 void Function::setNumParams(int paramcount) { paramCount = paramcount; }
 void Function::insertLocalVar(Variable *var) {
   localVars.insert(std::pair<std::string, Variable *>(var->getVarName(), var));

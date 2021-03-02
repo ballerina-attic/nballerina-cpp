@@ -1,6 +1,7 @@
 #ifndef __BALFUNCTION__H__
 #define __BALFUNCTION__H__
 
+#include "BalRestParam.h"
 #include "interfaces/Debuggable.h"
 #include "interfaces/PackageNode.h"
 #include "interfaces/Translatable.h"
@@ -15,7 +16,7 @@ class BasicBlock;
 class Operand;
 class Variable;
 class InvokableType;
-class Param;
+class RestParam;
 class Type;
 
 class Function : public PackageNode, public Debuggable, public Translatable {
@@ -25,7 +26,7 @@ private:
   InvokableType *type;
   std::vector<Operand *> requiredParams;
   Variable *receiver;
-  Param *restParam;
+  RestParam *restParam;
   int paramCount;
   std::map<std::string, Variable *> localVars;
   Variable *returnVar;
@@ -49,7 +50,7 @@ public:
   std::vector<Operand *> getParams();
   Operand *getParam(int i);
   Variable *getReceiver();
-  Param *getRestParam();
+  RestParam *getRestParam();
   Variable *getReturnVar();
   std::vector<BasicBlock *> getBasicBlocks();
   size_t numBasicBlocks();
@@ -68,7 +69,7 @@ public:
   void setParams(std::vector<Operand *> p);
   void setParam(Operand *param);
   void setReceiver(Variable *var);
-  void setRestParam(Param *param);
+  void setRestParam(RestParam *param);
   void setNumParams(int paramcount);
   void insertLocalVar(Variable *var);
   void setReturnVar(Variable *var);

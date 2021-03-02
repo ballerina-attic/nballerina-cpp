@@ -257,7 +257,6 @@ Operand *BIRReader::readOperand() {
   if ((VarKind)kind == GLOBAL_VAR_KIND) {
     uint32_t packageIndex __attribute__((unused)) = readS4be();
     uint32_t typeCpIndex = readS4be();
-    // TODO why are we ignoring type declare for global?
     Type *typeDecl __attribute__((unused)) =
         constantPool->getTypeCp(typeCpIndex, false);
   }
@@ -284,13 +283,9 @@ StructureInsn *ReadStructureInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
 // Read CONST_LOAD Insn
 ConstantLoadInsn *
 ReadConstLoadInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
-  uint32_t typeCpIndex = readerRef.readS4be();
 
-  Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
-
+  uint32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
   Operand *lhsOperand = readerRef.readOperand();
-  lhsOperand->setType(typeDecl);
-
   ConstantLoadInsn *constantloadInsn =
       new ConstantLoadInsn(lhsOperand, currentBB);
 

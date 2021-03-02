@@ -1,7 +1,7 @@
 #ifndef __BALFUNCTIONCALLINSN__H__
 #define __BALFUNCTIONCALLINSN__H__
 
-#include "BalParam.h"
+#include "BalRestParam.h"
 #include "BalTerminatorInsn.h"
 #include <string>
 #include <vector>
@@ -14,7 +14,7 @@ private:
   std::string functionName;
   int argCount;
   std::vector<Operand *> argsList;
-  Param *restParam;
+  RestParam *restParam;
 
 public:
   FunctionCallInsn() = delete;
