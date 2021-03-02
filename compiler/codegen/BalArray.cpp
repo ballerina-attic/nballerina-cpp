@@ -28,19 +28,17 @@ LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
 void ArrayInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   Package *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
   LLVMValueRef localTempCarRef = funcObj->getLocalToTempVar(sizeOp);
   sizeOpValueRef[0] = localTempCarRef;
-  LLVMValueRef lhsOpRef = funcObj->getLocalVarRefUsingId(lhsName);
-  if (!lhsOpRef)
-    lhsOpRef = pkgObj->getGlobalVarRefUsingId(lhsName);
+
+  LLVMValueRef lhsOpRef = funcObj->getLocalOrGlobalLLVMValue(getLhsOperand());
   LLVMValueRef newArrayFunc =
       pkgObj->getFunctionRefBasedOnName("new_int_array");
   if (!newArrayFunc)
     newArrayFunc = getNewArrayDeclaration(modRef, pkgObj);
-  assert(sizeOpValueRef && newArrayFunc);
+
   LLVMValueRef newArrayRef =
       LLVMBuildCall(builder, newArrayFunc, sizeOpValueRef, 1, "");
 
@@ -69,20 +67,16 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef,
 void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   Package *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->getName();
-  string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef ArrayLoadFunc =
       pkgObj->getFunctionRefBasedOnName("int_array_load");
   if (!ArrayLoadFunc)
     ArrayLoadFunc = getArrayLoadDeclaration(modRef, pkgObj);
-  LLVMValueRef lhsOpRef = funcObj->getLocalVarRefUsingId(lhsName);
-  if (!lhsOpRef)
-    lhsOpRef = pkgObj->getGlobalVarRefUsingId(lhsName);
 
-  LLVMValueRef rhsOpRef = funcObj->getLocalVarRefUsingId(rhsName);
+  LLVMValueRef lhsOpRef = funcObj->getLocalOrGlobalLLVMValue(getLhsOperand());
+  LLVMValueRef rhsOpRef = funcObj->getLocalOrGlobalLLVMValue(rhsOp);
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
-  assert(ArrayLoadFunc && rhsOpRef && keyRef);
+
   LLVMValueRef *sizeOpValueRef = new LLVMValueRef[2];
   sizeOpValueRef[0] = rhsOpRef;
   sizeOpValueRef[1] = keyRef;
@@ -114,19 +108,14 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef,
 void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   Package *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->getName();
-  string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef ArrayLoadFunc =
       pkgObj->getFunctionRefBasedOnName("int_array_store");
   if (!ArrayLoadFunc)
     ArrayLoadFunc = getArrayStoreDeclaration(modRef, pkgObj);
 
-  LLVMValueRef lhsOpRef = funcObj->getLocalVarRefUsingId(lhsName);
-  if (!lhsOpRef)
-    lhsOpRef = pkgObj->getGlobalVarRefUsingId(lhsName);
-
-  LLVMValueRef rhsOpRef = funcObj->getLocalVarRefUsingId(rhsName);
+  LLVMValueRef lhsOpRef = funcObj->getLocalOrGlobalLLVMValue(getLhsOperand());
+  LLVMValueRef rhsOpRef = funcObj->getLocalOrGlobalLLVMValue(rhsOp);
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
   assert(ArrayLoadFunc && lhsOpRef && rhsOpRef && keyRef);
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];

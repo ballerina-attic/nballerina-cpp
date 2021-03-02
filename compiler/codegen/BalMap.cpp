@@ -20,17 +20,10 @@ MapStoreInsn::MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp,
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   Package *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->getName();
-  string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
   // Find Variable corresponding to lhs to determine member type
-  Variable *lhsVar = funcObj->getLocalVarFromName(lhsName);
-  if (!lhsVar) {
-    lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
-  }
-  assert(lhsVar);
-
+  Variable *lhsVar = funcObj->getLocalOrGlobalVariable(getLhsOperand());
   assert(lhsVar->getTypeDecl()->getTypeTag() == TYPE_TAG_MAP);
 
   MapTypeDecl *mapTypeDelare =
@@ -50,13 +43,10 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
     mapStoreFunc = getMapIntStoreDeclaration(modRef, pkgObj);
 
   LLVMValueRef lhsOpTempRef = funcObj->getLocalToTempVar(getLhsOperand());
-
-  LLVMValueRef rhsOpRef = funcObj->getLocalVarRefUsingId(rhsName);
-  if (!rhsOpRef)
-    rhsOpRef = pkgObj->getGlobalVarRefUsingId(rhsName);
-
+  LLVMValueRef rhsOpRef = funcObj->getLocalOrGlobalLLVMValue(rhsOp);
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
   assert(mapStoreFunc && lhsOpTempRef && rhsOpRef && keyRef);
+  
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
   argOpValueRef[0] = lhsOpTempRef;
   argOpValueRef[1] = keyRef;

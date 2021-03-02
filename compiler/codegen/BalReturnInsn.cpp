@@ -18,30 +18,18 @@ ReturnInsn::ReturnInsn(BasicBlock *currentBB)
     : TerminatorInsn(nullptr, currentBB, nullptr, false) {}
 
 void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  Function *funcObj = getFunction();
-  Variable *returnVarDecl = nullptr;
 
+  Function *funcObj = getFunction();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   Variable *globRetVar =
       getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
-  if (globRetVar)
-    returnVarDecl = globRetVar;
 
-  if (funcObj->getName() == "main" && returnVarDecl) {
-    if (builder && funcObj) {
-      LLVMValueRef lhsRef =
-          funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
-      if (!lhsRef) {
-        lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
-            returnVarDecl->getVarName());
-
-        LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
-        if (retValRef)
-          LLVMBuildRet(builder, retValRef);
-      }
-    }
+  if (funcObj->getName() == "main" && globRetVar) {
+    LLVMValueRef lhsRef =
+        getPkgAddress()->getGlobalVarRefUsingId("_bal_result");
+    LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
+    LLVMBuildRet(builder, retValRef);
   } else {
-    assert(funcObj->getReturnVar()->getTypeDecl());
     if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
       LLVMValueRef retValueRef = LLVMBuildLoad(
           builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");

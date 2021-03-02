@@ -15,23 +15,12 @@ MoveInsn::MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp)
     : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp) {}
 
 void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  LLVMValueRef lhsRef;
-  Operand *lhsOp = getLhsOperand();
 
-  VarKind varKind = lhsOp->getKind();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-
-  if (varKind == GLOBAL_VAR_KIND) {
-    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->getName());
-    LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
-    LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
-  } else if (varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
-             varKind == RETURN_VAR_KIND) {
-    lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->getName());
-    LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
-    LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
-  } else
-    llvm_unreachable("Unknown varkind");
+  LLVMValueRef lhsRef =
+      getFunction()->getLocalOrGlobalLLVMValue(getLhsOperand());
+  LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
+  LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
 }
 
 } // namespace nballerina

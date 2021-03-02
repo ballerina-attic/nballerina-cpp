@@ -25,15 +25,9 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   string lhsName = getLhsOperand()->getName();
   string lhstmpName = lhsName + "_temp";
-  LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
-  if (!lhsRef)
-    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
-
+  LLVMValueRef lhsRef = funcObj->getLocalOrGlobalLLVMValue(getLhsOperand());
   LLVMValueRef rhsOp1ref = funcObj->getLocalToTempVar(rhsOp1);
   LLVMValueRef rhsOp2ref = funcObj->getLocalToTempVar(rhsOp2);
-
-  if (!(rhsOp1ref && rhsOp2ref))
-    llvm_unreachable("Unknown State");
 
   LLVMValueRef ifReturn;
   switch (kind) {

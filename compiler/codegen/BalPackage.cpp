@@ -19,13 +19,11 @@ Package::Package(string orgName, string pkgName, string verName,
 
 // return ValueRef of global variable based on variable name.
 LLVMValueRef Package::getGlobalVarRefUsingId(string globVar) {
-  map<string, LLVMValueRef>::iterator it;
-  it = globalVarRefs.find(globVar);
-  if (it == globalVarRefs.end()) {
-    return NULL;
-  } else {
-    return it->second;
-  }
+  auto varIt = globalVarRefs.find(globVar);
+  if (varIt == globalVarRefs.end())
+    return nullptr;
+
+  return varIt->second;
 }
 
 std::string Package::getOrgName() { return org; }

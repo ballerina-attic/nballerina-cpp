@@ -45,30 +45,17 @@ void ConstantLoadInsn::setTypeTagNil(TypeTag TypeTag) { typeTag = TypeTag; }
 TypeTag ConstantLoadInsn::getTypeTag() { return typeTag; }
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
-  LLVMValueRef lhsRef;
   LLVMValueRef constRef;
   Operand *lhsOp = getLhsOperand();
-  VarKind varKind = lhsOp->getKind();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-  string lhsVarName = lhsOp->getName();
-  Variable *lhsVar = nullptr;
+  LLVMValueRef lhsRef = getFunction()->getLocalOrGlobalLLVMValue(lhsOp);
 
-  if (varKind == GLOBAL_VAR_KIND) {
-    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsVarName);
-    lhsVar = getPkgAddress()->getGlobalVarDeclFromName(lhsVarName);
-  } else if ((varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
-              varKind == RETURN_VAR_KIND || varKind == SELF_VAR_KIND ||
-              varKind == CONSTANT_VAR_KIND)) {
-    lhsRef = getFunction()->getLocalVarRefUsingId(lhsVarName);
-    lhsVar = getFunction()->getLocalVarFromName(lhsVarName);
-  } else
-    llvm_unreachable("Unknown Type");
+  assert(getFunction()
+             ->getLocalOrGlobalVariable(lhsOp)
+             ->getTypeDecl()
+             ->getTypeTag() == typeTag);
 
-  TypeTag lhsTypeTag = lhsVar->getTypeDecl()->getTypeTag();
-
-  assert(lhsTypeTag == typeTag);
-
-  switch (lhsTypeTag) {
+  switch (typeTag) {
   case TYPE_TAG_INT: {
     constRef = LLVMConstInt(LLVMInt32Type(), val.intValue, 0);
     break;

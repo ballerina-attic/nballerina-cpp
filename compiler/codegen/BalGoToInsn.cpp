@@ -15,13 +15,8 @@ GoToInsn::GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB)
 }
 
 void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-  if (getNextBB()->getLLVMBBRef())
-    LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
-  else {
-    llvm_unreachable("LLVM Basic Block not found for GOTO instruction");
-  }
+  LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
 }
 
 } // namespace nballerina

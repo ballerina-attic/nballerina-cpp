@@ -58,13 +58,11 @@ LLVMValueRef Function::getValueRefBasedOnName(std::string lhsName) {
 }
 
 LLVMValueRef Function::getLocalVarRefUsingId(std::string locVar) {
-  for (std::map<std::string, LLVMValueRef>::iterator iter =
-           localVarRefs.begin();
-       iter != localVarRefs.end(); iter++) {
-    if (iter->first == locVar)
-      return iter->second;
-  }
-  return NULL;
+  auto varIt = localVarRefs.find(locVar);
+  if (varIt == localVarRefs.end())
+    return nullptr;
+
+  return varIt->second;
 }
 
 LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
@@ -181,7 +179,9 @@ void Function::setName(std::string newName) { name = newName; }
 void Function::setFlags(int newFlags) { flags = newFlags; }
 void Function::setInvokableType(InvokableType *t) { type = t; }
 void Function::setParams(std::vector<FunctionParam *> p) { requiredParams = p; }
-void Function::setParam(FunctionParam *param) { requiredParams.push_back(param); }
+void Function::setParam(FunctionParam *param) {
+  requiredParams.push_back(param);
+}
 void Function::setReceiver(Variable *var) { receiver = var; }
 void Function::setRestParam(RestParam *param) { restParam = param; }
 void Function::setNumParams(int paramcount) { paramCount = paramcount; }
@@ -238,6 +238,18 @@ Variable *Function::getLocalVarFromName(std::string opName) {
     return nullptr;
 
   return varIt->second;
+}
+
+Variable *Function::getLocalOrGlobalVariable(Operand *op) {
+  if (op->getKind() == GLOBAL_VAR_KIND)
+    return getPkgAddress()->getGlobalVarDeclFromName(op->getName());
+  return getLocalVarFromName(op->getName());
+}
+
+LLVMValueRef Function::getLocalOrGlobalLLVMValue(Operand *op) {
+  if (op->getKind() == GLOBAL_VAR_KIND)
+    return getPkgAddress()->getGlobalVarRefUsingId(op->getName());
+  return getLocalVarRefUsingId(op->getName());
 }
 
 } // namespace nballerina

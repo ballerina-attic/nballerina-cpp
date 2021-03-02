@@ -36,7 +36,6 @@ void FunctionCallInsn::translate(__attribute__((unused))
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   Function *birFunc = getPkgAddress()->getFunctionLookUp(functionName);
   assert(birFunc);
-  LLVMValueRef namedFuncRef = birFunc->getNewFunctionRef();
 
   for (int i = 0; i < argCount; i++) {
     Operand *op = argsList[i];
@@ -44,21 +43,12 @@ void FunctionCallInsn::translate(__attribute__((unused))
     ParamRefs[i] = opRef;
   }
 
-  string lhsName = getLhsOperand()->getName();
-  if (lhsName == "")
-    return;
-
-  LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);
-  if (!lhsRef)
-    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsName);
-
-  LLVMValueRef callResult;
+  LLVMValueRef lhsRef = funcObj->getLocalOrGlobalLLVMValue(getLhsOperand());
+  LLVMValueRef namedFuncRef = birFunc->getNewFunctionRef();
   if (namedFuncRef) {
-    callResult =
+    LLVMValueRef callResult =
         LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
-    if (callResult && lhsRef) {
-      LLVMBuildStore(builder, callResult, lhsRef);
-    }
+    LLVMBuildStore(builder, callResult, lhsRef);
   }
 
   // creating branch to next basic block.

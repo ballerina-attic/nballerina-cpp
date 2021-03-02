@@ -86,12 +86,14 @@ public:
   BasicBlock *searchBb(std::string name);
 
   LLVMTypeRef getLLVMTypeRefOfType(Type *typeD);
-  LLVMValueRef getLocalVarRefUsingId(std::string locVar);
   LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);
   // void patchInsn(llvm::Function *llvnFun);
-  LLVMTypeRef getLLVMFuncRetTypeRefOfType(Variable *vDecl);
+  LLVMValueRef getLocalVarRefUsingId(std::string locVar);
   Variable *getLocalVarFromName(std::string opName);
+  LLVMTypeRef getLLVMFuncRetTypeRefOfType(Variable *vDecl);
+  Variable *getLocalOrGlobalVariable(Operand *op);
+  LLVMValueRef getLocalOrGlobalLLVMValue(Operand *op);
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina

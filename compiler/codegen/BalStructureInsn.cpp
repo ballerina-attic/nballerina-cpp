@@ -18,15 +18,8 @@ StructureInsn::StructureInsn(Operand *lOp, BasicBlock *currentBB,
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
-  Package *pkgObj = getPkgAddress();
-  string lhsName = getLhsOperand()->getName();
-
   // Find Variable corresponding to lhs to determine structure and member type
-  Variable *lhsVar = funcObj->getLocalVarFromName(lhsName);
-  if (!lhsVar) {
-    lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
-  }
-  assert(lhsVar);
+  Variable *lhsVar = funcObj->getLocalOrGlobalVariable(getLhsOperand());
 
   // Determine structure type
   TypeTag structType = lhsVar->getTypeDecl()->getTypeTag();
@@ -45,10 +38,7 @@ void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   Package *pkgObj = getPkgAddress();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  string lhsName = getLhsOperand()->getName();
-  LLVMValueRef lhsOpRef = funcObj->getLocalVarRefUsingId(lhsName);
-  if (!lhsOpRef)
-    lhsOpRef = pkgObj->getGlobalVarRefUsingId(lhsName);
+  LLVMValueRef lhsOpRef = funcObj->getLocalOrGlobalLLVMValue(getLhsOperand());
 
   assert(lhsVar->getTypeDecl()->getTypeTag() == TYPE_TAG_MAP);
   MapTypeDecl *mapTypeDelare =
@@ -66,7 +56,6 @@ void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
   LLVMValueRef newMapIntFunc = pkgObj->getFunctionRefBasedOnName("map_new_int");
   if (!newMapIntFunc)
     newMapIntFunc = getNewMapIntDeclaration(modRef, pkgObj);
-  assert(newMapIntFunc);
   LLVMValueRef newMapIntRef =
       LLVMBuildCall(builder, newMapIntFunc, nullptr, 0, "");
   LLVMBuildStore(builder, newMapIntRef, lhsOpRef);
