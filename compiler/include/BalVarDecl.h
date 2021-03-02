@@ -21,14 +21,13 @@ enum VarKind {
 class VarDecl {
 private:
   Type *type;
-  std::string varName;
+  std::string name;
   VarKind kind;
 
 public:
   VarDecl() = delete;
-  // For global vars, local  ,arg, return
-  VarDecl(Type *ty, std::string name, VarKind k);
-  // No type - for function params
+  VarDecl(Type *type, std::string name, VarKind kind);
+
   VarDecl(std::string name);
   // Read operad - typedcl could be null
   // VarDecl(Type *ty, std::string name, VarKind k, VarScope sc, bool
