@@ -27,19 +27,11 @@ private:
 public:
   VarDecl() = delete;
   VarDecl(Type *type, std::string name, VarKind kind);
-
-  VarDecl(std::string name);
-  // Read operad - typedcl could be null
-  // VarDecl(Type *ty, std::string name, VarKind k, VarScope sc, bool
-  // ignore);
   virtual ~VarDecl() = default;
 
   Type *getTypeDecl();
   VarKind getVarKind();
   std::string getVarName();
-
-  void setTypeDecl(Type *newType);
-  void setVarKind(VarKind newKind);
 };
 
 } // namespace nballerina
