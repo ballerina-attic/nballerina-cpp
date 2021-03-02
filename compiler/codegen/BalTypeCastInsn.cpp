@@ -33,7 +33,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   rhsOpRef = funcObj->getLocalVarRefUsingId(rhsOpName);
   lhsOpRef = funcObj->getLocalVarRefUsingId(lhsOpName);
   lhsTypeRef = wrap(unwrap(lhsOpRef)->getType());
-  VarDecl *orignamVarDecl = funcObj->getNameVarDecl(rhsOpName);
+  VarDecl *orignamVarDecl = funcObj->getLocalVarFromName(rhsOpName);
 
   if (orignamVarDecl &&
       orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
@@ -53,9 +53,9 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
         LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
     LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
     LLVMBuildStore(builder, castLoad, lhsOpRef);
-  } else if (getLhsOperand() &&
-             funcObj->getNameVarDecl(lhsOpName)->getTypeDecl()->getTypeTag() ==
-                 TYPE_TAG_ANY) {
+  } else if (getLhsOperand() && funcObj->getLocalVarFromName(lhsOpName)
+                                        ->getTypeDecl()
+                                        ->getTypeTag() == TYPE_TAG_ANY) {
     LLVMValueRef structAllocaRef =
         funcObj->getLocalVarRefUsingId(getLhsOperand()->getName());
     StringTableBuilder *strTable = getPkgAddress()->getStrTableBuilder();
@@ -63,9 +63,8 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     // struct first element original type
     LLVMValueRef origTypeIdx =
         LLVMBuildStructGEP(builder, structAllocaRef, 0, "origTypeIdx");
-    VarDecl *origVarDecl = funcObj->getNameVarDecl(lhsOpName);
-    TypeTag origTypeTag =
-        origVarDecl->getTypeDecl()->getTypeTag();
+    VarDecl *origVarDecl = funcObj->getLocalVarFromName(lhsOpName);
+    TypeTag origTypeTag = origVarDecl->getTypeDecl()->getTypeTag();
     const char *origTypeName = Type::getNameOfType(origTypeTag);
     if (!strTable->contains(origTypeName))
       strTable->add(origTypeName);
@@ -76,10 +75,9 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     // struct second element last type
     LLVMValueRef lastTypeIdx =
         LLVMBuildStructGEP(builder, structAllocaRef, 1, "lastTypeIdx");
-    VarDecl *lastTypeVarDecl = funcObj->getNameVarDecl(rhsOpName);
+    VarDecl *lastTypeVarDecl = funcObj->getLocalVarFromName(rhsOpName);
     assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
-    TypeTag lastTypeTag =
-        lastTypeVarDecl->getTypeDecl()->getTypeTag();
+    TypeTag lastTypeTag = lastTypeVarDecl->getTypeDecl()->getTypeTag();
     const char *lastTypeName = Type::getNameOfType(lastTypeTag);
     if (!strTable->contains(lastTypeName))
       strTable->add(lastTypeName);

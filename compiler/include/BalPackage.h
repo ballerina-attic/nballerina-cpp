@@ -21,7 +21,7 @@ private:
   std::string version;
   std::string sourceFileName;
   std::vector<Function *> functions;
-  std::vector<VarDecl *> globalVars;
+  std::map<std::string, VarDecl *> globalVars;
   std::map<std::string, LLVMValueRef> globalVarRefs;
   std::map<std::string, Function *> functionLookUp;
   llvm::StructType *structType;
@@ -32,7 +32,7 @@ private:
 public:
   Package() = default;
   Package(std::string orgName, std::string pkgName, std::string verName,
-             std::string srcFileName);
+          std::string srcFileName);
   ~Package() = default;
 
   std::string getOrgName();
@@ -42,7 +42,7 @@ public:
   llvm::StringTableBuilder *getStrTableBuilder();
   std::vector<Function *> getFunctions();
   Function *getFunction(int i);
-  std::vector<VarDecl *> getGlobalVars();
+  VarDecl *getGlobalVarDeclFromName(std::string name);
   std::map<std::string, LLVMValueRef> getGlobalVarRefs();
   llvm::StructType *getStructType();
   size_t getNumFunctions();
@@ -54,7 +54,7 @@ public:
   void setSrcFileName(std::string srcFileName);
   void setFunctions(std::vector<Function *> f);
   void addFunction(Function *f);
-  void addGlobalVar(VarDecl *g);
+  void insertGlobalVar(VarDecl *g);
   void addFunctionLookUpEntry(std::string funcName, Function *BIRfunction);
   Function *getFunctionLookUp(std::string funcName);
   void addArrayFunctionRef(std::string arrayName, LLVMValueRef functionRef);

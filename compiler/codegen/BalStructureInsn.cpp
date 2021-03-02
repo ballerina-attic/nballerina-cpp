@@ -18,10 +18,14 @@ StructureInsn::StructureInsn(Operand *lOp, BasicBlock *currentBB,
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
+  Package *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->getName();
 
   // Find VarDecl corresponding to lhs to determine structure and member type
-  VarDecl *lhsVar = funcObj->getNameVarDecl(lhsName);
+  VarDecl *lhsVar = funcObj->getLocalVarFromName(lhsName);
+  if (!lhsVar) {
+    lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
+  }
   assert(lhsVar);
 
   // Determine structure type
@@ -71,7 +75,7 @@ void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
 // Declaration for new map<int> function
 LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
                                                     Package *pkg) {
-  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt64Type(), 0);
+  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
   LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "map_new_int", funcType);
   pkg->addArrayFunctionRef("map_new_int", addedFuncRef);

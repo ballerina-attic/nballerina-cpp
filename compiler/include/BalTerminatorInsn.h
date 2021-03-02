@@ -13,7 +13,7 @@ class Operand;
 class TerminatorInsn : public AbstractInsn, public Translatable {
 private:
   BasicBlock *thenBB;
-  bool patchRequire;
+  bool patchRequire = false;
 
 protected:
   InstructionKind kind;

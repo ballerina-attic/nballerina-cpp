@@ -98,14 +98,10 @@ LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    std::vector<VarDecl *> globVars = getPkgAddress()->getGlobalVars();
-    for (unsigned int i = 0; i < globVars.size(); i++) {
-      VarDecl *globVar = globVars[i];
-      if (globVar->getVarName() == "_bal_result") {
-        typeTag = globVar->getTypeDecl()->getTypeTag();
-        break;
-      }
-    }
+    VarDecl *globRetVar =
+        getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+    if (globRetVar)
+      typeTag = globRetVar->getTypeDecl()->getTypeTag();
   }
 
   switch (typeTag) {
@@ -118,6 +114,7 @@ LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
     return LLVMInt8Type();
   case TYPE_TAG_CHAR_STRING:
   case TYPE_TAG_STRING:
+  case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt8Type(), 0);
   default:
     return LLVMVoidType();
@@ -188,8 +185,8 @@ void Function::setParam(Operand *param) { requiredParams.push_back(param); }
 void Function::setReceiver(VarDecl *var) { receiver = var; }
 void Function::setRestParam(Param *param) { restParam = param; }
 void Function::setNumParams(int paramcount) { paramCount = paramcount; }
-void Function::setLocalVar(std::string name, VarDecl *var) {
-  localVars.insert(std::pair<std::string, VarDecl *>(name, var));
+void Function::insertLocalVar(VarDecl *var) {
+  localVars.insert(std::pair<std::string, VarDecl *>(var->getVarName(), var));
 }
 void Function::setReturnVar(VarDecl *var) { returnVar = var; }
 void Function::setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }
@@ -225,16 +222,16 @@ LLVMTypeRef Function::getLLVMTypeRefOfType(Type *typeD) {
     return LLVMInt8Type();
   case TYPE_TAG_CHAR_STRING:
   case TYPE_TAG_STRING:
+  case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_ANY:
-  case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt64Type(), 0);
   default:
     return LLVMInt32Type();
   }
 }
 
-VarDecl *Function::getNameVarDecl(std::string opName) {
+VarDecl *Function::getLocalVarFromName(std::string opName) {
 
   auto varIt = localVars.find(opName);
   if (varIt == localVars.end())

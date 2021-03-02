@@ -22,15 +22,10 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   VarDecl *returnVarDecl = nullptr;
 
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  vector<VarDecl *> globalVarList = getPkgAddress()->getGlobalVars();
-  for (unsigned int i = 0; i < globalVarList.size(); i++) {
-    VarDecl *varDeclLoc = globalVarList[i];
-    string varDeclName = varDeclLoc->getVarName();
-    if (varDeclName == "_bal_result") {
-      returnVarDecl = varDeclLoc;
-      break;
-    }
-  }
+  VarDecl *globRetVar =
+      getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+  if (globRetVar)
+    returnVarDecl = globRetVar;
 
   if (funcObj->getName() == "main" && returnVarDecl) {
     if (builder && funcObj) {

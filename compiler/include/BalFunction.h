@@ -70,7 +70,7 @@ public:
   void setReceiver(VarDecl *var);
   void setRestParam(Param *param);
   void setNumParams(int paramcount);
-  void setLocalVar(std::string name, VarDecl *var);
+  void insertLocalVar(VarDecl *var);
   void setReturnVar(VarDecl *var);
   void setBasicBlocks(std::vector<BasicBlock *> b);
   void addBasicBlock(BasicBlock *bb);
@@ -89,7 +89,7 @@ public:
   void translateFunctionBody(LLVMModuleRef &modRef);
   // void patchInsn(llvm::Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
-  VarDecl *getNameVarDecl(std::string opName);
+  VarDecl *getLocalVarFromName(std::string opName);
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina

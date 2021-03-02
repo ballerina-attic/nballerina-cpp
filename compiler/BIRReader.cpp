@@ -165,8 +165,8 @@ Type *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
     assert(shapeEntry->getTag() ==
            ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-    TypeTag memberType = TypeTag(typeShapeCp->getTypeTag());
-    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memberType);
+    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(),
+                           typeShapeCp->getTypeTag());
   }
 
   // Default return
@@ -220,7 +220,7 @@ VarDecl *BIRReader::readGlobalVar() {
   Type *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
   VarDecl *varDecl = new VarDecl(
       typeDecl, (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
-  birPackage.addGlobalVar(varDecl);
+  birPackage.insertGlobalVar(varDecl);
   return varDecl;
 }
 
@@ -692,9 +692,9 @@ Function *BIRReader::readFunction() {
   std::string initFuncName = "..<init>";
   std::string startFuncName = "..<start>";
   std::string stopFuncName = "..<stop>";
-  if (!(initFuncName.compare(birFunction->getName()) == 0 ||
-        startFuncName.compare(birFunction->getName()) == 0 ||
-        stopFuncName.compare(birFunction->getName()) == 0))
+  if (!(birFunction->getName().rfind(initFuncName, 0) == 0 ||
+        birFunction->getName().rfind(startFuncName, 0) == 0 ||
+        birFunction->getName().rfind(stopFuncName, 0) == 0))
     birPackage.addFunctionLookUpEntry(birFunction->getName(), birFunction);
 
   uint32_t workdernameCpIndex = readS4be();
@@ -767,10 +767,9 @@ Function *BIRReader::readFunction() {
   }
 
   uint32_t localVarCount = readS4be();
-  std::vector<VarDecl *> localvars;
   for (unsigned int i = 0; i < localVarCount; i++) {
     VarDecl *varDecl = readLocalVar();
-    birFunction->setLocalVar(varDecl->getVarName(), varDecl);
+    birFunction->insertLocalVar(varDecl);
   }
   for (unsigned int i = 0; i < defaultParamValue; i++) {
     uint32_t basicBlocksCount __attribute__((unused)) = readS4be();
@@ -1057,7 +1056,7 @@ void BIRReader::readModule() {
   if (globalVarCount > 0) {
     for (unsigned int i = 0; i < globalVarCount; i++) {
       VarDecl *varDecl = readGlobalVar();
-      birPackage.addGlobalVar(varDecl);
+      birPackage.insertGlobalVar(varDecl);
     }
   }
 

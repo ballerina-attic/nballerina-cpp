@@ -13,7 +13,7 @@ using namespace std;
 namespace nballerina {
 
 Package::Package(string orgName, string pkgName, string verName,
-                       string srcFileName)
+                 string srcFileName)
     : org(orgName), name(pkgName), version(verName),
       sourceFileName(srcFileName) {}
 
@@ -32,9 +32,7 @@ std::string Package::getOrgName() { return org; }
 std::string Package::getPackageName() { return name; }
 std::string Package::getVersion() { return version; }
 std::string Package::getSrcFileName() { return sourceFileName; }
-llvm::StringTableBuilder *Package::getStrTableBuilder() {
-  return strBuilder;
-}
+llvm::StringTableBuilder *Package::getStrTableBuilder() { return strBuilder; }
 void Package::setOrgName(std::string orgName) { org = orgName; }
 void Package::setPackageName(std::string pkgName) { name = pkgName; }
 void Package::setVersion(std::string verName) { version = verName; }
@@ -43,16 +41,14 @@ void Package::setSrcFileName(std::string srcFileName) {
 }
 std::vector<Function *> Package::getFunctions() { return functions; }
 Function *Package::getFunction(int i) { return functions[i]; }
-std::vector<VarDecl *> Package::getGlobalVars() { return globalVars; }
 std::map<std::string, LLVMValueRef> Package::getGlobalVarRefs() {
   return globalVarRefs;
 }
 llvm::StructType *Package::getStructType() { return structType; }
 void Package::setFunctions(std::vector<Function *> f) { functions = f; }
 void Package::addFunction(Function *f) { functions.push_back(f); }
-void Package::addGlobalVar(VarDecl *g) { globalVars.push_back(g); }
 void Package::addFunctionLookUpEntry(std::string funcName,
-                                        Function *BIRfunction) {
+                                     Function *BIRfunction) {
   functionLookUp.insert(
       std::pair<std::string, Function *>(funcName, BIRfunction));
 }
@@ -61,7 +57,7 @@ Function *Package::getFunctionLookUp(std::string funcName) {
 }
 size_t Package::getNumFunctions() { return functions.size(); }
 void Package::addArrayFunctionRef(std::string arrayName,
-                                     LLVMValueRef functionRef) {
+                                  LLVMValueRef functionRef) {
   arrayFunctionRefs.insert(
       std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
 }
@@ -73,9 +69,9 @@ void Package::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
   // iterate over all global variables and translate
-  for (unsigned int i = 0; i < globalVars.size(); i++) {
+  for (auto const it : globalVars) {
     LLVMValueRef globVarRef;
-    VarDecl *globVar = globalVars[i];
+    VarDecl *globVar = it.second;
     Function *funcObj = new Function();
     LLVMTypeRef varTyperef =
         funcObj->getLLVMTypeRefOfType(globVar->getTypeDecl());
@@ -158,7 +154,7 @@ void Package::translate(LLVMModuleRef &modRef) {
 }
 
 void Package::addStringOffsetRelocationEntry(string eleType,
-                                                LLVMValueRef storeInsn) {
+                                             LLVMValueRef storeInsn) {
   if (structElementStoreInst.size() == 0) {
     vector<LLVMValueRef> temp;
     temp.push_back(storeInsn);
@@ -183,7 +179,7 @@ void Package::addStringOffsetRelocationEntry(string eleType,
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
 void Package::applyStringOffsetRelocations(__attribute__((unused))
-                                              LLVMModuleRef &modRef) {
+                                           LLVMModuleRef &modRef) {
   strBuilder->finalize();
   map<string, vector<LLVMValueRef>>::iterator itr;
   for (itr = structElementStoreInst.begin();
@@ -208,6 +204,18 @@ LLVMValueRef Package::getFunctionRefBasedOnName(string arrayName) {
     return NULL;
   } else
     return it->second;
+}
+
+VarDecl *Package::getGlobalVarDeclFromName(string name) {
+  auto varIt = globalVars.find(name);
+  if (varIt == globalVars.end())
+    return nullptr;
+
+  return varIt->second;
+}
+
+void Package::insertGlobalVar(VarDecl *g) {
+  globalVars.insert(std::pair<std::string, VarDecl *>(g->getVarName(), g));
 }
 
 } // namespace nballerina

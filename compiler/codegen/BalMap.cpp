@@ -25,9 +25,12 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
   // Find VarDecl corresponding to lhs to determine member type
-  VarDecl *lhsVar = funcObj->getNameVarDecl(lhsName);
+  VarDecl *lhsVar = funcObj->getLocalVarFromName(lhsName);
+  if (!lhsVar) {
+    lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
+  }
   assert(lhsVar);
-  assert(lhsVar->getVarKind() == LOCAL_VAR_KIND);
+
   assert(lhsVar->getTypeDecl()->getTypeTag() == TYPE_TAG_MAP);
 
   MapTypeDecl *mapTypeDelare =
@@ -36,8 +39,8 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
 
   // Only handle Int type
   if (memberTypeTag != TYPE_TAG_INT) {
-    std::cerr << "Non int type maps are currently not supported" << std::endl;
-    llvm_unreachable("");
+    std::cerr << "Non INT type maps are currently not supported" << std::endl;
+    llvm_unreachable("Unknown Type");
   }
 
   // Codegen for Map of Int type store
@@ -49,6 +52,9 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef lhsOpTempRef = funcObj->getLocalToTempVar(getLhsOperand());
 
   LLVMValueRef rhsOpRef = funcObj->getLocalVarRefUsingId(rhsName);
+  if (!rhsOpRef)
+    rhsOpRef = pkgObj->getGlobalVarRefUsingId(rhsName);
+
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
   assert(mapStoreFunc && lhsOpTempRef && rhsOpRef && keyRef);
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
@@ -65,7 +71,7 @@ LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef,
   LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
   LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt64Type(), 0);
+  LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   paramTypes[0] = memPtrType;
   paramTypes[1] = charArrayPtrType;
   paramTypes[2] = int32PtrType;
