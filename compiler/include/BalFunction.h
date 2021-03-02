@@ -1,7 +1,6 @@
 #ifndef __BALFUNCTION__H__
 #define __BALFUNCTION__H__
 
-#include "BalEnums.h"
 #include "interfaces/Debuggable.h"
 #include "interfaces/PackageNode.h"
 #include "interfaces/Translatable.h"

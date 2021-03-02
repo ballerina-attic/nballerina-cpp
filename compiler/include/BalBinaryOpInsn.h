@@ -1,7 +1,6 @@
 #ifndef __BALBINARYOPINSN__H__
 #define __BALBINARYOPINSN__H__
 
-#include "BalEnums.h"
 #include "BalNonTerminatorInsn.h"
 
 namespace nballerina {

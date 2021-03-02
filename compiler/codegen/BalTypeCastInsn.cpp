@@ -1,5 +1,4 @@
 #include "BalTypeCastInsn.h"
-#include "BalEnums.h"
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalPackage.h"

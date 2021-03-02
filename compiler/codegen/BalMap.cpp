@@ -1,4 +1,3 @@
-#include "BalEnums.h"
 #include "BalFunction.h"
 #include "BalMapInsns.h"
 #include "BalOperand.h"

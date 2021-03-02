@@ -1,7 +1,6 @@
 #ifndef __BALSTRUCTUREINSN__H__
 #define __BALSTRUCTUREINSN__H__
 
-#include "BalEnums.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalVarDecl.h"
 
