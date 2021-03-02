@@ -1,6 +1,5 @@
 #include "BIRReader.h"
 #include "BalPackage.h"
-#include <ballerina_rt.h>
 #include <fstream>
 #include <iostream>
 #include <llvm-c/Core.h>
