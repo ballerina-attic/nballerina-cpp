@@ -123,7 +123,7 @@ void Package::translate(LLVMModuleRef &modRef) {
       continue;
 
     for (unsigned i = 0; i < numParams; i++) {
-      Operand *funcParam = birFunc->getParam(i);
+      FunctionParam *funcParam = birFunc->getParam(i);
       assert(funcParam->getType());
       paramTypes[i] = birFunc->getLLVMTypeRefOfType(funcParam->getType());
     }

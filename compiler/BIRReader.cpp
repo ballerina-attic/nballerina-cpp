@@ -710,8 +710,8 @@ Function *BIRReader::readFunction() {
   // Params
   for (unsigned int i = 0; i < requiredParamCount; i++) {
     uint32_t paramNameCpIndex = readS4be();
-    Operand *param =
-        new Operand(constantPool->getStringCp(paramNameCpIndex), ARG_VAR_KIND);
+    FunctionParam *param =
+        new FunctionParam(constantPool->getStringCp(paramNameCpIndex));
     uint32_t paramFlags __attribute__((unused)) = readS4be();
     birFunction->setParam(param);
   }
@@ -751,7 +751,7 @@ Function *BIRReader::readFunction() {
   for (unsigned int i = 0; i < defaultParamValue; i++) {
     uint8_t kind = readU1();
     uint32_t typeCpIndex = readS4be();
-    Operand *param = birFunction->getParam(i);
+    FunctionParam *param = birFunction->getParam(i);
     param->setType(constantPool->getTypeCp(typeCpIndex, false));
 
     uint32_t nameCpIndex __attribute__((unused)) = readS4be();
@@ -976,6 +976,7 @@ void ConstantPoolSet::read() {
 }
 
 // Assigns Type Decl to function parameters
+/*
 void BIRReader::patchTypesToFuncParam() {
   for (size_t i = 0; i < birPackage.getNumFunctions(); i++) {
     Function *curFunc = birPackage.getFunction(i);
@@ -996,7 +997,7 @@ void BIRReader::patchTypesToFuncParam() {
               for (size_t i = 0; i < invokableType->getParamTypeCount(); i++) {
                 Type *typeDecl = invokableType->getParamType(i);
                 Operand *param = Terminator->getArgumentFromList(i);
-                param->setType(typeDecl);
+                // param->setType(typeDecl);
               }
             }
             break;
@@ -1013,6 +1014,7 @@ void BIRReader::patchTypesToFuncParam() {
     }
   }
 }
+*/
 
 void BIRReader::readModule() {
   uint32_t idCpIndex = readS4be();
@@ -1075,7 +1077,7 @@ void BIRReader::readModule() {
   uint32_t annotationsSize __attribute__((unused)) = readS4be();
 
   // Assign typedecl to function param of call Insn
-  patchTypesToFuncParam();
+  // patchTypesToFuncParam();
 }
 
 void BIRReader::deserialize() {

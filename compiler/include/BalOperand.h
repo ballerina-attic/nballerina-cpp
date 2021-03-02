@@ -10,15 +10,25 @@ class Operand {
 private:
   std::string name;
   VarKind kind;
-  Type *type;
 
 public:
   Operand() = delete;
   Operand(std::string name, VarKind kind);
-  ~Operand() = default;
+  virtual ~Operand() = default;
 
   std::string getName();
   VarKind getKind();
+};
+
+class FunctionParam : public Operand {
+private:
+  Type *type;
+
+public:
+  FunctionParam() = delete;
+  FunctionParam(std::string name);
+  ~FunctionParam() = default;
+
   Type *getType();
   void setType(Type *type);
 };

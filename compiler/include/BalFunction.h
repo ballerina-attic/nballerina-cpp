@@ -14,6 +14,7 @@ namespace nballerina {
 // Forward Declaration
 class BasicBlock;
 class Operand;
+class FunctionParam;
 class Variable;
 class InvokableType;
 class RestParam;
@@ -24,7 +25,7 @@ private:
   std::string name;
   int flags;
   InvokableType *type;
-  std::vector<Operand *> requiredParams;
+  std::vector<FunctionParam *> requiredParams;
   Variable *receiver;
   RestParam *restParam;
   int paramCount;
@@ -47,8 +48,8 @@ public:
   std::string getName();
   int getFlags();
   InvokableType *getInvokableType();
-  std::vector<Operand *> getParams();
-  Operand *getParam(int i);
+  std::vector<FunctionParam *> getParams();
+  FunctionParam *getParam(int i);
   Variable *getReceiver();
   RestParam *getRestParam();
   Variable *getReturnVar();
@@ -66,8 +67,8 @@ public:
   void setName(std::string newName);
   void setFlags(int newFlags);
   void setInvokableType(InvokableType *t);
-  void setParams(std::vector<Operand *> p);
-  void setParam(Operand *param);
+  void setParams(std::vector<FunctionParam *> p);
+  void setParam(FunctionParam *param);
   void setReceiver(Variable *var);
   void setRestParam(RestParam *param);
   void setNumParams(int paramcount);

@@ -28,8 +28,8 @@ BasicBlock *Function::searchBb(std::string name) {
 std::string Function::getName() { return name; }
 int Function::getFlags() { return flags; }
 InvokableType *Function::getInvokableType() { return type; }
-std::vector<Operand *> Function::getParams() { return requiredParams; }
-Operand *Function::getParam(int i) { return requiredParams[i]; }
+std::vector<FunctionParam *> Function::getParams() { return requiredParams; }
+FunctionParam *Function::getParam(int i) { return requiredParams[i]; }
 Variable *Function::getReceiver() { return receiver; }
 RestParam *Function::getRestParam() { return restParam; }
 Variable *Function::getReturnVar() { return returnVar; }
@@ -180,8 +180,8 @@ void Function::translate(LLVMModuleRef &modRef) {
 void Function::setName(std::string newName) { name = newName; }
 void Function::setFlags(int newFlags) { flags = newFlags; }
 void Function::setInvokableType(InvokableType *t) { type = t; }
-void Function::setParams(std::vector<Operand *> p) { requiredParams = p; }
-void Function::setParam(Operand *param) { requiredParams.push_back(param); }
+void Function::setParams(std::vector<FunctionParam *> p) { requiredParams = p; }
+void Function::setParam(FunctionParam *param) { requiredParams.push_back(param); }
 void Function::setReceiver(Variable *var) { receiver = var; }
 void Function::setRestParam(RestParam *param) { restParam = param; }
 void Function::setNumParams(int paramcount) { paramCount = paramcount; }
