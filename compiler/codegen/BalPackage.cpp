@@ -1,6 +1,7 @@
 #include "BalPackage.h"
 #include "BalFunction.h"
 #include "BalOperand.h"
+#include "BalType.h"
 #include "BalVarDecl.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"

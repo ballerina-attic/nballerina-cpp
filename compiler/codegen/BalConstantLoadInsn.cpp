@@ -22,27 +22,27 @@ float ConstantLoadInsn::getFloatValue() { return val.floatValue; }
 bool ConstantLoadInsn::getBoolValue() { return val.boolValue; }
 std::string *ConstantLoadInsn::getStringValue() { return val.strValue; }
 
-void ConstantLoadInsn::setIntValue(int intVal, TypeTagEnum TypeTag) {
+void ConstantLoadInsn::setIntValue(int intVal, TypeTag TypeTag) {
   val.intValue = intVal;
   typeTag = TypeTag;
 }
-void ConstantLoadInsn::setFloatValue(float floatVal, TypeTagEnum TypeTag) {
+void ConstantLoadInsn::setFloatValue(float floatVal, TypeTag TypeTag) {
   val.floatValue = floatVal;
   typeTag = TypeTag;
 }
-void ConstantLoadInsn::setBoolValue(bool boolVal, TypeTagEnum TypeTag) {
+void ConstantLoadInsn::setBoolValue(bool boolVal, TypeTag TypeTag) {
   val.boolValue = boolVal;
   typeTag = TypeTag;
 }
-void ConstantLoadInsn::setStringValue(std::string *str, TypeTagEnum TypeTag) {
+void ConstantLoadInsn::setStringValue(std::string *str, TypeTag TypeTag) {
   val.strValue = str;
   typeTag = TypeTag;
 }
 // With Nil Type setting only Type Tag because value will be zero with NIL
 // Type.
-void ConstantLoadInsn::setTypeTagNil(TypeTagEnum TypeTag) { typeTag = TypeTag; }
+void ConstantLoadInsn::setTypeTagNil(TypeTag TypeTag) { typeTag = TypeTag; }
 
-TypeTagEnum ConstantLoadInsn::getTypeTag() { return typeTag; }
+TypeTag ConstantLoadInsn::getTypeTag() { return typeTag; }
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef lhsRef;
@@ -64,7 +64,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     llvm_unreachable("Unknown Type");
 
   assert(lhsOp->getVarDecl()->getTypeDecl());
-  TypeTagEnum lhsTypeTag = TypeTagEnum(lhsOp->typeTag());
+  TypeTag lhsTypeTag = lhsOp->typeTag();
   assert(lhsTypeTag == typeTag);
 
   switch (lhsTypeTag) {

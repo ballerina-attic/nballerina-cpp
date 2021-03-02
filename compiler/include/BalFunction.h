@@ -91,7 +91,6 @@ public:
   // void patchInsn(llvm::Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
   VarDecl *getNameVarDecl(std::string opName);
-  const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina

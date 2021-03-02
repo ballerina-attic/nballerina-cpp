@@ -9,7 +9,7 @@
 namespace nballerina {
 
 Function::Function(Location *pos, std::string namep, int flagsp,
-                         InvokableType *typep, std::string workerNamep)
+                   InvokableType *typep, std::string workerNamep)
     : name(namep), flags(flagsp), type(typep), workerName(workerNamep) {
   setLocation(pos);
 }
@@ -93,9 +93,7 @@ static bool isParamter(VarDecl *locVar) {
 }
 
 LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
-  int typeTag = 0;
-  if (vDecl->getTypeDecl())
-    typeTag = vDecl->getTypeDecl()->getTypeTag();
+  TypeTag typeTag = vDecl->getTypeDecl()->getTypeTag();
   // if main function return type is void, but user wants to return some
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
@@ -194,9 +192,7 @@ void Function::setLocalVar(std::string name, VarDecl *var) {
   localVars.insert(std::pair<std::string, VarDecl *>(name, var));
 }
 void Function::setReturnVar(VarDecl *var) { returnVar = var; }
-void Function::setBasicBlocks(std::vector<BasicBlock *> b) {
-  basicBlocks = b;
-}
+void Function::setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }
 void Function::addBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
 void Function::setWorkerName(std::string newName) { workerName = newName; }
 void Function::setLLVMBuilder(LLVMBuilderRef b) { builder = b; }
@@ -212,8 +208,7 @@ void Function::setBranchComparisonlist(
     std::map<std::string, LLVMValueRef> brCompl) {
   branchComparisonList = brCompl;
 }
-void Function::addNewbranchComparison(std::string name,
-                                         LLVMValueRef compRef) {
+void Function::addNewbranchComparison(std::string name, LLVMValueRef compRef) {
   branchComparisonList.insert(
       std::pair<std::string, LLVMValueRef>(name, compRef));
 }
@@ -246,24 +241,6 @@ VarDecl *Function::getNameVarDecl(std::string opName) {
     return nullptr;
 
   return varIt->second;
-}
-
-const char *Function::getTypeNameOfTypeTag(TypeTagEnum typeTag) {
-  switch (typeTag) {
-  case TYPE_TAG_INT:
-    return "int";
-  case TYPE_TAG_FLOAT:
-    return "float";
-  case TYPE_TAG_CHAR_STRING:
-  case TYPE_TAG_STRING:
-    return "string";
-  case TYPE_TAG_BOOLEAN:
-    return "bool";
-  case TYPE_TAG_ANY:
-    return "any";
-  default:
-    return "";
-  }
 }
 
 } // namespace nballerina

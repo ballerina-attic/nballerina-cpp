@@ -152,7 +152,7 @@ Type *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   if (name == "")
     name.append("anon-" + std::to_string(random() % 100000));
 
-  int type = shapeCp->getTypeTag();
+  TypeTag type = TypeTag(shapeCp->getTypeTag());
 
   // Handle voidToInt flag
   if (type == TYPE_TAG_NIL && voidToInt)
@@ -165,8 +165,8 @@ Type *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
     assert(shapeEntry->getTag() ==
            ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-    int memeberType = typeShapeCp->getTypeTag();
-    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memeberType);
+    TypeTag memberType = TypeTag(typeShapeCp->getTypeTag());
+    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memberType);
   }
 
   // Default return
@@ -174,7 +174,7 @@ Type *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 }
 
 // Get the Type tag from the constant pool based on the index passed
-TypeTagEnum ConstantPoolSet::getTypeTag(uint32_t index) {
+TypeTag ConstantPoolSet::getTypeTag(uint32_t index) {
   ConstantPoolEntry *poolEntry = getEntry(index);
   assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
@@ -250,7 +250,7 @@ Operand *BIRReader::readOperand() {
 
   uint8_t kind = readU1();
 
-  uint8_t scope __attribute__((unused))= readU1();
+  uint8_t scope __attribute__((unused)) = readU1();
 
   uint32_t varDclNameCpIndex = readS4be();
 
@@ -261,9 +261,8 @@ Operand *BIRReader::readOperand() {
     typedcl = constantPool->getTypeCp(typeCpIndex, false);
   }
 
-  VarDecl *varDecl =
-      new VarDecl(typedcl, constantPool->getStringCp(varDclNameCpIndex),
-                  (VarKind)kind);
+  VarDecl *varDecl = new VarDecl(
+      typedcl, constantPool->getStringCp(varDclNameCpIndex), (VarKind)kind);
   Operand *operand = new Operand(varDecl);
   return operand;
 }
@@ -294,7 +293,7 @@ ReadConstLoadInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   ConstantLoadInsn *constantloadInsn =
       new ConstantLoadInsn(lhsOperand, currentBB);
 
-  TypeTagEnum typeTag = readerRef.constantPool->getTypeTag(typeCpIndex);
+  TypeTag typeTag = readerRef.constantPool->getTypeTag(typeCpIndex);
   switch (typeTag) {
   case TYPE_TAG_INT:
   case TYPE_TAG_UNSIGNED8_INT:
@@ -810,7 +809,7 @@ ShapeCpInfo::ShapeCpInfo() { setTag(TAG_ENUM_CP_ENTRY_SHAPE); }
 
 void ShapeCpInfo::read() {
   shapeLength = readerRef.readS4be();
-  typeTag = static_cast<TypeTagEnum>(readerRef.readU1());
+  typeTag = TypeTag(readerRef.readU1());
   nameIndex = readerRef.readS4be();
   typeFlag = readerRef.readS4be();
   typeSpecialFlag = readerRef.readS4be();
@@ -892,7 +891,7 @@ void ShapeCpInfo::read() {
   }
   default:
     fprintf(stderr, "%s:%d Invalid Type Tag in shape.\n", __FILE__, __LINE__);
-    fprintf(stderr, "%d is the Type Tag.\n", (TypeTagEnum)typeTag);
+    fprintf(stderr, "%d is the Type Tag.\n", typeTag);
     break;
   }
 }

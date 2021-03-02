@@ -153,7 +153,7 @@ public:
 private:
   uint32_t shapeLength;
   std::string value;
-  nballerina::TypeTagEnum typeTag;
+  nballerina::TypeTag typeTag;
   uint32_t nameIndex;
   uint32_t typeFlag;
   uint32_t typeSpecialFlag;
@@ -167,7 +167,7 @@ private:
 public:
   uint32_t getShapeLength() { return shapeLength; }
   std::string getValue() { return value; }
-  nballerina::TypeTagEnum getTypeTag() { return typeTag; }
+  nballerina::TypeTag getTypeTag() { return typeTag; }
   uint32_t getNameIndex() { return nameIndex; }
   uint32_t getTypeFlag() { return typeFlag; }
   uint32_t getTypeSpecialFlag() { return typeSpecialFlag; }
@@ -181,7 +181,7 @@ public:
 
   void setShapeLength(uint32_t s) { shapeLength = s; }
   void setValue(std::string v) { value = v; }
-  void setTypeTag(nballerina::TypeTagEnum t) { typeTag = t; }
+  void setTypeTag(nballerina::TypeTag t) { typeTag = t; }
   void setNameIndex(uint32_t n) { nameIndex = n; }
   void setTypeFlag(uint32_t t) { typeFlag = t; }
   void setTypeSpecialFlag(uint32_t t) { typeSpecialFlag = t; }
@@ -290,7 +290,7 @@ public:
   nballerina::Type *getTypeCp(uint32_t index, bool voidToInt);
   float getFloatCp(uint32_t index);
   bool getBooleanCp(uint32_t index);
-  nballerina::TypeTagEnum getTypeTag(uint32_t index);
+  nballerina::TypeTag getTypeTag(uint32_t index);
   nballerina::InvokableType *getInvokableType(uint32_t index);
 };
 

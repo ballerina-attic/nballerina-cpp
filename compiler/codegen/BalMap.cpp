@@ -33,7 +33,7 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
 
   MapTypeDecl *mapTypeDelare =
       static_cast<MapTypeDecl *>(lhsVar->getTypeDecl());
-  int memberTypeTag = mapTypeDelare->getTypeMemberTag();
+  TypeTag memberTypeTag = mapTypeDelare->getMemberTypeTag();
 
   // Only handle Int type
   if (memberTypeTag != TYPE_TAG_INT) {

@@ -1,6 +1,7 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
+#include "BalType.h"
 #include <string>
 
 namespace nballerina {
@@ -19,7 +20,7 @@ public:
 
   VarDecl *getVarDecl();
   std::string getName();
-  int typeTag();
+  TypeTag typeTag();
 };
 
 } // namespace nballerina

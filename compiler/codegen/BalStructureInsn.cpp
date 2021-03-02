@@ -25,8 +25,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
   assert(lhsVar);
 
   // Determine structure type
-  assert(lhsVar->getVarKind() == LOCAL_VAR_KIND);
-  int structType = lhsVar->getTypeDecl()->getTypeTag();
+  TypeTag structType = lhsVar->getTypeDecl()->getTypeTag();
 
   // Only handle Map type
   if (structType != TYPE_TAG_MAP) {
@@ -52,7 +51,7 @@ void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
       static_cast<MapTypeDecl *>(lhsVar->getTypeDecl());
 
   // Get member type
-  int memberTypeTag = mapTypeDelare->getTypeMemberTag();
+  TypeTag memberTypeTag = mapTypeDelare->getMemberTypeTag();
   // Only handle Int type
   if (memberTypeTag != TYPE_TAG_INT) {
     std::cerr << "Non INT type maps are currently not supported" << std::endl;
