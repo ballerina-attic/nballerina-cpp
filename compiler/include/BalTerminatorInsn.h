@@ -1,7 +1,7 @@
 #ifndef __BALTERMINATORINSN__H__
 #define __BALTERMINATORINSN__H__
 
-#include "BalAbstractInsn.h"
+#include "interfaces/BalAbstractInsn.h"
 #include "interfaces/Translatable.h"
 
 namespace nballerina {

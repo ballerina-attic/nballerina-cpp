@@ -1,4 +1,4 @@
-#include "BalAbstractInsn.h"
+#include "interfaces/BalAbstractInsn.h"
 #include "BalBasicBlock.h"
 #include "BalFunction.h"
 

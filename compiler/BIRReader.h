@@ -1,7 +1,6 @@
 #ifndef BIRREADER_H
 #define BIRREADER_H
 
-#include "BalAbstractInsn.h"
 #include "BalArrayInsns.h"
 #include "BalBasicBlock.h"
 #include "BalBinaryOpInsn.h"
@@ -25,6 +24,7 @@
 #include "BalTypeTestInsn.h"
 #include "BalUnaryOpInsn.h"
 #include "BalVariable.h"
+#include "interfaces/BalAbstractInsn.h"
 #include <fstream>
 
 class ConstantPoolSet;
