@@ -24,7 +24,7 @@
 #include "BalTypeDescInsn.h"
 #include "BalTypeTestInsn.h"
 #include "BalUnaryOpInsn.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include <fstream>
 
 class ConstantPoolSet;
@@ -41,9 +41,9 @@ private:
   BIRReader() {}
 
   ConstantPoolSet *constantPool;
-  nballerina::VarDecl *readGlobalVar();
+  nballerina::Variable *readGlobalVar();
   nballerina::Operand *readOperand();
-  nballerina::VarDecl *readLocalVar();
+  nballerina::Variable *readLocalVar();
   nballerina::TypeDescInsn *readTypeDescInsn();
   nballerina::StructureInsn *readStructureInsn();
   void readInsn(nballerina::BasicBlock *basicBlock);

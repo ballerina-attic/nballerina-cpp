@@ -3,7 +3,7 @@
 #include "BalOperand.h"
 #include "BalPackage.h"
 #include "BalType.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 
 namespace nballerina {
@@ -30,9 +30,9 @@ int Function::getFlags() { return flags; }
 InvokableType *Function::getInvokableType() { return type; }
 std::vector<Operand *> Function::getParams() { return requiredParams; }
 Operand *Function::getParam(int i) { return requiredParams[i]; }
-VarDecl *Function::getReceiver() { return receiver; }
+Variable *Function::getReceiver() { return receiver; }
 Param *Function::getRestParam() { return restParam; }
-VarDecl *Function::getReturnVar() { return returnVar; }
+Variable *Function::getReturnVar() { return returnVar; }
 std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
 size_t Function::numBasicBlocks() { return basicBlocks.size(); }
 BasicBlock *Function::getBasicBlock(int i) { return basicBlocks[i]; }
@@ -76,7 +76,7 @@ LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
   return LLVMBuildLoad(builder, locVRef, tempName.c_str());
 }
 
-static bool isParamter(VarDecl *locVar) {
+static bool isParamter(Variable *locVar) {
   switch (locVar->getVarKind()) {
   case LOCAL_VAR_KIND:
   case TEMP_VAR_KIND:
@@ -92,13 +92,13 @@ static bool isParamter(VarDecl *locVar) {
   }
 }
 
-LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
+LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(Variable *vDecl) {
   TypeTag typeTag = vDecl->getTypeDecl()->getTypeTag();
   // if main function return type is void, but user wants to return some
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    VarDecl *globRetVar =
+    Variable *globRetVar =
         getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
     if (globRetVar)
       typeTag = globRetVar->getTypeDecl()->getTypeTag();
@@ -129,7 +129,7 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
 
   // iterate through all local vars.
   for (auto const &it : localVars) {
-    VarDecl *locVar = it.second;
+    Variable *locVar = it.second;
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef;
     if (locVar->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
@@ -182,13 +182,13 @@ void Function::setFlags(int newFlags) { flags = newFlags; }
 void Function::setInvokableType(InvokableType *t) { type = t; }
 void Function::setParams(std::vector<Operand *> p) { requiredParams = p; }
 void Function::setParam(Operand *param) { requiredParams.push_back(param); }
-void Function::setReceiver(VarDecl *var) { receiver = var; }
+void Function::setReceiver(Variable *var) { receiver = var; }
 void Function::setRestParam(Param *param) { restParam = param; }
 void Function::setNumParams(int paramcount) { paramCount = paramcount; }
-void Function::insertLocalVar(VarDecl *var) {
-  localVars.insert(std::pair<std::string, VarDecl *>(var->getVarName(), var));
+void Function::insertLocalVar(Variable *var) {
+  localVars.insert(std::pair<std::string, Variable *>(var->getVarName(), var));
 }
-void Function::setReturnVar(VarDecl *var) { returnVar = var; }
+void Function::setReturnVar(Variable *var) { returnVar = var; }
 void Function::setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }
 void Function::addBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
 void Function::setWorkerName(std::string newName) { workerName = newName; }
@@ -231,7 +231,7 @@ LLVMTypeRef Function::getLLVMTypeRefOfType(Type *typeD) {
   }
 }
 
-VarDecl *Function::getLocalVarFromName(std::string opName) {
+Variable *Function::getLocalVarFromName(std::string opName) {
 
   auto varIt = localVars.find(opName);
   if (varIt == localVars.end())

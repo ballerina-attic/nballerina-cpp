@@ -18,16 +18,16 @@ enum VarKind {
   CONSTANT_VAR_KIND = 7
 };
 
-class VarDecl {
+class Variable {
 private:
   Type *type;
   std::string name;
   VarKind kind;
 
 public:
-  VarDecl() = delete;
-  VarDecl(Type *type, std::string name, VarKind kind);
-  virtual ~VarDecl() = default;
+  Variable() = delete;
+  Variable(Type *type, std::string name, VarKind kind);
+  virtual ~Variable() = default;
 
   Type *getTypeDecl();
   VarKind getVarKind();

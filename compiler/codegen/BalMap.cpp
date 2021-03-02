@@ -3,7 +3,7 @@
 #include "BalOperand.h"
 #include "BalPackage.h"
 #include "BalType.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 #include <iostream>
 
@@ -24,8 +24,8 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   string rhsName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
-  // Find VarDecl corresponding to lhs to determine member type
-  VarDecl *lhsVar = funcObj->getLocalVarFromName(lhsName);
+  // Find Variable corresponding to lhs to determine member type
+  Variable *lhsVar = funcObj->getLocalVarFromName(lhsName);
   if (!lhsVar) {
     lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
   }

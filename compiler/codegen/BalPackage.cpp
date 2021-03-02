@@ -2,7 +2,7 @@
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalType.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -71,7 +71,7 @@ void Package::translate(LLVMModuleRef &modRef) {
   // iterate over all global variables and translate
   for (auto const it : globalVars) {
     LLVMValueRef globVarRef;
-    VarDecl *globVar = it.second;
+    Variable *globVar = it.second;
     Function *funcObj = new Function();
     LLVMTypeRef varTyperef =
         funcObj->getLLVMTypeRefOfType(globVar->getTypeDecl());
@@ -201,7 +201,7 @@ LLVMValueRef Package::getFunctionRefBasedOnName(string arrayName) {
     return it->second;
 }
 
-VarDecl *Package::getGlobalVarDeclFromName(string name) {
+Variable *Package::getGlobalVarDeclFromName(string name) {
   auto varIt = globalVars.find(name);
   if (varIt == globalVars.end())
     return nullptr;
@@ -209,8 +209,8 @@ VarDecl *Package::getGlobalVarDeclFromName(string name) {
   return varIt->second;
 }
 
-void Package::insertGlobalVar(VarDecl *g) {
-  globalVars.insert(std::pair<std::string, VarDecl *>(g->getVarName(), g));
+void Package::insertGlobalVar(Variable *g) {
+  globalVars.insert(std::pair<std::string, Variable *>(g->getVarName(), g));
 }
 
 } // namespace nballerina

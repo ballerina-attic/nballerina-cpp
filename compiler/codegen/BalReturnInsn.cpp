@@ -2,7 +2,7 @@
 #include "BalFunction.h"
 #include "BalPackage.h"
 #include "BalType.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 
 #ifndef unix
@@ -19,10 +19,10 @@ ReturnInsn::ReturnInsn(BasicBlock *currentBB)
 
 void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  VarDecl *returnVarDecl = nullptr;
+  Variable *returnVarDecl = nullptr;
 
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  VarDecl *globRetVar =
+  Variable *globRetVar =
       getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
   if (globRetVar)
     returnVarDecl = globRetVar;

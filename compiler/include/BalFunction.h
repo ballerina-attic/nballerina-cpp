@@ -13,7 +13,7 @@ namespace nballerina {
 // Forward Declaration
 class BasicBlock;
 class Operand;
-class VarDecl;
+class Variable;
 class InvokableType;
 class Param;
 class Type;
@@ -24,11 +24,11 @@ private:
   int flags;
   InvokableType *type;
   std::vector<Operand *> requiredParams;
-  VarDecl *receiver;
+  Variable *receiver;
   Param *restParam;
   int paramCount;
-  std::map<std::string, VarDecl *> localVars;
-  VarDecl *returnVar;
+  std::map<std::string, Variable *> localVars;
+  Variable *returnVar;
   std::vector<BasicBlock *> basicBlocks;
   std::string workerName;
   LLVMBuilderRef builder;
@@ -48,9 +48,9 @@ public:
   InvokableType *getInvokableType();
   std::vector<Operand *> getParams();
   Operand *getParam(int i);
-  VarDecl *getReceiver();
+  Variable *getReceiver();
   Param *getRestParam();
-  VarDecl *getReturnVar();
+  Variable *getReturnVar();
   std::vector<BasicBlock *> getBasicBlocks();
   size_t numBasicBlocks();
   BasicBlock *getBasicBlock(int i);
@@ -67,11 +67,11 @@ public:
   void setInvokableType(InvokableType *t);
   void setParams(std::vector<Operand *> p);
   void setParam(Operand *param);
-  void setReceiver(VarDecl *var);
+  void setReceiver(Variable *var);
   void setRestParam(Param *param);
   void setNumParams(int paramcount);
-  void insertLocalVar(VarDecl *var);
-  void setReturnVar(VarDecl *var);
+  void insertLocalVar(Variable *var);
+  void setReturnVar(Variable *var);
   void setBasicBlocks(std::vector<BasicBlock *> b);
   void addBasicBlock(BasicBlock *bb);
   void setWorkerName(std::string newName);
@@ -88,8 +88,8 @@ public:
   LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);
   // void patchInsn(llvm::Function *llvnFun);
-  LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
-  VarDecl *getLocalVarFromName(std::string opName);
+  LLVMTypeRef getLLVMFuncRetTypeRefOfType(Variable *vDecl);
+  Variable *getLocalVarFromName(std::string opName);
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina

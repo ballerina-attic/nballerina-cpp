@@ -1,7 +1,7 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include <string>
 
 namespace nballerina {

@@ -2,14 +2,14 @@
 #define __BALSTRUCTUREINSN__H__
 
 #include "BalNonTerminatorInsn.h"
-#include "BalVarDecl.h"
+#include "BalOperand.h"
 
 namespace nballerina {
 
 class StructureInsn : public NonTerminatorInsn {
 private:
   Operand *rhsOp;
-  void mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef);
+  void mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef);
   LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef, Package *pkg);
 
 public:

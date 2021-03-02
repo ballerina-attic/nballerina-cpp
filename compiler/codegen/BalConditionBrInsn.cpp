@@ -3,7 +3,7 @@
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalType.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 
 #ifndef unix
@@ -36,7 +36,7 @@ void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMValueRef brCondition = getFunction()->getValueRefBasedOnName(lhsName);
 
   if (!brCondition) {
-    VarDecl *lhsVarDecl = getFunction()->getLocalVarFromName(lhsName);
+    Variable *lhsVarDecl = getFunction()->getLocalVarFromName(lhsName);
     if (lhsVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_BOOLEAN) {
       brCondition = LLVMBuildIsNotNull(
           builder, getFunction()->getLocalToTempVar(lhsOp), lhsName.c_str());

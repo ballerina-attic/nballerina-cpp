@@ -2,7 +2,7 @@
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -51,7 +51,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   VarKind varKind = lhsOp->getKind();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
   string lhsVarName = lhsOp->getName();
-  VarDecl *lhsVar = nullptr;
+  Variable *lhsVar = nullptr;
 
   if (varKind == GLOBAL_VAR_KIND) {
     lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsVarName);
@@ -65,7 +65,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     llvm_unreachable("Unknown Type");
 
   TypeTag lhsTypeTag = lhsVar->getTypeDecl()->getTypeTag();
-  
+
   assert(lhsTypeTag == typeTag);
 
   switch (lhsTypeTag) {

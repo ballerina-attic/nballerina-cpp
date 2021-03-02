@@ -21,8 +21,8 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
   Package *pkgObj = getPkgAddress();
   string lhsName = getLhsOperand()->getName();
 
-  // Find VarDecl corresponding to lhs to determine structure and member type
-  VarDecl *lhsVar = funcObj->getLocalVarFromName(lhsName);
+  // Find Variable corresponding to lhs to determine structure and member type
+  Variable *lhsVar = funcObj->getLocalVarFromName(lhsName);
   if (!lhsVar) {
     lhsVar = pkgObj->getGlobalVarDeclFromName(lhsName);
   }
@@ -40,7 +40,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
   mapInsnTranslate(lhsVar, modRef);
 }
 
-void StructureInsn::mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef) {
+void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
   Package *pkgObj = getPkgAddress();

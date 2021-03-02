@@ -2,7 +2,7 @@
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
-#include "BalVarDecl.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 
 #ifndef unix
