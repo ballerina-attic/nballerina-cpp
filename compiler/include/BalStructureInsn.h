@@ -2,9 +2,12 @@
 #define __BALSTRUCTUREINSN__H__
 
 #include "BalNonTerminatorInsn.h"
-#include "BalOperand.h"
 
 namespace nballerina {
+
+// Forward Declaration
+class Operand;
+class Variable;
 
 class StructureInsn : public NonTerminatorInsn {
 private:

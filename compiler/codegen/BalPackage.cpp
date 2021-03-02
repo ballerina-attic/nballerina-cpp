@@ -73,7 +73,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     Function *funcObj = new Function();
     LLVMTypeRef varTyperef =
         funcObj->getLLVMTypeRefOfType(globVar->getTypeDecl());
-    string varName = globVar->getVarName();
+    string varName = globVar->getName();
     if (varTyperef && modRef) {
       // emit/adding the global variable.
       llvm::Constant *initValue =
@@ -84,7 +84,7 @@ void Package::translate(LLVMModuleRef &modRef) {
       gVar->setAlignment(llvm::Align(4));
       globVarRef = wrap(gVar);
       if (globVarRef)
-        globalVarRefs.insert({globVar->getVarName(), globVarRef});
+        globalVarRefs.insert({globVar->getName(), globVarRef});
     }
   }
 
@@ -208,7 +208,7 @@ Variable *Package::getGlobalVarDeclFromName(string name) {
 }
 
 void Package::insertGlobalVar(Variable *g) {
-  globalVars.insert(std::pair<std::string, Variable *>(g->getVarName(), g));
+  globalVars.insert(std::pair<std::string, Variable *>(g->getName(), g));
 }
 
 } // namespace nballerina

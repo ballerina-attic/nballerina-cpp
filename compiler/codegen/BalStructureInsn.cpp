@@ -3,6 +3,7 @@
 #include "BalOperand.h"
 #include "BalPackage.h"
 #include "BalType.h"
+#include "BalVariable.h"
 #include "llvm-c/Core.h"
 #include <iostream>
 

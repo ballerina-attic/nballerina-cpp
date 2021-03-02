@@ -2,8 +2,8 @@
 #include "BalBasicBlock.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
-#include "BalType.h"
 #include "BalVariable.h"
+#include "BalType.h"
 #include "llvm-c/Core.h"
 
 namespace nballerina {
@@ -75,7 +75,7 @@ LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
 }
 
 static bool isParamter(Variable *locVar) {
-  switch (locVar->getVarKind()) {
+  switch (locVar->getKind()) {
   case LOCAL_VAR_KIND:
   case TEMP_VAR_KIND:
   case RETURN_VAR_KIND:
@@ -134,8 +134,8 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
       varType = wrap(getPkgAddress()->getStructType());
     }
     localVarRef =
-        LLVMBuildAlloca(builder, varType, (locVar->getVarName()).c_str());
-    localVarRefs.insert({locVar->getVarName(), localVarRef});
+        LLVMBuildAlloca(builder, varType, (locVar->getName()).c_str());
+    localVarRefs.insert({locVar->getName(), localVarRef});
     if (isParamter(locVar)) {
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
       std::string paramName = getParam(paramIndex)->getName();
@@ -186,7 +186,7 @@ void Function::setReceiver(Variable *var) { receiver = var; }
 void Function::setRestParam(RestParam *param) { restParam = param; }
 void Function::setNumParams(int paramcount) { paramCount = paramcount; }
 void Function::insertLocalVar(Variable *var) {
-  localVars.insert(std::pair<std::string, Variable *>(var->getVarName(), var));
+  localVars.insert(std::pair<std::string, Variable *>(var->getName(), var));
 }
 void Function::setReturnVar(Variable *var) { returnVar = var; }
 void Function::setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }

@@ -1,23 +1,19 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
-#include "BalVariable.h"
+#include "interfaces/VariableKind.h"
 #include <string>
 
 namespace nballerina {
 
-class Operand {
-private:
-  std::string name;
-  VarKind kind;
+// Forward Declaration
+class Type;
 
+class Operand : public VariableKind {
 public:
   Operand() = delete;
   Operand(std::string name, VarKind kind);
   virtual ~Operand() = default;
-
-  std::string getName();
-  VarKind getKind();
 };
 
 class FunctionParam : public Operand {
