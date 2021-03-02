@@ -6,18 +6,18 @@
 namespace nballerina {
 
 // Forward Declare
-class TypeDecl;
+class Type;
 class Operand;
 
 class TypeTestInsn : public NonTerminatorInsn {
 private:
   Operand *rhsOp;
-  TypeDecl *typeDecl;
+  Type *typeDecl;
 
 public:
   TypeTestInsn() = delete;
   TypeTestInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
-               TypeDecl *tDecl);
+               Type *tDecl);
   ~TypeTestInsn() = default;
 };
 

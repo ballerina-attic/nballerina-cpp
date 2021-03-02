@@ -17,7 +17,7 @@ class Operand;
 class VarDecl;
 class InvokableType;
 class Param;
-class TypeDecl;
+class Type;
 
 class Function : public PackageNode, public Debuggable, public Translatable {
 private:
@@ -84,7 +84,7 @@ public:
 
   BasicBlock *searchBb(std::string name);
 
-  LLVMTypeRef getLLVMTypeRefOfType(TypeDecl *typeD);
+  LLVMTypeRef getLLVMTypeRefOfType(Type *typeD);
   LLVMValueRef getLocalVarRefUsingId(std::string locVar);
   LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);

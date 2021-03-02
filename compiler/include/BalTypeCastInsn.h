@@ -6,19 +6,19 @@
 namespace nballerina {
 
 // Forward Declare
-class TypeDecl;
+class Type;
 class Operand;
 
 class TypeCastInsn : public NonTerminatorInsn {
 private:
   Operand *rhsOp;
-  TypeDecl *typeDecl;
+  Type *typeDecl;
   bool checkTypes;
 
 public:
   TypeCastInsn() = delete;
   TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
-               TypeDecl *tDecl, bool checkTypes);
+               Type *tDecl, bool checkTypes);
   ~TypeCastInsn() = default;
 
   void translate(LLVMModuleRef &modRef) final;

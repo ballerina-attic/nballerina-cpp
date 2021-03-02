@@ -6,17 +6,17 @@
 namespace nballerina {
 
 // Forward Declaration
-class TypeDecl;
+class Type;
 
 class ArrayInsn : public NonTerminatorInsn {
 private:
   Operand *sizeOp;
-  TypeDecl *typeDecl;
+  Type *typeDecl;
   LLVMValueRef getNewArrayDeclaration(LLVMModuleRef &modRef, Package *pkg);
 
 public:
   ArrayInsn() = delete;
-  ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp, TypeDecl *TDecl);
+  ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp, Type *TDecl);
   ~ArrayInsn() = default;
   void translate(LLVMModuleRef &modRef) final;
 };

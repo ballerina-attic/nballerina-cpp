@@ -1,5 +1,5 @@
 #include "BalOperand.h"
-#include "BalTypeDecl.h"
+#include "BalType.h"
 #include "BalVarDecl.h"
 
 namespace nballerina {

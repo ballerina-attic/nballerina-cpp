@@ -7,30 +7,30 @@
 namespace nballerina {
 
 // Forward Declaration
-class TypeDecl;
+class Type;
 
 class VarDecl {
 private:
-  TypeDecl *type;
+  Type *type;
   std::string varName;
   VarKind kind;
 
 public:
   VarDecl() = delete;
   // For global vars, local  ,arg, return
-  VarDecl(TypeDecl *ty, std::string name, VarKind k);
+  VarDecl(Type *ty, std::string name, VarKind k);
   // No type - for function params
   VarDecl(std::string name);
   // Read operad - typedcl could be null
-  // VarDecl(TypeDecl *ty, std::string name, VarKind k, VarScope sc, bool
+  // VarDecl(Type *ty, std::string name, VarKind k, VarScope sc, bool
   // ignore);
   virtual ~VarDecl() = default;
 
-  TypeDecl *getTypeDecl();
+  Type *getTypeDecl();
   VarKind getVarKind();
   std::string getVarName();
 
-  void setTypeDecl(TypeDecl *newType);
+  void setTypeDecl(Type *newType);
   void setVarKind(VarKind newKind);
 };
 

@@ -140,7 +140,7 @@ bool ConstantPoolSet::getBooleanCp(uint32_t index) {
 }
 
 // Search type from the constant pool based on index
-TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
+Type *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   ConstantPoolEntry *poolEntry = getEntry(index);
 
   assert(poolEntry->getTag() ==
@@ -156,7 +156,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 
   // Handle voidToInt flag
   if (type == TYPE_TAG_NIL && voidToInt)
-    return new TypeDecl(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
+    return new Type(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
 
   // Handle Map type
   if (type == TYPE_TAG_MAP) {
@@ -170,7 +170,7 @@ TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   }
 
   // Default return
-  return new TypeDecl(type, name, shapeCp->getTypeFlag());
+  return new Type(type, name, shapeCp->getTypeFlag());
 }
 
 // Get the Type tag from the constant pool based on the index passed
@@ -189,14 +189,14 @@ InvokableType *ConstantPoolSet::getInvokableType(uint32_t index) {
   assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
-  std::vector<TypeDecl *> paramTypes;
+  std::vector<Type *> paramTypes;
   for (unsigned int i = 0; i < shapeCp->getParamCount(); i++) {
-    TypeDecl *typeDecl = getTypeCp(shapeCp->getParam(i), false);
+    Type *typeDecl = getTypeCp(shapeCp->getParam(i), false);
     paramTypes.push_back(typeDecl);
   }
-  TypeDecl *returnTypeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
+  Type *returnTypeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
   if (shapeCp->getRestType()) {
-    TypeDecl *restTypeDecl = getTypeCp(shapeCp->getRestTypeIndex(), false);
+    Type *restTypeDecl = getTypeCp(shapeCp->getRestTypeIndex(), false);
     return new InvokableType(paramTypes, restTypeDecl, returnTypeDecl);
   }
   return new InvokableType(paramTypes, returnTypeDecl);
@@ -217,7 +217,7 @@ VarDecl *BIRReader::readGlobalVar() {
     uint32_t parameterCount __attribute__((unused)) = readS4be();
   }
   uint32_t typeCpIndex = readS4be();
-  TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
+  Type *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
   VarDecl *varDecl = new VarDecl(
       typeDecl, (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
   birPackage.addGlobalVar(varDecl);
@@ -227,7 +227,7 @@ VarDecl *BIRReader::readGlobalVar() {
 VarDecl *BIRReader::readLocalVar() {
   uint8_t kind = readU1();
   uint32_t typeCpIndex = readS4be();
-  TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
+  Type *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
   uint32_t nameCpIndex = readS4be();
 
   VarDecl *varDecl = new VarDecl(
@@ -254,7 +254,7 @@ Operand *BIRReader::readOperand() {
 
   uint32_t varDclNameCpIndex = readS4be();
 
-  TypeDecl *typedcl = nullptr;
+  Type *typedcl = nullptr;
   if ((VarKind)kind == GLOBAL_VAR_KIND) {
     uint32_t packageIndex __attribute__((unused)) = readS4be();
     uint32_t typeCpIndex = readS4be();
@@ -286,7 +286,7 @@ StructureInsn *ReadStructureInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
 ConstantLoadInsn *
 ReadConstLoadInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint32_t typeCpIndex = readerRef.readS4be();
-  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+  Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
 
   Operand *lhsOperand = readerRef.readOperand();
   lhsOperand->getVarDecl()->setTypeDecl(typeDecl);
@@ -410,7 +410,7 @@ TypeCastInsn *ReadTypeCastInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   Operand *rhsOperand = readerRef.readOperand();
 
   uint32_t typeCpIndex = readerRef.readS4be();
-  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+  Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
   uint8_t isCheckTypes = readerRef.readU1();
 
   return new TypeCastInsn(lhsOperand, currentBB, rhsOperand, typeDecl,
@@ -420,7 +420,7 @@ TypeCastInsn *ReadTypeCastInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
 // Read Type Test Insn
 TypeTestInsn *ReadTypeTestInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint32_t typeCpIndex = readerRef.readS4be();
-  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+  Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
   Operand *lhsOperand = readerRef.readOperand();
   Operand *rhsOperand = readerRef.readOperand();
   return new TypeTestInsn(lhsOperand, currentBB, rhsOperand, typeDecl);
@@ -429,7 +429,7 @@ TypeTestInsn *ReadTypeTestInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
 // Read Array Insn
 ArrayInsn *ReadArrayInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint32_t typeCpIndex = readerRef.readS4be();
-  TypeDecl *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+  Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
   Operand *lhsOperand = readerRef.readOperand();
   Operand *sizeOperand = readerRef.readOperand();
   return new ArrayInsn(lhsOperand, currentBB, sizeOperand, typeDecl);
@@ -744,7 +744,7 @@ Function *BIRReader::readFunction() {
   if (hasReturnVar) {
     uint8_t kind = readU1();
     uint32_t typeCpIndex = readS4be();
-    TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
+    Type *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
     uint32_t nameCpIndex = readS4be();
 
     VarDecl *varDecl = new VarDecl(
@@ -1001,7 +1001,7 @@ void BIRReader::patchTypesToFuncParam() {
               InvokableType *invokableType =
                   patchCallFunction->getInvokableType();
               for (size_t i = 0; i < invokableType->getParamTypeCount(); i++) {
-                TypeDecl *typeDecl = invokableType->getParamType(i);
+                Type *typeDecl = invokableType->getParamType(i);
                 Operand *param = Terminator->getArgumentFromList(i);
                 param->getVarDecl()->setTypeDecl(typeDecl);
               }
@@ -1010,7 +1010,7 @@ void BIRReader::patchTypesToFuncParam() {
           }
           default:
             fprintf(stderr,
-                    "%s:%d Invalid Insn Kind for assigning TypeDecl to "
+                    "%s:%d Invalid Insn Kind for assigning Type to "
                     "FuncCall Insn.\n",
                     __FILE__, __LINE__);
             break;

@@ -5,24 +5,24 @@
 
 namespace nballerina {
 
-class TypeDecl {
+class Type {
 private:
   const int tag;
   std::string name;
   const int flags;
 
 public:
-  TypeDecl() = delete;
-  TypeDecl(int tag, std::string name, int flags);
-  virtual ~TypeDecl() = default;
+  Type() = delete;
+  Type(int tag, std::string name, int flags);
+  virtual ~Type() = default;
 
   int getTypeTag();
   std::string getTypeDeclName();
   int getFlags();
 };
 
-// Extend TypeDecl for MapTypeDecl; to store member type info
-class MapTypeDecl : public TypeDecl {
+// Extend Type for MapTypeDecl; to store member type info
+class MapTypeDecl : public Type {
 private:
   const int memberTypeTag;
 

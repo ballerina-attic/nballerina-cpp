@@ -2,7 +2,7 @@
 #include "BalBasicBlock.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
-#include "BalTypeDecl.h"
+#include "BalType.h"
 #include "BalVarDecl.h"
 #include "llvm-c/Core.h"
 
@@ -218,7 +218,7 @@ void Function::addNewbranchComparison(std::string name,
       std::pair<std::string, LLVMValueRef>(name, compRef));
 }
 
-LLVMTypeRef Function::getLLVMTypeRefOfType(TypeDecl *typeD) {
+LLVMTypeRef Function::getLLVMTypeRefOfType(Type *typeD) {
   int typeTag = typeD->getTypeTag();
   switch (typeTag) {
   case TYPE_TAG_INT:

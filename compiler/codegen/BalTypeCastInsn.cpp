@@ -3,7 +3,7 @@
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
-#include "BalTypeDecl.h"
+#include "BalType.h"
 #include "BalVarDecl.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
@@ -18,7 +18,7 @@ using namespace llvm;
 namespace nballerina {
 
 TypeCastInsn::TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
-                           TypeDecl *tDecl, bool checkTypes)
+                           Type *tDecl, bool checkTypes)
     : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp), typeDecl(tDecl),
       checkTypes(checkTypes) {}
 

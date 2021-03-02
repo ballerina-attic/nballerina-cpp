@@ -6,24 +6,24 @@
 namespace nballerina {
 
 // Forward Declaration
-class TypeDecl;
+class Type;
 
 class InvokableType {
 private:
-  std::vector<TypeDecl *> paramTypes;
-  TypeDecl *restType;
-  TypeDecl *returnType;
+  std::vector<Type *> paramTypes;
+  Type *restType;
+  Type *returnType;
 
 public:
   InvokableType() = delete;
-  InvokableType(std::vector<TypeDecl *> paramTy, TypeDecl *restTy,
-                TypeDecl *retTy);
-  InvokableType(std::vector<TypeDecl *> paramTy, TypeDecl *retTy);
+  InvokableType(std::vector<Type *> paramTy, Type *restTy,
+                Type *retTy);
+  InvokableType(std::vector<Type *> paramTy, Type *retTy);
   ~InvokableType() = default;
 
-  const TypeDecl *getReturnType();
-  const TypeDecl *getRestType();
-  TypeDecl *getParamType(int i);
+  const Type *getReturnType();
+  const Type *getRestType();
+  Type *getParamType(int i);
   size_t getParamTypeCount();
 };
 

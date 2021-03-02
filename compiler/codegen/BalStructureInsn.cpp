@@ -2,7 +2,7 @@
 #include "BalFunction.h"
 #include "BalOperand.h"
 #include "BalPackage.h"
-#include "BalTypeDecl.h"
+#include "BalType.h"
 #include "llvm-c/Core.h"
 #include <iostream>
 

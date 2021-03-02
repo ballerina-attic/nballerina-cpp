@@ -11,7 +11,7 @@ namespace nballerina {
 
 // New Array Instruction
 ArrayInsn::ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp,
-                     TypeDecl *tDecl)
+                     Type *tDecl)
     : NonTerminatorInsn(lOp, currentBB), sizeOp(sOp), typeDecl(tDecl) {}
 
 LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
