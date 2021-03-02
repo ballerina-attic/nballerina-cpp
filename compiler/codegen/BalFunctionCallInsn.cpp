@@ -44,7 +44,6 @@ void FunctionCallInsn::translate(__attribute__((unused))
     ParamRefs[i] = opRef;
   }
 
-  assert(getLhsOperand() && getLhsOperand()->getVarDecl());
   string lhsName = getLhsOperand()->getName();
   if (lhsName == "")
     return;

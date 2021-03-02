@@ -254,16 +254,16 @@ Operand *BIRReader::readOperand() {
 
   uint32_t varDclNameCpIndex = readS4be();
 
-  Type *typedcl = nullptr;
   if ((VarKind)kind == GLOBAL_VAR_KIND) {
     uint32_t packageIndex __attribute__((unused)) = readS4be();
     uint32_t typeCpIndex = readS4be();
-    typedcl = constantPool->getTypeCp(typeCpIndex, false);
+    // TODO why are we ignoring type declare for global?
+    Type *typeDecl __attribute__((unused)) =
+        constantPool->getTypeCp(typeCpIndex, false);
   }
 
-  VarDecl *varDecl = new VarDecl(
-      typedcl, constantPool->getStringCp(varDclNameCpIndex), (VarKind)kind);
-  Operand *operand = new Operand(varDecl);
+  Operand *operand =
+      new Operand(constantPool->getStringCp(varDclNameCpIndex), (VarKind)kind);
   return operand;
 }
 
@@ -285,10 +285,11 @@ StructureInsn *ReadStructureInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
 ConstantLoadInsn *
 ReadConstLoadInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
   uint32_t typeCpIndex = readerRef.readS4be();
+
   Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
 
   Operand *lhsOperand = readerRef.readOperand();
-  lhsOperand->getVarDecl()->setTypeDecl(typeDecl);
+  lhsOperand->setType(typeDecl);
 
   ConstantLoadInsn *constantloadInsn =
       new ConstantLoadInsn(lhsOperand, currentBB);
@@ -714,8 +715,8 @@ Function *BIRReader::readFunction() {
   // Params
   for (unsigned int i = 0; i < requiredParamCount; i++) {
     uint32_t paramNameCpIndex = readS4be();
-    VarDecl *varDecl = new VarDecl(constantPool->getStringCp(paramNameCpIndex));
-    Operand *param = new Operand(varDecl);
+    Operand *param =
+        new Operand(constantPool->getStringCp(paramNameCpIndex), ARG_VAR_KIND);
     uint32_t paramFlags __attribute__((unused)) = readS4be();
     birFunction->setParam(param);
   }
@@ -756,9 +757,8 @@ Function *BIRReader::readFunction() {
     uint8_t kind = readU1();
     uint32_t typeCpIndex = readS4be();
     Operand *param = birFunction->getParam(i);
-    param->getVarDecl()->setTypeDecl(
-        constantPool->getTypeCp(typeCpIndex, false));
-    param->getVarDecl()->setVarKind((VarKind)kind);
+    param->setType(constantPool->getTypeCp(typeCpIndex, false));
+
     uint32_t nameCpIndex __attribute__((unused)) = readS4be();
     if (kind == ARG_VAR_KIND) {
       uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
@@ -1001,7 +1001,7 @@ void BIRReader::patchTypesToFuncParam() {
               for (size_t i = 0; i < invokableType->getParamTypeCount(); i++) {
                 Type *typeDecl = invokableType->getParamType(i);
                 Operand *param = Terminator->getArgumentFromList(i);
-                param->getVarDecl()->setTypeDecl(typeDecl);
+                param->setType(typeDecl);
               }
             }
             break;

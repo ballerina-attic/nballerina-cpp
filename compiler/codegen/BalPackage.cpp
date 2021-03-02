@@ -124,13 +124,8 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     for (unsigned i = 0; i < numParams; i++) {
       Operand *funcParam = birFunc->getParam(i);
-      assert(funcParam);
-      if (funcParam->typeTag() == TYPE_TAG_ANY) {
-        paramTypes[i] = wrap(structType);
-      } else {
-        paramTypes[i] = birFunc->getLLVMTypeRefOfType(
-            funcParam->getVarDecl()->getTypeDecl());
-      }
+      assert(funcParam->getType());
+      paramTypes[i] = birFunc->getLLVMTypeRefOfType(funcParam->getType());
     }
 
     funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);

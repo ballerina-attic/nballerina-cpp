@@ -23,8 +23,6 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
-  assert(getLhsOperand() && getLhsOperand()->getVarDecl());
-
   string lhsName = getLhsOperand()->getName();
   string lhstmpName = lhsName + "_temp";
   LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);

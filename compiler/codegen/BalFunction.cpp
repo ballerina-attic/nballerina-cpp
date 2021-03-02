@@ -68,7 +68,7 @@ LLVMValueRef Function::getLocalVarRefUsingId(std::string locVar) {
 }
 
 LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
-  std::string refOp = operand->getVarDecl()->getVarName();
+  std::string refOp = operand->getName();
   std::string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
   if (!locVRef)
@@ -140,7 +140,7 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
     localVarRefs.insert({locVar->getVarName(), localVarRef});
     if (isParamter(locVar)) {
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
-      std::string paramName = getParam(paramIndex)->getVarDecl()->getVarName();
+      std::string paramName = getParam(paramIndex)->getName();
       LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
       if (parmRef)
         LLVMBuildStore(builder, parmRef, localVarRef);
@@ -225,7 +225,7 @@ LLVMTypeRef Function::getLLVMTypeRefOfType(Type *typeD) {
   case TYPE_TAG_MAP:
     return LLVMPointerType(LLVMInt8Type(), 0);
   case TYPE_TAG_ANY:
-    return LLVMPointerType(LLVMInt64Type(), 0);
+    return wrap(getPkgAddress()->getStructType());
   default:
     return LLVMInt32Type();
   }

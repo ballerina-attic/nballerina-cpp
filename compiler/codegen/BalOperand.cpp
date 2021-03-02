@@ -1,13 +1,13 @@
 #include "BalOperand.h"
-#include "BalType.h"
-#include "BalVarDecl.h"
 
 namespace nballerina {
 
-Operand::Operand(VarDecl *vDecl) : varDecl(vDecl) {}
+Operand::Operand(std::string _name, VarKind _kind) : name(_name), kind(_kind) {}
 
-std::string Operand::getName() { return varDecl->getVarName(); }
-TypeTag Operand::typeTag() { return varDecl->getTypeDecl()->getTypeTag(); }
-VarDecl *Operand::getVarDecl() { return varDecl; }
+std::string Operand::getName() { return name; }
+VarKind Operand::getKind() { return kind; }
+
+Type *Operand::getType() { return type; }
+void Operand::setType(Type *_type) { type = _type; }
 
 } // namespace nballerina

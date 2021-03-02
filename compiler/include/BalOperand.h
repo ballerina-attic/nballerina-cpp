@@ -1,26 +1,26 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
-#include "BalType.h"
+#include "BalVarDecl.h"
 #include <string>
 
 namespace nballerina {
 
-// Forward Declaration
-class VarDecl;
-
 class Operand {
 private:
-  VarDecl *varDecl;
+  std::string name;
+  VarKind kind;
+  Type *type;
 
 public:
   Operand() = delete;
-  Operand(VarDecl *vDecl);
+  Operand(std::string name, VarKind kind);
   ~Operand() = default;
 
-  VarDecl *getVarDecl();
   std::string getName();
-  TypeTag typeTag();
+  VarKind getKind();
+  Type *getType();
+  void setType(Type *type);
 };
 
 } // namespace nballerina

@@ -22,7 +22,6 @@ void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   Operand *lhsOp = getLhsOperand();
   string lhsName = lhsOp->getName();
-  assert(lhsOp->getVarDecl());
   string lhstmpName = lhsName + "_temp";
 
   LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(lhsName);

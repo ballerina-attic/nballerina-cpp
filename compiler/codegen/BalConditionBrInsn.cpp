@@ -29,7 +29,6 @@ void ConditionBrInsn::setElseBB(BasicBlock *bb) { elseBB = bb; }
 void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   Operand *lhsOp = getLhsOperand();
-  assert(lhsOp->getVarDecl());
 
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
   string lhsName = lhsOp->getName();

@@ -48,23 +48,24 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef lhsRef;
   LLVMValueRef constRef;
   Operand *lhsOp = getLhsOperand();
-  VarKind varKind = lhsOp->getVarDecl()->getVarKind();
+  VarKind varKind = lhsOp->getKind();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+  string lhsVarName = lhsOp->getName();
+  VarDecl *lhsVar = nullptr;
 
-  assert(lhsOp->getVarDecl());
-
-  if (lhsOp->getVarDecl()->getVarKind() == GLOBAL_VAR_KIND) {
-    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOp->getName());
-  } else if (getFunction() &&
-             (varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
+  if (varKind == GLOBAL_VAR_KIND) {
+    lhsRef = getPkgAddress()->getGlobalVarRefUsingId(lhsVarName);
+    lhsVar = getPkgAddress()->getGlobalVarDeclFromName(lhsVarName);
+  } else if ((varKind == LOCAL_VAR_KIND || varKind == TEMP_VAR_KIND ||
               varKind == RETURN_VAR_KIND || varKind == SELF_VAR_KIND ||
               varKind == CONSTANT_VAR_KIND)) {
-    lhsRef = getFunction()->getLocalVarRefUsingId(lhsOp->getName());
+    lhsRef = getFunction()->getLocalVarRefUsingId(lhsVarName);
+    lhsVar = getFunction()->getLocalVarFromName(lhsVarName);
   } else
     llvm_unreachable("Unknown Type");
 
-  assert(lhsOp->getVarDecl()->getTypeDecl());
-  TypeTag lhsTypeTag = lhsOp->typeTag();
+  TypeTag lhsTypeTag = lhsVar->getTypeDecl()->getTypeTag();
+  
   assert(lhsTypeTag == typeTag);
 
   switch (lhsTypeTag) {

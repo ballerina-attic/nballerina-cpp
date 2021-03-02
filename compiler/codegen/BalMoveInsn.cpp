@@ -18,9 +18,7 @@ void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMValueRef lhsRef;
   Operand *lhsOp = getLhsOperand();
 
-  assert(lhsOp->getVarDecl());
-
-  VarKind varKind = lhsOp->getVarDecl()->getVarKind();
+  VarKind varKind = lhsOp->getKind();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
 
   if (varKind == GLOBAL_VAR_KIND) {
