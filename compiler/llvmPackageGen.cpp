@@ -87,10 +87,9 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
     }
     if (retType) {
       funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
-      const char *newFuncName = birFunc->getName().c_str();
       if (funcType) {
         birFunc->setNewFunctionRef(
-            LLVMAddFunction(modRef, newFuncName, funcType));
+            LLVMAddFunction(modRef, birFunc->getName().c_str(), funcType));
       }
     }
   }
