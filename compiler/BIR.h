@@ -683,7 +683,7 @@ public:
   VarScope getVarScope() { return scope; }
   BIRBasicBlock *getStartBB() { return startBB; }
   BIRBasicBlock *getEndBB() { return endBB; }
-  string getVarName() { return varName; }
+  string &getVarName() { return varName; }
   string getMetaVarName() { return metaVarName; }
   int getInsOffset() { return insOffset; }
   bool ignore() { return ignoreVariable; }
@@ -788,7 +788,7 @@ public:
   BIRFunction(const BIRFunction &);
   ~BIRFunction();
 
-  string getName() { return name; }
+  string &getName() { return name; }
   int getFlags() { return flags; }
   InvokableType *getInvokableType() { return type; }
   vector<Operand *> getParams() { return requiredParams; }

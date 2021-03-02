@@ -105,13 +105,12 @@ void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
   // iterate through all local vars.
   for (auto const it : localVars) {
     VarDecl *locVar = it.second;
-    const char *varName = (locVar->getVarName()).c_str();
     LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef;
     if (locVar->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
       varType = wrap(getPkgAddress()->getStructType());
     }
-    localVarRef = LLVMBuildAlloca(builder, varType, varName);
+    localVarRef = LLVMBuildAlloca(builder, varType, locVar->getVarName().c_str());
     localVarRefs.insert({locVar->getVarName(), localVarRef});
     if (isParamter(locVar)) {
       LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
