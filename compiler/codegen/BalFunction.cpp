@@ -96,8 +96,7 @@ LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(Variable *vDecl) {
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    Variable *globRetVar =
-        pkg->getGlobalVarDeclFromName("_bal_result");
+    Variable *globRetVar = pkg->getGlobalVarDeclFromName("_bal_result");
     if (globRetVar)
       typeTag = globRetVar->getTypeDecl()->getTypeTag();
   }
@@ -153,7 +152,6 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
     LLVMBasicBlockRef bbRef =
         LLVMAppendBasicBlock(this->getNewFunctionRef(), bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
-    bb->setFunction(this);
     bb->setLLVMBuilderRef(builder);
   }
 

@@ -355,10 +355,12 @@ ConditionBrInsn *ReadCondBrInsn::readTerminatorInsn(BasicBlock *currentBB) {
   uint32_t falseBbIdNameCpIndex = readerRef.readS4be();
 
   BasicBlock *trueDummybasicBlock =
-      new BasicBlock(readerRef.constantPool->getStringCp(trueBbIdNameCpIndex));
+      new BasicBlock(readerRef.constantPool->getStringCp(trueBbIdNameCpIndex),
+                     currentBB->getFunction());
 
   BasicBlock *falseDummybasicBlock =
-      new BasicBlock(readerRef.constantPool->getStringCp(falseBbIdNameCpIndex));
+      new BasicBlock(readerRef.constantPool->getStringCp(falseBbIdNameCpIndex),
+                     currentBB->getFunction());
 
   return new ConditionBrInsn(lhsOp, currentBB, trueDummybasicBlock,
                              falseDummybasicBlock);
@@ -393,7 +395,8 @@ FunctionCallInsn *ReadFuncCallInsn::readTerminatorInsn(BasicBlock *currentBB) {
   }
   uint32_t thenBbIdNameCpIndex = readerRef.readS4be();
   BasicBlock *dummybasicBlock =
-      new BasicBlock(readerRef.constantPool->getStringCp(thenBbIdNameCpIndex));
+      new BasicBlock(readerRef.constantPool->getStringCp(thenBbIdNameCpIndex),
+                     currentBB->getFunction());
 
   return new FunctionCallInsn((bool)isVirtual, funcName, argumentsCount,
                               dummybasicBlock, lhsOp, fnArgs, currentBB);
@@ -460,8 +463,8 @@ MapStoreInsn *ReadMapStoreInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
 
 GoToInsn *ReadGoToInsn::readTerminatorInsn(BasicBlock *currentBB) {
   uint32_t nameId = readerRef.readS4be();
-  BasicBlock *dummybasicBlock =
-      new BasicBlock(readerRef.constantPool->getStringCp(nameId));
+  BasicBlock *dummybasicBlock = new BasicBlock(
+      readerRef.constantPool->getStringCp(nameId), currentBB->getFunction());
   return new GoToInsn(dummybasicBlock, currentBB);
 }
 
@@ -605,10 +608,9 @@ void BIRReader::readInsn(BasicBlock *basicBlock) {
 
 // Read Basic Block from the BIR
 BasicBlock *BIRReader::readBasicBlock(Function *birFunction) {
-  BasicBlock *basicBlock = new BasicBlock();
   uint32_t nameCpIndex = readS4be();
-  basicBlock->setId(constantPool->getStringCp(nameCpIndex));
-  basicBlock->setFunction(birFunction);
+  BasicBlock *basicBlock =
+      new BasicBlock(constantPool->getStringCp(nameCpIndex), birFunction);
 
   uint32_t insnCount = readS4be();
   for (unsigned int i = 0; i < insnCount; i++) {

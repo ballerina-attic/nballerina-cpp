@@ -20,14 +20,13 @@ private:
   std::vector<NonTerminatorInsn *> instructions;
   TerminatorInsn *terminator;
   LLVMBuilderRef bRef;
-  Function *bFunc;
+  Function *parentFunction;
   BasicBlock *nextBB;
   LLVMBasicBlockRef bbRefObj;
 
 public:
-  BasicBlock() = default;
-  BasicBlock(std::string id);
-  BasicBlock(Location *pos, std::string id);
+  BasicBlock() = delete;
+  BasicBlock(std::string id, Function *parentFunc);
   ~BasicBlock() = default;
 
   std::string getId();
@@ -44,7 +43,6 @@ public:
   void setId(std::string newId);
   void setTerminatorInsn(TerminatorInsn *insn);
   void setLLVMBuilderRef(LLVMBuilderRef buildRef);
-  void setFunction(Function *func);
   void setNextBB(BasicBlock *bb);
   void setLLVMBBRef(LLVMBasicBlockRef bbRef);
   void addNonTermInsn(NonTerminatorInsn *insn);

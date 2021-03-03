@@ -5,16 +5,13 @@
 
 namespace nballerina {
 
-BasicBlock::BasicBlock(std::string pid) : id(pid) {}
-
-BasicBlock::BasicBlock(Location *loc, std::string pid) : id(pid) {
-  setLocation(loc);
-}
+BasicBlock::BasicBlock(std::string pid, Function *parentFunc)
+    : id(pid), parentFunction(parentFunc) {}
 
 std::string BasicBlock::getId() { return id; }
 TerminatorInsn *BasicBlock::getTerminatorInsn() { return terminator; }
 LLVMBuilderRef BasicBlock::getLLVMBuilderRef() { return bRef; }
-Function *BasicBlock::getFunction() { return bFunc; }
+Function *BasicBlock::getFunction() { return parentFunction; }
 BasicBlock *BasicBlock::getNextBB() { return nextBB; }
 std::vector<NonTerminatorInsn *> BasicBlock::getNonTerminatorInsn() {
   return instructions;
@@ -22,12 +19,11 @@ std::vector<NonTerminatorInsn *> BasicBlock::getNonTerminatorInsn() {
 NonTerminatorInsn *BasicBlock::getInsn(int i) { return instructions[i]; }
 size_t BasicBlock::numInsns() { return instructions.size(); }
 LLVMBasicBlockRef BasicBlock::getLLVMBBRef() { return bbRefObj; }
-Package *BasicBlock::getPackage() { return bFunc->getPackage(); }
+Package *BasicBlock::getPackage() { return parentFunction->getPackage(); }
 
 void BasicBlock::setId(std::string newId) { id = newId; }
 void BasicBlock::setTerminatorInsn(TerminatorInsn *insn) { terminator = insn; }
 void BasicBlock::setLLVMBuilderRef(LLVMBuilderRef buildRef) { bRef = buildRef; }
-void BasicBlock::setFunction(Function *func) { bFunc = func; }
 void BasicBlock::setNextBB(BasicBlock *bb) { nextBB = bb; }
 void BasicBlock::setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
 void BasicBlock::addNonTermInsn(NonTerminatorInsn *insn) {
