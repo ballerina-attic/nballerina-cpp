@@ -8,9 +8,10 @@
 
 namespace nballerina {
 
-Function::Function(std::string _name, std::string _workerName, int _flags,
-                   InvokableType *_type)
-    : name(_name), workerName(_workerName), flags(_flags), type(_type) {
+Function::Function(Package *_parentPackage, std::string _name,
+                   std::string _workerName, int _flags, InvokableType *_type)
+    : parentPackage(_parentPackage), name(_name), workerName(_workerName),
+      flags(_flags), type(_type) {
   restParam = nullptr;
   receiver = nullptr;
 }
@@ -27,34 +28,19 @@ BasicBlock *Function::searchBb(std::string name) {
 }
 
 std::string Function::getName() { return name; }
-int Function::getFlags() { return flags; }
-InvokableType *Function::getInvokableType() { return type; }
-std::vector<FunctionParam *> Function::getParams() { return requiredParams; }
 FunctionParam *Function::getParam(int i) { return requiredParams[i]; }
-Variable *Function::getReceiver() { return receiver; }
 RestParam *Function::getRestParam() { return restParam; }
 Variable *Function::getReturnVar() { return returnVar; }
 std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
-size_t Function::numBasicBlocks() { return basicBlocks.size(); }
-BasicBlock *Function::getBasicBlock(int i) { return basicBlocks[i]; }
-std::string Function::getWorkerName() { return workerName; }
-LLVMBuilderRef Function::getLLVMBuilder() { return builder; }
-LLVMValueRef Function::getNewFunctionRef() { return newFunction; }
-std::map<std::string, LLVMValueRef> Function::getLocalVarRefs() {
-  return localVarRefs;
-}
-std::map<std::string, LLVMValueRef> Function::getBranchComparisonList() {
-  return branchComparisonList;
-}
+LLVMBuilderRef Function::getLLVMBuilder() { return llvmBuilder; }
+LLVMValueRef Function::getLLVMFunctionValue() { return llvmFunction; }
 
-LLVMValueRef Function::getValueRefBasedOnName(std::string lhsName) {
-  std::map<std::string, LLVMValueRef>::iterator it;
-  it = branchComparisonList.find(lhsName);
+LLVMValueRef Function::getLLVMValueForBranchComparison(std::string lhsName) {
+  auto branch = branchComparisonList.find(lhsName);
+  if (branch == branchComparisonList.end())
+    return nullptr;
 
-  if (it == branchComparisonList.end()) {
-    return NULL;
-  } else
-    return it->second;
+  return branch->second;
 }
 
 LLVMValueRef Function::getLocalVarRefUsingId(std::string locVar) {
@@ -71,7 +57,7 @@ LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
   if (!locVRef)
     locVRef = parentPackage->getGlobalVarRefUsingId(refOp);
-  return LLVMBuildLoad(builder, locVRef, tempName.c_str());
+  return LLVMBuildLoad(llvmBuilder, locVRef, tempName.c_str());
 }
 
 static bool isParamter(Variable *locVar) {
@@ -122,8 +108,8 @@ LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(Variable *vDecl) {
 void Function::translateFunctionBody(LLVMModuleRef &modRef) {
   LLVMBasicBlockRef BbRef;
   int paramIndex = 0;
-  BbRef = LLVMAppendBasicBlock(newFunction, "entry");
-  LLVMPositionBuilderAtEnd(builder, BbRef);
+  BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");
+  LLVMPositionBuilderAtEnd(llvmBuilder, BbRef);
 
   // iterate through all local vars.
   for (auto const &it : localVars) {
@@ -135,14 +121,14 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
       varType = wrap(parentPackage->getStructType());
     }
     localVarRef =
-        LLVMBuildAlloca(builder, varType, (locVar->getName()).c_str());
+        LLVMBuildAlloca(llvmBuilder, varType, (locVar->getName()).c_str());
     localVarRefs.insert({locVar->getName(), localVarRef});
     if (isParamter(locVar)) {
-      LLVMValueRef parmRef = LLVMGetParam(newFunction, paramIndex);
+      LLVMValueRef parmRef = LLVMGetParam(llvmFunction, paramIndex);
       std::string paramName = getParam(paramIndex)->getName();
       LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
       if (parmRef)
-        LLVMBuildStore(builder, parmRef, localVarRef);
+        LLVMBuildStore(llvmBuilder, parmRef, localVarRef);
       paramIndex++;
     }
   }
@@ -152,19 +138,19 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
   for (unsigned int i = 0; i < basicBlocks.size(); i++) {
     BasicBlock *bb = basicBlocks[i];
     LLVMBasicBlockRef bbRef =
-        LLVMAppendBasicBlock(this->getNewFunctionRef(), bb->getId().c_str());
+        LLVMAppendBasicBlock(llvmFunction, bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
   }
 
   // creating branch to next basic block.
   if (basicBlocks.size() != 0 && basicBlocks[0] &&
       basicBlocks[0]->getLLVMBBRef())
-    LLVMBuildBr(builder, basicBlocks[0]->getLLVMBBRef());
+    LLVMBuildBr(llvmBuilder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
   for (unsigned int i = 0; i < basicBlocks.size(); i++) {
     BasicBlock *bb = basicBlocks[i];
-    LLVMPositionBuilderAtEnd(builder, bb->getLLVMBBRef());
+    LLVMPositionBuilderAtEnd(llvmBuilder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
 }
@@ -182,23 +168,13 @@ void Function::insertLocalVar(Variable *var) {
   localVars.insert(std::pair<std::string, Variable *>(var->getName(), var));
 }
 void Function::setReturnVar(Variable *var) { returnVar = var; }
-void Function::setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }
 void Function::insertBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
-void Function::setWorkerName(std::string newName) { workerName = newName; }
-void Function::setLLVMBuilder(LLVMBuilderRef b) { builder = b; }
-void Function::setLocalVarRefs(
-    std::map<std::string, LLVMValueRef> newLocalVarRefs) {
-  localVarRefs = newLocalVarRefs;
+void Function::setLLVMBuilder(LLVMBuilderRef b) { llvmBuilder = b; }
+void Function::setLLVMFunctionValue(LLVMValueRef newFuncRef) {
+  llvmFunction = newFuncRef;
 }
-void Function::setNewFunctionRef(LLVMValueRef newFuncRef) {
-  newFunction = newFuncRef;
-}
-
-void Function::setBranchComparisonlist(
-    std::map<std::string, LLVMValueRef> brCompl) {
-  branchComparisonList = brCompl;
-}
-void Function::addNewbranchComparison(std::string name, LLVMValueRef compRef) {
+void Function::insertBranchComparisonValue(std::string name,
+                                           LLVMValueRef compRef) {
   branchComparisonList.insert(
       std::pair<std::string, LLVMValueRef>(name, compRef));
 }
@@ -225,7 +201,6 @@ LLVMValueRef Function::getLocalOrGlobalLLVMValue(Operand *op) {
 }
 
 Package *Function::getPackage() { return parentPackage; }
-void Function::setPackage(Package *_pkg) { parentPackage = _pkg; }
 size_t Function::getNumParams() { return requiredParams.size(); }
 
 } // namespace nballerina

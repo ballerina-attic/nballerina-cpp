@@ -684,7 +684,7 @@ bool BIRReader::ignoreFunction(std::string funcName) {
 }
 
 // Reads BIR function
-Function *BIRReader::readFunction() {
+Function *BIRReader::readFunction(Package *package) {
 
   // Read debug info
   uint32_t sLine = readS4be();
@@ -697,7 +697,7 @@ Function *BIRReader::readFunction() {
                    (int)eLine, (int)sCol, (int)eCol);
 
   // TODO should not set src for every function
-  birPackage.setSrcFileName(constantPool->getStringCp(sourceFileCpIndex));
+  package->setSrcFileName(constantPool->getStringCp(sourceFileCpIndex));
 
   uint32_t nameCpIndex = readS4be();
   std::string functionName = constantPool->getStringCp(nameCpIndex);
@@ -706,7 +706,7 @@ Function *BIRReader::readFunction() {
   uint32_t typeCpIndex = readS4be();
 
   Function *birFunction =
-      new Function(functionName, constantPool->getStringCp(workdernameCpIndex),
+      new Function(package, functionName, constantPool->getStringCp(workdernameCpIndex),
                    flags, constantPool->getInvokableType(typeCpIndex));
   birFunction->setLocation(location);
 
@@ -1071,7 +1071,7 @@ void BIRReader::readModule() {
 
   // Push all the functions in BIRpackage except __init, __start & __stop
   for (unsigned int i = 0; i < functionCount; i++) {
-    Function *curFunc = readFunction();
+    Function *curFunc = readFunction(&birPackage);
     if (ignoreFunction(curFunc->getName())) {
       delete curFunc;
     } else {

@@ -71,7 +71,7 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     ifReturn = LLVMBuildICmp(builder, LLVMIntUGT, rhsOp1ref, rhsOp2ref,
                              lhstmpName.c_str());
     if (ifReturn) {
-      funcObj->addNewbranchComparison(lhsName, ifReturn);
+      funcObj->insertBranchComparisonValue(lhsName, ifReturn);
     }
     break;
   }
@@ -79,7 +79,7 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     ifReturn = LLVMBuildICmp(builder, LLVMIntUGE, rhsOp1ref, rhsOp2ref,
                              lhstmpName.c_str());
     if (ifReturn) {
-      funcObj->addNewbranchComparison(lhsName, ifReturn);
+      funcObj->insertBranchComparisonValue(lhsName, ifReturn);
     }
     break;
   }
@@ -87,7 +87,7 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     ifReturn = LLVMBuildICmp(builder, LLVMIntULT, rhsOp1ref, rhsOp2ref,
                              lhstmpName.c_str());
     if (ifReturn) {
-      funcObj->addNewbranchComparison(lhsName, ifReturn);
+      funcObj->insertBranchComparisonValue(lhsName, ifReturn);
     }
     break;
   }
@@ -95,7 +95,7 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     ifReturn = LLVMBuildICmp(builder, LLVMIntULE, rhsOp1ref, rhsOp2ref,
                              lhstmpName.c_str());
     if (ifReturn) {
-      funcObj->addNewbranchComparison(lhsName, ifReturn);
+      funcObj->insertBranchComparisonValue(lhsName, ifReturn);
     }
     break;
   }
@@ -103,7 +103,7 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     ifReturn = LLVMBuildICmp(builder, LLVMIntEQ, rhsOp1ref, rhsOp2ref,
                              lhstmpName.c_str());
     if (ifReturn) {
-      funcObj->addNewbranchComparison(lhsName, ifReturn);
+      funcObj->insertBranchComparisonValue(lhsName, ifReturn);
     }
     break;
   }
@@ -111,7 +111,7 @@ void BinaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     ifReturn = LLVMBuildICmp(builder, LLVMIntNE, rhsOp1ref, rhsOp2ref,
                              lhstmpName.c_str());
     if (ifReturn) {
-      funcObj->addNewbranchComparison(lhsName, ifReturn);
+      funcObj->insertBranchComparisonValue(lhsName, ifReturn);
     }
     break;
   }

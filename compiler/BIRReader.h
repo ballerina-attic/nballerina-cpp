@@ -49,7 +49,7 @@ private:
   void readInsn(nballerina::BasicBlock *basicBlock);
   nballerina::BasicBlock *readBasicBlock(nballerina::Function *birFunction);
   void patchInsn(std::vector<nballerina::BasicBlock *> basicBlocks);
-  nballerina::Function *readFunction();
+  nballerina::Function *readFunction(nballerina::Package *birPackage);
   void readModule();
 
   // Read bytes functions

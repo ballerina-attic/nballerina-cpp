@@ -23,49 +23,39 @@ class Package;
 
 class Function : public PackageNode, public Debuggable, public Translatable {
 private:
+  Package *parentPackage;
   std::string name;
   std::string workerName;
   int flags;
   InvokableType *type;
-
   std::vector<FunctionParam *> requiredParams;
   Variable *receiver;
   RestParam *restParam;
   Variable *returnVar;
   std::map<std::string, Variable *> localVars;
   std::vector<BasicBlock *> basicBlocks;
-
-  LLVMBuilderRef builder;
-  LLVMValueRef newFunction;
-  Package *parentPackage;
-  std::map<std::string, LLVMValueRef> localVarRefs;
+  LLVMBuilderRef llvmBuilder;
+  LLVMValueRef llvmFunction;
   std::map<std::string, LLVMValueRef> branchComparisonList;
+ 
+  std::map<std::string, LLVMValueRef> localVarRefs;
 
 public:
   Function() = delete;
-  Function(std::string name, std::string workerName, int pflags,
+  Function(Package *parentPackage, std::string name, std::string workerName, int pflags,
            InvokableType *ptype);
   Function(const Function &) = delete;
   ~Function() = default;
 
   FunctionParam *getParam(int index);
-  BasicBlock *getBasicBlock(int index);
   std::string getName();
-  int getFlags();
   size_t getNumParams();
-  InvokableType *getInvokableType();
-  std::vector<FunctionParam *> getParams();
-  Variable *getReceiver();
   RestParam *getRestParam();
   Variable *getReturnVar();
   std::vector<BasicBlock *> getBasicBlocks();
-  size_t numBasicBlocks();
-  std::string getWorkerName();
   LLVMBuilderRef getLLVMBuilder();
-  LLVMValueRef getNewFunctionRef();
-  std::map<std::string, LLVMValueRef> getLocalVarRefs();
-  std::map<std::string, LLVMValueRef> getBranchComparisonList();
-  LLVMValueRef getValueRefBasedOnName(std::string lhsName);
+  LLVMValueRef getLLVMFunctionValue();
+  LLVMValueRef getLLVMValueForBranchComparison(std::string lhsName);
 
   void insertParam(FunctionParam *param);
   void setRestParam(RestParam *param);
@@ -73,18 +63,11 @@ public:
   void setReturnVar(Variable *var);
   void insertLocalVar(Variable *var);
   void insertBasicBlock(BasicBlock *bb);
-
-  void setBasicBlocks(std::vector<BasicBlock *> b);
-  void setWorkerName(std::string newName);
-  void setLLVMBuilder(LLVMBuilderRef b);
-  void setLocalVarRefs(std::map<std::string, LLVMValueRef> newLocalVarRefs);
-  void setNewFunctionRef(LLVMValueRef newFuncRef);
-  void setBranchComparisonlist(std::map<std::string, LLVMValueRef> brCompl);
-  void addNewbranchComparison(std::string name, LLVMValueRef compRef);
-  void setPackage(Package *pkg);
+  void insertBranchComparisonValue(std::string lhsName, LLVMValueRef compRef);
+  void setLLVMBuilder(LLVMBuilderRef builder);
+  void setLLVMFunctionValue(LLVMValueRef funcRef);
 
   BasicBlock *searchBb(std::string name);
-
   LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);
   // void patchInsn(llvm::Function *llvnFun);

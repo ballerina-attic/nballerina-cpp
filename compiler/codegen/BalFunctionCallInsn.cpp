@@ -44,7 +44,7 @@ void FunctionCallInsn::translate(__attribute__((unused))
   }
 
   LLVMValueRef lhsRef = funcObj->getLocalOrGlobalLLVMValue(getLHS());
-  LLVMValueRef namedFuncRef = birFunc->getNewFunctionRef();
+  LLVMValueRef namedFuncRef = birFunc->getLLVMFunctionValue();
   if (namedFuncRef) {
     LLVMValueRef callResult =
         LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
