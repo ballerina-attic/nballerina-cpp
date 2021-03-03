@@ -11,6 +11,12 @@ fi
 
 ballerina build --dump-bir-file=$filename-bir-dump $1 1>out.log 2>err.log
 
+#if [ -s ./err.log ]
+#then
+#  echo "JBallerina error . Check err.log"
+#  exit 1
+#fi
+
 $2 $filename-bir-dump  2>err.log
 
 if [ -s ./err.log ]
