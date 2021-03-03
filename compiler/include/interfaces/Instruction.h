@@ -2,6 +2,7 @@
 #define __BALABSTRACTINSN__H__
 
 #include "interfaces/Debuggable.h"
+#include "interfaces/PackageNode.h"
 
 namespace nballerina {
 
@@ -51,7 +52,7 @@ enum InstructionKind {
   INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
 };
 
-class Instruction : public Debuggable {
+class Instruction : public Debuggable, public PackageNode {
 private:
   Operand *lhsOp;
   BasicBlock *parentBB;
@@ -59,12 +60,12 @@ private:
 protected:
   Operand *getLHS();
   Function *getFunction();
-  Package *getPackage();
 
 public:
   Instruction() = delete;
   Instruction(Operand *lOp, BasicBlock *parentBB);
   virtual ~Instruction() = default;
+  Package *getPackage() final;
 };
 
 } // namespace nballerina

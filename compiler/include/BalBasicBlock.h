@@ -39,6 +39,7 @@ public:
   NonTerminatorInsn *getInsn(int i);
   size_t numInsns();
   LLVMBasicBlockRef getLLVMBBRef();
+  Package *getPackage() final;
 
   void setId(std::string newId);
   void setTerminatorInsn(TerminatorInsn *insn);

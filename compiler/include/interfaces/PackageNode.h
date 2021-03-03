@@ -7,14 +7,8 @@ namespace nballerina {
 class Package;
 
 class PackageNode {
-private:
-  Package *pkg;
-
 public:
-  PackageNode() = default;
-  virtual ~PackageNode() = default;
-  Package *getPkgAddress() { return pkg; };
-  void setPkgAddress(Package *pkgPtr) { pkg = pkgPtr; };
+  virtual Package *getPackage() = 0;
 };
 
 } // namespace nballerina

@@ -109,7 +109,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     unsigned int numParams = birFunc->getNumParams();
     LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
     bool isVarArg = false;
-    birFunc->setPkgAddress(this);
+    birFunc->setPackage(this);
     if (birFunc->getRestParam())
       isVarArg = true;
 
@@ -137,7 +137,7 @@ void Package::translate(LLVMModuleRef &modRef) {
   map<string, Function *>::iterator it1;
   for (it1 = functionLookUp.begin(); it1 != functionLookUp.end(); it1++) {
     Function *birFunc = it1->second;
-    birFunc->setPkgAddress(this);
+    birFunc->setPackage(this);
     birFunc->translate(modRef);
   }
   // This Api will finalize the string table builder if table size is not

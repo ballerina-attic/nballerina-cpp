@@ -19,6 +19,7 @@ class Variable;
 class InvokableType;
 class RestParam;
 class Type;
+class Package;
 
 class Function : public PackageNode, public Debuggable, public Translatable {
 private:
@@ -37,6 +38,7 @@ private:
   LLVMValueRef newFunction;
   std::map<std::string, LLVMValueRef> localVarRefs;
   std::map<std::string, LLVMValueRef> branchComparisonList;
+  Package *pkg;
 
 public:
   Function() = default;
@@ -82,6 +84,7 @@ public:
   void setNewFunctionRef(LLVMValueRef newFuncRef);
   void setBranchComparisonlist(std::map<std::string, LLVMValueRef> brCompl);
   void addNewbranchComparison(std::string name, LLVMValueRef compRef);
+  void setPackage(Package *pkg);
 
   BasicBlock *searchBb(std::string name);
 
@@ -94,6 +97,7 @@ public:
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(Variable *vDecl);
   Variable *getLocalOrGlobalVariable(Operand *op);
   LLVMValueRef getLocalOrGlobalLLVMValue(Operand *op);
+  Package *getPackage() final;
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina

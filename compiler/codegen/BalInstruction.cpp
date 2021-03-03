@@ -10,7 +10,7 @@ Instruction::Instruction(Operand *lOp, BasicBlock *currB)
 Operand *Instruction::getLHS() { return lhsOp; }
 Function *Instruction::getFunction() { return parentBB->getFunction(); }
 Package *Instruction::getPackage() {
-  return parentBB->getFunction()->getPkgAddress();
+  return parentBB->getFunction()->getPackage();
 }
 
 } // namespace nballerina

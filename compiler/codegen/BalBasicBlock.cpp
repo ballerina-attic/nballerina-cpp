@@ -1,4 +1,5 @@
 #include "BalBasicBlock.h"
+#include "BalFunction.h"
 #include "BalNonTerminatorInsn.h"
 #include "BalTerminatorInsn.h"
 
@@ -21,6 +22,7 @@ std::vector<NonTerminatorInsn *> BasicBlock::getNonTerminatorInsn() {
 NonTerminatorInsn *BasicBlock::getInsn(int i) { return instructions[i]; }
 size_t BasicBlock::numInsns() { return instructions.size(); }
 LLVMBasicBlockRef BasicBlock::getLLVMBBRef() { return bbRefObj; }
+Package *BasicBlock::getPackage() { return bFunc->getPackage(); }
 
 void BasicBlock::setId(std::string newId) { id = newId; }
 void BasicBlock::setTerminatorInsn(TerminatorInsn *insn) { terminator = insn; }
