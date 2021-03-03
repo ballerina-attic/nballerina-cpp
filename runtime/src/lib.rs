@@ -22,72 +22,11 @@
 extern crate num;
 extern crate num_derive;
 
-use num::FromPrimitive;
-use num_derive::FromPrimitive;
+mod type_checker;
+
 use std::ffi::CStr;
-use std::ffi::CString;
 use std::mem;
 use std::os::raw::c_char;
-
-const BASE_TYPE_INDEX: usize = 0;
-const ARRAY_MEMBER_TYPE_INDEX: usize = 1;
-const ARRAY_SIZE_LSB_INDEX: usize = 2;
-const ARRAY_SIZE_MSB_INDEX: usize = 3;
-
-#[derive(Debug, PartialEq, FromPrimitive)]
-#[repr(u32)]
-enum BalType {
-    Nil = 'N' as u32,
-    Boolean = 'B' as u32,
-    Int = 'I' as u32,
-    Float = 'F' as u32,
-    Decimal = 'D' as u32,
-    String = 'S' as u32,
-    Array = 'A' as u32,
-    Any = 'X' as u32,
-}
-
-// Compute total elements present in the data structure
-pub fn compute_size(type_string: &str) -> i32 {
-    let mut hex_bits = String::new();
-    //Index 2 and 3 represent the size
-    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_LSB_INDEX).unwrap());
-    hex_bits.push(type_string.chars().nth(ARRAY_SIZE_MSB_INDEX).unwrap());
-    let bits: std::result::Result<i32, std::num::ParseIntError> =
-        i32::from_str_radix(&hex_bits, 32);
-    let total_bits: i32 = bits.unwrap();
-    let mut length_bits = String::new();
-    let index = 4;
-    for i in 0..total_bits {
-        let iterator = i as usize;
-        length_bits.push(type_string.chars().nth(iterator + index).unwrap());
-    }
-    //Convert size to i32 for integer comparision
-    let size: i32 = length_bits.parse().unwrap();
-    return size;
-}
-
-pub fn type_size(type_string: &str) -> i32 {
-    let type_char = type_string
-        .chars()
-        .nth(ARRAY_MEMBER_TYPE_INDEX)
-        .unwrap_or_else(|| panic!("Illegal type descriptor '{}', wrong length", type_string));
-    let bal_type = FromPrimitive::from_u32(type_char as u32).unwrap_or_else(|| {
-        panic!(
-            "Illegal type tag '{}' in type descriptor '{}'",
-            type_char, type_string
-        )
-    });
-    match bal_type {
-        BalType::Boolean => 1,
-        BalType::Int | BalType::Float => 8,
-        BalType::String => 12,
-        BalType::Any => 16,
-        _ => {
-            unimplemented!("type_size for '{:?}'", bal_type)
-        }
-    }
-}
 
 /*
  * To checking whether typecast is possible from source to destination
@@ -123,23 +62,27 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
         return true;
     }
     //Index 0 represents type of data structure
-    if source.chars().nth(BASE_TYPE_INDEX) != destination.chars().nth(BASE_TYPE_INDEX) {
+    if source.chars().nth(type_checker::BASE_TYPE_INDEX)
+        != destination.chars().nth(type_checker::BASE_TYPE_INDEX)
+    {
         return false;
     }
-    match source.chars().nth(BASE_TYPE_INDEX) {
+    match source.chars().nth(type_checker::BASE_TYPE_INDEX) {
         Some('A') => {
-            if source.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
-                != destination.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
+            if source.chars().nth(type_checker::ARRAY_MEMBER_TYPE_INDEX)
+                != destination
+                    .chars()
+                    .nth(type_checker::ARRAY_MEMBER_TYPE_INDEX)
             {
-                let src_type_size: i32 = type_size(&source);
-                let dest_type_size: i32 = type_size(&destination);
+                let src_type_size: i32 = type_checker::type_size(&source);
+                let dest_type_size: i32 = type_checker::type_size(&destination);
                 if src_type_size > dest_type_size {
                     return false;
                 }
             }
             // Compute total number of elements present in the data structure
-            let src_size: i32 = compute_size(&source);
-            let dest_size: i32 = compute_size(&destination);
+            let src_size: i32 = type_checker::compute_size(&source);
+            let dest_size: i32 = type_checker::compute_size(&destination);
             if src_size > dest_size {
                 return false;
             }
@@ -241,82 +184,4 @@ pub extern "C" fn int_array_load(arr_ptr: *mut Vec<*mut i32>, n: i32) -> *mut i3
     let return_val = arr[n_size];
     mem::forget(arr);
     return return_val;
-}
-
-#[test]
-fn src_type_size_less_than_dest() {
-    let src = CString::new("AF03122").unwrap();
-    let dest = CString::new("AX03122").unwrap();
-    assert_eq!(
-        is_same_type(
-            src.as_ptr() as *const c_char,
-            dest.as_ptr() as *const c_char
-        ),
-        true
-    );
-}
-
-#[test]
-fn src_type_size_greater_than_dest() {
-    let src = CString::new("AS03122").unwrap();
-    let dest = CString::new("AB03122").unwrap();
-    assert_eq!(
-        is_same_type(
-            src.as_ptr() as *const c_char,
-            dest.as_ptr() as *const c_char
-        ),
-        false
-    );
-}
-
-#[test]
-fn src_elements_less_than_dest() {
-    let src = CString::new("AB041023").unwrap();
-    let dest = CString::new("AX041024").unwrap();
-    assert_eq!(
-        is_same_type(
-            src.as_ptr() as *const c_char,
-            dest.as_ptr() as *const c_char
-        ),
-        true
-    );
-}
-
-#[test]
-fn src_elements_greater_than_dest() {
-    let src = CString::new("AB0519999").unwrap();
-    let dest = CString::new("AX03199").unwrap();
-    assert_eq!(
-        is_same_type(
-            src.as_ptr() as *const c_char,
-            dest.as_ptr() as *const c_char
-        ),
-        false
-    );
-}
-
-#[test]
-fn src_type_string_equal_to_dest() {
-    let src = CString::new("AF0599999").unwrap();
-    let dest = CString::new("AF0599999").unwrap();
-    assert_eq!(
-        is_same_type(
-            src.as_ptr() as *const c_char,
-            dest.as_ptr() as *const c_char
-        ),
-        true
-    );
-}
-
-#[test]
-fn map_test() {
-    let src = CString::new("MX0599999").unwrap();
-    let dest = CString::new("MF0599999").unwrap();
-    assert_eq!(
-        is_same_type(
-            src.as_ptr() as *const c_char,
-            dest.as_ptr() as *const c_char
-        ),
-        false
-    );
 }
