@@ -86,50 +86,6 @@ LLVMTypeRef Function::getLLVMTypeOfReturnVal() {
   return parentPackage->getLLVMTypeOfType(type);
 }
 
-void Function::translate(LLVMModuleRef &modRef) {
-
-  LLVMBasicBlockRef BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");
-  LLVMPositionBuilderAtEnd(llvmBuilder, BbRef);
-
-  // iterate through all local vars.
-  int paramIndex = 0;
-  for (auto const &it : localVars) {
-    Variable *locVar = it.second;
-    LLVMTypeRef varType =
-        parentPackage->getLLVMTypeOfType(locVar->getTypeDecl());
-    LLVMValueRef localVarRef =
-        LLVMBuildAlloca(llvmBuilder, varType, (locVar->getName()).c_str());
-    localVarRefs.insert({locVar->getName(), localVarRef});
-    if (isParamter(locVar)) {
-      LLVMValueRef parmRef = LLVMGetParam(llvmFunction, paramIndex);
-      std::string paramName = getParam(paramIndex)->getName();
-      LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
-      if (parmRef)
-        LLVMBuildStore(llvmBuilder, parmRef, localVarRef);
-      paramIndex++;
-    }
-  }
-
-  // iterate through with each basic block in the function and create them
-  for (auto const &bb : basicBlocks) {
-    LLVMBasicBlockRef bbRef =
-        LLVMAppendBasicBlock(llvmFunction, bb->getId().c_str());
-    bb->setLLVMBBRef(bbRef);
-  }
-
-  // creating branch to next basic block.
-  if (basicBlocks.size() != 0 && basicBlocks[0] &&
-      basicBlocks[0]->getLLVMBBRef())
-    LLVMBuildBr(llvmBuilder, basicBlocks[0]->getLLVMBBRef());
-
-  // Now translate the basic blocks (essentially add the instructions in them)
-  for (auto const &bb : basicBlocks) {
-    LLVMPositionBuilderAtEnd(llvmBuilder, bb->getLLVMBBRef());
-    bb->translate(modRef);
-  }
-  return;
-}
-
 void Function::insertParam(FunctionParam *param) {
   requiredParams.push_back(param);
 }
@@ -174,5 +130,49 @@ LLVMValueRef Function::getLLVMLocalOrGlobalVar(Operand *op) {
 
 Package *Function::getPackage() { return parentPackage; }
 size_t Function::getNumParams() { return requiredParams.size(); }
+
+void Function::translate(LLVMModuleRef &modRef) {
+
+  LLVMBasicBlockRef BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");
+  LLVMPositionBuilderAtEnd(llvmBuilder, BbRef);
+
+  // iterate through all local vars.
+  int paramIndex = 0;
+  for (auto const &it : localVars) {
+    Variable *locVar = it.second;
+    LLVMTypeRef varType =
+        parentPackage->getLLVMTypeOfType(locVar->getTypeDecl());
+    LLVMValueRef localVarRef =
+        LLVMBuildAlloca(llvmBuilder, varType, (locVar->getName()).c_str());
+    localVarRefs.insert({locVar->getName(), localVarRef});
+    if (isParamter(locVar)) {
+      LLVMValueRef parmRef = LLVMGetParam(llvmFunction, paramIndex);
+      std::string paramName = getParam(paramIndex)->getName();
+      LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
+      if (parmRef)
+        LLVMBuildStore(llvmBuilder, parmRef, localVarRef);
+      paramIndex++;
+    }
+  }
+
+  // iterate through with each basic block in the function and create them
+  for (auto const &bb : basicBlocks) {
+    LLVMBasicBlockRef bbRef =
+        LLVMAppendBasicBlock(llvmFunction, bb->getId().c_str());
+    bb->setLLVMBBRef(bbRef);
+  }
+
+  // creating branch to next basic block.
+  if (basicBlocks.size() != 0 && basicBlocks[0] &&
+      basicBlocks[0]->getLLVMBBRef())
+    LLVMBuildBr(llvmBuilder, basicBlocks[0]->getLLVMBBRef());
+
+  // Now translate the basic blocks (essentially add the instructions in them)
+  for (auto const &bb : basicBlocks) {
+    LLVMPositionBuilderAtEnd(llvmBuilder, bb->getLLVMBBRef());
+    bb->translate(modRef);
+  }
+  return;
+}
 
 } // namespace nballerina

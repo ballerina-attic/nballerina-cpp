@@ -21,23 +21,22 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  Variable *globRetVar =
-      getPackage()->getGlobalVariable("_bal_result");
+  LLVMValueRef globRetRef = getPackage()->getGlobalLLVMVar("_bal_result");
 
-  if (funcObj->getName() == "main" && globRetVar) {
-    LLVMValueRef lhsRef =
-        getPackage()->getGlobalLLVMVar("_bal_result");
-    LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
+  if (funcObj->getName() == "main" && globRetRef) {
+    LLVMValueRef retValRef = LLVMBuildLoad(builder, globRetRef, "retrun_temp");
     LLVMBuildRet(builder, retValRef);
-  } else {
-    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
-      LLVMValueRef retValueRef = LLVMBuildLoad(
-          builder, funcObj->getLLVMLocalVar("%0"), "retrun_temp");
-      LLVMBuildRet(builder, retValueRef);
-    } else if (builder) {
-      LLVMBuildRetVoid(builder);
-    }
+    return;
   }
+
+  if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() == TYPE_TAG_NIL) {
+    LLVMBuildRetVoid(builder);
+    return;
+  }
+
+  LLVMValueRef retValueRef =
+      LLVMBuildLoad(builder, funcObj->getLLVMLocalVar("%0"), "retrun_temp");
+  LLVMBuildRet(builder, retValueRef);
 }
 
 } // namespace nballerina

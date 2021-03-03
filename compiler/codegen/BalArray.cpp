@@ -111,7 +111,6 @@ void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
   LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
   LLVMValueRef keyRef = funcObj->getTempLocalVariable(keyOp);
-  assert(ArrayLoadFunc && lhsOpRef && rhsOpRef && keyRef);
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
   argOpValueRef[0] = lhsOpRef;
   argOpValueRef[1] = keyRef;

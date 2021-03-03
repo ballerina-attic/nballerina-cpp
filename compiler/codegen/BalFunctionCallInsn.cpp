@@ -30,12 +30,11 @@ Operand *FunctionCallInsn::getArgumentFromList(int i) { return argsList[i]; }
 void FunctionCallInsn::translate(__attribute__((unused))
                                  LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  LLVMValueRef *ParamRefs = new LLVMValueRef[argCount];
-  string funName;
-
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  Function *birFunc = getPackage()->getFunction(functionName);
-  if (!birFunc)
+  LLVMValueRef *ParamRefs = new LLVMValueRef[argCount];
+
+  Function *function = getPackage()->getFunction(functionName);
+  if (!function)
     llvm_unreachable("Unknown function call");
 
   for (int i = 0; i < argCount; i++) {
@@ -45,12 +44,10 @@ void FunctionCallInsn::translate(__attribute__((unused))
   }
 
   LLVMValueRef lhsRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
-  LLVMValueRef namedFuncRef = birFunc->getLLVMFunctionValue();
-  if (namedFuncRef) {
-    LLVMValueRef callResult =
-        LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
-    LLVMBuildStore(builder, callResult, lhsRef);
-  }
+  LLVMValueRef namedFuncRef = function->getLLVMFunctionValue();
+  LLVMValueRef callResult =
+      LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
+  LLVMBuildStore(builder, callResult, lhsRef);
 
   // creating branch to next basic block.
   if (getNextBB())

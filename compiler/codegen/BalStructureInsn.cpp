@@ -39,8 +39,6 @@ void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
-
-  assert(lhsVar->getTypeDecl()->getTypeTag() == TYPE_TAG_MAP);
   MapTypeDecl *mapTypeDelare =
       static_cast<MapTypeDecl *>(lhsVar->getTypeDecl());
 
