@@ -28,9 +28,9 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new StringTableBuilder(StringTableBuilder::RAW, 1);
   // iterate over all global variables and translate
-  for (unsigned int i = 0; i < globalVars.size(); i++) {
+  for (auto const it : globalVars) {
     LLVMValueRef globVarRef;
-    VarDecl *globVar = globalVars[i];
+    VarDecl *globVar = it.second;
     BIRFunction *funcObj = new BIRFunction();
     LLVMTypeRef varTyperef =
         funcObj->getLLVMTypeRefOfType(globVar->getTypeDecl());
@@ -149,7 +149,7 @@ void BIRPackage::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
   }
 }
 
-LLVMValueRef BIRPackage::getFunctionRefBasedOnName (string arrayName) {
+LLVMValueRef BIRPackage::getFunctionRefBasedOnName(string arrayName) {
   map<string, LLVMValueRef>::iterator it;
   it = arrayFunctionRefs.find(arrayName);
 
@@ -157,6 +157,14 @@ LLVMValueRef BIRPackage::getFunctionRefBasedOnName (string arrayName) {
     return NULL;
   } else
     return it->second;
+}
+
+VarDecl *BIRPackage::getGlobalVarDeclFromName(string name) {
+  auto varIt = globalVars.find(name);
+  if (varIt == globalVars.end())
+    return nullptr;
+
+  return varIt->second;
 }
 
 BIRPackage::~BIRPackage() {}
