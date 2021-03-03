@@ -2,8 +2,7 @@
 
 namespace nballerina {
 
-Variable::Variable(Type *_type, std::string _name, VarKind _kind)
-    : VariableKind(_name, _kind), type(_type) {}
+Variable::Variable(Type *_type, std::string _name, VarKind _kind) : VariableKind(_name, _kind), type(_type) {}
 
 Type *Variable::getTypeDecl() { return type; }
 

@@ -2,8 +2,7 @@
 
 namespace nballerina {
 
-InvokableType::InvokableType(std::vector<Type *> paramTy, Type *restTy,
-                             Type *retTy)
+InvokableType::InvokableType(std::vector<Type *> paramTy, Type *restTy, Type *retTy)
     : paramTypes(std::move(paramTy)), restType(restTy), returnType(retTy) {}
 
 InvokableType::InvokableType(std::vector<Type *> paramTy, Type *retTy)

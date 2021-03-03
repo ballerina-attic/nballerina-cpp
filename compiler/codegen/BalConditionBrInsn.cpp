@@ -14,11 +14,9 @@ using namespace std;
 
 namespace nballerina {
 
-ConditionBrInsn::ConditionBrInsn(Operand *lOp, BasicBlock *currentBB,
-                                 BasicBlock *_ifThenBB, BasicBlock *_elseBB)
-    : TerminatorInsn(lOp, currentBB, nullptr, true), ifThenBB(_ifThenBB),
-      elseBB(_elseBB) {
-  kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
+ConditionBrInsn::ConditionBrInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *_ifThenBB, BasicBlock *_elseBB)
+    : TerminatorInsn(lOp, currentBB, nullptr, true), ifThenBB(_ifThenBB), elseBB(_elseBB) {
+    kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
 }
 
 BasicBlock *ConditionBrInsn::getIfThenBB() { return ifThenBB; }
@@ -28,19 +26,15 @@ void ConditionBrInsn::setElseBB(BasicBlock *bb) { elseBB = bb; }
 
 void ConditionBrInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
-  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-  string lhsName = getLHS()->getName();
+    LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+    string lhsName = getLHS()->getName();
 
-  LLVMValueRef brCondition =
-      getFunction()->getLLVMValueForBranchComparison(lhsName);
-  if (!brCondition) {
-    brCondition = LLVMBuildIsNotNull(
-        builder, getFunction()->getTempLocalVariable(getLHS()),
-        lhsName.c_str());
-  }
+    LLVMValueRef brCondition = getFunction()->getLLVMValueForBranchComparison(lhsName);
+    if (!brCondition) {
+        brCondition = LLVMBuildIsNotNull(builder, getFunction()->getTempLocalVariable(getLHS()), lhsName.c_str());
+    }
 
-  LLVMBuildCondBr(builder, brCondition, ifThenBB->getLLVMBBRef(),
-                  elseBB->getLLVMBBRef());
+    LLVMBuildCondBr(builder, brCondition, ifThenBB->getLLVMBBRef(), elseBB->getLLVMBBRef());
 }
 
 } // namespace nballerina

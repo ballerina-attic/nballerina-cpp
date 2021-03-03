@@ -6,10 +6,8 @@
 
 namespace nballerina {
 
-NonTerminatorInsn::NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB)
-    : Instruction(lOp, currentBB) {}
+NonTerminatorInsn::NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB) : Instruction(lOp, currentBB) {}
 
-void NonTerminatorInsn::translate(__attribute__((unused))
-                                  LLVMModuleRef &modRef) {}
+void NonTerminatorInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {}
 
 } // namespace nballerina

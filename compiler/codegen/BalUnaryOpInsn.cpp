@@ -18,15 +18,15 @@ UnaryOpInsn::UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp)
 
 void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
-  Function *funcObj = getFunction();
-  LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  Operand *lhsOp = getLHS();
-  string lhsTmpName = lhsOp->getName() + "_temp";
-  LLVMValueRef lhsRef = funcObj->getLLVMLocalOrGlobalVar(lhsOp);
-  LLVMValueRef rhsOpref = funcObj->getTempLocalVariable(rhsOp);
-  LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhsTmpName.c_str());
-  LLVMBuildStore(builder, ifReturn, lhsRef);
-  return;
+    Function *funcObj = getFunction();
+    LLVMBuilderRef builder = funcObj->getLLVMBuilder();
+    Operand *lhsOp = getLHS();
+    string lhsTmpName = lhsOp->getName() + "_temp";
+    LLVMValueRef lhsRef = funcObj->getLLVMLocalOrGlobalVar(lhsOp);
+    LLVMValueRef rhsOpref = funcObj->getTempLocalVariable(rhsOp);
+    LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhsTmpName.c_str());
+    LLVMBuildStore(builder, ifReturn, lhsRef);
+    return;
 }
 
 } // namespace nballerina

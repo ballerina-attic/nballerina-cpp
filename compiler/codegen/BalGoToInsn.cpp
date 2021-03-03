@@ -9,14 +9,13 @@
 
 namespace nballerina {
 
-GoToInsn::GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB)
-    : TerminatorInsn(nullptr, currentBB, nextBB, true) {
-  kind = INSTRUCTION_KIND_GOTO;
+GoToInsn::GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB) : TerminatorInsn(nullptr, currentBB, nextBB, true) {
+    kind = INSTRUCTION_KIND_GOTO;
 }
 
 void GoToInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
-  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-  LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
+    LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+    LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
 }
 
 } // namespace nballerina

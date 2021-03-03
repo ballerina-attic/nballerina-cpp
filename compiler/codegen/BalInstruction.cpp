@@ -3,8 +3,7 @@
 
 namespace nballerina {
 
-Instruction::Instruction(Operand *lOp, BasicBlock *currB)
-    : lhsOp(lOp), parentBB(currB) {}
+Instruction::Instruction(Operand *lOp, BasicBlock *currB) : lhsOp(lOp), parentBB(currB) {}
 
 Operand *Instruction::getLHS() { return lhsOp; }
 Function *Instruction::getFunction() { return parentBB->getFunction(); }

@@ -11,16 +11,14 @@
 
 namespace nballerina {
 
-MoveInsn::MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp)
-    : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp) {}
+MoveInsn::MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp) : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp) {}
 
 void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
-  LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-  LLVMValueRef lhsRef =
-      getFunction()->getLLVMLocalOrGlobalVar(getLHS());
-  LLVMValueRef rhsVarOpRef = getFunction()->getTempLocalVariable(rhsOp);
-  LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
+    LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+    LLVMValueRef lhsRef = getFunction()->getLLVMLocalOrGlobalVar(getLHS());
+    LLVMValueRef rhsVarOpRef = getFunction()->getTempLocalVariable(rhsOp);
+    LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
 }
 
 } // namespace nballerina
