@@ -5,12 +5,12 @@
 namespace nballerina {
 
 Instruction::Instruction(Operand *lOp, BasicBlock *currB)
-    : lhsOp(lOp), currentBB(currB) {}
+    : lhsOp(lOp), parentBB(currB) {}
 
-Operand *Instruction::getLhsOperand() { return lhsOp; }
-Function *Instruction::getFunction() { return currentBB->getFunction(); }
-Package *Instruction::getPkgAddress() {
-  return currentBB->getFunction()->getPkgAddress();
+Operand *Instruction::getLHS() { return lhsOp; }
+Function *Instruction::getFunction() { return parentBB->getFunction(); }
+Package *Instruction::getPackage() {
+  return parentBB->getFunction()->getPkgAddress();
 }
 
 } // namespace nballerina

@@ -23,7 +23,7 @@ TypeCastInsn::TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
 
 void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  string lhsOpName = getLhsOperand()->getName();
+  string lhsOpName = getLHS()->getName();
   string rhsOpName = rhsOp->getName();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef rhsOpRef;
@@ -53,12 +53,12 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
         LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
     LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
     LLVMBuildStore(builder, castLoad, lhsOpRef);
-  } else if (getLhsOperand() && funcObj->getLocalVarFromName(lhsOpName)
+  } else if (getLHS() && funcObj->getLocalVarFromName(lhsOpName)
                                         ->getTypeDecl()
                                         ->getTypeTag() == TYPE_TAG_ANY) {
     LLVMValueRef structAllocaRef =
-        funcObj->getLocalVarRefUsingId(getLhsOperand()->getName());
-    StringTableBuilder *strTable = getPkgAddress()->getStrTableBuilder();
+        funcObj->getLocalVarRefUsingId(getLHS()->getName());
+    StringTableBuilder *strTable = getPackage()->getStrTableBuilder();
 
     // struct first element original type
     LLVMValueRef origTypeIdx =
@@ -71,7 +71,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), -1, 0);
     LLVMValueRef origStoreRef =
         LLVMBuildStore(builder, constValue, origTypeIdx);
-    getPkgAddress()->addStringOffsetRelocationEntry(origTypeName, origStoreRef);
+    getPackage()->addStringOffsetRelocationEntry(origTypeName, origStoreRef);
     // struct second element last type
     LLVMValueRef lastTypeIdx =
         LLVMBuildStructGEP(builder, structAllocaRef, 1, "lastTypeIdx");
@@ -84,7 +84,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), -2, 0);
     LLVMValueRef lastStoreRef =
         LLVMBuildStore(builder, constValue1, lastTypeIdx);
-    getPkgAddress()->addStringOffsetRelocationEntry(lastTypeName, lastStoreRef);
+    getPackage()->addStringOffsetRelocationEntry(lastTypeName, lastStoreRef);
 
     // struct third element void pointer data.
     LLVMValueRef elePtr2 =

@@ -19,11 +19,11 @@ MapStoreInsn::MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp,
 
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  Package *pkgObj = getPkgAddress();
+  Package *pkgObj = getPackage();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
   // Find Variable corresponding to lhs to determine member type
-  Variable *lhsVar = funcObj->getLocalOrGlobalVariable(getLhsOperand());
+  Variable *lhsVar = funcObj->getLocalOrGlobalVariable(getLHS());
   assert(lhsVar->getTypeDecl()->getTypeTag() == TYPE_TAG_MAP);
 
   MapTypeDecl *mapTypeDelare =
@@ -42,7 +42,7 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   if (!mapStoreFunc)
     mapStoreFunc = getMapIntStoreDeclaration(modRef, pkgObj);
 
-  LLVMValueRef lhsOpTempRef = funcObj->getLocalToTempVar(getLhsOperand());
+  LLVMValueRef lhsOpTempRef = funcObj->getLocalToTempVar(getLHS());
   LLVMValueRef rhsOpRef = funcObj->getLocalOrGlobalLLVMValue(rhsOp);
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
   assert(mapStoreFunc && lhsOpTempRef && rhsOpRef && keyRef);

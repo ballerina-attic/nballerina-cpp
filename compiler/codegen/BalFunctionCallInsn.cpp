@@ -34,7 +34,7 @@ void FunctionCallInsn::translate(__attribute__((unused))
   string funName;
 
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  Function *birFunc = getPkgAddress()->getFunctionLookUp(functionName);
+  Function *birFunc = getPackage()->getFunctionLookUp(functionName);
   assert(birFunc);
 
   for (int i = 0; i < argCount; i++) {
@@ -43,7 +43,7 @@ void FunctionCallInsn::translate(__attribute__((unused))
     ParamRefs[i] = opRef;
   }
 
-  LLVMValueRef lhsRef = funcObj->getLocalOrGlobalLLVMValue(getLhsOperand());
+  LLVMValueRef lhsRef = funcObj->getLocalOrGlobalLLVMValue(getLHS());
   LLVMValueRef namedFuncRef = birFunc->getNewFunctionRef();
   if (namedFuncRef) {
     LLVMValueRef callResult =

@@ -46,7 +46,7 @@ TypeTag ConstantLoadInsn::getTypeTag() { return typeTag; }
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef constRef;
-  Operand *lhsOp = getLhsOperand();
+  Operand *lhsOp = getLHS();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
   LLVMValueRef lhsRef = getFunction()->getLocalOrGlobalLLVMValue(lhsOp);
 

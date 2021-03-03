@@ -54,16 +54,16 @@ enum InstructionKind {
 class Instruction : public Debuggable {
 private:
   Operand *lhsOp;
-  BasicBlock *currentBB;
+  BasicBlock *parentBB;
 
 protected:
-  Operand *getLhsOperand();
+  Operand *getLHS();
   Function *getFunction();
-  Package *getPkgAddress();
+  Package *getPackage();
 
 public:
   Instruction() = delete;
-  Instruction(Operand *lOp, BasicBlock *currentBB);
+  Instruction(Operand *lOp, BasicBlock *parentBB);
   virtual ~Instruction() = default;
 };
 

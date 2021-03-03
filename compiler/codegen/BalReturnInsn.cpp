@@ -22,11 +22,11 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   Variable *globRetVar =
-      getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+      getPackage()->getGlobalVarDeclFromName("_bal_result");
 
   if (funcObj->getName() == "main" && globRetVar) {
     LLVMValueRef lhsRef =
-        getPkgAddress()->getGlobalVarRefUsingId("_bal_result");
+        getPackage()->getGlobalVarRefUsingId("_bal_result");
     LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
     LLVMBuildRet(builder, retValRef);
   } else {

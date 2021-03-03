@@ -18,7 +18,7 @@ void MoveInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
   LLVMValueRef lhsRef =
-      getFunction()->getLocalOrGlobalLLVMValue(getLhsOperand());
+      getFunction()->getLocalOrGlobalLLVMValue(getLHS());
   LLVMValueRef rhsVarOpRef = getFunction()->getLocalToTempVar(rhsOp);
   LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
 }
