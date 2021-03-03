@@ -614,7 +614,7 @@ BasicBlock *BIRReader::readBasicBlock(Function *birFunction) {
       new BasicBlock(constantPool->getStringCp(nameCpIndex), birFunction);
 
   uint32_t insnCount = readS4be();
-  for (unsigned int i = 0; i < insnCount; i++) {
+  for (size_t i = 0; i < insnCount; i++) {
     // Read an Instruction and adds it to basicBlock
     readInsn(basicBlock);
   }
@@ -623,8 +623,7 @@ BasicBlock *BIRReader::readBasicBlock(Function *birFunction) {
 
 // Patches the Terminator Insn with destination Basic Block
 void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
-  for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-    BasicBlock *basicBlock = basicBlocks[i];
+  for (auto const &basicBlock : basicBlocks) {
     Function *curFunc = basicBlock->getFunction();
     TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
     if (terminator && terminator->getPatchStatus()) {
@@ -633,9 +632,9 @@ void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
         ConditionBrInsn *Terminator =
             (static_cast<ConditionBrInsn *>(terminator));
         BasicBlock *trueBB =
-            curFunc->searchBb(Terminator->getIfThenBB()->getId());
+            curFunc->FindBasicBlock(Terminator->getIfThenBB()->getId());
         BasicBlock *falseBB =
-            curFunc->searchBb(Terminator->getElseBB()->getId());
+            curFunc->FindBasicBlock(Terminator->getElseBB()->getId());
         BasicBlock *danglingTrueBB = Terminator->getIfThenBB();
         BasicBlock *danglingFalseBB = Terminator->getElseBB();
         delete danglingTrueBB;
@@ -647,7 +646,7 @@ void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
       }
       case INSTRUCTION_KIND_GOTO: {
         BasicBlock *destBB =
-            curFunc->searchBb(terminator->getNextBB()->getId());
+            curFunc->FindBasicBlock(terminator->getNextBB()->getId());
         BasicBlock *danglingBB = terminator->getNextBB();
         delete danglingBB;
         terminator->setNextBB(destBB);
@@ -656,7 +655,7 @@ void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
       }
       case INSTRUCTION_KIND_CALL: {
         BasicBlock *destBB =
-            curFunc->searchBb(terminator->getNextBB()->getId());
+            curFunc->FindBasicBlock(terminator->getNextBB()->getId());
         BasicBlock *danglingBB = terminator->getNextBB();
         delete danglingBB;
         terminator->setNextBB(destBB);
@@ -705,9 +704,9 @@ Function *BIRReader::readFunction(Package *package) {
   uint32_t flags = readS4be();
   uint32_t typeCpIndex = readS4be();
 
-  Function *birFunction =
-      new Function(package, functionName, constantPool->getStringCp(workdernameCpIndex),
-                   flags, constantPool->getInvokableType(typeCpIndex));
+  Function *birFunction = new Function(
+      package, functionName, constantPool->getStringCp(workdernameCpIndex),
+      flags, constantPool->getInvokableType(typeCpIndex));
   birFunction->setLocation(location);
 
   uint64_t annotationLength __attribute__((unused)) = readS8be();

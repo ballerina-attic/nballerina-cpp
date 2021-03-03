@@ -30,8 +30,8 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   LLVMValueRef lhsOpRef;
   LLVMTypeRef lhsTypeRef;
 
-  rhsOpRef = funcObj->getLocalVarRefUsingId(rhsOpName);
-  lhsOpRef = funcObj->getLocalVarRefUsingId(lhsOpName);
+  rhsOpRef = funcObj->getLLVMLocalVar(rhsOpName);
+  lhsOpRef = funcObj->getLLVMLocalVar(lhsOpName);
   lhsTypeRef = wrap(unwrap(lhsOpRef)->getType());
   Variable *orignamVarDecl = funcObj->getLocalVarFromName(rhsOpName);
 
@@ -57,7 +57,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
                                         ->getTypeDecl()
                                         ->getTypeTag() == TYPE_TAG_ANY) {
     LLVMValueRef structAllocaRef =
-        funcObj->getLocalVarRefUsingId(getLHS()->getName());
+        funcObj->getLLVMLocalVar(getLHS()->getName());
     StringTableBuilder *strTable = getPackage()->getStrTableBuilder();
 
     // struct first element original type

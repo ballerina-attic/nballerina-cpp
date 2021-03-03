@@ -33,17 +33,17 @@ private:
   RestParam *restParam;
   Variable *returnVar;
   std::map<std::string, Variable *> localVars;
+  std::map<std::string, BasicBlock *> basicBlocksMap;
   std::vector<BasicBlock *> basicBlocks;
   LLVMBuilderRef llvmBuilder;
   LLVMValueRef llvmFunction;
   std::map<std::string, LLVMValueRef> branchComparisonList;
- 
   std::map<std::string, LLVMValueRef> localVarRefs;
 
 public:
   Function() = delete;
-  Function(Package *parentPackage, std::string name, std::string workerName, int pflags,
-           InvokableType *ptype);
+  Function(Package *parentPackage, std::string name, std::string workerName,
+           int pflags, InvokableType *ptype);
   Function(const Function &) = delete;
   ~Function() = default;
 
@@ -56,6 +56,8 @@ public:
   LLVMBuilderRef getLLVMBuilder();
   LLVMValueRef getLLVMFunctionValue();
   LLVMValueRef getLLVMValueForBranchComparison(std::string lhsName);
+  LLVMValueRef getLLVMLocalVar(std::string varName);
+  BasicBlock *FindBasicBlock(std::string id);
 
   void insertParam(FunctionParam *param);
   void setRestParam(RestParam *param);
@@ -67,11 +69,9 @@ public:
   void setLLVMBuilder(LLVMBuilderRef builder);
   void setLLVMFunctionValue(LLVMValueRef funcRef);
 
-  BasicBlock *searchBb(std::string name);
   LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);
   // void patchInsn(llvm::Function *llvnFun);
-  LLVMValueRef getLocalVarRefUsingId(std::string locVar);
   Variable *getLocalVarFromName(std::string opName);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(Variable *vDecl);
   Variable *getLocalOrGlobalVariable(Operand *op);

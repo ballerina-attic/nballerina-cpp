@@ -32,7 +32,7 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   } else {
     if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
       LLVMValueRef retValueRef = LLVMBuildLoad(
-          builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
+          builder, funcObj->getLLVMLocalVar("%0"), "retrun_temp");
       LLVMBuildRet(builder, retValueRef);
     } else if (builder) {
       LLVMBuildRetVoid(builder);

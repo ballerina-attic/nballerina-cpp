@@ -17,21 +17,20 @@ Function::Function(Package *_parentPackage, std::string _name,
 }
 
 // Search basic block based on the basic block ID
-BasicBlock *Function::searchBb(std::string name) {
-  std::vector<BasicBlock *>::iterator itr;
-  for (itr = basicBlocks.begin(); itr != basicBlocks.end(); itr++) {
-    if ((*itr)->getId() == name) {
-      return (*itr);
-    }
-  }
-  return NULL;
+BasicBlock *Function::FindBasicBlock(std::string id) {
+  auto bb = basicBlocksMap.find(id);
+  if (bb == basicBlocksMap.end())
+    return nullptr;
+  return bb->second;
 }
 
 std::string Function::getName() { return name; }
 FunctionParam *Function::getParam(int i) { return requiredParams[i]; }
 RestParam *Function::getRestParam() { return restParam; }
 Variable *Function::getReturnVar() { return returnVar; }
-std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
+std::vector<BasicBlock *> Function::getBasicBlocks() {
+  return basicBlocks;
+}
 LLVMBuilderRef Function::getLLVMBuilder() { return llvmBuilder; }
 LLVMValueRef Function::getLLVMFunctionValue() { return llvmFunction; }
 
@@ -39,11 +38,10 @@ LLVMValueRef Function::getLLVMValueForBranchComparison(std::string lhsName) {
   auto branch = branchComparisonList.find(lhsName);
   if (branch == branchComparisonList.end())
     return nullptr;
-
   return branch->second;
 }
 
-LLVMValueRef Function::getLocalVarRefUsingId(std::string locVar) {
+LLVMValueRef Function::getLLVMLocalVar(std::string locVar) {
   auto varIt = localVarRefs.find(locVar);
   if (varIt == localVarRefs.end())
     return nullptr;
@@ -54,7 +52,7 @@ LLVMValueRef Function::getLocalVarRefUsingId(std::string locVar) {
 LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
   std::string refOp = operand->getName();
   std::string tempName = refOp + "_temp";
-  LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
+  LLVMValueRef locVRef = getLLVMLocalVar(refOp);
   if (!locVRef)
     locVRef = parentPackage->getGlobalVarRefUsingId(refOp);
   return LLVMBuildLoad(llvmBuilder, locVRef, tempName.c_str());
@@ -135,8 +133,7 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
 
   // iterate through with each basic block in the function and create them
   // first.
-  for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-    BasicBlock *bb = basicBlocks[i];
+  for (auto const &bb : basicBlocks) {
     LLVMBasicBlockRef bbRef =
         LLVMAppendBasicBlock(llvmFunction, bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
@@ -148,8 +145,7 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
     LLVMBuildBr(llvmBuilder, basicBlocks[0]->getLLVMBBRef());
 
   // Now translate the basic blocks (essentially add the instructions in them)
-  for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-    BasicBlock *bb = basicBlocks[i];
+  for (auto const &bb : basicBlocks) {
     LLVMPositionBuilderAtEnd(llvmBuilder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
@@ -168,7 +164,10 @@ void Function::insertLocalVar(Variable *var) {
   localVars.insert(std::pair<std::string, Variable *>(var->getName(), var));
 }
 void Function::setReturnVar(Variable *var) { returnVar = var; }
-void Function::insertBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
+void Function::insertBasicBlock(BasicBlock *bb) {
+  basicBlocks.push_back(bb);
+  basicBlocksMap.insert(std::pair<std::string, BasicBlock *>(bb->getId(), bb));
+}
 void Function::setLLVMBuilder(LLVMBuilderRef b) { llvmBuilder = b; }
 void Function::setLLVMFunctionValue(LLVMValueRef newFuncRef) {
   llvmFunction = newFuncRef;
@@ -197,7 +196,7 @@ Variable *Function::getLocalOrGlobalVariable(Operand *op) {
 LLVMValueRef Function::getLocalOrGlobalLLVMValue(Operand *op) {
   if (op->getKind() == GLOBAL_VAR_KIND)
     return parentPackage->getGlobalVarRefUsingId(op->getName());
-  return getLocalVarRefUsingId(op->getName());
+  return getLLVMLocalVar(op->getName());
 }
 
 Package *Function::getPackage() { return parentPackage; }
