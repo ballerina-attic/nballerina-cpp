@@ -6,23 +6,22 @@
 namespace nballerina {
 
 class ConditionBrInsn : public TerminatorInsn {
-private:
-  BasicBlock *ifThenBB;
-  BasicBlock *elseBB;
+  private:
+    BasicBlock *ifThenBB;
+    BasicBlock *elseBB;
 
-public:
-  ConditionBrInsn() = delete;
-  ConditionBrInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *_ifThenBB,
-                  BasicBlock *_elseBB);
-  ~ConditionBrInsn() = default;
+  public:
+    ConditionBrInsn() = delete;
+    ConditionBrInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *_ifThenBB, BasicBlock *_elseBB);
+    ~ConditionBrInsn() = default;
 
-  BasicBlock *getIfThenBB();
-  BasicBlock *getElseBB();
+    BasicBlock *getIfThenBB();
+    BasicBlock *getElseBB();
 
-  void setIfThenBB(BasicBlock *bb);
-  void setElseBB(BasicBlock *bb);
+    void setIfThenBB(BasicBlock *bb);
+    void setElseBB(BasicBlock *bb);
 
-  void translate(LLVMModuleRef &modRef) final;
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina

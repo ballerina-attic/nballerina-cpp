@@ -10,17 +10,17 @@ class Operand;
 class Variable;
 
 class StructureInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
-  void mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef);
-  LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef);
+  private:
+    Operand *rhsOp;
+    void mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef);
+    LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef);
 
-public:
-  StructureInsn() = delete;
-  StructureInsn(Operand *lOp, BasicBlock *currentBB, Operand *rhsOp);
-  ~StructureInsn() = default;
+  public:
+    StructureInsn() = delete;
+    StructureInsn(Operand *lOp, BasicBlock *currentBB, Operand *rhsOp);
+    ~StructureInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) final;
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina

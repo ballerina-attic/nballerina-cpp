@@ -10,15 +10,14 @@ class Type;
 class Operand;
 
 class TypeTestInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
-  Type *typeDecl;
+  private:
+    Operand *rhsOp;
+    Type *typeDecl;
 
-public:
-  TypeTestInsn() = delete;
-  TypeTestInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
-               Type *tDecl);
-  ~TypeTestInsn() = default;
+  public:
+    TypeTestInsn() = delete;
+    TypeTestInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp, Type *tDecl);
+    ~TypeTestInsn() = default;
 };
 
 } // namespace nballerina

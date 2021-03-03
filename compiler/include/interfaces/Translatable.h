@@ -6,8 +6,8 @@
 namespace nballerina {
 
 class Translatable {
-public:
-  virtual void translate(LLVMModuleRef &modRef) = 0;
+  public:
+    virtual void translate(LLVMModuleRef &modRef) = 0;
 };
 
 } // namespace nballerina

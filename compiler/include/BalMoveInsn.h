@@ -6,15 +6,15 @@
 namespace nballerina {
 
 class MoveInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
+  private:
+    Operand *rhsOp;
 
-public:
-  MoveInsn() = delete;
-  MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
-  ~MoveInsn() = default;
+  public:
+    MoveInsn() = delete;
+    MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
+    ~MoveInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) final;
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina

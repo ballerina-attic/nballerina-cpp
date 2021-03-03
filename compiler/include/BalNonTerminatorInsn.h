@@ -10,13 +10,13 @@ namespace nballerina {
 class Operand;
 
 class NonTerminatorInsn : public Instruction, public Translatable {
-private:
-public:
-  NonTerminatorInsn() = delete;
-  NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB);
-  virtual ~NonTerminatorInsn() = default;
+  private:
+  public:
+    NonTerminatorInsn() = delete;
+    NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB);
+    virtual ~NonTerminatorInsn() = default;
 
-  virtual void translate(LLVMModuleRef &modRef) override;
+    virtual void translate(LLVMModuleRef &modRef) override;
 };
 
 } // namespace nballerina

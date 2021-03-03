@@ -6,10 +6,9 @@
 namespace nballerina {
 
 class TypeDescInsn : public NonTerminatorInsn {
-public:
-  TypeDescInsn(Operand *lOp, BasicBlock *currentBB)
-      : NonTerminatorInsn(lOp, currentBB){};
-  ~TypeDescInsn() = default;
+  public:
+    TypeDescInsn(Operand *lOp, BasicBlock *currentBB) : NonTerminatorInsn(lOp, currentBB){};
+    ~TypeDescInsn() = default;
 };
 
 } // namespace nballerina

@@ -10,18 +10,17 @@ class Type;
 class Operand;
 
 class TypeCastInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
-  Type *typeDecl;
-  bool checkTypes;
+  private:
+    Operand *rhsOp;
+    Type *typeDecl;
+    bool checkTypes;
 
-public:
-  TypeCastInsn() = delete;
-  TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp,
-               Type *tDecl, bool checkTypes);
-  ~TypeCastInsn() = default;
+  public:
+    TypeCastInsn() = delete;
+    TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp, Type *tDecl, bool checkTypes);
+    ~TypeCastInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) final;
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina

@@ -6,14 +6,14 @@
 namespace nballerina {
 
 class RestParam {
-private:
-  std::string name;
+  private:
+    std::string name;
 
-public:
-  RestParam() = default;
-  ~RestParam() = default;
+  public:
+    RestParam() = default;
+    ~RestParam() = default;
 
-  std::string getName();
+    std::string getName();
 };
 
 } // namespace nballerina

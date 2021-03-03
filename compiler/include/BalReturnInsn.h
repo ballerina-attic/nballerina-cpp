@@ -9,11 +9,11 @@ namespace nballerina {
 class BasicBlock;
 
 class ReturnInsn : public TerminatorInsn {
-public:
-  ReturnInsn(BasicBlock *currentBB);
-  ~ReturnInsn() = default;
+  public:
+    ReturnInsn(BasicBlock *currentBB);
+    ~ReturnInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) final;
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina

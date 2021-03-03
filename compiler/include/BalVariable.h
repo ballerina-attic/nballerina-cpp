@@ -10,15 +10,15 @@ namespace nballerina {
 class Type;
 
 class Variable : public VariableKind {
-private:
-  Type *type;
+  private:
+    Type *type;
 
-public:
-  Variable() = delete;
-  Variable(Type *type, std::string name, VarKind kind);
-  virtual ~Variable() = default;
+  public:
+    Variable() = delete;
+    Variable(Type *type, std::string name, VarKind kind);
+    virtual ~Variable() = default;
 
-  Type *getTypeDecl();
+    Type *getTypeDecl();
 };
 
 } // namespace nballerina

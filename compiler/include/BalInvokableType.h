@@ -9,22 +9,21 @@ namespace nballerina {
 class Type;
 
 class InvokableType {
-private:
-  std::vector<Type *> paramTypes;
-  Type *restType;
-  Type *returnType;
+  private:
+    std::vector<Type *> paramTypes;
+    Type *restType;
+    Type *returnType;
 
-public:
-  InvokableType() = delete;
-  InvokableType(std::vector<Type *> paramTy, Type *restTy,
-                Type *retTy);
-  InvokableType(std::vector<Type *> paramTy, Type *retTy);
-  ~InvokableType() = default;
+  public:
+    InvokableType() = delete;
+    InvokableType(std::vector<Type *> paramTy, Type *restTy, Type *retTy);
+    InvokableType(std::vector<Type *> paramTy, Type *retTy);
+    ~InvokableType() = default;
 
-  const Type *getReturnType();
-  const Type *getRestType();
-  Type *getParamType(int i);
-  size_t getParamTypeCount();
+    const Type *getReturnType();
+    const Type *getRestType();
+    Type *getParamType(int i);
+    size_t getParamTypeCount();
 };
 
 } // namespace nballerina

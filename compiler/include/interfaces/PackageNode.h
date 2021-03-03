@@ -7,8 +7,8 @@ namespace nballerina {
 class Package;
 
 class PackageNode {
-public:
-  virtual Package *getPackage() = 0;
+  public:
+    virtual Package *getPackage() = 0;
 };
 
 } // namespace nballerina

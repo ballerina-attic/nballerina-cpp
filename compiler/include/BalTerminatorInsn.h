@@ -11,26 +11,25 @@ class BasicBlock;
 class Operand;
 
 class TerminatorInsn : public Instruction, public Translatable {
-private:
-  BasicBlock *thenBB;
-  bool patchRequire = false;
+  private:
+    BasicBlock *thenBB;
+    bool patchRequire = false;
 
-protected:
-  InstructionKind kind;
+  protected:
+    InstructionKind kind;
 
-public:
-  TerminatorInsn() = delete;
-  TerminatorInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *then,
-                 bool _patchRequire);
-  virtual ~TerminatorInsn() = default;
+  public:
+    TerminatorInsn() = delete;
+    TerminatorInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *then, bool _patchRequire);
+    virtual ~TerminatorInsn() = default;
 
-  BasicBlock *getNextBB();
-  bool getPatchStatus();
-  InstructionKind getInstKind();
-  void setPatched();
-  void setNextBB(BasicBlock *bb);
+    BasicBlock *getNextBB();
+    bool getPatchStatus();
+    InstructionKind getInstKind();
+    void setPatched();
+    void setNextBB(BasicBlock *bb);
 
-  virtual void translate(LLVMModuleRef &modRef) override;
+    virtual void translate(LLVMModuleRef &modRef) override;
 };
 
 } // namespace nballerina

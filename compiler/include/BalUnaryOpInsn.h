@@ -9,15 +9,15 @@ namespace nballerina {
 class Operand;
 
 class UnaryOpInsn : public NonTerminatorInsn {
-private:
-  Operand *rhsOp;
+  private:
+    Operand *rhsOp;
 
-public:
-  UnaryOpInsn() = delete;
-  UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
-  ~UnaryOpInsn() = default;
+  public:
+    UnaryOpInsn() = delete;
+    UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
+    ~UnaryOpInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) final;
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina

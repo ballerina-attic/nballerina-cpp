@@ -6,13 +6,13 @@
 namespace nballerina {
 
 class Debuggable {
-  Location *pos;
+    Location *pos;
 
-public:
-  Debuggable() = default;
-  virtual ~Debuggable() = default;
-  Location *getLocation() { return pos; };
-  void setLocation(Location *newPos) { pos = newPos; };
+  public:
+    Debuggable() = default;
+    virtual ~Debuggable() = default;
+    Location *getLocation() { return pos; };
+    void setLocation(Location *newPos) { pos = newPos; };
 };
 
 } // namespace nballerina

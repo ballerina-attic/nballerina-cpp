@@ -10,23 +10,23 @@ namespace nballerina {
 class Type;
 
 class Operand : public VariableKind {
-public:
-  Operand() = delete;
-  Operand(std::string name, VarKind kind);
-  virtual ~Operand() = default;
+  public:
+    Operand() = delete;
+    Operand(std::string name, VarKind kind);
+    virtual ~Operand() = default;
 };
 
 class FunctionParam : public Operand {
-private:
-  Type *type;
+  private:
+    Type *type;
 
-public:
-  FunctionParam() = delete;
-  FunctionParam(std::string name);
-  ~FunctionParam() = default;
+  public:
+    FunctionParam() = delete;
+    FunctionParam(std::string name);
+    ~FunctionParam() = default;
 
-  Type *getType();
-  void setType(Type *type);
+    Type *getType();
+    void setType(Type *type);
 };
 
 } // namespace nballerina

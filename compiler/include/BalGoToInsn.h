@@ -6,12 +6,12 @@
 namespace nballerina {
 
 class GoToInsn : public TerminatorInsn {
-public:
-  GoToInsn() = delete;
-  GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB);
-  ~GoToInsn() = default;
+  public:
+    GoToInsn() = delete;
+    GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB);
+    ~GoToInsn() = default;
 
-  void translate(LLVMModuleRef &modRef) final;
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina
