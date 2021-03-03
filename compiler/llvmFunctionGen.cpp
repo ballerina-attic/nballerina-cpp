@@ -88,12 +88,10 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
     // if main function return type is void, but user wants to return some
     // value using _bal_result (global variable from BIR), change main function
     // return type from void to global variable (_bal_result) type.
-    vector<VarDecl *> globVars = getPkgAddress()->getGlobalVars();
-    for (unsigned int i = 0; i < globVars.size(); i++) {
-      VarDecl *globVar = globVars[i];
-      if (globVar->getVarName() == "_bal_result") {
-        return getLLVMTypeRefOfType(globVar->getTypeDecl());
-      }
+    VarDecl *globRetVar =
+        getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+    if (globRetVar) {
+      return getLLVMTypeRefOfType(globRetVar->getTypeDecl());
     }
     return LLVMVoidType();
   }

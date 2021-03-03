@@ -12,18 +12,20 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
   LLVMBuilderRef builder;
   BIRFunction *funcObj = getFunction();
   VarDecl *returnVarDecl = NULL;
-  if (funcObj) {
-    builder = funcObj->getLLVMBuilder();
-    VarDecl *globRetVar =
-        getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
-    if (globRetVar)
-      returnVarDecl = globRetVar;
+  if (!funcObj) {
+    return;
   }
+  builder = funcObj->getLLVMBuilder();
+  VarDecl *globRetVar =
+      getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+  if (globRetVar)
+    returnVarDecl = globRetVar;
 
   if (funcObj->getName() != MAIN_FUNCTION_NAME) {
     LLVMValueRef retValueRef = LLVMBuildLoad(
-    builder, funcObj->getLocalVarRefUsingId("%0"), "return_temp");
-    LLVMBuildRet(builder, retValueRef);  
+        builder, funcObj->getLocalVarRefUsingId(
+          funcObj->getReturnVar()->getVarName()), "return_val_temp");
+    LLVMBuildRet(builder, retValueRef);
     return;
   }
 
@@ -39,7 +41,7 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
       return;
     }
     lhsRef = getPkgAddress()->getGlobalVarRefUsingId(returnVarDecl->getVarName());
-    LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "return_temp");
+    LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "return_val_temp");
     if (retValRef) {
       LLVMBuildRet(builder, retValRef);
     }
