@@ -8,7 +8,7 @@ namespace nballerina {
 
 TerminatorInsn::TerminatorInsn(Operand *lOp, BasicBlock *currentBB,
                                BasicBlock *then, bool _patchRequire)
-    : AbstractInsn(lOp, currentBB), thenBB(then), patchRequire(_patchRequire) {}
+    : Instruction(lOp, currentBB), thenBB(then), patchRequire(_patchRequire) {}
 
 BasicBlock *TerminatorInsn::getNextBB() { return thenBB; }
 bool TerminatorInsn::getPatchStatus() { return patchRequire; }

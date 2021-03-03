@@ -1,7 +1,7 @@
 #ifndef __BALNONTERMINATORINSN__H__
 #define __BALNONTERMINATORINSN__H__
 
-#include "interfaces/BalAbstractInsn.h"
+#include "interfaces/Instruction.h"
 #include "interfaces/Translatable.h"
 
 namespace nballerina {
@@ -9,7 +9,7 @@ namespace nballerina {
 // Forward Declaration
 class Operand;
 
-class NonTerminatorInsn : public AbstractInsn, public Translatable {
+class NonTerminatorInsn : public Instruction, public Translatable {
 private:
 public:
   NonTerminatorInsn() = delete;

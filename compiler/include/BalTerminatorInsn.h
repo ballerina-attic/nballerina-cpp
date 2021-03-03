@@ -1,7 +1,7 @@
 #ifndef __BALTERMINATORINSN__H__
 #define __BALTERMINATORINSN__H__
 
-#include "interfaces/BalAbstractInsn.h"
+#include "interfaces/Instruction.h"
 #include "interfaces/Translatable.h"
 
 namespace nballerina {
@@ -10,7 +10,7 @@ namespace nballerina {
 class BasicBlock;
 class Operand;
 
-class TerminatorInsn : public AbstractInsn, public Translatable {
+class TerminatorInsn : public Instruction, public Translatable {
 private:
   BasicBlock *thenBB;
   bool patchRequire = false;

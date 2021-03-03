@@ -51,7 +51,7 @@ enum InstructionKind {
   INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
 };
 
-class AbstractInsn : public Debuggable {
+class Instruction : public Debuggable {
 private:
   Operand *lhsOp;
   BasicBlock *currentBB;
@@ -62,9 +62,9 @@ protected:
   Package *getPkgAddress();
 
 public:
-  AbstractInsn() = delete;
-  AbstractInsn(Operand *lOp, BasicBlock *currentBB);
-  virtual ~AbstractInsn() = default;
+  Instruction() = delete;
+  Instruction(Operand *lOp, BasicBlock *currentBB);
+  virtual ~Instruction() = default;
 };
 
 } // namespace nballerina
