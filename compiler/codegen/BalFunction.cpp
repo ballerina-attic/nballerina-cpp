@@ -70,32 +70,20 @@ static bool isParamter(Variable *locVar) {
 }
 
 LLVMTypeRef Function::getLLVMTypeOfReturnVal() {
-  TypeTag typeTag = returnVar->getTypeDecl()->getTypeTag();
+
+  Type *type = returnVar->getTypeDecl();
+
   // if main function return type is void, but user wants to return some
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
-  if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    Variable *globRetVar =
-        parentPackage->getGlobalVariable("_bal_result");
+  if (type->getTypeTag() == TYPE_TAG_NIL ||
+      type->getTypeTag() == TYPE_TAG_VOID) {
+    Variable *globRetVar = parentPackage->getGlobalVariable("_bal_result");
     if (globRetVar)
-      typeTag = globRetVar->getTypeDecl()->getTypeTag();
+      type = globRetVar->getTypeDecl();
   }
 
-  switch (typeTag) {
-  case TYPE_TAG_INT:
-    return LLVMInt32Type();
-  case TYPE_TAG_BYTE:
-  case TYPE_TAG_FLOAT:
-    return LLVMFloatType();
-  case TYPE_TAG_BOOLEAN:
-    return LLVMInt8Type();
-  case TYPE_TAG_CHAR_STRING:
-  case TYPE_TAG_STRING:
-  case TYPE_TAG_MAP:
-    return LLVMPointerType(LLVMInt8Type(), 0);
-  default:
-    return LLVMVoidType();
-  }
+  return parentPackage->getLLVMTypeOfType(type);
 }
 
 void Function::translate(LLVMModuleRef &modRef) {
@@ -108,12 +96,8 @@ void Function::translate(LLVMModuleRef &modRef) {
   for (auto const &it : localVars) {
     Variable *locVar = it.second;
     LLVMTypeRef varType =
-        parentPackage->getLLVMTypeRefOfType(locVar->getTypeDecl());
-    LLVMValueRef localVarRef;
-    if (locVar->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-      varType = wrap(parentPackage->getStructType());
-    }
-    localVarRef =
+        parentPackage->getLLVMTypeOfType(locVar->getTypeDecl());
+    LLVMValueRef localVarRef =
         LLVMBuildAlloca(llvmBuilder, varType, (locVar->getName()).c_str());
     localVarRefs.insert({locVar->getName(), localVarRef});
     if (isParamter(locVar)) {

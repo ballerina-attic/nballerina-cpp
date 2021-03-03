@@ -40,10 +40,11 @@ public:
   std::string getSrcFileName();
   Variable *getGlobalVariable(std::string name);
   Function *getFunction(std::string name);
+  
+  LLVMTypeRef getLLVMTypeOfType(Type *typeD);
 
   llvm::StructType *getStructType();
   LLVMValueRef getFunctionRefBasedOnName(std::string arrayName);
-  LLVMTypeRef getLLVMTypeRefOfType(Type *typeD);
   LLVMValueRef getGlobalVarRefUsingId(std::string globVar);
   llvm::StringTableBuilder *getStrTableBuilder();
 

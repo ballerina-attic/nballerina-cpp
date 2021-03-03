@@ -51,7 +51,7 @@ void Package::addArrayFunctionRef(std::string arrayName,
       std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
 }
 
-LLVMTypeRef Package::getLLVMTypeRefOfType(Type *typeD) {
+LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
   int typeTag = typeD->getTypeTag();
   switch (typeTag) {
   case TYPE_TAG_INT:
@@ -80,7 +80,7 @@ void Package::translate(LLVMModuleRef &modRef) {
   for (auto const it : globalVars) {
     LLVMValueRef globVarRef;
     Variable *globVar = it.second;
-    LLVMTypeRef varTyperef = getLLVMTypeRefOfType(globVar->getTypeDecl());
+    LLVMTypeRef varTyperef = getLLVMTypeOfType(globVar->getTypeDecl());
     string varName = globVar->getName();
     if (varTyperef && modRef) {
       // emit/adding the global variable.
@@ -129,7 +129,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     for (unsigned i = 0; i < numParams; i++) {
       FunctionParam *funcParam = birFunc->getParam(i);
       assert(funcParam->getType());
-      paramTypes[i] = getLLVMTypeRefOfType(funcParam->getType());
+      paramTypes[i] = getLLVMTypeOfType(funcParam->getType());
     }
 
     funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);
