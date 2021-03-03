@@ -11,6 +11,7 @@ fi
 
 ballerina build --dump-bir-file=$filename-bir-dump $1 1>out.log 2>err.log
 
+#Ignoring Ballerina compiler errors due to the use of undefined external functions for print routines.
 #if [ -s ./err.log ]
 #then
 #  echo "JBallerina error . Check err.log"
