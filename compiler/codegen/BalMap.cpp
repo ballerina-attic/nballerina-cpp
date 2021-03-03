@@ -19,7 +19,6 @@ MapStoreInsn::MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp,
 
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
-  Package *pkgObj = getPackage();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
   // Find Variable corresponding to lhs to determine member type
@@ -37,16 +36,11 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   }
 
   // Codegen for Map of Int type store
-  LLVMValueRef mapStoreFunc =
-      pkgObj->getFunctionRef("map_store_int");
-  if (!mapStoreFunc)
-    mapStoreFunc = getMapIntStoreDeclaration(modRef, pkgObj);
-
+  LLVMValueRef mapStoreFunc = getMapIntStoreDeclaration(modRef);
   LLVMValueRef lhsOpTempRef = funcObj->getTempLocalVariable(getLHS());
   LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
   LLVMValueRef keyRef = funcObj->getTempLocalVariable(keyOp);
-  assert(mapStoreFunc && lhsOpTempRef && rhsOpRef && keyRef);
-  
+
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
   argOpValueRef[0] = lhsOpTempRef;
   argOpValueRef[1] = keyRef;
@@ -56,8 +50,12 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Declaration for map<int> type store function
-LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef,
-                                                     Package *pkg) {
+LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
+
+  LLVMValueRef mapStoreFunc = getPackage()->getFunctionRef("map_store_int");
+  if (mapStoreFunc)
+    return mapStoreFunc;
+
   LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
   LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
@@ -66,10 +64,9 @@ LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef,
   paramTypes[1] = charArrayPtrType;
   paramTypes[2] = int32PtrType;
   LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
-  LLVMValueRef addedFuncRef =
-      LLVMAddFunction(modRef, "map_store_int", funcType);
-  pkg->addFunctionRef("map_store_int", addedFuncRef);
-  return addedFuncRef;
+  mapStoreFunc = LLVMAddFunction(modRef, "map_store_int", funcType);
+  getPackage()->addFunctionRef("map_store_int", mapStoreFunc);
+  return mapStoreFunc;
 }
 
 } // namespace nballerina

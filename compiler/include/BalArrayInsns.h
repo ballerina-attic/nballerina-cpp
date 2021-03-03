@@ -12,7 +12,7 @@ class ArrayInsn : public NonTerminatorInsn {
 private:
   Operand *sizeOp;
   Type *typeDecl;
-  LLVMValueRef getNewArrayDeclaration(LLVMModuleRef &modRef, Package *pkg);
+  LLVMValueRef getArrayInitDeclaration(LLVMModuleRef &modRef);
 
 public:
   ArrayInsn() = delete;
@@ -27,7 +27,7 @@ private:
   bool fillingRead;
   Operand *keyOp;
   Operand *rhsOp;
-  LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, Package *pkg);
+  LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef);
 
 public:
   ArrayLoadInsn() = delete;
@@ -41,7 +41,7 @@ class ArrayStoreInsn : public NonTerminatorInsn {
 private:
   Operand *keyOp;
   Operand *rhsOp;
-  LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, Package *pkg);
+  LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef);
 
 public:
   ArrayStoreInsn() = delete;

@@ -37,7 +37,6 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
 
   Function *funcObj = getFunction();
-  Package *pkgObj = getPackage();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
 
@@ -54,22 +53,24 @@ void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
   }
 
   // Codegen for Map of Int type
-  LLVMValueRef newMapIntFunc = pkgObj->getFunctionRef("map_new_int");
-  if (!newMapIntFunc)
-    newMapIntFunc = getNewMapIntDeclaration(modRef, pkgObj);
+  LLVMValueRef newMapIntFunc = getNewMapIntDeclaration(modRef);
   LLVMValueRef newMapIntRef =
       LLVMBuildCall(builder, newMapIntFunc, nullptr, 0, "");
   LLVMBuildStore(builder, newMapIntRef, lhsOpRef);
 }
 
 // Declaration for new map<int> function
-LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
-                                                    Package *pkg) {
+LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef) {
+
+  LLVMValueRef newMapIntFunc = getPackage()->getFunctionRef("map_new_int");
+  if (newMapIntFunc)
+    return newMapIntFunc;
+
   LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
-  LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "map_new_int", funcType);
-  pkg->addFunctionRef("map_new_int", addedFuncRef);
-  return addedFuncRef;
+  newMapIntFunc = LLVMAddFunction(modRef, "map_new_int", funcType);
+  getPackage()->addFunctionRef("map_new_int", newMapIntFunc);
+  return newMapIntFunc;
 }
 
 } // namespace nballerina

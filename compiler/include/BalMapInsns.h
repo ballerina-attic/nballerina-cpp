@@ -8,7 +8,7 @@ class MapStoreInsn : public NonTerminatorInsn {
 private:
   Operand *keyOp;
   Operand *rhsOp;
-  LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef, Package *pkg);
+  LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
 
 public:
   MapStoreInsn() = delete;
