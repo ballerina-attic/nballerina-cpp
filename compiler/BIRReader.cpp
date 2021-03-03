@@ -999,7 +999,7 @@ void BIRReader::patchTypesToFuncParam() {
                 (static_cast<FunctionCallInsn *>(terminator));
             for (int i = 0; i < Terminator->getArgCount(); i++) {
               Function *patchCallFunction =
-                  birPackage.getFunctionLookUp(Terminator->getFunctionName());
+                  birPackage.getFunction(Terminator->getFunctionName());
               InvokableType *invokableType =
                   patchCallFunction->getInvokableType();
               for (size_t i = 0; i < invokableType->getParamTypeCount(); i++) {
@@ -1074,8 +1074,7 @@ void BIRReader::readModule() {
     if (ignoreFunction(curFunc->getName())) {
       delete curFunc;
     } else {
-      birPackage.addFunction(curFunc);
-      birPackage.insertFunctionLookUpEntry(curFunc);
+      birPackage.insertFunction(curFunc);
     }
   }
 

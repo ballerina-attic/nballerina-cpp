@@ -34,8 +34,9 @@ void FunctionCallInsn::translate(__attribute__((unused))
   string funName;
 
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-  Function *birFunc = getPackage()->getFunctionLookUp(functionName);
-  assert(birFunc);
+  Function *birFunc = getPackage()->getFunction(functionName);
+  if (!birFunc)
+    llvm_unreachable("Unknown function call");
 
   for (int i = 0; i < argCount; i++) {
     Operand *op = argsList[i];

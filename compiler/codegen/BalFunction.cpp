@@ -76,7 +76,7 @@ LLVMTypeRef Function::getLLVMTypeOfReturnVal() {
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
     Variable *globRetVar =
-        parentPackage->getGlobalVarDeclFromName("_bal_result");
+        parentPackage->getGlobalVariable("_bal_result");
     if (globRetVar)
       typeTag = globRetVar->getTypeDecl()->getTypeTag();
   }
@@ -178,7 +178,7 @@ Variable *Function::getLocalVariable(std::string opName) {
 
 Variable *Function::getLocalOrGlobalVariable(Operand *op) {
   if (op->getKind() == GLOBAL_VAR_KIND)
-    return parentPackage->getGlobalVarDeclFromName(op->getName());
+    return parentPackage->getGlobalVariable(op->getName());
   return getLocalVariable(op->getName());
 }
 

@@ -12,11 +12,6 @@ using namespace std;
 
 namespace nballerina {
 
-Package::Package(string orgName, string pkgName, string verName,
-                 string srcFileName)
-    : org(orgName), name(pkgName), version(verName),
-      sourceFileName(srcFileName) {}
-
 // return ValueRef of global variable based on variable name.
 LLVMValueRef Package::getGlobalVarRefUsingId(string globVar) {
   auto varIt = globalVarRefs.find(globVar);
@@ -34,32 +29,26 @@ llvm::StringTableBuilder *Package::getStrTableBuilder() { return strBuilder; }
 void Package::setOrgName(std::string orgName) { org = orgName; }
 void Package::setPackageName(std::string pkgName) { name = pkgName; }
 void Package::setVersion(std::string verName) { version = verName; }
+llvm::StructType *Package::getStructType() { return structType; }
+
 void Package::setSrcFileName(std::string srcFileName) {
   sourceFileName = srcFileName;
 }
-std::vector<Function *> Package::getFunctions() { return functions; }
-Function *Package::getFunction(int i) { return functions[i]; }
-std::map<std::string, LLVMValueRef> Package::getGlobalVarRefs() {
-  return globalVarRefs;
-}
-llvm::StructType *Package::getStructType() { return structType; }
-void Package::setFunctions(std::vector<Function *> f) { functions = f; }
-void Package::addFunction(Function *f) { functions.push_back(f); }
-void Package::insertFunctionLookUpEntry(Function *BIRfunction) {
+
+void Package::insertFunction(Function *function) {
+  functions.push_back(function);
   functionLookUp.insert(
-      std::pair<std::string, Function *>(BIRfunction->getName(), BIRfunction));
+      std::pair<std::string, Function *>(function->getName(), function));
 }
-Function *Package::getFunctionLookUp(std::string funcName) {
+
+Function *Package::getFunction(std::string funcName) {
   return functionLookUp.at(funcName);
 }
-size_t Package::getNumFunctions() { return functions.size(); }
+
 void Package::addArrayFunctionRef(std::string arrayName,
                                   LLVMValueRef functionRef) {
   arrayFunctionRefs.insert(
       std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
-}
-std::map<std::string, LLVMValueRef> Package::getArrayFuncRefMap() {
-  return arrayFunctionRefs;
 }
 
 LLVMTypeRef Package::getLLVMTypeRefOfType(Type *typeD) {
@@ -133,8 +122,7 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     if (!birFunc->getReturnVar())
       continue;
-    LLVMTypeRef retType =
-        birFunc->getLLVMTypeOfReturnVal();
+    LLVMTypeRef retType = birFunc->getLLVMTypeOfReturnVal();
     if (!retType)
       continue;
 
@@ -216,16 +204,15 @@ LLVMValueRef Package::getFunctionRefBasedOnName(string arrayName) {
     return it->second;
 }
 
-Variable *Package::getGlobalVarDeclFromName(string name) {
+Variable *Package::getGlobalVariable(string name) {
   auto varIt = globalVars.find(name);
   if (varIt == globalVars.end())
     return nullptr;
-
   return varIt->second;
 }
 
-void Package::insertGlobalVar(Variable *g) {
-  globalVars.insert(std::pair<std::string, Variable *>(g->getName(), g));
+void Package::insertGlobalVar(Variable *var) {
+  globalVars.insert(std::pair<std::string, Variable *>(var->getName(), var));
 }
 
 } // namespace nballerina

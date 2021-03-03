@@ -32,40 +32,33 @@ private:
 
 public:
   Package() = default;
-  Package(std::string orgName, std::string pkgName, std::string verName,
-          std::string srcFileName);
   ~Package() = default;
 
   std::string getOrgName();
   std::string getPackageName();
   std::string getVersion();
   std::string getSrcFileName();
-  llvm::StringTableBuilder *getStrTableBuilder();
-  std::vector<Function *> getFunctions();
-  Function *getFunction(int i);
-  Variable *getGlobalVarDeclFromName(std::string name);
-  std::map<std::string, LLVMValueRef> getGlobalVarRefs();
+  Variable *getGlobalVariable(std::string name);
+  Function *getFunction(std::string name);
+
   llvm::StructType *getStructType();
-  size_t getNumFunctions();
   LLVMValueRef getFunctionRefBasedOnName(std::string arrayName);
   LLVMTypeRef getLLVMTypeRefOfType(Type *typeD);
+  LLVMValueRef getGlobalVarRefUsingId(std::string globVar);
+  llvm::StringTableBuilder *getStrTableBuilder();
 
   void setOrgName(std::string orgName);
   void setPackageName(std::string pkgName);
   void setVersion(std::string verName);
   void setSrcFileName(std::string srcFileName);
-  void setFunctions(std::vector<Function *> f);
-  void addFunction(Function *f);
-  void insertGlobalVar(Variable *g);
-  void insertFunctionLookUpEntry(Function *BIRfunction);
-  Function *getFunctionLookUp(std::string funcName);
+  void insertGlobalVar(Variable *var);
+  void insertFunction(Function *function);
+
   void addArrayFunctionRef(std::string arrayName, LLVMValueRef functionRef);
-  std::map<std::string, LLVMValueRef> getArrayFuncRefMap();
-  LLVMValueRef getGlobalVarRefUsingId(std::string globVar);
   void addStringOffsetRelocationEntry(std::string eleType,
                                       LLVMValueRef storeInsn);
-
   void applyStringOffsetRelocations(LLVMModuleRef &modRef);
+
   void translate(LLVMModuleRef &modRef) final;
 };
 

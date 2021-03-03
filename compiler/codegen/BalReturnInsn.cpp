@@ -22,7 +22,7 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Function *funcObj = getFunction();
   LLVMBuilderRef builder = funcObj->getLLVMBuilder();
   Variable *globRetVar =
-      getPackage()->getGlobalVarDeclFromName("_bal_result");
+      getPackage()->getGlobalVariable("_bal_result");
 
   if (funcObj->getName() == "main" && globRetVar) {
     LLVMValueRef lhsRef =
