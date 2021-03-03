@@ -134,7 +134,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     if (!birFunc->getReturnVar())
       continue;
     LLVMTypeRef retType =
-        birFunc->getLLVMFuncRetTypeRefOfType(birFunc->getReturnVar());
+        birFunc->getLLVMTypeOfReturnVal();
     if (!retType)
       continue;
 

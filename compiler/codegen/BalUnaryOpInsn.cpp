@@ -23,8 +23,8 @@ void UnaryOpInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   Operand *lhsOp = getLHS();
   string lhsName = lhsOp->getName();
   string lhstmpName = lhsName + "_temp";
-  LLVMValueRef lhsRef = funcObj->getLocalOrGlobalLLVMValue(lhsOp);
-  LLVMValueRef rhsOpref = funcObj->getLocalToTempVar(rhsOp);
+  LLVMValueRef lhsRef = funcObj->getLLVMLocalOrGlobalVar(lhsOp);
+  LLVMValueRef rhsOpref = funcObj->getTempLocalVariable(rhsOp);
   LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhstmpName.c_str());
   LLVMBuildStore(builder, ifReturn, lhsRef);
   return;

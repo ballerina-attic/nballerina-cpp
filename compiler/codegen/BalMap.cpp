@@ -42,9 +42,9 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
   if (!mapStoreFunc)
     mapStoreFunc = getMapIntStoreDeclaration(modRef, pkgObj);
 
-  LLVMValueRef lhsOpTempRef = funcObj->getLocalToTempVar(getLHS());
-  LLVMValueRef rhsOpRef = funcObj->getLocalOrGlobalLLVMValue(rhsOp);
-  LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
+  LLVMValueRef lhsOpTempRef = funcObj->getTempLocalVariable(getLHS());
+  LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
+  LLVMValueRef keyRef = funcObj->getTempLocalVariable(keyOp);
   assert(mapStoreFunc && lhsOpTempRef && rhsOpRef && keyRef);
   
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];

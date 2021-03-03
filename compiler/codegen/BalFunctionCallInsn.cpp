@@ -39,11 +39,11 @@ void FunctionCallInsn::translate(__attribute__((unused))
 
   for (int i = 0; i < argCount; i++) {
     Operand *op = argsList[i];
-    LLVMValueRef opRef = funcObj->getLocalToTempVar(op);
+    LLVMValueRef opRef = funcObj->getTempLocalVariable(op);
     ParamRefs[i] = opRef;
   }
 
-  LLVMValueRef lhsRef = funcObj->getLocalOrGlobalLLVMValue(getLHS());
+  LLVMValueRef lhsRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
   LLVMValueRef namedFuncRef = birFunc->getLLVMFunctionValue();
   if (namedFuncRef) {
     LLVMValueRef callResult =

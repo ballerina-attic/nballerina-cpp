@@ -33,7 +33,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
   rhsOpRef = funcObj->getLLVMLocalVar(rhsOpName);
   lhsOpRef = funcObj->getLLVMLocalVar(lhsOpName);
   lhsTypeRef = wrap(unwrap(lhsOpRef)->getType());
-  Variable *orignamVarDecl = funcObj->getLocalVarFromName(rhsOpName);
+  Variable *orignamVarDecl = funcObj->getLocalVariable(rhsOpName);
 
   if (orignamVarDecl &&
       orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
@@ -53,7 +53,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
         LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
     LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
     LLVMBuildStore(builder, castLoad, lhsOpRef);
-  } else if (getLHS() && funcObj->getLocalVarFromName(lhsOpName)
+  } else if (getLHS() && funcObj->getLocalVariable(lhsOpName)
                                         ->getTypeDecl()
                                         ->getTypeTag() == TYPE_TAG_ANY) {
     LLVMValueRef structAllocaRef =
@@ -63,7 +63,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     // struct first element original type
     LLVMValueRef origTypeIdx =
         LLVMBuildStructGEP(builder, structAllocaRef, 0, "origTypeIdx");
-    Variable *origVarDecl = funcObj->getLocalVarFromName(lhsOpName);
+    Variable *origVarDecl = funcObj->getLocalVariable(lhsOpName);
     TypeTag origTypeTag = origVarDecl->getTypeDecl()->getTypeTag();
     const char *origTypeName = Type::getNameOfType(origTypeTag);
     if (!strTable->contains(origTypeName))
@@ -75,7 +75,7 @@ void TypeCastInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
     // struct second element last type
     LLVMValueRef lastTypeIdx =
         LLVMBuildStructGEP(builder, structAllocaRef, 1, "lastTypeIdx");
-    Variable *lastTypeVarDecl = funcObj->getLocalVarFromName(rhsOpName);
+    Variable *lastTypeVarDecl = funcObj->getLocalVariable(rhsOpName);
     assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
     TypeTag lastTypeTag = lastTypeVarDecl->getTypeDecl()->getTypeTag();
     const char *lastTypeName = Type::getNameOfType(lastTypeTag);

@@ -48,7 +48,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef constRef;
   Operand *lhsOp = getLHS();
   LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-  LLVMValueRef lhsRef = getFunction()->getLocalOrGlobalLLVMValue(lhsOp);
+  LLVMValueRef lhsRef = getFunction()->getLLVMLocalOrGlobalVar(lhsOp);
 
   assert(getFunction()
              ->getLocalOrGlobalVariable(lhsOp)

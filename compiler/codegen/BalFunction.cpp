@@ -28,9 +28,7 @@ std::string Function::getName() { return name; }
 FunctionParam *Function::getParam(int i) { return requiredParams[i]; }
 RestParam *Function::getRestParam() { return restParam; }
 Variable *Function::getReturnVar() { return returnVar; }
-std::vector<BasicBlock *> Function::getBasicBlocks() {
-  return basicBlocks;
-}
+std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
 LLVMBuilderRef Function::getLLVMBuilder() { return llvmBuilder; }
 LLVMValueRef Function::getLLVMFunctionValue() { return llvmFunction; }
 
@@ -49,12 +47,9 @@ LLVMValueRef Function::getLLVMLocalVar(std::string locVar) {
   return varIt->second;
 }
 
-LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
-  std::string refOp = operand->getName();
-  std::string tempName = refOp + "_temp";
-  LLVMValueRef locVRef = getLLVMLocalVar(refOp);
-  if (!locVRef)
-    locVRef = parentPackage->getGlobalVarRefUsingId(refOp);
+LLVMValueRef Function::getTempLocalVariable(Operand *operand) {
+  LLVMValueRef locVRef = getLLVMLocalOrGlobalVar(operand);
+  std::string tempName = operand->getName() + "_temp";
   return LLVMBuildLoad(llvmBuilder, locVRef, tempName.c_str());
 }
 
@@ -74,8 +69,8 @@ static bool isParamter(Variable *locVar) {
   }
 }
 
-LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(Variable *vDecl) {
-  TypeTag typeTag = vDecl->getTypeDecl()->getTypeTag();
+LLVMTypeRef Function::getLLVMTypeOfReturnVal() {
+  TypeTag typeTag = returnVar->getTypeDecl()->getTypeTag();
   // if main function return type is void, but user wants to return some
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
@@ -103,13 +98,13 @@ LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(Variable *vDecl) {
   }
 }
 
-void Function::translateFunctionBody(LLVMModuleRef &modRef) {
-  LLVMBasicBlockRef BbRef;
-  int paramIndex = 0;
-  BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");
+void Function::translate(LLVMModuleRef &modRef) {
+
+  LLVMBasicBlockRef BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");
   LLVMPositionBuilderAtEnd(llvmBuilder, BbRef);
 
   // iterate through all local vars.
+  int paramIndex = 0;
   for (auto const &it : localVars) {
     Variable *locVar = it.second;
     LLVMTypeRef varType =
@@ -132,7 +127,6 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
   }
 
   // iterate through with each basic block in the function and create them
-  // first.
   for (auto const &bb : basicBlocks) {
     LLVMBasicBlockRef bbRef =
         LLVMAppendBasicBlock(llvmFunction, bb->getId().c_str());
@@ -149,10 +143,7 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
     LLVMPositionBuilderAtEnd(llvmBuilder, bb->getLLVMBBRef());
     bb->translate(modRef);
   }
-}
-
-void Function::translate(LLVMModuleRef &modRef) {
-  translateFunctionBody(modRef);
+  return;
 }
 
 void Function::insertParam(FunctionParam *param) {
@@ -178,22 +169,20 @@ void Function::insertBranchComparisonValue(std::string name,
       std::pair<std::string, LLVMValueRef>(name, compRef));
 }
 
-Variable *Function::getLocalVarFromName(std::string opName) {
-
+Variable *Function::getLocalVariable(std::string opName) {
   auto varIt = localVars.find(opName);
   if (varIt == localVars.end())
     return nullptr;
-
   return varIt->second;
 }
 
 Variable *Function::getLocalOrGlobalVariable(Operand *op) {
   if (op->getKind() == GLOBAL_VAR_KIND)
     return parentPackage->getGlobalVarDeclFromName(op->getName());
-  return getLocalVarFromName(op->getName());
+  return getLocalVariable(op->getName());
 }
 
-LLVMValueRef Function::getLocalOrGlobalLLVMValue(Operand *op) {
+LLVMValueRef Function::getLLVMLocalOrGlobalVar(Operand *op) {
   if (op->getKind() == GLOBAL_VAR_KIND)
     return parentPackage->getGlobalVarRefUsingId(op->getName());
   return getLLVMLocalVar(op->getName());

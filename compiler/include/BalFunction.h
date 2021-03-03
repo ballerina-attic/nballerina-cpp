@@ -56,8 +56,14 @@ public:
   LLVMBuilderRef getLLVMBuilder();
   LLVMValueRef getLLVMFunctionValue();
   LLVMValueRef getLLVMValueForBranchComparison(std::string lhsName);
-  LLVMValueRef getLLVMLocalVar(std::string varName);
   BasicBlock *FindBasicBlock(std::string id);
+  Package *getPackage() final;
+  LLVMValueRef getTempLocalVariable(Operand *op);
+  LLVMValueRef getLLVMLocalVar(std::string varName);
+  LLVMValueRef getLLVMLocalOrGlobalVar(Operand *op);
+  Variable *getLocalVariable(std::string opName);
+  Variable *getLocalOrGlobalVariable(Operand *op);
+  LLVMTypeRef getLLVMTypeOfReturnVal();
 
   void insertParam(FunctionParam *param);
   void setRestParam(RestParam *param);
@@ -69,14 +75,6 @@ public:
   void setLLVMBuilder(LLVMBuilderRef builder);
   void setLLVMFunctionValue(LLVMValueRef funcRef);
 
-  LLVMValueRef getLocalToTempVar(Operand *op);
-  void translateFunctionBody(LLVMModuleRef &modRef);
-  // void patchInsn(llvm::Function *llvnFun);
-  Variable *getLocalVarFromName(std::string opName);
-  LLVMTypeRef getLLVMFuncRetTypeRefOfType(Variable *vDecl);
-  Variable *getLocalOrGlobalVariable(Operand *op);
-  LLVMValueRef getLocalOrGlobalLLVMValue(Operand *op);
-  Package *getPackage() final;
   void translate(LLVMModuleRef &modRef) final;
 };
 } // namespace nballerina
