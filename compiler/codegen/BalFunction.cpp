@@ -168,7 +168,7 @@ Variable *Function::getLocalOrGlobalVariable(Operand *op) {
 
 LLVMValueRef Function::getLLVMLocalOrGlobalVar(Operand *op) {
   if (op->getKind() == GLOBAL_VAR_KIND)
-    return parentPackage->getGlobalVarRefUsingId(op->getName());
+    return parentPackage->getGlobalLLVMVar(op->getName());
   return getLLVMLocalVar(op->getName());
 }
 

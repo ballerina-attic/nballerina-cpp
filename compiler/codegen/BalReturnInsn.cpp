@@ -26,7 +26,7 @@ void ReturnInsn::translate(__attribute__((unused)) LLVMModuleRef &modRef) {
 
   if (funcObj->getName() == "main" && globRetVar) {
     LLVMValueRef lhsRef =
-        getPackage()->getGlobalVarRefUsingId("_bal_result");
+        getPackage()->getGlobalLLVMVar("_bal_result");
     LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
     LLVMBuildRet(builder, retValRef);
   } else {

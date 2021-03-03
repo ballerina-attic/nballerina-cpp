@@ -54,7 +54,7 @@ void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
   }
 
   // Codegen for Map of Int type
-  LLVMValueRef newMapIntFunc = pkgObj->getFunctionRefBasedOnName("map_new_int");
+  LLVMValueRef newMapIntFunc = pkgObj->getFunctionRef("map_new_int");
   if (!newMapIntFunc)
     newMapIntFunc = getNewMapIntDeclaration(modRef, pkgObj);
   LLVMValueRef newMapIntRef =
@@ -68,7 +68,7 @@ LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef,
   LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
   LLVMValueRef addedFuncRef = LLVMAddFunction(modRef, "map_new_int", funcType);
-  pkg->addArrayFunctionRef("map_new_int", addedFuncRef);
+  pkg->addFunctionRef("map_new_int", addedFuncRef);
   return addedFuncRef;
 }
 

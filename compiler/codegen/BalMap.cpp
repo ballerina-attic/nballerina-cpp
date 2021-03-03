@@ -38,7 +38,7 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
 
   // Codegen for Map of Int type store
   LLVMValueRef mapStoreFunc =
-      pkgObj->getFunctionRefBasedOnName("map_store_int");
+      pkgObj->getFunctionRef("map_store_int");
   if (!mapStoreFunc)
     mapStoreFunc = getMapIntStoreDeclaration(modRef, pkgObj);
 
@@ -68,7 +68,7 @@ LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef,
   LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
   LLVMValueRef addedFuncRef =
       LLVMAddFunction(modRef, "map_store_int", funcType);
-  pkg->addArrayFunctionRef("map_store_int", addedFuncRef);
+  pkg->addFunctionRef("map_store_int", addedFuncRef);
   return addedFuncRef;
 }
 
