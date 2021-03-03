@@ -13,6 +13,7 @@ namespace nballerina {
 // Forward Declaration
 class Function;
 class Variable;
+class Type;
 
 class Package : public Translatable {
 private:
@@ -47,6 +48,7 @@ public:
   llvm::StructType *getStructType();
   size_t getNumFunctions();
   LLVMValueRef getFunctionRefBasedOnName(std::string arrayName);
+  LLVMTypeRef getLLVMTypeRefOfType(Type *typeD);
 
   void setOrgName(std::string orgName);
   void setPackageName(std::string pkgName);

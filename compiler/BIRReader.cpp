@@ -699,23 +699,18 @@ Function *BIRReader::readFunction() {
   // TODO should not set src for every function
   birPackage.setSrcFileName(constantPool->getStringCp(sourceFileCpIndex));
 
-  Function *birFunction = new Function();
-  birFunction->setLocation(location);
-
   uint32_t nameCpIndex = readS4be();
   std::string functionName = constantPool->getStringCp(nameCpIndex);
+  uint32_t workdernameCpIndex = readS4be();
+  uint32_t flags = readS4be();
+  uint32_t typeCpIndex = readS4be();
+
+  Function *birFunction =
+      new Function(functionName, constantPool->getStringCp(workdernameCpIndex),
+                   flags, constantPool->getInvokableType(typeCpIndex));
   if (!ignoreFunction(functionName))
     birPackage.addFunctionLookUpEntry(functionName, birFunction);
-
-  birFunction->setName(functionName);
-  uint32_t workdernameCpIndex = readS4be();
-  birFunction->setWorkerName(constantPool->getStringCp(workdernameCpIndex));
-
-  uint32_t flags = readS4be();
-  birFunction->setFlags(flags);
-
-  uint32_t typeCpIndex = readS4be();
-  birFunction->setInvokableType(constantPool->getInvokableType(typeCpIndex));
+  birFunction->setLocation(location);
 
   uint64_t annotationLength __attribute__((unused)) = readS8be();
   uint32_t annotationAttachments __attribute__((unused)) = readS4be();
@@ -728,7 +723,7 @@ Function *BIRReader::readFunction() {
     FunctionParam *param =
         new FunctionParam(constantPool->getStringCp(paramNameCpIndex));
     uint32_t paramFlags __attribute__((unused)) = readS4be();
-    birFunction->setParam(param);
+    birFunction->insertParam(param);
   }
 
   uint8_t hasRestParam = readU1();

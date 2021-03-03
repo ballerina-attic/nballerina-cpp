@@ -63,16 +63,37 @@ std::map<std::string, LLVMValueRef> Package::getArrayFuncRefMap() {
   return arrayFunctionRefs;
 }
 
+LLVMTypeRef Package::getLLVMTypeRefOfType(Type *typeD) {
+  int typeTag = typeD->getTypeTag();
+  switch (typeTag) {
+  case TYPE_TAG_INT:
+    return LLVMInt32Type();
+  case TYPE_TAG_BYTE:
+  case TYPE_TAG_FLOAT:
+    return LLVMFloatType();
+  case TYPE_TAG_BOOLEAN:
+    return LLVMInt8Type();
+  case TYPE_TAG_CHAR_STRING:
+  case TYPE_TAG_STRING:
+  case TYPE_TAG_MAP:
+    return LLVMPointerType(LLVMInt8Type(), 0);
+  case TYPE_TAG_ANY:
+    return wrap(structType);
+  default:
+    return LLVMInt32Type();
+  }
+}
+
 void Package::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
+  
   // iterate over all global variables and translate
   for (auto const it : globalVars) {
     LLVMValueRef globVarRef;
     Variable *globVar = it.second;
-    Function *funcObj = new Function();
     LLVMTypeRef varTyperef =
-        funcObj->getLLVMTypeRefOfType(globVar->getTypeDecl());
+        getLLVMTypeRefOfType(globVar->getTypeDecl());
     string varName = globVar->getName();
     if (varTyperef && modRef) {
       // emit/adding the global variable.
@@ -123,7 +144,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     for (unsigned i = 0; i < numParams; i++) {
       FunctionParam *funcParam = birFunc->getParam(i);
       assert(funcParam->getType());
-      paramTypes[i] = birFunc->getLLVMTypeRefOfType(funcParam->getType());
+      paramTypes[i] = getLLVMTypeRefOfType(funcParam->getType());
     }
 
     funcType = LLVMFunctionType(retType, paramTypes, numParams, isVarArg);

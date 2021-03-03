@@ -8,11 +8,9 @@
 
 namespace nballerina {
 
-Function::Function(Location *pos, std::string namep, int flagsp,
-                   InvokableType *typep, std::string workerNamep)
-    : name(namep), flags(flagsp), type(typep), workerName(workerNamep) {
-  setLocation(pos);
-}
+Function::Function(std::string _name, std::string _workerName, int _flags,
+                   InvokableType *_type)
+    : name(_name), workerName(_workerName), flags(_flags), type(_type) {}
 
 // Search basic block based on the basic block ID
 BasicBlock *Function::searchBb(std::string name) {
@@ -70,7 +68,7 @@ LLVMValueRef Function::getLocalToTempVar(Operand *operand) {
   std::string tempName = refOp + "_temp";
   LLVMValueRef locVRef = getLocalVarRefUsingId(refOp);
   if (!locVRef)
-    locVRef = pkg->getGlobalVarRefUsingId(refOp);
+    locVRef = parentPackage->getGlobalVarRefUsingId(refOp);
   return LLVMBuildLoad(builder, locVRef, tempName.c_str());
 }
 
@@ -96,7 +94,8 @@ LLVMTypeRef Function::getLLVMFuncRetTypeRefOfType(Variable *vDecl) {
   // value using _bal_result (global variable from BIR), change main function
   // return type from void to global variable (_bal_result) type.
   if (typeTag == TYPE_TAG_NIL || typeTag == TYPE_TAG_VOID) {
-    Variable *globRetVar = pkg->getGlobalVarDeclFromName("_bal_result");
+    Variable *globRetVar =
+        parentPackage->getGlobalVarDeclFromName("_bal_result");
     if (globRetVar)
       typeTag = globRetVar->getTypeDecl()->getTypeTag();
   }
@@ -127,10 +126,11 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
   // iterate through all local vars.
   for (auto const &it : localVars) {
     Variable *locVar = it.second;
-    LLVMTypeRef varType = getLLVMTypeRefOfType(locVar->getTypeDecl());
+    LLVMTypeRef varType =
+        parentPackage->getLLVMTypeRefOfType(locVar->getTypeDecl());
     LLVMValueRef localVarRef;
     if (locVar->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-      varType = wrap(pkg->getStructType());
+      varType = wrap(parentPackage->getStructType());
     }
     localVarRef =
         LLVMBuildAlloca(builder, varType, (locVar->getName()).c_str());
@@ -175,7 +175,7 @@ void Function::setName(std::string newName) { name = newName; }
 void Function::setFlags(int newFlags) { flags = newFlags; }
 void Function::setInvokableType(InvokableType *t) { type = t; }
 void Function::setParams(std::vector<FunctionParam *> p) { requiredParams = p; }
-void Function::setParam(FunctionParam *param) {
+void Function::insertParam(FunctionParam *param) {
   requiredParams.push_back(param);
 }
 void Function::setReceiver(Variable *var) { receiver = var; }
@@ -206,27 +206,6 @@ void Function::addNewbranchComparison(std::string name, LLVMValueRef compRef) {
       std::pair<std::string, LLVMValueRef>(name, compRef));
 }
 
-LLVMTypeRef Function::getLLVMTypeRefOfType(Type *typeD) {
-  int typeTag = typeD->getTypeTag();
-  switch (typeTag) {
-  case TYPE_TAG_INT:
-    return LLVMInt32Type();
-  case TYPE_TAG_BYTE:
-  case TYPE_TAG_FLOAT:
-    return LLVMFloatType();
-  case TYPE_TAG_BOOLEAN:
-    return LLVMInt8Type();
-  case TYPE_TAG_CHAR_STRING:
-  case TYPE_TAG_STRING:
-  case TYPE_TAG_MAP:
-    return LLVMPointerType(LLVMInt8Type(), 0);
-  case TYPE_TAG_ANY:
-    return wrap(pkg->getStructType());
-  default:
-    return LLVMInt32Type();
-  }
-}
-
 Variable *Function::getLocalVarFromName(std::string opName) {
 
   auto varIt = localVars.find(opName);
@@ -238,17 +217,17 @@ Variable *Function::getLocalVarFromName(std::string opName) {
 
 Variable *Function::getLocalOrGlobalVariable(Operand *op) {
   if (op->getKind() == GLOBAL_VAR_KIND)
-    return pkg->getGlobalVarDeclFromName(op->getName());
+    return parentPackage->getGlobalVarDeclFromName(op->getName());
   return getLocalVarFromName(op->getName());
 }
 
 LLVMValueRef Function::getLocalOrGlobalLLVMValue(Operand *op) {
   if (op->getKind() == GLOBAL_VAR_KIND)
-    return pkg->getGlobalVarRefUsingId(op->getName());
+    return parentPackage->getGlobalVarRefUsingId(op->getName());
   return getLocalVarRefUsingId(op->getName());
 }
 
-Package *Function::getPackage() { return pkg; }
-void Function::setPackage(Package *_pkg) { pkg = _pkg; }
+Package *Function::getPackage() { return parentPackage; }
+void Function::setPackage(Package *_pkg) { parentPackage = _pkg; }
 
 } // namespace nballerina

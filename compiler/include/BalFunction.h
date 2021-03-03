@@ -24,8 +24,10 @@ class Package;
 class Function : public PackageNode, public Debuggable, public Translatable {
 private:
   std::string name;
+  std::string workerName;
   int flags;
   InvokableType *type;
+
   std::vector<FunctionParam *> requiredParams;
   Variable *receiver;
   RestParam *restParam;
@@ -33,17 +35,16 @@ private:
   std::map<std::string, Variable *> localVars;
   Variable *returnVar;
   std::vector<BasicBlock *> basicBlocks;
-  std::string workerName;
   LLVMBuilderRef builder;
   LLVMValueRef newFunction;
+  Package *parentPackage;
   std::map<std::string, LLVMValueRef> localVarRefs;
   std::map<std::string, LLVMValueRef> branchComparisonList;
-  Package *pkg;
 
 public:
-  Function() = default;
-  Function(Location *pos, std::string pname, int pflags, InvokableType *ptype,
-           std::string pworkerName);
+  Function() = delete;
+  Function(std::string name, std::string workerName, int pflags,
+           InvokableType *ptype);
   Function(const Function &) = delete;
   ~Function() = default;
 
@@ -70,7 +71,7 @@ public:
   void setFlags(int newFlags);
   void setInvokableType(InvokableType *t);
   void setParams(std::vector<FunctionParam *> p);
-  void setParam(FunctionParam *param);
+  void insertParam(FunctionParam *param);
   void setReceiver(Variable *var);
   void setRestParam(RestParam *param);
   void setNumParams(int paramcount);
@@ -88,7 +89,6 @@ public:
 
   BasicBlock *searchBb(std::string name);
 
-  LLVMTypeRef getLLVMTypeRefOfType(Type *typeD);
   LLVMValueRef getLocalToTempVar(Operand *op);
   void translateFunctionBody(LLVMModuleRef &modRef);
   // void patchInsn(llvm::Function *llvnFun);
