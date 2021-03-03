@@ -708,17 +708,15 @@ Function *BIRReader::readFunction() {
   Function *birFunction =
       new Function(functionName, constantPool->getStringCp(workdernameCpIndex),
                    flags, constantPool->getInvokableType(typeCpIndex));
-  if (!ignoreFunction(functionName))
-    birPackage.addFunctionLookUpEntry(functionName, birFunction);
   birFunction->setLocation(location);
 
   uint64_t annotationLength __attribute__((unused)) = readS8be();
   uint32_t annotationAttachments __attribute__((unused)) = readS4be();
   uint32_t requiredParamCount = readS4be();
-  birFunction->setNumParams(requiredParamCount);
+
   // Set function param here and then fill remaining values from the default
   // Params
-  for (unsigned int i = 0; i < requiredParamCount; i++) {
+  for (size_t i = 0; i < requiredParamCount; i++) {
     uint32_t paramNameCpIndex = readS4be();
     FunctionParam *param =
         new FunctionParam(constantPool->getStringCp(paramNameCpIndex));
@@ -726,13 +724,13 @@ Function *BIRReader::readFunction() {
     birFunction->insertParam(param);
   }
 
-  uint8_t hasRestParam = readU1();
-  if (!hasRestParam)
-    birFunction->setRestParam(NULL);
+  uint8_t hasRestParam __attribute__((unused)) = readU1();
+  // if (!hasRestParam)
+  //   birFunction->setRestParam(NULL);
 
-  uint8_t hasReceiver = readU1();
-  if (!hasReceiver)
-    birFunction->setReceiver(NULL);
+  uint8_t hasReceiver __attribute__((unused)) = readU1();
+  // if (!hasReceiver)
+  //   birFunction->setReceiver(NULL);
 
   uint64_t taintTableLength = readS8be();
   std::vector<char> taint(taintTableLength);
@@ -758,7 +756,7 @@ Function *BIRReader::readFunction() {
   }
 
   uint32_t defaultParamValue = readS4be();
-  for (unsigned int i = 0; i < defaultParamValue; i++) {
+  for (size_t i = 0; i < defaultParamValue; i++) {
     uint8_t kind = readU1();
     uint32_t typeCpIndex = readS4be();
     FunctionParam *param = birFunction->getParam(i);
@@ -772,28 +770,29 @@ Function *BIRReader::readFunction() {
   }
 
   uint32_t localVarCount = readS4be();
-  for (unsigned int i = 0; i < localVarCount; i++) {
+  for (size_t i = 0; i < localVarCount; i++) {
     Variable *varDecl = readLocalVar();
     birFunction->insertLocalVar(varDecl);
   }
-  for (unsigned int i = 0; i < defaultParamValue; i++) {
+  // Ignore default param values
+  for (size_t i = 0; i < defaultParamValue; i++) {
     uint32_t basicBlocksCount __attribute__((unused)) = readS4be();
   }
 
   uint32_t BBCount = readS4be();
-  for (unsigned int i = 0; i < BBCount; i++) {
+  BasicBlock *previousBB = nullptr;
+  for (size_t i = 0; i < BBCount; i++) {
     BasicBlock *basicBlock = readBasicBlock(birFunction);
-    birFunction->addBasicBlock(basicBlock);
+    birFunction->insertBasicBlock(basicBlock);
     // Create links between the basic blocks
-    if (i > 0) {
-      BasicBlock *prevBasicBlock = birFunction->getBasicBlock(i - 1);
-      prevBasicBlock->setNextBB(basicBlock);
+    if (previousBB) {
+      previousBB->setNextBB(basicBlock);
     }
+    previousBB = basicBlock;
   }
 
-  // Patching the insn
-  vector<BasicBlock *> basicBlocks = birFunction->getBasicBlocks();
-  patchInsn(basicBlocks);
+  // Patching the Instructions
+  patchInsn(birFunction->getBasicBlocks());
 
   uint32_t errorEntriesCount __attribute__((unused)) = readS4be();
   uint32_t channelsLength __attribute__((unused)) = readS4be();
@@ -1077,6 +1076,7 @@ void BIRReader::readModule() {
       delete curFunc;
     } else {
       birPackage.addFunction(curFunc);
+      birPackage.insertFunctionLookUpEntry(curFunc);
     }
   }
 

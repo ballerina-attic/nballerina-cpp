@@ -45,10 +45,9 @@ std::map<std::string, LLVMValueRef> Package::getGlobalVarRefs() {
 llvm::StructType *Package::getStructType() { return structType; }
 void Package::setFunctions(std::vector<Function *> f) { functions = f; }
 void Package::addFunction(Function *f) { functions.push_back(f); }
-void Package::addFunctionLookUpEntry(std::string funcName,
-                                     Function *BIRfunction) {
+void Package::insertFunctionLookUpEntry(Function *BIRfunction) {
   functionLookUp.insert(
-      std::pair<std::string, Function *>(funcName, BIRfunction));
+      std::pair<std::string, Function *>(BIRfunction->getName(), BIRfunction));
 }
 Function *Package::getFunctionLookUp(std::string funcName) {
   return functionLookUp.at(funcName);
@@ -87,13 +86,12 @@ LLVMTypeRef Package::getLLVMTypeRefOfType(Type *typeD) {
 void Package::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
-  
+
   // iterate over all global variables and translate
   for (auto const it : globalVars) {
     LLVMValueRef globVarRef;
     Variable *globVar = it.second;
-    LLVMTypeRef varTyperef =
-        getLLVMTypeRefOfType(globVar->getTypeDecl());
+    LLVMTypeRef varTyperef = getLLVMTypeRefOfType(globVar->getTypeDecl());
     string varName = globVar->getName();
     if (varTyperef && modRef) {
       // emit/adding the global variable.

@@ -10,7 +10,10 @@ namespace nballerina {
 
 Function::Function(std::string _name, std::string _workerName, int _flags,
                    InvokableType *_type)
-    : name(_name), workerName(_workerName), flags(_flags), type(_type) {}
+    : name(_name), workerName(_workerName), flags(_flags), type(_type) {
+  restParam = nullptr;
+  receiver = nullptr;
+}
 
 // Search basic block based on the basic block ID
 BasicBlock *Function::searchBb(std::string name) {
@@ -36,7 +39,6 @@ size_t Function::numBasicBlocks() { return basicBlocks.size(); }
 BasicBlock *Function::getBasicBlock(int i) { return basicBlocks[i]; }
 std::string Function::getWorkerName() { return workerName; }
 LLVMBuilderRef Function::getLLVMBuilder() { return builder; }
-int Function::getNumParams() { return paramCount; }
 LLVMValueRef Function::getNewFunctionRef() { return newFunction; }
 std::map<std::string, LLVMValueRef> Function::getLocalVarRefs() {
   return localVarRefs;
@@ -171,22 +173,17 @@ void Function::translate(LLVMModuleRef &modRef) {
   translateFunctionBody(modRef);
 }
 
-void Function::setName(std::string newName) { name = newName; }
-void Function::setFlags(int newFlags) { flags = newFlags; }
-void Function::setInvokableType(InvokableType *t) { type = t; }
-void Function::setParams(std::vector<FunctionParam *> p) { requiredParams = p; }
 void Function::insertParam(FunctionParam *param) {
   requiredParams.push_back(param);
 }
 void Function::setReceiver(Variable *var) { receiver = var; }
 void Function::setRestParam(RestParam *param) { restParam = param; }
-void Function::setNumParams(int paramcount) { paramCount = paramcount; }
 void Function::insertLocalVar(Variable *var) {
   localVars.insert(std::pair<std::string, Variable *>(var->getName(), var));
 }
 void Function::setReturnVar(Variable *var) { returnVar = var; }
 void Function::setBasicBlocks(std::vector<BasicBlock *> b) { basicBlocks = b; }
-void Function::addBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
+void Function::insertBasicBlock(BasicBlock *bb) { basicBlocks.push_back(bb); }
 void Function::setWorkerName(std::string newName) { workerName = newName; }
 void Function::setLLVMBuilder(LLVMBuilderRef b) { builder = b; }
 void Function::setLocalVarRefs(
@@ -229,5 +226,6 @@ LLVMValueRef Function::getLocalOrGlobalLLVMValue(Operand *op) {
 
 Package *Function::getPackage() { return parentPackage; }
 void Function::setPackage(Package *_pkg) { parentPackage = _pkg; }
+size_t Function::getNumParams() { return requiredParams.size(); }
 
 } // namespace nballerina

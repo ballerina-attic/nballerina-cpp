@@ -57,7 +57,7 @@ public:
   void setFunctions(std::vector<Function *> f);
   void addFunction(Function *f);
   void insertGlobalVar(Variable *g);
-  void addFunctionLookUpEntry(std::string funcName, Function *BIRfunction);
+  void insertFunctionLookUpEntry(Function *BIRfunction);
   Function *getFunctionLookUp(std::string funcName);
   void addArrayFunctionRef(std::string arrayName, LLVMValueRef functionRef);
   std::map<std::string, LLVMValueRef> getArrayFuncRefMap();

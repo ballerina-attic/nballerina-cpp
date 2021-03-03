@@ -31,10 +31,10 @@ private:
   std::vector<FunctionParam *> requiredParams;
   Variable *receiver;
   RestParam *restParam;
-  int paramCount;
-  std::map<std::string, Variable *> localVars;
   Variable *returnVar;
+  std::map<std::string, Variable *> localVars;
   std::vector<BasicBlock *> basicBlocks;
+
   LLVMBuilderRef builder;
   LLVMValueRef newFunction;
   Package *parentPackage;
@@ -48,37 +48,33 @@ public:
   Function(const Function &) = delete;
   ~Function() = default;
 
+  FunctionParam *getParam(int index);
+  BasicBlock *getBasicBlock(int index);
   std::string getName();
   int getFlags();
+  size_t getNumParams();
   InvokableType *getInvokableType();
   std::vector<FunctionParam *> getParams();
-  FunctionParam *getParam(int i);
   Variable *getReceiver();
   RestParam *getRestParam();
   Variable *getReturnVar();
   std::vector<BasicBlock *> getBasicBlocks();
   size_t numBasicBlocks();
-  BasicBlock *getBasicBlock(int i);
   std::string getWorkerName();
   LLVMBuilderRef getLLVMBuilder();
-  int getNumParams();
   LLVMValueRef getNewFunctionRef();
   std::map<std::string, LLVMValueRef> getLocalVarRefs();
   std::map<std::string, LLVMValueRef> getBranchComparisonList();
   LLVMValueRef getValueRefBasedOnName(std::string lhsName);
 
-  void setName(std::string newName);
-  void setFlags(int newFlags);
-  void setInvokableType(InvokableType *t);
-  void setParams(std::vector<FunctionParam *> p);
   void insertParam(FunctionParam *param);
-  void setReceiver(Variable *var);
   void setRestParam(RestParam *param);
-  void setNumParams(int paramcount);
-  void insertLocalVar(Variable *var);
+  void setReceiver(Variable *var);
   void setReturnVar(Variable *var);
+  void insertLocalVar(Variable *var);
+  void insertBasicBlock(BasicBlock *bb);
+
   void setBasicBlocks(std::vector<BasicBlock *> b);
-  void addBasicBlock(BasicBlock *bb);
   void setWorkerName(std::string newName);
   void setLLVMBuilder(LLVMBuilderRef b);
   void setLocalVarRefs(std::map<std::string, LLVMValueRef> newLocalVarRefs);
