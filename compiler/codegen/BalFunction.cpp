@@ -152,7 +152,6 @@ void Function::translateFunctionBody(LLVMModuleRef &modRef) {
     LLVMBasicBlockRef bbRef =
         LLVMAppendBasicBlock(this->getNewFunctionRef(), bb->getId().c_str());
     bb->setLLVMBBRef(bbRef);
-    bb->setLLVMBuilderRef(builder);
   }
 
   // creating branch to next basic block.

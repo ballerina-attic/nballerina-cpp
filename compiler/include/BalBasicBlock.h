@@ -17,11 +17,10 @@ class NonTerminatorInsn;
 class BasicBlock : public PackageNode, public Debuggable, public Translatable {
 private:
   std::string id;
-  std::vector<NonTerminatorInsn *> instructions;
-  TerminatorInsn *terminator;
-  LLVMBuilderRef bRef;
   Function *parentFunction;
+  TerminatorInsn *terminator;
   BasicBlock *nextBB;
+  std::vector<NonTerminatorInsn *> instructions;
   LLVMBasicBlockRef bbRefObj;
 
 public:
@@ -29,23 +28,17 @@ public:
   BasicBlock(std::string id, Function *parentFunc);
   ~BasicBlock() = default;
 
-  std::string getId();
+  std::string &getId();
   TerminatorInsn *getTerminatorInsn();
-  LLVMBuilderRef getLLVMBuilderRef();
   Function *getFunction();
   BasicBlock *getNextBB();
-  std::vector<NonTerminatorInsn *> getNonTerminatorInsn();
-  NonTerminatorInsn *getInsn(int i);
-  size_t numInsns();
   LLVMBasicBlockRef getLLVMBBRef();
   Package *getPackage() final;
 
-  void setId(std::string newId);
-  void setTerminatorInsn(TerminatorInsn *insn);
-  void setLLVMBuilderRef(LLVMBuilderRef buildRef);
   void setNextBB(BasicBlock *bb);
-  void setLLVMBBRef(LLVMBasicBlockRef bbRef);
+  void setTerminatorInsn(TerminatorInsn *insn);
   void addNonTermInsn(NonTerminatorInsn *insn);
+  void setLLVMBBRef(LLVMBasicBlockRef bbRef);
 
   void translate(LLVMModuleRef &modRef) final;
 };
