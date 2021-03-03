@@ -58,6 +58,7 @@ private:
   uint16_t readS2be();
   uint32_t readS4be();
   uint64_t readS8be();
+  static bool ignoreFunction(std::string funcName);
 
 public:
   nballerina::Package birPackage;

@@ -1,4 +1,5 @@
 #include "BIRReader.h"
+#include <array>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -670,31 +671,43 @@ void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
   }
 }
 
+bool BIRReader::ignoreFunction(std::string funcName) {
+  std::array<std::string, 3> ignoreNames{"..<init>", "..<start>", "..<stop>"};
+  bool ignoreFunction = false;
+  for (const auto &name : ignoreNames) {
+    if (funcName.rfind(name, 0) == 0) {
+      ignoreFunction = true;
+      break;
+    }
+  }
+  return ignoreFunction;
+}
+
 // Reads BIR function
 Function *BIRReader::readFunction() {
-  Function *birFunction = new Function();
+
+  // Read debug info
   uint32_t sLine = readS4be();
   uint32_t eLine = readS4be();
   uint32_t sCol = readS4be();
   uint32_t eCol = readS4be();
   uint32_t sourceFileCpIndex = readS4be();
-  birPackage.setSrcFileName(constantPool->getStringCp(sourceFileCpIndex));
-
   Location *location =
       new Location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine,
                    (int)eLine, (int)sCol, (int)eCol);
+
+  // TODO should not set src for every function
+  birPackage.setSrcFileName(constantPool->getStringCp(sourceFileCpIndex));
+
+  Function *birFunction = new Function();
   birFunction->setLocation(location);
 
   uint32_t nameCpIndex = readS4be();
-  birFunction->setName(constantPool->getStringCp(nameCpIndex));
-  std::string initFuncName = "..<init>";
-  std::string startFuncName = "..<start>";
-  std::string stopFuncName = "..<stop>";
-  if (!(birFunction->getName().rfind(initFuncName, 0) == 0 ||
-        birFunction->getName().rfind(startFuncName, 0) == 0 ||
-        birFunction->getName().rfind(stopFuncName, 0) == 0))
-    birPackage.addFunctionLookUpEntry(birFunction->getName(), birFunction);
+  std::string functionName = constantPool->getStringCp(nameCpIndex);
+  if (!ignoreFunction(functionName))
+    birPackage.addFunctionLookUpEntry(functionName, birFunction);
 
+  birFunction->setName(functionName);
   uint32_t workdernameCpIndex = readS4be();
   birFunction->setWorkerName(constantPool->getStringCp(workdernameCpIndex));
 
@@ -1063,17 +1076,13 @@ void BIRReader::readModule() {
   uint32_t functionCount = readS4be();
 
   // Push all the functions in BIRpackage except __init, __start & __stop
-  std::string initFuncName = "..<init>";
-  std::string startFuncName = "..<start>";
-  std::string stopFuncName = "..<stop>";
   for (unsigned int i = 0; i < functionCount; i++) {
     Function *curFunc = readFunction();
-    if (!(initFuncName.compare(curFunc->getName()) == 0 ||
-          startFuncName.compare(curFunc->getName()) == 0 ||
-          stopFuncName.compare(curFunc->getName()) == 0))
-      birPackage.addFunction(curFunc);
-    else
+    if (ignoreFunction(curFunc->getName())) {
       delete curFunc;
+    } else {
+      birPackage.addFunction(curFunc);
+    }
   }
 
   uint32_t annotationsSize __attribute__((unused)) = readS4be();
