@@ -35,6 +35,9 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
   if (builder && funcObj) {
     LLVMValueRef lhsRef =
         funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
+    if (lhsRef) {
+      return;
+    }
     lhsRef = getPkgAddress()->getGlobalVarRefUsingId(returnVarDecl->getVarName());
     LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "return_temp");
     if (retValRef) {
