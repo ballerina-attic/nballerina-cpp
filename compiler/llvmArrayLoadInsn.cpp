@@ -11,7 +11,8 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef,
                                                     BIRPackage *pkg) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
-  paramTypes[0] = int32PtrType;
+  LLVMTypeRef int8PtrType = LLVMPointerType(LLVMInt8Type(), 0);
+  paramTypes[0] = int8PtrType;
   paramTypes[1] = LLVMInt32Type();
   LLVMTypeRef funcType = LLVMFunctionType(int32PtrType, paramTypes, 2, 0);
   LLVMValueRef addedFuncRef =
@@ -35,10 +36,11 @@ void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
     lhsOpRef = pkgObj->getGlobalVarRefUsingId(lhsName);
 
   LLVMValueRef rhsOpRef = funcObj->getLocalVarRefUsingId(rhsName);
+  LLVMValueRef rhsOpLoad = LLVMBuildLoad(builder, rhsOpRef, "");
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
   assert(ArrayLoadFunc && rhsOpRef && keyRef);
   LLVMValueRef *sizeOpValueRef = new LLVMValueRef[2];
-  sizeOpValueRef[0] = rhsOpRef;
+  sizeOpValueRef[0] = rhsOpLoad;
   sizeOpValueRef[1] = keyRef;
   LLVMValueRef valueInArrayPointer =
       LLVMBuildCall(builder, ArrayLoadFunc, sizeOpValueRef, 2, "");

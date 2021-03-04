@@ -10,7 +10,8 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef,
                                                       BIRPackage *pkg) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
   LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
-  paramTypes[0] = int32PtrType;
+  LLVMTypeRef int8PtrType = LLVMPointerType(LLVMInt8Type(), 0);
+  paramTypes[0] = int8PtrType;
   paramTypes[1] = LLVMInt32Type();
   paramTypes[2] = int32PtrType;
   LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
@@ -39,7 +40,8 @@ void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
   LLVMValueRef keyRef = funcObj->getLocalToTempVar(keyOp);
   assert(ArrayLoadFunc && lhsOpRef && rhsOpRef && keyRef);
   LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
-  argOpValueRef[0] = lhsOpRef;
+  LLVMValueRef lhsOpLoad = LLVMBuildLoad(builder, lhsOpRef, "");
+  argOpValueRef[0] = lhsOpLoad;
   argOpValueRef[1] = keyRef;
   argOpValueRef[2] = rhsOpRef;
 
