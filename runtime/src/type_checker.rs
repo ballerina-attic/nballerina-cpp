@@ -89,6 +89,59 @@ pub fn type_size(type_string: &str) -> i32 {
     }
 }
 
+/*
+ * To checking whether typecast is possible from source to destination
+ * Example of a type string - "AI041024"
+ * Index 0 - represents data structure
+ * Index 1 - represents type
+ * Index 2 and 3 - represents bits in hex followed by its size in decimal
+ *
+ * Algorithm -
+ * a. Convert null terminated string to rust string.
+ * b. Return true if type strings are same.
+ * c. Return false if data structure is different.
+ * d. Compute type size - type_size()
+ * e. Return false if source type size > destination type size
+ * g. Compute data structure length - compute_length()
+ *
+ * Data Structure Notations -
+ * A - Array
+ * M - Map
+ * */
+#[no_mangle]
+pub extern "C" fn same_type(source: String, destination: String) -> bool {
+    //If type strings are same
+    if source == destination {
+        return true;
+    }
+    //Index 0 represents type of data structure
+    if source.chars().nth(BASE_TYPE_INDEX) != destination.chars().nth(BASE_TYPE_INDEX) {
+        return false;
+    }
+    match source.chars().nth(BASE_TYPE_INDEX) {
+        Some('A') => {
+            if source.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
+                != destination.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
+            {
+                let src_type_size: i32 = type_size(&source);
+                let dest_type_size: i32 = type_size(&destination);
+                if src_type_size > dest_type_size {
+                    return false;
+                }
+            }
+            // Compute total number of elements present in the data structure
+            let src_size: i32 = compute_size(&source);
+            let dest_size: i32 = compute_size(&destination);
+            if src_size > dest_size {
+                return false;
+            }
+        }
+        _ => return false,
+    }
+    //If all the checks are passed, type cast from source to destination is valid
+    return true;
+}
+
 #[test]
 fn src_type_size_less_than_dest() {
     let src = CString::new("AF03122").unwrap();

@@ -19,34 +19,13 @@
 
 // Rust Library
 
-extern crate num;
-extern crate num_derive;
-
 mod type_checker;
 
 use std::ffi::CStr;
 use std::mem;
 use std::os::raw::c_char;
 
-/*
- * To checking whether typecast is possible from source to destination
- * Example of a type string - "AI041024"
- * Index 0 - represents data structure
- * Index 1 - represents type
- * Index 2 and 3 - represents bits in hex followed by its size in decimal
- *
- * Algorithm -
- * a. Convert null terminated string to rust string.
- * b. Return true if type strings are same.
- * c. Return false if data structure is different.
- * d. Compute type size - type_size()
- * e. Return false if source type size > destination type size
- * g. Compute data structure length - compute_length()
- *
- * Data Structure Notations -
- * A - Array
- * M - Map
- * */
+// To check whether typecast is possible from source to destination
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char) -> bool {
     assert!(!src_type.is_null());
@@ -57,40 +36,7 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
     //Conversion to rust strings
     let source: String = source_cstr.to_str().unwrap().to_owned();
     let destination: String = dest_cstr.to_str().unwrap().to_owned();
-    //If type strings are same
-    if source == destination {
-        return true;
-    }
-    //Index 0 represents type of data structure
-    if source.chars().nth(type_checker::BASE_TYPE_INDEX)
-        != destination.chars().nth(type_checker::BASE_TYPE_INDEX)
-    {
-        return false;
-    }
-    match source.chars().nth(type_checker::BASE_TYPE_INDEX) {
-        Some('A') => {
-            if source.chars().nth(type_checker::ARRAY_MEMBER_TYPE_INDEX)
-                != destination
-                    .chars()
-                    .nth(type_checker::ARRAY_MEMBER_TYPE_INDEX)
-            {
-                let src_type_size: i32 = type_checker::type_size(&source);
-                let dest_type_size: i32 = type_checker::type_size(&destination);
-                if src_type_size > dest_type_size {
-                    return false;
-                }
-            }
-            // Compute total number of elements present in the data structure
-            let src_size: i32 = type_checker::compute_size(&source);
-            let dest_size: i32 = type_checker::compute_size(&destination);
-            if src_size > dest_size {
-                return false;
-            }
-        }
-        _ => return false,
-    }
-    //If all the checks are passed, type cast from source to destination is valid
-    return true;
+    return type_checker::same_type(source, destination);
 }
 
 // Prints 64 bit signed integer
