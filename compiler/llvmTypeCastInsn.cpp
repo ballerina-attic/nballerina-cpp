@@ -1,4 +1,7 @@
 #include "BIR.h"
+#ifndef unix 
+    #define __attribute__(unused)
+#endif
 
 TypeCastInsn::TypeCastInsn() {}
 
@@ -21,7 +24,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     rhsOpRef = funcObj->getLocalVarRefUsingId(rhsOpName);
     lhsOpRef = funcObj->getLocalVarRefUsingId(lhsOpName);
     lhsTypeRef = wrap(unwrap(lhsOpRef)->getType());
-    VarDecl *orignamVarDecl = funcObj->getNameVarDecl(rhsOpName);
+    VarDecl *orignamVarDecl = funcObj->getLocalVarDeclFromName(rhsOpName);
     if (orignamVarDecl &&
         orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
       LLVMValueRef lastTypeIdx __attribute__((unused)) =
@@ -40,7 +43,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
           LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
       LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
       LLVMBuildStore(builder, castLoad, lhsOpRef);
-    } else if (getLhsOperand() && funcObj->getNameVarDecl(lhsOpName)
+    } else if (getLhsOperand() && funcObj->getLocalVarDeclFromName(lhsOpName)
                                           ->getTypeDecl()
                                           ->getTypeTag() == TYPE_TAG_ANY) {
       LLVMValueRef structAllocaRef =
@@ -50,7 +53,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       // struct first element original type
       LLVMValueRef origTypeIdx =
           LLVMBuildStructGEP(builder, structAllocaRef, 0, "origTypeIdx");
-      VarDecl *origVarDecl = funcObj->getNameVarDecl(lhsOpName);
+      VarDecl *origVarDecl = funcObj->getLocalVarDeclFromName(lhsOpName);
       assert(origVarDecl->getTypeDecl()->getTypeTag());
       TypeTagEnum origTypeTag =
           TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
@@ -65,7 +68,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
       // struct second element last type
       LLVMValueRef lastTypeIdx =
           LLVMBuildStructGEP(builder, structAllocaRef, 1, "lastTypeIdx");
-      VarDecl *lastTypeVarDecl = funcObj->getNameVarDecl(rhsOpName);
+      VarDecl *lastTypeVarDecl = funcObj->getLocalVarDeclFromName(rhsOpName);
       assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
       TypeTagEnum lastTypeTag =
           TypeTagEnum(lastTypeVarDecl->getTypeDecl()->getTypeTag());

@@ -65,7 +65,7 @@ enum InstructionKind {
   INSTRUCTION_KIND_MOVE = 20,
   INSTRUCTION_KIND_CONST_LOAD = 21,
   INSTRUCTION_KIND_NEW_STRUCTURE,
-  INSTRUCTION_KIND_NEW_MAP,
+  INSTRUCTION_KIND_MAP_STORE = 23,
   INSTRUCTION_KIND_NEW_ARRAY = 25,
   INSTRUCTION_KIND_ARRAY_STORE = 26,
   INSTRUCTION_KIND_ARRAY_LOAD = 27,
@@ -213,6 +213,20 @@ public:
   virtual void translate(LLVMModuleRef &modRef);
 };
 
+// Extend TypeDecl for MapTypeDecl; to store member type info
+class MapTypeDecl : public TypeDecl {
+private:
+  const int memberTypeTag;
+
+public:
+  MapTypeDecl() = delete;
+  MapTypeDecl(int tag, string name, int flags, int memberTag)
+      : TypeDecl{tag, name, flags}, memberTypeTag{memberTag} {};
+  ~MapTypeDecl() = default;
+  int getTypeMemberTag() { return memberTypeTag; }
+  void translate(LLVMModuleRef &modRef){};
+};
+
 class Operand : public BIRNode {
 private:
   VarDecl *varDecl;
@@ -266,7 +280,7 @@ public:
 class TerminatorInsn : public AbstractInsn {
 private:
   BIRBasicBlock *thenBB;
-  bool patchRequire;
+  bool patchRequire = false;
 
 public:
   TerminatorInsn();
@@ -489,6 +503,30 @@ public:
   LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 };
 
+class MapStoreInsn : public NonTerminatorInsn {
+private:
+  Operand *keyOp;
+  Operand *rhsOp;
+  LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef,
+                                         BIRPackage *pkg);
+
+public:
+  MapStoreInsn() = default;
+  MapStoreInsn(Location *pos, InstructionKind kind, Operand *lOp, Operand *KOp,
+               Operand *ROp);
+  void setKeyOp(Operand *kOp) { keyOp = kOp; }
+  void setRhsOp(Operand *rOp) { rhsOp = rOp; }
+  Operand *getKeyOp() { return keyOp; }
+  Operand *getRhsOp() { return rhsOp; }
+  ~MapStoreInsn() {
+    if (keyOp)
+      delete keyOp;
+    if (rhsOp)
+      delete rhsOp;
+  };
+  void translate(LLVMModuleRef &modRef);
+};
+
 class ConditionBrInsn : public TerminatorInsn {
 private:
   BIRBasicBlock *ifThenBB;
@@ -544,12 +582,15 @@ public:
 class StructureInsn : public NonTerminatorInsn {
 private:
   Operand *rhsOp;
+  void mapInsnTranslate(VarDecl *lhsVar, LLVMModuleRef &modRef);
+  LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef, BIRPackage *pkg);
 
 public:
   StructureInsn() {}
   ~StructureInsn() {}
   Operand *getRhsOp() { return rhsOp; }
   void setRhsOp(Operand *op) { rhsOp = op; }
+  void translate(LLVMModuleRef &modRef);
 };
 
 class FunctionCallInsn : public TerminatorInsn {
@@ -642,7 +683,7 @@ public:
   VarScope getVarScope() { return scope; }
   BIRBasicBlock *getStartBB() { return startBB; }
   BIRBasicBlock *getEndBB() { return endBB; }
-  string getVarName() { return varName; }
+  string &getVarName() { return varName; }
   string getMetaVarName() { return metaVarName; }
   int getInsOffset() { return insOffset; }
   bool ignore() { return ignoreVariable; }
@@ -729,7 +770,7 @@ private:
   VarDecl *receiver;
   Param *restParam;
   int paramCount;
-  vector<VarDecl *> localVars;
+  map<string, VarDecl *> localVars;
   VarDecl *returnVar;
 
   vector<BIRBasicBlock *> basicBlocks;
@@ -747,15 +788,14 @@ public:
   BIRFunction(const BIRFunction &);
   ~BIRFunction();
 
-  string getName() { return name; }
+  string &getName() { return name; }
   int getFlags() { return flags; }
   InvokableType *getInvokableType() { return type; }
   vector<Operand *> getParams() { return requiredParams; }
   Operand *getParam(int i) { return requiredParams[i]; }
   VarDecl *getReceiver() { return receiver; }
   Param *getRestParam() { return restParam; }
-  vector<VarDecl *> getLocalVars() { return localVars; }
-  VarDecl *getLocalVar(int i) { return localVars[i]; }
+
   VarDecl *getReturnVar() { return returnVar; }
   vector<BIRBasicBlock *> getBasicBlocks() { return basicBlocks; }
   size_t numBasicBlocks() { return basicBlocks.size(); }
@@ -777,9 +817,10 @@ public:
   void setParam(Operand *param) { requiredParams.push_back(param); }
   void setReceiver(VarDecl *var) { receiver = var; }
   void setRestParam(Param *param) { restParam = param; }
-  void setLocalVars(vector<VarDecl *> l) { localVars = l; }
   void setNumParams(int paramcount) { paramCount = paramcount; }
-  void setLocalVar(VarDecl *var) { localVars.push_back(var); }
+  void insertLocalVar(VarDecl *var) {
+    localVars.insert(pair<string, VarDecl *>(var->getVarName(), var));
+  }
   void setReturnVar(VarDecl *var) { returnVar = var; }
   void setBIRBasicBlocks(vector<BIRBasicBlock *> b) { basicBlocks = b; }
   void addBIRBasicBlock(BIRBasicBlock *bb) { basicBlocks.push_back(bb); }
@@ -805,7 +846,7 @@ public:
   void translateFunctionBody(LLVMModuleRef &modRef);
   void patchInsn(Function *llvnFun);
   LLVMTypeRef getLLVMFuncRetTypeRefOfType(VarDecl *vDecl);
-  VarDecl *getNameVarDecl(string opName);
+  VarDecl *getLocalVarDeclFromName(string name);
   const char *getTypeNameOfTypeTag(TypeTagEnum typeTag);
   void translate(LLVMModuleRef &modRef);
 };
@@ -817,7 +858,7 @@ private:
   string version;
   string sourceFileName;
   vector<BIRFunction *> functions;
-  vector<VarDecl *> globalVars;
+  map<string, VarDecl *> globalVars;
   map<string, LLVMValueRef> globalVarRefs;
   map<string, BIRFunction *> functionLookUp;
   StructType *structType;
@@ -842,12 +883,14 @@ public:
   void setSrcFileName(string srcFileName) { sourceFileName = srcFileName; }
   vector<BIRFunction *> getFunctions() { return functions; }
   BIRFunction *getFunction(int i) { return functions[i]; }
-  vector<VarDecl *> getGlobalVars() { return globalVars; }
+  VarDecl *getGlobalVarDeclFromName(string name);
   map<string, LLVMValueRef> getGlobalVarRefs() { return globalVarRefs; }
   StructType *getStructType() { return structType; }
   void setFunctions(vector<BIRFunction *> f) { functions = f; }
   void addFunction(BIRFunction *f) { functions.push_back(f); }
-  void addGlobalVar(VarDecl *g) { globalVars.push_back(g); }
+  void insertGlobalVar(VarDecl *g) {
+    globalVars.insert(pair<string, VarDecl *>(g->getVarName(), g));
+  }
 
   void addFunctionLookUpEntry(string funcName, BIRFunction *BIRfunction) {
     functionLookUp.insert(pair<string, BIRFunction *>(funcName, BIRfunction));

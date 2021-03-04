@@ -1,6 +1,10 @@
 #include "BIRReader.h"
 #include "BIR.h"
+#ifdef unix
 #include <libgen.h>
+#else
+#define __attribute__(unused)
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;
@@ -21,6 +25,7 @@ ReadTypeTestInsn ReadTypeTestInsn::readTypeTestInsn;
 ReadArrayInsn ReadArrayInsn::readArrayInsn;
 ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
 ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
+ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
 
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
@@ -135,23 +140,35 @@ bool ConstantPoolSet::getBooleanCp(uint32_t index) {
 // Search type from the constant pool based on index
 TypeDecl *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
   ConstantPoolEntry *poolEntry = getEntry(index);
+
   assert(poolEntry->getTag() ==
          ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
   ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
-  TypeDecl *typeDecl = new TypeDecl();
-  typeDecl->setTypeDeclName(getStringCp(shapeCp->getNameIndex()));
-  if (typeDecl->getTypeDeclName() == "") {
-    char newName[20];
-    char *p;
-    p = stpcpy(newName, "anon-");
-    sprintf(p, "%5ld", random() % 100000);
-    typeDecl->setTypeDeclName(newName);
+
+  std::string name = getStringCp(shapeCp->getNameIndex());
+  // if name is empty, create a random name anon-<5-digits>
+  if (name == "")
+    name.append("anon-" + std::to_string(random() % 100000));
+
+  int type = shapeCp->getTypeTag();
+
+  // Handle voidToInt flag
+  if (type == TYPE_TAG_NIL && voidToInt)
+    return new TypeDecl(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
+
+  // Handle Map type
+  if (type == TYPE_TAG_MAP) {
+    ConstantPoolEntry *shapeEntry =
+        getEntry(shapeCp->getConstraintTypeCpIndex());
+    assert(shapeEntry->getTag() ==
+           ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
+    ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
+    int memberType = typeShapeCp->getTypeTag();
+    return new MapTypeDecl(type, name, shapeCp->getTypeFlag(), memberType);
   }
-  typeDecl->setTypeTag(shapeCp->getTypeTag());
-  if (shapeCp->getTypeTag() == TYPE_TAG_NIL && voidToInt)
-    typeDecl->setTypeTag(TYPE_TAG_INT);
-  typeDecl->setFlags(shapeCp->getTypeFlag());
-  return typeDecl;
+
+  // Default return
+  return new TypeDecl(type, name, shapeCp->getTypeFlag());
 }
 
 // Get the Type tag from the constant pool based on the index passed
@@ -203,7 +220,7 @@ VarDecl *BIRReader::readGlobalVar() {
   uint32_t typeCpIndex = readS4be();
   TypeDecl *typeDecl = constantPool->getTypeCp(typeCpIndex, false);
   varDecl->setTypeDecl(typeDecl);
-  birPackage.addGlobalVar(varDecl);
+  birPackage.insertGlobalVar(varDecl);
   return varDecl;
 }
 
@@ -301,7 +318,7 @@ ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn() {
   case TYPE_TAG_BOOLEAN: {
     uint8_t valueCpIndex = readerRef.readU1();
     constantloadInsn->setBoolValue(
-	readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
+        readerRef.constantPool->getBooleanCp(valueCpIndex), typeTag);
     break;
   }
   case TYPE_TAG_FLOAT: {
@@ -484,6 +501,18 @@ ArrayLoadInsn *ReadArrayLoadInsn::readNonTerminatorInsn() {
   return arrayLoadInsn;
 }
 
+// Read Map Store Insn
+MapStoreInsn *ReadMapStoreInsn::readNonTerminatorInsn() {
+  MapStoreInsn *mapStoreInsn = new MapStoreInsn();
+  Operand *lhsOperand = readerRef.readOperand();
+  mapStoreInsn->setLhsOperand(lhsOperand);
+  Operand *keyOperand = readerRef.readOperand();
+  mapStoreInsn->setKeyOp(keyOperand);
+  Operand *rhsOperand = readerRef.readOperand();
+  mapStoreInsn->setRhsOp(rhsOperand);
+  return mapStoreInsn;
+}
+
 GoToInsn *ReadGoToInsn::readTerminatorInsn() {
   GoToInsn *gotoInsn = new GoToInsn();
   uint32_t nameId = readerRef.readS4be();
@@ -526,7 +555,8 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
   case INSTRUCTION_KIND_NEW_STRUCTURE: {
     StructureInsn *structureInsn =
         ReadStructureInsn::readStructureInsn.readNonTerminatorInsn();
-    delete structureInsn;
+    structureInsn->setInstKind(insnKind);
+    nonTerminatorInsn = structureInsn;
     break;
   }
   case INSTRUCTION_KIND_CONST_LOAD: {
@@ -615,8 +645,7 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
     break;
   }
   case INSTRUCTION_KIND_NEW_ARRAY: {
-    ArrayInsn *arrayInsn =
-        ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
+    ArrayInsn *arrayInsn = ReadArrayInsn::readArrayInsn.readNonTerminatorInsn();
     arrayInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayInsn);
     break;
@@ -633,6 +662,13 @@ void BIRReader::readInsn(BIRFunction *birFunction, BIRBasicBlock *basicBlock) {
         ReadArrayLoadInsn::readArrayLoadInsn.readNonTerminatorInsn();
     arrayLoadInsn->setInstKind(insnKind);
     nonTerminatorInsn = (arrayLoadInsn);
+    break;
+  }
+  case INSTRUCTION_KIND_MAP_STORE: {
+    MapStoreInsn *mapStoreInsn =
+        ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn();
+    mapStoreInsn->setInstKind(insnKind);
+    nonTerminatorInsn = (mapStoreInsn);
     break;
   }
   default:
@@ -729,9 +765,9 @@ BIRFunction *BIRReader::readFunction() {
   std::string initFuncName = "..<init>";
   std::string startFuncName = "..<start>";
   std::string stopFuncName = "..<stop>";
-  if (!(initFuncName.compare(birFunction->getName()) == 0 ||
-        startFuncName.compare(birFunction->getName()) == 0 ||
-        stopFuncName.compare(birFunction->getName()) == 0))
+  if (!(birFunction->getName().rfind(initFuncName, 0) == 0 ||
+        birFunction->getName().rfind(startFuncName, 0) == 0 ||
+        birFunction->getName().rfind(stopFuncName, 0) == 0))
     birPackage.addFunctionLookUpEntry(birFunction->getName(), birFunction);
 
   uint32_t workdernameCpIndex = readS4be();
@@ -810,12 +846,10 @@ BIRFunction *BIRReader::readFunction() {
   }
 
   uint32_t localVarCount = readS4be();
-  std::vector<VarDecl *> localvars;
   for (unsigned int i = 0; i < localVarCount; i++) {
     VarDecl *varDecl = readLocalVar();
-    localvars.push_back(varDecl);
+    birFunction->insertLocalVar(varDecl);
   }
-  birFunction->setLocalVars(localvars);
   for (unsigned int i = 0; i < defaultParamValue; i++) {
     uint32_t basicBlocksCount __attribute__((unused)) = readS4be();
   }
@@ -874,6 +908,11 @@ void ShapeCpInfo::read() {
     returnTypeIndex = readerRef.readS4be();
     break;
   }
+  case TYPE_TAG_MAP: {
+    assert(shapeLengthTypeInfo == 4);
+    constraintTypeCpIndex = readerRef.readS4be();
+    break;
+  }
   case TYPE_TAG_INT:
   case TYPE_TAG_BYTE:
   case TYPE_TAG_FLOAT:
@@ -888,7 +927,6 @@ void ShapeCpInfo::read() {
   case TYPE_TAG_RECORD:
   case TYPE_TAG_TYPEDESC:
   case TYPE_TAG_STREAM:
-  case TYPE_TAG_MAP:
   case TYPE_TAG_ANY:
   case TYPE_TAG_ENDPOINT:
   case TYPE_TAG_ARRAY:
@@ -1097,7 +1135,7 @@ void BIRReader::readModule() {
   if (globalVarCount > 0) {
     for (unsigned int i = 0; i < globalVarCount; i++) {
       VarDecl *varDecl = readGlobalVar();
-      birPackage.addGlobalVar(varDecl);
+      birPackage.insertGlobalVar(varDecl);
     }
   }
 

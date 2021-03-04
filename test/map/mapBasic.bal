@@ -1,7 +1,7 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
-
 int _bal_result = 0;
 public function main() {
-    string str = "Hello World!";
+    map<int> marks = {};
+    marks["jon"] = 60;
 }
-// CHECK: RETVAL=0
+// CHECK: length=1

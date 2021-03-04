@@ -24,6 +24,10 @@ mod type_checker;
 use std::ffi::CStr;
 use std::mem;
 use std::os::raw::c_char;
+use std::slice;
+
+mod bal_map;
+pub use bal_map::map::BalMapInt;
 
 // To check whether typecast is possible from source to destination
 #[no_mangle]
@@ -130,4 +134,46 @@ pub extern "C" fn int_array_load(arr_ptr: *mut Vec<*mut i32>, n: i32) -> *mut i3
     let return_val = arr[n_size];
     mem::forget(arr);
     return return_val;
+}
+
+// Ballerina Map implementation
+#[no_mangle]
+pub extern "C" fn map_new_int() -> *mut BalMapInt {
+    Box::into_raw(Box::new(BalMapInt::new()))
+}
+
+#[no_mangle]
+pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_ptr: *const i32) {
+    // Load BalMap from pointer
+    let bal_map = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+    // Load Key C string
+    let key = unsafe {
+        assert!(!key.is_null());
+        CStr::from_ptr(key)
+    };
+    let key_str = key.to_str().unwrap();
+
+    // Load member value
+    let member = unsafe {
+        assert!(!member_ptr.is_null());
+        slice::from_raw_parts(member_ptr, 1)
+    };
+    // Insert new field
+    bal_map.insert(key_str, member[0]);
+
+    // Print length to test functionality
+    println!("length={}", bal_map.length());
 }

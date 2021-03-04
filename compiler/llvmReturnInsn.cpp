@@ -14,15 +14,10 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
   VarDecl *returnVarDecl = NULL;
   if (funcObj) {
     builder = funcObj->getLLVMBuilder();
-    vector<VarDecl *> globalVarList = getPkgAddress()->getGlobalVars();
-    for (unsigned int i = 0; i < globalVarList.size(); i++) {
-      VarDecl *varDeclLoc = globalVarList[i];
-      string varDeclName = varDeclLoc->getVarName();
-      if (varDeclName == "_bal_result") {
-        returnVarDecl = varDeclLoc;
-        break;
-      }
-    }
+    VarDecl *globRetVar =
+        getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+    if (globRetVar)
+      returnVarDecl = globRetVar;
   }
   if (funcObj->getName() == "main" && returnVarDecl) {
     if (builder && funcObj) {
@@ -40,13 +35,12 @@ void ReturnInsn::translate(LLVMModuleRef &modRef) {
   } else {
     assert(funcObj && funcObj->getReturnVar() &&
            funcObj->getReturnVar()->getTypeDecl());
-    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() !=
-        TYPE_TAG_NIL) {
+    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
       LLVMValueRef retValueRef = LLVMBuildLoad(
           builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
       LLVMBuildRet(builder, retValueRef);
     } else if (builder) {
-        LLVMBuildRetVoid(builder);
+      LLVMBuildRetVoid(builder);
     }
   }
 }
