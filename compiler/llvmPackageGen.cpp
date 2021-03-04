@@ -28,14 +28,14 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   // String Table initialization
   strBuilder = new StringTableBuilder(StringTableBuilder::RAW, 1);
   // creating external char pointer to store string builder table.
-  string charName = "__string_table_ptr";
+  const char *strTablePtr = "__string_table_ptr";
   LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
   Constant *charValue = Constant::getNullValue(unwrap(charPtrType));
   GlobalVariable *charGloablVar = new GlobalVariable(
       *unwrap(modRef), unwrap(charPtrType), false, GlobalValue::InternalLinkage,
-      charValue, charName.c_str(), 0);
+      charValue, strTablePtr, 0);
   charGloablVar->setAlignment(Align(4));
-  globalVarRefs.insert({charName, wrap(charGloablVar)});
+  globalVarRefs.insert({strTablePtr, wrap(charGloablVar)});
 
   // iterate over all global variables and translate
   for (unsigned int i = 0; i < globalVars.size(); i++) {

@@ -10,7 +10,8 @@ LLVMValueRef ArrayInsn::getNewArrayDeclaration(LLVMModuleRef &modRef,
                                                BIRPackage *pkg) {
   LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
   paramTypes[0] = LLVMInt32Type();
-  LLVMTypeRef funcType = LLVMFunctionType(LLVMInt32Type(), paramTypes, 1, 0);
+  LLVMTypeRef int8PtrType = LLVMPointerType(LLVMInt8Type(), 0);
+  LLVMTypeRef funcType = LLVMFunctionType(int8PtrType, paramTypes, 1, 0);
   LLVMValueRef addedFuncRef =
       LLVMAddFunction(modRef, "new_int_array", funcType);
   pkg->addArrayFunctionRef("new_int_array", addedFuncRef);
