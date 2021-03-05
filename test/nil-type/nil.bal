@@ -1,9 +1,14 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
+public function printu32(int val) = external;
+
 public function main() {
     () nilVal = bar();
     foo();
     () n = baz();
+    if (n == ()) {
+      printu32(1);
+    }
 }
 
 function foo() {
@@ -19,4 +24,4 @@ function baz() returns () {
     return nilVal;
 }
 
-// CHECK: RETVAL=0
+// CHECK: RETVAL=1
