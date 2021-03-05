@@ -75,7 +75,16 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
       break;
     }
     case TYPE_TAG_NIL: {
-      return;
+        string lhsOpName = lhsOp->getVarDecl()->getVarName();
+        // check for the main function and () is assigned to 0%
+        if (getFunction()->getName() == MAIN_FUNCTION_NAME &&
+            lhsOpName == getFunction()->getReturnVar()->getVarName()) {
+            return;
+        }
+        LLVMValueRef constTempRef = getPkgAddress()->getGlobalVarRefUsingId(BAL_NIL_VALUE);
+        string tempName = std::string(BAL_NIL_VALUE) + "_" + lhsOpName + "_temp";
+        constRef = LLVMBuildLoad(builder, constTempRef, tempName.c_str());
+        break;
     }
     default:
       llvm_unreachable("Unknown Type");
