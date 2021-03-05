@@ -19,6 +19,8 @@
 
 // Rust Library
 
+mod type_checker;
+
 use std::ffi::CStr;
 use std::mem;
 use std::os::raw::c_char;
@@ -27,10 +29,18 @@ use std::slice;
 mod bal_map;
 pub use bal_map::map::BalMapInt;
 
-// String comparision
+// To check whether typecast is possible from source to destination
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char) -> bool {
-    return src_type == dest_type;
+    assert!(!src_type.is_null());
+    assert!(!dest_type.is_null());
+    //Conversion to CStr
+    let source_cstr: &CStr = unsafe { CStr::from_ptr(src_type) };
+    let dest_cstr: &CStr = unsafe { CStr::from_ptr(dest_type) };
+    //Conversion to rust strings
+    let source: String = source_cstr.to_str().unwrap().to_owned();
+    let destination: String = dest_cstr.to_str().unwrap().to_owned();
+    return type_checker::same_type(source, destination);
 }
 
 // Prints 64 bit signed integer
