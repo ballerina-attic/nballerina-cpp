@@ -745,8 +745,7 @@ private:
   map<FuncParam *, vector<BIRBasicBlock *>> params;
   map<string, LLVMValueRef> localVarRefs;
   map<string, LLVMValueRef> branchComparisonList;
-  LLVMValueRef generateAbortInsn(LLVMBuilderRef &builder,
-                                 LLVMModuleRef &modRef);
+  LLVMValueRef generateAbortInsn(LLVMModuleRef &modRef);
 
 public:
   BIRFunction();

@@ -98,20 +98,18 @@ LLVMTypeRef BIRFunction::getLLVMFuncRetTypeRefOfType(VarDecl *vDecl) {
   }
 }
 
-LLVMValueRef BIRFunction::generateAbortInsn(LLVMBuilderRef &builder,
-                                            LLVMModuleRef &modRef) {
+LLVMValueRef BIRFunction::generateAbortInsn(LLVMModuleRef &modRef) {
   BIRPackage *pkgObj = getPkgAddress();
   // calling the C stdlib.h abort() function.
   const char *abortFuncName = "abort";
   LLVMValueRef abortFuncRef = pkgObj->getFunctionRefBasedOnName(abortFuncName);
-  LLVMValueRef *paramRefs = new LLVMValueRef[0];
   if (!abortFuncRef) {
     LLVMTypeRef *paramTypes = new LLVMTypeRef[0];
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 0, 0);
     abortFuncRef = LLVMAddFunction(modRef, abortFuncName, funcType);
     pkgObj->addArrayFunctionRef(abortFuncName, abortFuncRef);
   }
-  return LLVMBuildCall(builder, abortFuncRef, paramRefs, 0, "");
+  return abortFuncRef;
 }
 
 void BIRFunction::translateFunctionBody(LLVMModuleRef &modRef) {
@@ -219,10 +217,11 @@ void BIRFunction::splitBBIfPossible(LLVMModuleRef &modRef) {
           brInsn->removeFromParent();
 
           // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
-          LLVMValueRef abortInsn = generateAbortInsn(builder, modRef);
-          LLVMInstructionRemoveFromParent(abortInsn);
+          LLVMValueRef abortInsn = generateAbortInsn(modRef);
+	  LLVMValueRef abortFuncCallInsn = LLVMBuildCall(builder, abortInsn, NULL, 0, "");
+          LLVMInstructionRemoveFromParent(abortFuncCallInsn);
           // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).
-          elseBB->getInstList().push_back(unwrap<Instruction>(abortInsn));
+          elseBB->getInstList().push_back(unwrap<Instruction>(abortFuncCallInsn));
           elseBB->getInstList().push_back(brInsn);
           // Inserting elseLLVMBB (abort BB) after splitBB (bb0.split)
           // basicblock.
