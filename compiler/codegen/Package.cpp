@@ -151,6 +151,8 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // iterating over each function translate the function body.
     for (const auto &function : functions) {
+        if (function->isExternalFunction())
+            continue;
         function->translate(modRef);
     }
 
