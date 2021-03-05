@@ -1,6 +1,9 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
+public function printu32(int val) = external;
+
 int _bal_result = 0;
+
 public function main() {
     int a = 10;
     int b = 5;
@@ -43,6 +46,7 @@ public function main() {
       i = i + 1;
       _bal_result = _bal_result + 1;
     }
+    printu32(_bal_result);
 }
 
 // CHECK: RETVAL=13

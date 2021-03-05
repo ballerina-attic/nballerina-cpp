@@ -98,6 +98,8 @@ void BIRPackage::translate(LLVMModuleRef &modRef) {
   map<string, BIRFunction *>::iterator it1;
   for (it1 = functionLookUp.begin(); it1 != functionLookUp.end(); it1++) {
     BIRFunction *birFunc = it1->second;
+    if ((birFunc->getFlags() & NATIVE) == NATIVE)
+      continue;
     birFunc->setPkgAddress(this);
     birFunc->translate(modRef);
   }

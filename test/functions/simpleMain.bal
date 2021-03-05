@@ -3,13 +3,6 @@
 public function printu32(int val) = external;
 
 public function main() {
-    int a = 1;
-    int b = 5;
-    if (a > b) {
-        printu32(a);
-    }
-    else {
-        printu32(b);
-    }
+    printu32(128);
 }
-// CHECK: RETVAL=5
+// CHECK: RETVAL=128

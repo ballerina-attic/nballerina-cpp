@@ -1,6 +1,7 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
-boolean _bal_result = false;
+public function printu32(int val) = external;
+
 public function bar(any z) returns boolean
 {
     return <boolean>z;
@@ -8,7 +9,8 @@ public function bar(any z) returns boolean
 
 public function main() {
     boolean b = true;
-    _bal_result = bar(b);
+    if (bar(b))
+      printu32(1);
 }
 
 // CHECK: RETVAL=1
