@@ -45,6 +45,7 @@ std::string Function::getName() { return name; }
 FunctionParam *Function::getParam(int i) { return requiredParams[i]; }
 RestParam *Function::getRestParam() { return restParam; }
 Variable *Function::getReturnVar() { return returnVar; }
+unsigned int Function::getFlags() { return flags; }
 std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
 LLVMBuilderRef Function::getLLVMBuilder() { return llvmBuilder; }
 LLVMValueRef Function::getLLVMFunctionValue() { return llvmFunction; }
@@ -112,6 +113,7 @@ void Function::insertLocalVar(Variable *var) {
     localVars.insert(std::pair<std::string, Variable *>(var->getName(), var));
 }
 void Function::setReturnVar(Variable *var) { returnVar = var; }
+void Function::setFlags(unsigned int f) { flags = f; }
 void Function::insertBasicBlock(BasicBlock *bb) {
     basicBlocks.push_back(bb);
     basicBlocksMap.insert(std::pair<std::string, BasicBlock *>(bb->getId(), bb));

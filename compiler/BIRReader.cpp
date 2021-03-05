@@ -140,10 +140,11 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 
 // Search float from the constant pool based on index
 float ConstantPoolSet::getFloatCp(uint32_t index) {
-    ConstantPoolEntry *poolEntry = getEntry(index);
-    assert(poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
-    FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
-    return floatCp->getValue();
+  ConstantPoolEntry *poolEntry = getEntry(index);
+  assert(poolEntry->getTag() ==
+         ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
+  FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
+  return floatCp->getValue();
 }
 
 // Search boolean from the constant pool based on index
@@ -667,6 +668,7 @@ Function *BIRReader::readFunction(Package *package) {
     Function *birFunction = new Function(package, functionName, constantPool->getStringCp(workdernameCpIndex), flags,
                                          constantPool->getInvokableType(typeCpIndex));
     birFunction->setLocation(location);
+    birFunction->setFlags(flags);
 
     uint64_t annotationLength __attribute__((unused)) = readS8be();
     uint32_t annotationAttachments __attribute__((unused)) = readS4be();
