@@ -9,8 +9,10 @@ public function bar(any z) returns boolean
 
 public function main() {
     boolean b = true;
-    if (bar(b))
+    boolean a = bar(b);
+    if (a) {
       printu32(1);
+    }
 }
 
 // CHECK: RETVAL=1
