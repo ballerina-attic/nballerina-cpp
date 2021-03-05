@@ -1,20 +1,20 @@
 /*
-* Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* WSO2 Inc. licenses this file to you under the Apache License,
-* Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "BalPackage.h"
 #include "BalFunction.h"
@@ -31,11 +31,11 @@ using namespace std;
 namespace nballerina {
 
 // return ValueRef of global variable based on variable name.
-LLVMValueRef Package::getGlobalLLVMVar(string globVar) {
+LLVMValueRef Package::getGlobalLLVMVar(const std::string &globVar) {
     auto varIt = globalVarRefs.find(globVar);
-    if (varIt == globalVarRefs.end())
+    if (varIt == globalVarRefs.end()) {
         return nullptr;
-
+    }
     return varIt->second;
 }
 
@@ -44,20 +44,20 @@ std::string Package::getPackageName() { return name; }
 std::string Package::getVersion() { return version; }
 std::string Package::getSrcFileName() { return sourceFileName; }
 llvm::StringTableBuilder *Package::getStrTableBuilder() { return strBuilder; }
-void Package::setOrgName(std::string orgName) { org = orgName; }
-void Package::setPackageName(std::string pkgName) { name = pkgName; }
-void Package::setVersion(std::string verName) { version = verName; }
+void Package::setOrgName(std::string orgName) { org = std::move(orgName); }
+void Package::setPackageName(std::string pkgName) { name = std::move(pkgName); }
+void Package::setVersion(std::string verName) { version = std::move(verName); }
 
-void Package::setSrcFileName(std::string srcFileName) { sourceFileName = srcFileName; }
+void Package::setSrcFileName(std::string srcFileName) { sourceFileName = std::move(srcFileName); }
 
 void Package::insertFunction(Function *function) {
     functions.push_back(function);
     functionLookUp.insert(std::pair<std::string, Function *>(function->getName(), function));
 }
 
-Function *Package::getFunction(std::string funcName) { return functionLookUp.at(funcName); }
+Function *Package::getFunction(const std::string &funcName) { return functionLookUp.at(funcName); }
 
-void Package::addFunctionRef(std::string arrayName, LLVMValueRef functionRef) {
+void Package::addFunctionRef(const std::string &arrayName, LLVMValueRef functionRef) {
     functionRefs.insert(std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
 }
 
@@ -88,7 +88,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
 
     // iterate over all global variables and translate
-    for (auto const it : globalVars) {
+    for (auto const &it : globalVars) {
         Variable *globVar = it.second;
         LLVMTypeRef varTyperef = getLLVMTypeOfType(globVar->getTypeDecl());
         string varName = globVar->getName();
@@ -96,7 +96,7 @@ void Package::translate(LLVMModuleRef &modRef) {
         llvm::Constant *initValue = llvm::Constant::getNullValue(llvm::unwrap(varTyperef));
         llvm::GlobalVariable *gVar =
             new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(varTyperef), false,
-                                     llvm::GlobalValue::ExternalLinkage, initValue, varName.c_str(), 0);
+                                     llvm::GlobalValue::ExternalLinkage, initValue, varName, nullptr);
         gVar->setAlignment(llvm::Align(4));
         LLVMValueRef globVarRef = wrap(gVar);
         globalVarRefs.insert({globVar->getName(), globVarRef});
@@ -119,21 +119,22 @@ void Package::translate(LLVMModuleRef &modRef) {
         LLVMTypeRef *paramTypes = new LLVMTypeRef[numParams];
         bool isVarArg = false;
 
-        if (function->getRestParam())
+        if (function->getRestParam() != nullptr) {
             isVarArg = true;
-
+        }
         // TODO why skip if there is no return
-        if (!function->getReturnVar())
+        if (function->getReturnVar() == nullptr) {
             continue;
-
-        for (unsigned i = 0; i < numParams; i++) {
+        }
+        for (size_t i = 0; i < numParams; i++) {
             FunctionParam *funcParam = function->getParam(i);
             assert(funcParam->getType());
             paramTypes[i] = getLLVMTypeOfType(funcParam->getType());
         }
 
-        LLVMTypeRef funcType = LLVMFunctionType(function->getLLVMTypeOfReturnVal(), paramTypes, numParams, isVarArg);
-        if (funcType) {
+        LLVMTypeRef funcType = LLVMFunctionType(function->getLLVMTypeOfReturnVal(), paramTypes, numParams,
+                                                static_cast<LLVMBool>(isVarArg));
+        if (funcType != nullptr) {
             function->setLLVMFunctionValue(LLVMAddFunction(modRef, function->getName().c_str(), funcType));
         }
     }
@@ -145,11 +146,12 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // This Api will finalize the string table builder if table size is not
     // zero.
-    if (strBuilder->getSize() != 0)
+    if (strBuilder->getSize() != 0) {
         applyStringOffsetRelocations();
+    }
 }
 
-void Package::addStringOffsetRelocationEntry(string eleType, LLVMValueRef storeInsn) {
+void Package::addStringOffsetRelocationEntry(const std::string &eleType, LLVMValueRef storeInsn) {
     structElementStoreInst[eleType].push_back(storeInsn);
 }
 
@@ -169,17 +171,19 @@ void Package::applyStringOffsetRelocations() {
     }
 }
 
-LLVMValueRef Package::getFunctionRef(string arrayName) {
+LLVMValueRef Package::getFunctionRef(const std::string &arrayName) {
     auto it = functionRefs.find(arrayName);
-    if (it == functionRefs.end())
+    if (it == functionRefs.end()) {
         return nullptr;
+    }
     return it->second;
 }
 
-Variable *Package::getGlobalVariable(string name) {
+Variable *Package::getGlobalVariable(const std::string &name) {
     auto varIt = globalVars.find(name);
-    if (varIt == globalVars.end())
+    if (varIt == globalVars.end()) {
         return nullptr;
+    }
     return varIt->second;
 }
 

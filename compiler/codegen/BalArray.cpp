@@ -1,20 +1,20 @@
 /*
-* Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* WSO2 Inc. licenses this file to you under the Apache License,
-* Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "BalArrayInsns.h"
 #include "BalFunction.h"
@@ -28,14 +28,15 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp, Type *tDecl)
-    : NonTerminatorInsn(lOp, currentBB), sizeOp(sOp), typeDecl(tDecl) {}
+ArrayInsn::ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp, [[maybe_unused]] Type *tDecl)
+    : NonTerminatorInsn(lOp, currentBB), sizeOp(sOp) {}
 
 LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
 
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef("new_int_array");
-    if (addedFuncRef)
+    if (addedFuncRef != nullptr) {
         return addedFuncRef;
+    }
     LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
     paramTypes[0] = LLVMInt32Type();
     LLVMTypeRef funcType = LLVMFunctionType(LLVMInt32Type(), paramTypes, 1, 0);
@@ -59,14 +60,15 @@ void ArrayInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Load Instruction
-ArrayLoadInsn::ArrayLoadInsn(Operand *lOp, BasicBlock *currentBB, bool opFA, bool fR, Operand *KOp, Operand *ROp)
-    : NonTerminatorInsn(lOp, currentBB), optionalFieldAccess(opFA), fillingRead(fR), keyOp(KOp), rhsOp(ROp) {}
+ArrayLoadInsn::ArrayLoadInsn(Operand *lOp, BasicBlock *currentBB, [[maybe_unused]] bool optionalFieldAccess,
+                             [[maybe_unused]] bool fillingRead, Operand *KOp, Operand *ROp)
+    : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef) {
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef("int_array_load");
-    if (addedFuncRef)
+    if (addedFuncRef != nullptr) {
         return addedFuncRef;
-
+    }
     LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
     LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
     paramTypes[0] = int32PtrType;
@@ -101,9 +103,9 @@ ArrayStoreInsn::ArrayStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp
 LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef) {
 
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef("int_array_store");
-    if (!addedFuncRef)
+    if (addedFuncRef == nullptr) {
         return addedFuncRef;
-
+    }
     LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
     LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
     paramTypes[0] = int32PtrType;

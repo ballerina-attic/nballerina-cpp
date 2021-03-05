@@ -1,20 +1,20 @@
 /*
-* Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* WSO2 Inc. licenses this file to you under the Apache License,
-* Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef __BALPACKAGE__H__
 #define __BALPACKAGE__H__
@@ -57,12 +57,12 @@ class Package : public Translatable {
     std::string getPackageName();
     std::string getVersion();
     std::string getSrcFileName();
-    Variable *getGlobalVariable(std::string name);
-    LLVMValueRef getGlobalLLVMVar(std::string globVar);
+    Variable *getGlobalVariable(const std::string &name);
+    LLVMValueRef getGlobalLLVMVar(const std::string &globVar);
     LLVMTypeRef getLLVMTypeOfType(Type *typeD);
     llvm::StringTableBuilder *getStrTableBuilder();
-    Function *getFunction(std::string name);
-    LLVMValueRef getFunctionRef(std::string arrayName);
+    Function *getFunction(const std::string &name);
+    LLVMValueRef getFunctionRef(const std::string &arrayName);
 
     void setOrgName(std::string orgName);
     void setPackageName(std::string pkgName);
@@ -70,8 +70,8 @@ class Package : public Translatable {
     void setSrcFileName(std::string srcFileName);
     void insertGlobalVar(Variable *var);
     void insertFunction(Function *function);
-    void addFunctionRef(std::string arrayName, LLVMValueRef functionRef);
-    void addStringOffsetRelocationEntry(std::string eleType, LLVMValueRef storeInsn);
+    void addFunctionRef(const std::string &, LLVMValueRef functionRef);
+    void addStringOffsetRelocationEntry(const std::string &, LLVMValueRef storeInsn);
 
     void translate(LLVMModuleRef &modRef) final;
 };

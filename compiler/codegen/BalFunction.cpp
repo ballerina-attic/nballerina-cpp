@@ -1,20 +1,20 @@
 /*
-* Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* WSO2 Inc. licenses this file to you under the Apache License,
-* Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "BalFunction.h"
 #include "BalBasicBlock.h"
@@ -26,18 +26,17 @@
 
 namespace nballerina {
 
-Function::Function(Package *_parentPackage, std::string _name, std::string _workerName, int _flags,
-                   InvokableType *_type)
-    : parentPackage(_parentPackage), name(_name), workerName(_workerName), flags(_flags), type(_type) {
-    restParam = nullptr;
-    receiver = nullptr;
-}
+Function::Function(Package *_parentPackage, std::string name, std::string workerName, [[maybe_unused]] int flags,
+                   [[maybe_unused]] InvokableType *type)
+    : parentPackage(_parentPackage), name(std::move(name)), workerName(std::move(workerName)), returnVar(nullptr),
+      restParam(nullptr), receiver(nullptr), llvmBuilder(nullptr), llvmFunction(nullptr) {}
 
 // Search basic block based on the basic block ID
-BasicBlock *Function::FindBasicBlock(std::string id) {
+BasicBlock *Function::FindBasicBlock(const std::string &id) {
     auto bb = basicBlocksMap.find(id);
-    if (bb == basicBlocksMap.end())
+    if (bb == basicBlocksMap.end()) {
         return nullptr;
+    }
     return bb->second;
 }
 
@@ -49,18 +48,19 @@ std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
 LLVMBuilderRef Function::getLLVMBuilder() { return llvmBuilder; }
 LLVMValueRef Function::getLLVMFunctionValue() { return llvmFunction; }
 
-LLVMValueRef Function::getLLVMValueForBranchComparison(std::string lhsName) {
+LLVMValueRef Function::getLLVMValueForBranchComparison(const std::string &lhsName) {
     auto branch = branchComparisonList.find(lhsName);
-    if (branch == branchComparisonList.end())
+    if (branch == branchComparisonList.end()) {
         return nullptr;
+    }
     return branch->second;
 }
 
-LLVMValueRef Function::getLLVMLocalVar(std::string locVar) {
-    auto varIt = localVarRefs.find(locVar);
-    if (varIt == localVarRefs.end())
+LLVMValueRef Function::getLLVMLocalVar(const std::string &varName) {
+    auto varIt = localVarRefs.find(varName);
+    if (varIt == localVarRefs.end()) {
         return nullptr;
-
+    }
     return varIt->second;
 }
 
@@ -95,8 +95,9 @@ LLVMTypeRef Function::getLLVMTypeOfReturnVal() {
     // return type from void to global variable (_bal_result) type.
     if (type->getTypeTag() == TYPE_TAG_NIL || type->getTypeTag() == TYPE_TAG_VOID) {
         Variable *globRetVar = parentPackage->getGlobalVariable("_bal_result");
-        if (globRetVar)
+        if (globRetVar != nullptr) {
             type = globRetVar->getTypeDecl();
+        }
     }
 
     return parentPackage->getLLVMTypeOfType(type);
@@ -115,26 +116,29 @@ void Function::insertBasicBlock(BasicBlock *bb) {
 }
 void Function::setLLVMBuilder(LLVMBuilderRef b) { llvmBuilder = b; }
 void Function::setLLVMFunctionValue(LLVMValueRef newFuncRef) { llvmFunction = newFuncRef; }
-void Function::insertBranchComparisonValue(std::string name, LLVMValueRef compRef) {
+void Function::insertBranchComparisonValue(const std::string &name, LLVMValueRef compRef) {
     branchComparisonList.insert(std::pair<std::string, LLVMValueRef>(name, compRef));
 }
 
-Variable *Function::getLocalVariable(std::string opName) {
+Variable *Function::getLocalVariable(const std::string &opName) {
     auto varIt = localVars.find(opName);
-    if (varIt == localVars.end())
+    if (varIt == localVars.end()) {
         return nullptr;
+    }
     return varIt->second;
 }
 
 Variable *Function::getLocalOrGlobalVariable(Operand *op) {
-    if (op->getKind() == GLOBAL_VAR_KIND)
+    if (op->getKind() == GLOBAL_VAR_KIND) {
         return parentPackage->getGlobalVariable(op->getName());
+    }
     return getLocalVariable(op->getName());
 }
 
 LLVMValueRef Function::getLLVMLocalOrGlobalVar(Operand *op) {
-    if (op->getKind() == GLOBAL_VAR_KIND)
+    if (op->getKind() == GLOBAL_VAR_KIND) {
         return parentPackage->getGlobalLLVMVar(op->getName());
+    }
     return getLLVMLocalVar(op->getName());
 }
 
@@ -157,8 +161,9 @@ void Function::translate(LLVMModuleRef &modRef) {
             LLVMValueRef parmRef = LLVMGetParam(llvmFunction, paramIndex);
             std::string paramName = getParam(paramIndex)->getName();
             LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
-            if (parmRef)
+            if (parmRef != nullptr) {
                 LLVMBuildStore(llvmBuilder, parmRef, localVarRef);
+            }
             paramIndex++;
         }
     }
@@ -170,15 +175,15 @@ void Function::translate(LLVMModuleRef &modRef) {
     }
 
     // creating branch to next basic block.
-    if (basicBlocks.size() != 0 && basicBlocks[0] && basicBlocks[0]->getLLVMBBRef())
+    if (!basicBlocks.empty() && (basicBlocks[0] != nullptr) && (basicBlocks[0]->getLLVMBBRef() != nullptr)) {
         LLVMBuildBr(llvmBuilder, basicBlocks[0]->getLLVMBBRef());
+    }
 
     // Now translate the basic blocks (essentially add the instructions in them)
     for (auto const &bb : basicBlocks) {
         LLVMPositionBuilderAtEnd(llvmBuilder, bb->getLLVMBBRef());
         bb->translate(modRef);
     }
-    return;
 }
 
 } // namespace nballerina
