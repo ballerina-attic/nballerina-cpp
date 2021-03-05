@@ -28,6 +28,10 @@
 using namespace std;
 using namespace llvm;
 
+// define global nil value name
+static constexpr char BAL_NIL_VALUE[] = "bal_nil_value";
+static constexpr char MAIN_FUNCTION_NAME[] = "main";
+
 // Forward Declarations
 class TypeDecl;
 class BIRBasicBlock;

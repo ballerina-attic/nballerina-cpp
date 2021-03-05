@@ -9,38 +9,38 @@ ReturnInsn::ReturnInsn(Location *pos, InstructionKind kind, Operand *lOp,
 ReturnInsn::~ReturnInsn() {}
 
 void ReturnInsn::translate(LLVMModuleRef &modRef) {
-  LLVMBuilderRef builder;
-  BIRFunction *funcObj = getFunction();
-  VarDecl *returnVarDecl = NULL;
-  if (funcObj) {
+    LLVMBuilderRef builder;
+    BIRFunction *funcObj = getFunction();
+    VarDecl *returnVarDecl = NULL;
+    if (!funcObj) {
+        return;
+    }
     builder = funcObj->getLLVMBuilder();
-    VarDecl *globRetVar =
-        getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
+    VarDecl *globRetVar = getPkgAddress()->getGlobalVarDeclFromName("_bal_result");
     if (globRetVar)
-      returnVarDecl = globRetVar;
-  }
-  if (funcObj->getName() == "main" && returnVarDecl) {
-    if (builder && funcObj) {
-      LLVMValueRef lhsRef =
-          funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
-      if (!lhsRef) {
-        lhsRef = getPkgAddress()->getGlobalVarRefUsingId(
-            returnVarDecl->getVarName());
+        returnVarDecl = globRetVar;
 
-        LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "retrun_temp");
-        if (retValRef)
-          LLVMBuildRet(builder, retValRef);
-      }
+    if (funcObj->getName() != MAIN_FUNCTION_NAME) {
+        LLVMValueRef retValueRef = LLVMBuildLoad(
+            builder, funcObj->getLocalVarRefUsingId(funcObj->getReturnVar()->getVarName()), "return_val_temp");
+        LLVMBuildRet(builder, retValueRef);
+        return;
     }
-  } else {
-    assert(funcObj && funcObj->getReturnVar() &&
-           funcObj->getReturnVar()->getTypeDecl());
-    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() != TYPE_TAG_NIL) {
-      LLVMValueRef retValueRef = LLVMBuildLoad(
-          builder, funcObj->getLocalVarRefUsingId("%0"), "retrun_temp");
-      LLVMBuildRet(builder, retValueRef);
-    } else if (builder) {
-      LLVMBuildRetVoid(builder);
+
+    if (!returnVarDecl) {
+        LLVMBuildRetVoid(builder);
+        return;
     }
-  }
+
+    if (builder && funcObj) {
+        LLVMValueRef lhsRef = funcObj->getLocalVarRefUsingId(returnVarDecl->getVarName());
+        if (lhsRef) {
+            return;
+        }
+        lhsRef = getPkgAddress()->getGlobalVarRefUsingId(returnVarDecl->getVarName());
+        LLVMValueRef retValRef = LLVMBuildLoad(builder, lhsRef, "return_val_temp");
+        if (retValRef) {
+            LLVMBuildRet(builder, retValRef);
+        }
+    }
 }
