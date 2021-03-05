@@ -7,6 +7,7 @@ public function main() {
     int result1 = <int>var1;
     int | string var2 = 7;
     int result2 = <int>var2;
-    _bal_result = result2;
+    _bal_result = result1 + result2;
 }
-// CHECK: RETVAL=7
+
+// CHECK: RETVAL=49
