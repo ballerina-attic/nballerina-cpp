@@ -1,22 +1,22 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
 public function main() {
-  () nilVal = bar();
-  foo();
-  () n = baz();
+    () nilVal = bar();
+    foo();
+    () n = baz();
 }
 
 function foo() {
-  () nilVal = ();
+    () nilVal = ();
 }
 
 function bar() returns () {
-  return ();
+    return ();
 }
 
 function baz() returns () {
-  () nilVal = ();
-  return nilVal;
+    () nilVal = ();
+    return nilVal;
 }
 
 // CHECK: RETVAL=0
