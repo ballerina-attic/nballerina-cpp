@@ -61,7 +61,12 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
             LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
             // call is_same_type rust function to check LHS and RHS type are same or
             // not.
-            LLVMValueRef sameTypeResult = isSameType(modRef, lhsGep, gepOfStr);
+            LLVMValueRef addedIsSameTypeFunc = isSameType(modRef, lhsGep, gepOfStr);
+            LLVMValueRef *paramRefs = new LLVMValueRef[2];
+            paramRefs[0] = lhsGep;
+            paramRefs[1] = gepOfStr;
+            assert(addedIsSameTypeFunc);
+            LLVMValueRef sameTypeResult = LLVMBuildCall(builder, addedIsSameTypeFunc, paramRefs, 2, "call");
             // creating branch condition using is_same_type() function result.
             LLVMValueRef brCondition __attribute__((unused)) = LLVMBuildIsNotNull(builder, sameTypeResult, "");
             getPkgAddress()->addStringOffsetRelocationEntry(lhsTypeName, lhsGep);
@@ -119,16 +124,11 @@ LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(LLVMModuleRef &modRef, BIRPa
 }
 
 LLVMValueRef TypeCastInsn::isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef) {
-    BIRFunction *funcObj = getFunction();
     BIRPackage *pkgObj = getPkgAddress();
-    LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-    LLVMValueRef *paramRefs = new LLVMValueRef[2];
     LLVMValueRef addedFuncRef = pkgObj->getFunctionRefBasedOnName("is_same_type");
     if (!addedFuncRef)
         addedFuncRef = getIsSameTypeDeclaration(modRef, pkgObj, lhsRef, rhsRef);
-    paramRefs[0] = lhsRef;
-    paramRefs[1] = rhsRef;
-    return LLVMBuildCall(builder, addedFuncRef, paramRefs, 2, "call");
+    return addedFuncRef;
 }
 
 char const *TypeCastInsn::typeStringMangleName(LLVMValueRef typeVal, TypeTagEnum typeTag) {
