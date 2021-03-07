@@ -1,6 +1,6 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
-public function printu32(int val) = external;
+public function print_str(string val) = external;
 
 public function bar(any z) returns string
 {
@@ -11,7 +11,7 @@ public function bar(any z) returns string
 public function main() {
     string b = "Hello World";
     string c = bar(b);
-    printu32(1);
+    print_str(c);
 }
 
-// CHECK: RETVAL=1
+// CHECK: RETVAL=Hello World

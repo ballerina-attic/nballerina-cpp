@@ -103,6 +103,14 @@ pub extern "C" fn printf32(num32: f32) {
     println!("{}", num32);
 }
 
+// Prints string
+#[no_mangle]
+pub extern "C" fn print_str(val: *const c_char) {
+    let cstr: &CStr = unsafe { CStr::from_ptr(val) };
+    let string: String = cstr.to_str().unwrap().to_owned();
+    println!("{}", string);
+}
+
 #[no_mangle]
 pub extern "C" fn new_int_array(size: i32) -> *mut Vec<*mut i32> {
     let mut size_t = size;
