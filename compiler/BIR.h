@@ -151,8 +151,8 @@ enum TypeTagEnum {
 enum VarScope { VAR_SCOPE_GLOBAL = 1, VAR_SCOPE_FUNCTION = 2 };
 
 // Function flags
-static constexpr long PUBLIC = 1;
-static constexpr long NATIVE = PUBLIC << 1;
+static constexpr unsigned int PUBLIC = 1;
+static constexpr unsigned int NATIVE = PUBLIC << 1;
 
 class Location {
 private:
@@ -797,7 +797,7 @@ public:
   ~BIRFunction();
 
   string &getName() { return name; }
-  int getFlags() { return flags; }
+  unsigned int getFlags() { return flags; }
   InvokableType *getInvokableType() { return type; }
   vector<Operand *> getParams() { return requiredParams; }
   Operand *getParam(int i) { return requiredParams[i]; }
@@ -819,7 +819,7 @@ public:
   LLVMValueRef getValueRefBasedOnName(string lhsName);
 
   void setName(string newName) { name = newName; }
-  void setFlags(int newFlags) { flags = newFlags; }
+  void setFlags(unsigned int newFlags) { flags = newFlags; }
   void setInvokableType(InvokableType *t) { type = t; }
   void setParams(vector<Operand *> p) { requiredParams = p; }
   void setParam(Operand *param) { requiredParams.push_back(param); }
