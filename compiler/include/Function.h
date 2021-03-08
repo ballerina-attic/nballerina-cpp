@@ -54,6 +54,7 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     std::map<std::string, LLVMValueRef> branchComparisonList;
     std::map<std::string, LLVMValueRef> localVarRefs;
     std::vector<FunctionParam *> requiredParams;
+    inline static const std::string MAIN_FUNCTION_NAME = "main";
 
   public:
     Function() = delete;
@@ -78,6 +79,7 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     Variable *getLocalVariable(const std::string &opName);
     Variable *getLocalOrGlobalVariable(Operand *op);
     LLVMTypeRef getLLVMTypeOfReturnVal();
+    bool isMainFunction();
 
     void insertParam(FunctionParam *param);
     void setRestParam(RestParam *param);

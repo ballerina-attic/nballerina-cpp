@@ -16,9 +16,9 @@
  * under the License.
  */
 
+#include "ReturnInsn.h"
 #include "Function.h"
 #include "Package.h"
-#include "ReturnInsn.h"
 #include "Types.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
@@ -34,21 +34,21 @@ void ReturnInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
 
     Function *funcObj = getFunction();
     LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-    LLVMValueRef globRetRef = getPackage()->getGlobalLLVMVar("_bal_result");
 
-    if ((funcObj->getName() == "main") && (globRetRef != nullptr)) {
-        LLVMValueRef retValRef = LLVMBuildLoad(builder, globRetRef, "retrun_temp");
-        LLVMBuildRet(builder, retValRef);
+    if (!funcObj->isMainFunction()) {
+        LLVMValueRef retValueRef =
+            LLVMBuildLoad(builder, funcObj->getLLVMLocalVar(funcObj->getReturnVar()->getName()), "return_val_temp");
+        LLVMBuildRet(builder, retValueRef);
         return;
     }
 
-    if (funcObj->getReturnVar()->getTypeDecl()->getTypeTag() == TYPE_TAG_NIL) {
+    LLVMValueRef globRetRef = getPackage()->getGlobalLLVMVar("_bal_result");
+    if (globRetRef == nullptr) {
         LLVMBuildRetVoid(builder);
         return;
     }
-
-    LLVMValueRef retValueRef = LLVMBuildLoad(builder, funcObj->getLLVMLocalVar("%0"), "retrun_temp");
-    LLVMBuildRet(builder, retValueRef);
+    LLVMValueRef retValRef = LLVMBuildLoad(builder, globRetRef, "return_val_temp");
+    LLVMBuildRet(builder, retValRef);
 }
 
 } // namespace nballerina

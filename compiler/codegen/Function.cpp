@@ -94,13 +94,14 @@ LLVMTypeRef Function::getLLVMTypeOfReturnVal() {
     // if main function return type is void, but user wants to return some
     // value using _bal_result (global variable from BIR), change main function
     // return type from void to global variable (_bal_result) type.
-    if (type->getTypeTag() == TYPE_TAG_NIL || type->getTypeTag() == TYPE_TAG_VOID) {
+    if (isMainFunction()) {
+        assert(type->getTypeTag() == TYPE_TAG_NIL);
         Variable *globRetVar = parentPackage->getGlobalVariable("_bal_result");
-        if (globRetVar != nullptr) {
-            type = globRetVar->getTypeDecl();
+        if (globRetVar == nullptr) {
+            return LLVMVoidType();
         }
+        return parentPackage->getLLVMTypeOfType(globRetVar->getTypeDecl());
     }
-
     return parentPackage->getLLVMTypeOfType(type);
 }
 
@@ -145,6 +146,8 @@ LLVMValueRef Function::getLLVMLocalOrGlobalVar(Operand *op) {
 
 Package *Function::getPackage() { return parentPackage; }
 size_t Function::getNumParams() { return requiredParams.size(); }
+
+bool Function::isMainFunction() { return (name.compare(MAIN_FUNCTION_NAME) == 0); }
 
 void Function::translate(LLVMModuleRef &modRef) {
 

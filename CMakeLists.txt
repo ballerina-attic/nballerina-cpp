@@ -4,6 +4,9 @@ if (NOT UNIX)
 endif()
 project(nballerina VERSION 0.0.1 LANGUAGES CXX)
 
+# Use C++17 standard
+set(CMAKE_CXX_STANDARD 17)
+
 # Find and loacd LLVM components
 find_package(LLVM 11 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")

@@ -40,6 +40,8 @@ LLVMValueRef Package::getGlobalLLVMVar(const std::string &globVar) {
     return varIt->second;
 }
 
+LLVMValueRef Package::getGlobalNilVar() { return getGlobalLLVMVar(BAL_NIL_VALUE); }
+
 std::string Package::getOrgName() { return org; }
 std::string Package::getPackageName() { return name; }
 std::string Package::getVersion() { return version; }
@@ -76,6 +78,8 @@ LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
         return LLVMPointerType(LLVMInt8Type(), 0);
+    case TYPE_TAG_NIL:
+        return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
         return wrap(boxType);
     default:
@@ -100,8 +104,16 @@ void Package::translate(LLVMModuleRef &modRef) {
                                      llvm::GlobalValue::ExternalLinkage, initValue, varName, nullptr);
         gVar->setAlignment(llvm::Align(4));
         LLVMValueRef globVarRef = wrap(gVar);
-        globalVarRefs.insert({globVar->getName(), globVarRef});
+        globalVarRefs.insert({varName, globVarRef});
     }
+
+    // create global var for nil value
+    llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
+    llvm::GlobalVariable *gVar =
+        new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
+                                 llvm::GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, 0);
+    LLVMValueRef globVarRef = llvm::wrap(gVar);
+    globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
 
     // creating struct smart pointer to store any type variables data.
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
@@ -123,10 +135,7 @@ void Package::translate(LLVMModuleRef &modRef) {
         if (function->getRestParam() != nullptr) {
             isVarArg = true;
         }
-        // TODO why skip if there is no return
-        if (function->getReturnVar() == nullptr) {
-            continue;
-        }
+        assert(function->getReturnVar());
         for (size_t i = 0; i < numParams; i++) {
             FunctionParam *funcParam = function->getParam(i);
             assert(funcParam->getType());

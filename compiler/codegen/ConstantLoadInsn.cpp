@@ -16,11 +16,11 @@
  * under the License.
  */
 
+#include "ConstantLoad.h"
+#include "Function.h"
 #include "Operand.h"
 #include "Package.h"
 #include "Variable.h"
-#include "ConstantLoad.h"
-#include "Function.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -100,7 +100,15 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         break;
     }
     case TYPE_TAG_NIL: {
-        return;
+        string lhsOpName = lhsOp->getName();
+        // check for the main function and () is assigned to 0%
+        if (getFunction()->isMainFunction() && (lhsOpName.compare(getFunction()->getReturnVar()->getName()) == 0)) {
+            return;
+        }
+        LLVMValueRef constTempRef = getPackage()->getGlobalNilVar();
+        string tempName = lhsOpName + "_temp";
+        constRef = LLVMBuildLoad(builder, constTempRef, tempName.c_str());
+        break;
     }
     default:
         llvm_unreachable("Unknown Type");
