@@ -1,4 +1,9 @@
-find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" ) 
+if(CLANG_TIDY_OVERRIDE)
+    find_program( CLANG_TIDY_EXE NAMES "${CLANG_TIDY_OVERRIDE}" DOC "Path to clang-tidy executable" )
+else()
+    find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" )
+endif()
+
 if(NOT CLANG_TIDY_EXE) 
     message(STATUS "clang-tidy not found.") 
 else() 

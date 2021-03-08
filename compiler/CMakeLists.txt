@@ -60,9 +60,9 @@ target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_OPTION
 
 if(DEBUG_MODE)
     # Enable Static analysis for debug builds
-    if(CLANG_TIDY_EXE AND NOT(SKIP_ANALYSIS)) 
+    if(CLANG_TIDY_EXE AND NOT(SKIP_ANALYSE)) 
         message(STATUS "Enabling clang-tidy checks") 
-        set_target_properties(nballerinacc PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}" ) 
+        set_target_properties(nballerinacc PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}" )
     endif()
     # Enable sanitizers for debug builds
     if(NOT SKIP_SANITIZER)
