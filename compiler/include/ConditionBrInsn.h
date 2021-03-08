@@ -16,23 +16,32 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __CONDITIONBRINSN__H__
+#define __CONDITIONBRINSN__H__
 
-#include "Location.h"
+#include "TerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+class ConditionBrInsn : public TerminatorInsn {
+  private:
+    BasicBlock *ifThenBB;
+    BasicBlock *elseBB;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    ConditionBrInsn() = delete;
+    ConditionBrInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *_ifThenBB, BasicBlock *_elseBB);
+    ~ConditionBrInsn() = default;
+
+    BasicBlock *getIfThenBB();
+    BasicBlock *getElseBB();
+
+    void setIfThenBB(BasicBlock *bb);
+    void setElseBB(BasicBlock *bb);
+
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__CONDITIONBRINSN__H__

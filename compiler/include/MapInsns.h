@@ -16,23 +16,25 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __MAPSTOREINSN__H__
+#define __MAPSTOREINSN__H__
 
-#include "Location.h"
+#include "NonTerminatorInsn.h"
 
 namespace nballerina {
-
-class Debuggable {
-    Location *pos;
+class MapStoreInsn : public NonTerminatorInsn {
+  private:
+    Operand *keyOp;
+    Operand *rhsOp;
+    LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
-};
+    MapStoreInsn() = delete;
+    MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp, Operand *ROp);
+    ~MapStoreInsn() = default;
 
+    void translate(LLVMModuleRef &modRef) final;
+};
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__MAPSTOREINSN__H__

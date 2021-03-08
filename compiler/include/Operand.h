@@ -16,23 +16,24 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __OPERAND__H__
+#define __OPERAND__H__
 
-#include "Location.h"
+#include "interfaces/AbstractVariable.h"
+#include <string>
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+// Forward Declaration
+class Type;
 
+class Operand : public AbstractVariable {
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    Operand() = delete;
+    Operand(std::string name, VarKind kind) : AbstractVariable(std::move(name), kind) {}
+    virtual ~Operand() = default;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__OPERAND__H__

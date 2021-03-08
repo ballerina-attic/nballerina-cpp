@@ -16,23 +16,33 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __LOCATION__H__
+#define __LOCATION__H__
 
-#include "Location.h"
+#include <string>
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+class Location {
+  private:
+    std::string fileName;
+    const int sLine;
+    const int sCol;
+    const int eLine;
+    const int eCol;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    Location() = delete;
+    Location(std::string name, int sline, int scol, int eline, int ecol);
+    ~Location() = default;
+
+    std::string getFileName();
+    int getStartLineNum();
+    int getStartColumnNum();
+    int getEndLineNum();
+    int getEndColumnNum();
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__LOCATION__H__

@@ -16,23 +16,32 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __BINARYOPINSN__H__
+#define __BINARYOPINSN__H__
 
-#include "Location.h"
+#include "NonTerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+// Forward Declaration
+class Operand;
+class BasicBlock;
+
+class BinaryOpInsn : public NonTerminatorInsn {
+  private:
+    Operand *rhsOp1;
+    Operand *rhsOp2;
+    InstructionKind kind;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    BinaryOpInsn() = delete;
+    BinaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp1, Operand *rOp2);
+    ~BinaryOpInsn() = default;
+
+    void setInstKind(InstructionKind _kind);
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__BINARYOPINSN__H__

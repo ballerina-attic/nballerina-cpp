@@ -16,23 +16,25 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __MOVEINSN__H__
+#define __MOVEINSN__H__
 
-#include "Location.h"
+#include "NonTerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+class MoveInsn : public NonTerminatorInsn {
+  private:
+    Operand *rhsOp;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    MoveInsn() = delete;
+    MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
+    ~MoveInsn() = default;
+
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__MOVEINSN__H__

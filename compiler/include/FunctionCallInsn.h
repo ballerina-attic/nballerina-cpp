@@ -16,23 +16,35 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __FUNCTIONCALLINSN__H__
+#define __FUNCTIONCALLINSN__H__
 
-#include "Location.h"
+#include "RestParam.h"
+#include "TerminatorInsn.h"
+#include <string>
+#include <vector>
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+class FunctionCallInsn : public TerminatorInsn {
+  private:
+    std::string functionName;
+    int argCount;
+    std::vector<Operand *> argsList;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    FunctionCallInsn() = delete;
+    FunctionCallInsn(bool funcVirtual, std::string _funcName, int argNumber, BasicBlock *nextBB, Operand *lhsOp,
+                     std::vector<Operand *> &fnArgs, BasicBlock *currentBB);
+    ~FunctionCallInsn() = default;
+
+    std::string getFunctionName();
+    int getArgCount();
+    Operand *getArgumentFromList(int i);
+
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__FUNCTIONCALLINSN__H__

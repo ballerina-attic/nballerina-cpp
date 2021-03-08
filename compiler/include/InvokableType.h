@@ -16,23 +16,34 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __INVOKABLETYPE__H__
+#define __INVOKABLETYPE__H__
 
-#include "Location.h"
+#include <vector>
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+// Forward Declaration
+class Type;
+
+class InvokableType {
+  private:
+    std::vector<Type *> paramTypes;
+    Type *restType;
+    Type *returnType;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    InvokableType() = delete;
+    InvokableType(std::vector<Type *> paramTy, Type *restTy, Type *retTy);
+    InvokableType(std::vector<Type *> paramTy, Type *retTy);
+    ~InvokableType() = default;
+
+    const Type *getReturnType();
+    const Type *getRestType();
+    Type *getParamType(int i);
+    size_t getParamTypeCount();
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__INVOKABLETYPE__H__

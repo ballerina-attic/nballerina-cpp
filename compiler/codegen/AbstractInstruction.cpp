@@ -16,23 +16,15 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
-#include "Location.h"
+#include "interfaces/AbstractInstruction.h"
+#include "BasicBlock.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+AbstractInstruction::AbstractInstruction(Operand *lOp, BasicBlock *parentBB) : lhsOp(lOp), parentBB(parentBB) {}
 
-  public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
-};
+Operand *AbstractInstruction::getLHS() { return lhsOp; }
+Function *AbstractInstruction::getFunction() { return parentBB->getFunction(); }
+Package *AbstractInstruction::getPackage() { return parentBB->getPackage(); }
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

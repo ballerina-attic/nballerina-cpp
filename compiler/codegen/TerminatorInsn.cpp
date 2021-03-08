@@ -16,23 +16,19 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
-#include "Location.h"
+#include "TerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+TerminatorInsn::TerminatorInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *then, bool _patchRequire)
+    : AbstractInstruction(lOp, currentBB), thenBB(then), patchRequire(_patchRequire), kind() {}
 
-  public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
-};
+BasicBlock *TerminatorInsn::getNextBB() { return thenBB; }
+bool TerminatorInsn::getPatchStatus() { return patchRequire; }
+InstructionKind TerminatorInsn::getInstKind() { return kind; }
+void TerminatorInsn::setPatched() { patchRequire = false; }
+void TerminatorInsn::setNextBB(BasicBlock *bb) { thenBB = bb; }
+
+void TerminatorInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {}
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

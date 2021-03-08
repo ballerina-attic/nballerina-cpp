@@ -16,23 +16,27 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __NONTERMINATORINSN__H__
+#define __NONTERMINATORINSN__H__
 
-#include "Location.h"
+#include "interfaces/AbstractInstruction.h"
+#include "interfaces/Translatable.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+// Forward Declaration
+class Operand;
 
+class NonTerminatorInsn : public AbstractInstruction, public Translatable {
+  private:
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    NonTerminatorInsn() = delete;
+    NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB) : AbstractInstruction(lOp, currentBB) {}
+    virtual ~NonTerminatorInsn() = default;
+
+    virtual void translate([[maybe_unused]] LLVMModuleRef &modRef) override {}
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__NONTERMINATORINSN__H__

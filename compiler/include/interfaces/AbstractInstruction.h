@@ -16,8 +16,8 @@
  * under the License.
  */
 
-#ifndef __BALABSTRACTINSN__H__
-#define __BALABSTRACTINSN__H__
+#ifndef __ABSTRACTINSN__H__
+#define __ABSTRACTINSN__H__
 
 #include "interfaces/Debuggable.h"
 #include "interfaces/PackageNode.h"
@@ -88,4 +88,4 @@ class AbstractInstruction : public Debuggable, public PackageNode {
 
 } // namespace nballerina
 
-#endif //!__BALABSTRACTINSN__H__
+#endif //!__ABSTRACTINSN__H__

@@ -17,7 +17,7 @@
  */
 
 #include "BIRReader.h"
-#include "BalPackage.h"
+#include "Package.h"
 #include <fstream>
 #include <iostream>
 #include <llvm-c/Core.h>

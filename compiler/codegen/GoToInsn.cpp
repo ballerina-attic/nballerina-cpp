@@ -16,23 +16,20 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
-#include "Location.h"
+#include "BasicBlock.h"
+#include "Function.h"
+#include "GoToInsn.h"
+#include "llvm-c/Core.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+GoToInsn::GoToInsn(BasicBlock *nextBB, BasicBlock *currentBB) : TerminatorInsn(nullptr, currentBB, nextBB, true) {
+    kind = INSTRUCTION_KIND_GOTO;
+}
 
-  public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
-};
+void GoToInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
+    LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
+    LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
+}
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

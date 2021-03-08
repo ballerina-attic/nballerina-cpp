@@ -16,23 +16,24 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __RESTPARAM__H__
+#define __RESTPARAM__H__
 
-#include "Location.h"
+#include <string>
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+class RestParam {
+  private:
+    std::string name;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    RestParam() = default;
+    ~RestParam() = default;
+
+    std::string getName() { return name; }
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__RESTPARAM__H__

@@ -16,23 +16,26 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __TYPETESTINSN__H__
+#define __TYPETESTINSN__H__
 
-#include "Location.h"
+#include "NonTerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+// Forward Declare
+class Type;
+class Operand;
+
+class TypeTestInsn : public NonTerminatorInsn {
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    TypeTestInsn() = delete;
+    TypeTestInsn(Operand *lOp, BasicBlock *currentBB, [[maybe_unused]] Operand *rOp, [[maybe_unused]] Type *tDecl)
+        : NonTerminatorInsn(lOp, currentBB) {}
+    ~TypeTestInsn() = default;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__TYPETESTINSN__H__

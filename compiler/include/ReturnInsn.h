@@ -16,23 +16,24 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __RETURNINSN__H__
+#define __RETURNINSN__H__
 
-#include "Location.h"
+#include "TerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location *pos;
+// Forward Declaration
+class BasicBlock;
 
+class ReturnInsn : public TerminatorInsn {
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    ReturnInsn(BasicBlock *currentBB);
+    ~ReturnInsn() = default;
+
+    void translate(LLVMModuleRef &modRef) final;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__RETURNINSN__H__
