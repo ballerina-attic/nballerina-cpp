@@ -27,7 +27,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         if (!lhsOpRef)
             lhsOpRef = getPkgAddress()->getGlobalVarRefUsingId(lhsOpName);
         lhsTypeRef = LLVMTypeOf(lhsOpRef);
-        VarDecl *orignamVarDecl = funcObj->getNameVarDecl(rhsOpName);
+        VarDecl *orignamVarDecl = funcObj->getLocalVarDeclFromName(rhsOpName);
         StringTableBuilder *strTable = getPkgAddress()->getStrTableBuilder();
         if (orignamVarDecl && orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
 
@@ -49,7 +49,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
 
             // get the mangled name of the lhs type and store it to string
             // builder table.
-            VarDecl *origVarDecl = funcObj->getNameVarDecl(lhsOpName);
+            VarDecl *origVarDecl = funcObj->getLocalVarDeclFromName(lhsOpName);
             assert(origVarDecl->getTypeDecl()->getTypeTag());
             TypeTagEnum lhsTypeTag = TypeTagEnum(origVarDecl->getTypeDecl()->getTypeTag());
             char const *lhsTypeName = typeStringMangleName(lhsOpRef, lhsTypeTag);
