@@ -42,7 +42,6 @@
 #include "BalTypeTestInsn.h"
 #include "BalUnaryOpInsn.h"
 #include "BalVariable.h"
-#include "interfaces/Instruction.h"
 #include <fstream>
 
 class ConstantPoolSet;

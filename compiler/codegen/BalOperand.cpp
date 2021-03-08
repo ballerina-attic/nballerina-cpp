@@ -20,7 +20,7 @@
 
 namespace nballerina {
 
-Operand::Operand(std::string name, VarKind _kind) : VariableKind(std::move(name), _kind) {}
+Operand::Operand(std::string name, VarKind _kind) : AbstractVariable(std::move(name), _kind) {}
 
 FunctionParam::FunctionParam(std::string name) : Operand(std::move(name), ARG_VAR_KIND), type(nullptr) {}
 

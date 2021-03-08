@@ -21,7 +21,7 @@
 namespace nballerina {
 
 TerminatorInsn::TerminatorInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *then, bool _patchRequire)
-    : Instruction(lOp, currentBB), thenBB(then), patchRequire(_patchRequire), kind() {}
+    : AbstractInstruction(lOp, currentBB), thenBB(then), patchRequire(_patchRequire), kind() {}
 
 BasicBlock *TerminatorInsn::getNextBB() { return thenBB; }
 bool TerminatorInsn::getPatchStatus() { return patchRequire; }

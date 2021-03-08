@@ -20,7 +20,7 @@
 
 namespace nballerina {
 
-NonTerminatorInsn::NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB) : Instruction(lOp, currentBB) {}
+NonTerminatorInsn::NonTerminatorInsn(Operand *lOp, BasicBlock *currentBB) : AbstractInstruction(lOp, currentBB) {}
 
 void NonTerminatorInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {}
 

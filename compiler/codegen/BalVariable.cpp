@@ -20,7 +20,7 @@
 
 namespace nballerina {
 
-Variable::Variable(Type *type, std::string name, VarKind kind) : VariableKind(std::move(name), kind), type(type) {}
+Variable::Variable(Type *type, std::string name, VarKind kind) : AbstractVariable(std::move(name), kind), type(type) {}
 
 Type *Variable::getTypeDecl() { return type; }
 

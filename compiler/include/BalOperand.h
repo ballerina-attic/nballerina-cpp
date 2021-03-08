@@ -19,7 +19,7 @@
 #ifndef __BALOPERAND__H__
 #define __BALOPERAND__H__
 
-#include "interfaces/VariableKind.h"
+#include "interfaces/AbstractVariable.h"
 #include <string>
 
 namespace nballerina {
@@ -27,7 +27,7 @@ namespace nballerina {
 // Forward Declaration
 class Type;
 
-class Operand : public VariableKind {
+class Operand : public AbstractVariable {
   public:
     Operand() = delete;
     Operand(std::string name, VarKind kind);

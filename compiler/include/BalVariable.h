@@ -19,7 +19,7 @@
 #ifndef __BALVARDECL__H__
 #define __BALVARDECL__H__
 
-#include "interfaces/VariableKind.h"
+#include "interfaces/AbstractVariable.h"
 #include <string>
 
 namespace nballerina {
@@ -27,7 +27,7 @@ namespace nballerina {
 // Forward Declaration
 class Type;
 
-class Variable : public VariableKind {
+class Variable : public AbstractVariable {
   private:
     Type *type;
 

@@ -17,14 +17,14 @@
  */
 
 #include "BalBasicBlock.h"
-#include "interfaces/Instruction.h"
+#include "interfaces/AbstractInstruction.h"
 
 namespace nballerina {
 
-Instruction::Instruction(Operand *lOp, BasicBlock *parentBB) : lhsOp(lOp), parentBB(parentBB) {}
+AbstractInstruction::AbstractInstruction(Operand *lOp, BasicBlock *parentBB) : lhsOp(lOp), parentBB(parentBB) {}
 
-Operand *Instruction::getLHS() { return lhsOp; }
-Function *Instruction::getFunction() { return parentBB->getFunction(); }
-Package *Instruction::getPackage() { return parentBB->getPackage(); }
+Operand *AbstractInstruction::getLHS() { return lhsOp; }
+Function *AbstractInstruction::getFunction() { return parentBB->getFunction(); }
+Package *AbstractInstruction::getPackage() { return parentBB->getPackage(); }
 
 } // namespace nballerina

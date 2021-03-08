@@ -16,8 +16,8 @@
  * under the License.
  */
 
-#ifndef __VARIABLEKIND__H__
-#define __VARIABLEKIND__H__
+#ifndef __ABSTRACTVARIABLE__H__
+#define __ABSTRACTVARIABLE__H__
 
 #include <string>
 
@@ -33,15 +33,15 @@ enum VarKind {
     CONSTANT_VAR_KIND = 7
 };
 
-class VariableKind {
+class AbstractVariable {
   private:
     std::string name;
     VarKind kind;
 
   public:
-    VariableKind() = delete;
-    VariableKind(std::string _name, VarKind _kind) : name(_name), kind(_kind) {}
-    virtual ~VariableKind() = default;
+    AbstractVariable() = delete;
+    AbstractVariable(std::string _name, VarKind _kind) : name(_name), kind(_kind) {}
+    virtual ~AbstractVariable() = default;
 
     VarKind getKind() { return kind; }
     std::string &getName() { return name; };
@@ -49,4 +49,4 @@ class VariableKind {
 
 } // namespace nballerina
 
-#endif //!__VARIABLEKIND__H__
+#endif //!__ABSTRACTVARIABLE__H__

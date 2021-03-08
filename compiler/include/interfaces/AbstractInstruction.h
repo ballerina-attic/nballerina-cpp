@@ -70,7 +70,7 @@ enum InstructionKind {
     INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
 };
 
-class Instruction : public Debuggable, public PackageNode {
+class AbstractInstruction : public Debuggable, public PackageNode {
   private:
     Operand *lhsOp;
     BasicBlock *parentBB;
@@ -80,9 +80,9 @@ class Instruction : public Debuggable, public PackageNode {
     Function *getFunction();
 
   public:
-    Instruction() = delete;
-    Instruction(Operand *lOp, BasicBlock *parentBB);
-    virtual ~Instruction() = default;
+    AbstractInstruction() = delete;
+    AbstractInstruction(Operand *lOp, BasicBlock *parentBB);
+    virtual ~AbstractInstruction() = default;
     Package *getPackage() final;
 };
 
