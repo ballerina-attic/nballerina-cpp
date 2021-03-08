@@ -287,7 +287,6 @@ StructureInsn *ReadStructureInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
 
 // Read CONST_LOAD Insn
 ConstantLoadInsn *ReadConstLoadInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
-
     uint32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
     Operand *lhsOperand = readerRef.readOperand();
     ConstantLoadInsn *constantloadInsn = new ConstantLoadInsn(lhsOperand, currentBB);
@@ -462,10 +461,8 @@ GoToInsn *ReadGoToInsn::readTerminatorInsn(BasicBlock *currentBB) {
 
 ReturnInsn *ReadReturnInsn::readTerminatorInsn(BasicBlock *currentBB) { return new ReturnInsn(currentBB); }
 
-// Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the
-// BIR
+// Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the BIR
 void BIRReader::readInsn(BasicBlock *basicBlock) {
-
     uint32_t sLine = readS4be();
     uint32_t eLine = readS4be();
     uint32_t sCol = readS4be();
@@ -595,40 +592,41 @@ void BIRReader::patchInsn(vector<BasicBlock *> basicBlocks) {
     for (auto const &basicBlock : basicBlocks) {
         Function *curFunc = basicBlock->getFunction();
         TerminatorInsn *terminator = basicBlock->getTerminatorInsn();
-        if (terminator && terminator->getPatchStatus()) {
-            switch (terminator->getInstKind()) {
-            case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
-                ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *>(terminator));
-                BasicBlock *trueBB = curFunc->FindBasicBlock(Terminator->getIfThenBB()->getId());
-                BasicBlock *falseBB = curFunc->FindBasicBlock(Terminator->getElseBB()->getId());
-                BasicBlock *danglingTrueBB = Terminator->getIfThenBB();
-                BasicBlock *danglingFalseBB = Terminator->getElseBB();
-                delete danglingTrueBB;
-                delete danglingFalseBB;
-                Terminator->setIfThenBB(trueBB);
-                Terminator->setElseBB(falseBB);
-                Terminator->setPatched();
-                break;
-            }
-            case INSTRUCTION_KIND_GOTO: {
-                BasicBlock *destBB = curFunc->FindBasicBlock(terminator->getNextBB()->getId());
-                BasicBlock *danglingBB = terminator->getNextBB();
-                delete danglingBB;
-                terminator->setNextBB(destBB);
-                terminator->setPatched();
-                break;
-            }
-            case INSTRUCTION_KIND_CALL: {
-                BasicBlock *destBB = curFunc->FindBasicBlock(terminator->getNextBB()->getId());
-                BasicBlock *danglingBB = terminator->getNextBB();
-                delete danglingBB;
-                terminator->setNextBB(destBB);
-                break;
-            }
-            default:
-                fprintf(stderr, "%s:%d Invalid Insn Kind for Instruction Patching.\n", __FILE__, __LINE__);
-                break;
-            }
+        if ((terminator == nullptr) || !terminator->getPatchStatus()) {
+            continue;
+        }
+        switch (terminator->getInstKind()) {
+        case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
+            ConditionBrInsn *Terminator = (static_cast<ConditionBrInsn *>(terminator));
+            BasicBlock *trueBB = curFunc->FindBasicBlock(Terminator->getIfThenBB()->getId());
+            BasicBlock *falseBB = curFunc->FindBasicBlock(Terminator->getElseBB()->getId());
+            BasicBlock *danglingTrueBB = Terminator->getIfThenBB();
+            BasicBlock *danglingFalseBB = Terminator->getElseBB();
+            delete danglingTrueBB;
+            delete danglingFalseBB;
+            Terminator->setIfThenBB(trueBB);
+            Terminator->setElseBB(falseBB);
+            Terminator->setPatched();
+            break;
+        }
+        case INSTRUCTION_KIND_GOTO: {
+            BasicBlock *destBB = curFunc->FindBasicBlock(terminator->getNextBB()->getId());
+            BasicBlock *danglingBB = terminator->getNextBB();
+            delete danglingBB;
+            terminator->setNextBB(destBB);
+            terminator->setPatched();
+            break;
+        }
+        case INSTRUCTION_KIND_CALL: {
+            BasicBlock *destBB = curFunc->FindBasicBlock(terminator->getNextBB()->getId());
+            BasicBlock *danglingBB = terminator->getNextBB();
+            delete danglingBB;
+            terminator->setNextBB(destBB);
+            break;
+        }
+        default:
+            std::fprintf(stderr, "%s:%d Invalid Insn Kind for Instruction Patching.\n", __FILE__, __LINE__);
+            break;
         }
     }
 }
