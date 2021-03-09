@@ -7,32 +7,29 @@ Translate Ballerina IR to LLVM IR.
 * `pip3 install lit filecheck`
 
 ### Build steps
-1. `cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build/`
+1. `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`
 2. `cmake --build ./build/ -- -j`
 
 This will build:
 * The Rust runtime : runtime/target/release/libballerina_rt.so
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
+### Usage
+* Run nballerinacc against a BIR dump file (using `ballerina build -dump-bir-file=<output> <input>`) to generate the .ll LLVM IR file
+ 
+        ./nballerinacc <bir dump file path>
+* The .ll file can be compiled into an executable using clang and the compiled runtime library
+ 
+        clang -O0 -o $filename.out $filename-bir-dump.ll -L../runtime/target/release/ -lballerina_rt
+
 ### Run tests
 1. Install Java 8 runtime (e.g. openjdk-8-jre on ubuntu)
 2. Create `JAVA_HOME` environment variable and point it to the Java install dir
-3. Get this specific Ballerina version : [link](https://drive.google.com/file/d/1a1TlJdw-rTtCLOFrrvJe4nr1FkGzwpKH/view?usp=sharing)
+3. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010)
 4. Extract Ballerina pack and add the `bin` folder with the `ballerina` executable to your `PATH` system variable 
 5. Run:
 
         cmake --build ./build/ -t check
-
-### Usage
-* Run nballerinacc against a BIR dump file to generate the .ll LLVM IR file
- 
-        ./nballerinacc ../compiler/main-bir-dump
-* The .ll file can be compiled into an a.out by invoking clang with -O0 option.
- 
-        clang -O0 main-bir-dump.ll
-  * The -O0 is required because the optimizer will otherwise optimize everything away. 
-* Running the a.out and checking the return value on the command-line by using "echo $?" will yield the int value returned by the function. 
-* The a.out can be disassembled using "objdump -d" to see the machine instructions
 
 ### To codegen the C header for the Rust runtime lib
 1. Install cbindgen
@@ -53,7 +50,7 @@ This will build:
 
 ### Build steps
 1.  `cd build`
-2. `cmake ../ -DCMAKE_BUILD_TYPE=Debug -DLLVM_DIR=/usr/local/opt/llvm/lib/cmake/llvm/ -DCMAKE_CXX_STANDARD=14`
+2. `cmake ../ -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/usr/local/opt/llvm/lib/cmake/llvm/ -DCMAKE_CXX_STANDARD=14`
 3. `make -j`
 
 This will build:
@@ -125,3 +122,32 @@ Clone the nballerina source and run below commands.
 
 ### Run tests
 * Tests are currently not supported in Windows
+
+
+## Setting up for Development (Ubuntu 20.04)
+
+* First setup dev environment following the build from source guide for your platform
+* Install the following additional dependencies
+
+        sudo apt install clang-tidy (or a newer version)
+
+### Debug Builds 
+
+By default debug build enables both sanitizers (via gcc or clang) and static analysis (via clang-tidy). To build a debug build use the following command template:
+
+
+        cmake -DCMAKE_BUILD_TYPE=Release <additional flags> -S . -B build/
+        cmake --build ./build/
+
+The valid additional flags are listed below:
+* `-DSKIP_SANITIZER=ON` : Don't enable sanitizers
+  * `-USKIP_SANITIZER` To unset it
+* `-DSKIP_ANALYSE=ON` : Don't enable static analysis
+  * `-USKIP_ANALYSE` To unset it
+* `-DCLANG_TIDY_OVERRIDE=<compiler name>` : Override default clang-tidy executable name e.g. `-DCLANG_TIDY_OVERRIDE=clang-tidy-11`
+* `-DCMAKE_CXX_COMPILER=<compiler name>` : Override default compiler e.g. `-DCMAKE_CXX_COMPILER=clang++-11`, `-DCMAKE_CXX_COMPILER=g++`
+
+**Additional notes:**
+* Don't use parallel builds with static analysis ON; otherwise the suggestions dumped on stdout will be hard to parse
+* To disable certain clang-tidy checks, add them to the list @ line 11 in the `Clang-tidy.cmake` file
+* To enable/disable specific sanitizers, edit the wnd of `Sanitizers.cmake` file
