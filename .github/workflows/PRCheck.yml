@@ -8,27 +8,46 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-      
-    - name: Clone nballerina repository
-      uses: actions/checkout@v2
-      with:
-        repository: llvm/llvm-project
-        ref: 'master'
-        path: 'nballerina'
-        
-   - name: Build LLVM and nballerina compiler
-      run: (export LLVM_INSTALL_ROOT = nballerina/build/llvm_install && mkdir nballerina/   build/llvm && cd nballerina/build/llvm &&
-            cmake -DCMAKE_BUILD_TYPE="Release"
-            -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_ROOT"
-            -DBUILD_SHARED_LIBS=True
-            -DLLVM_USE_SPLIT_DWARF=True
-            -DLLVM_OPTIMIZED_TABLEGEN=True
-            -DLLVM_BUILD_TESTS=True
-            ../../llvm-project-master/llvm &&
-            make -j$(nproc) &&
-            make install)
-                              
+    runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2 
+      - name: Install utils
+        run: | 
+          sudo apt update
+          sudo apt install -y llvm-11-dev cargo python3-pip
+          cargo install cbindgen
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pip3 install lit filecheck
+
+      - name: Install JRE 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+          java-package: jre
+          architecture: x64
+
+      - name: Clone nBallerina
+        uses: actions/checkout@v2
+
+      - name: Build nballerinacc
+        run: | 
+          cmake -DCMAKE_BUILD_TYPE=Release ../
+          make -j
+        working-directory: ./build
+      
+      - name: Build runtime header
+        run: | 
+          make runtime_header
+        working-directory: ./build
+      
+      - name: Setup Ballerina pack
+        run: |
+          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-Preview2-nballerina-r1/jballerina-tools-2.0.0-Preview2-nballerina-r1.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
+          unzip -q jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
+          cd jballerina-tools-2.0.0-Preview2-nballerina-r1/bin
+          echo $(pwd) >> $GITHUB_PATH
+        working-directory: ./build
+
+      - name: Run LIT tests
+        run: | 
+          make check
+        working-directory: ./build

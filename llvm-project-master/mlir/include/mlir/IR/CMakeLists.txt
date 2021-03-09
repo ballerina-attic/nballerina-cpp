@@ -1,3 +1,0 @@
-add_mlir_interface(OpAsmInterface)
-add_mlir_interface(SymbolInterfaces)
-add_mlir_interface(RegionKindInterface)
