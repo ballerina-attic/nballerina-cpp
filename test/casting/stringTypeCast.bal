@@ -11,7 +11,8 @@ public function bar(any z) returns string
 public function main() {
     string b = "Hello World";
     string c = bar(b);
+    print_str("RESULT=");
     print_str(c);
 }
 
-// CHECK: RETVAL=Hello World
+// CHECK: RESULT=Hello World

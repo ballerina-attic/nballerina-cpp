@@ -4,6 +4,7 @@ public function print_str(string val) = external;
 
 public function main() {
     string str = "Hello World!";
+    print_str("RESULT=");
     print_str(str);
 }
-// CHECK: RETVAL=Hello World!
+// CHECK: RESULT=Hello World!
