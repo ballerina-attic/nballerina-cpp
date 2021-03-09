@@ -129,7 +129,7 @@ Clone the nballerina source and run below commands.
 * First setup dev environment following the build from source guide for your platform
 * Install the following additional dependencies
 
-        sudo apt install clang-tidy (or a newer version)
+        sudo apt install gcovr clang-tidy (or a newer version)
 
 ### Debug Builds 
 
@@ -146,6 +146,10 @@ The valid additional flags are listed below:
   * `-USKIP_ANALYSE` To unset it
 * `-DCLANG_TIDY_OVERRIDE=<compiler name>` : Override default clang-tidy executable name e.g. `-DCLANG_TIDY_OVERRIDE=clang-tidy-11`
 * `-DCMAKE_CXX_COMPILER=<compiler name>` : Override default compiler e.g. `-DCMAKE_CXX_COMPILER=clang++-11`, `-DCMAKE_CXX_COMPILER=g++`
+* `-DENABLE_COVERAGE=ON` : Enable code coverage
+  * Valid only for debug builds
+  * Launch code coverage test via `cmake --build ./build/ -t nballerinacc_coverage`
+  * `-UENABLE_COVERAGE` To unset it
 
 **Additional notes:**
 * Don't use parallel builds with static analysis ON; otherwise the suggestions dumped on stdout will be hard to parse

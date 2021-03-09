@@ -58,6 +58,7 @@ endif()
 target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
 target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
 
+
 if(DEBUG_MODE)
     # Enable Static analysis for debug builds
     if(CLANG_TIDY_EXE AND NOT(SKIP_ANALYSE)) 
@@ -67,6 +68,16 @@ if(DEBUG_MODE)
     # Enable sanitizers for debug builds
     if(NOT SKIP_SANITIZER)
         add_sanitizers()
+    endif()
+    # Enable code coverage flags
+    if(ENABLE_COVERAGE)
+        message(STATUS "Enabling code coverage flags")
+        include(CodeCoverage.cmake)
+        append_coverage_compiler_flags()
+        setup_target_for_coverage_gcovr_html(NAME nballerinacc_coverage 
+            EXECUTABLE ../test/cov_test_launch.sh 
+            DEPENDENCIES nballerinacc 
+            EXCLUDE "compiler/include")
     endif()
 else()
     # Enable Link time optimizations for Release builds
