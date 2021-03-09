@@ -36,6 +36,6 @@ fi
 
 export LD_LIBRARY_PATH=../../../runtime/target/release
 
-echo RETVAL=$(./$filename.out)
+./$filename.out
 
 rm $filename-bir-dump.ll $filename.out

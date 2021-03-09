@@ -1,5 +1,7 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
+public function print_str(string val) = external;
+
 public function printu32(int val) = external;
 
 int _bal_result = 0;
@@ -11,7 +13,7 @@ public function main() {
     int i = 0;
     boolean e = false;
     boolean f = false;
-    c  = a + b;
+    c = a + b;
     c = a - b;
     c = a * b;
     c = a / b;
@@ -20,33 +22,34 @@ public function main() {
     e = !f;
     int k = ~a;
     if (a == 10) {
-      _bal_result = _bal_result + 1;
+        _bal_result = _bal_result + 1;
     }
     if (a < b) {
-      e = false;
-      _bal_result = _bal_result + 1;
+        e = false;
+        _bal_result = _bal_result + 1;
     }
     if (a > b) {
-      f = true;
-      _bal_result = _bal_result + 1;
+        f = true;
+        _bal_result = _bal_result + 1;
     }
-    if ( a <= b) {
-      e = true;
-      _bal_result = _bal_result + 1;
+    if (a <= b) {
+        e = true;
+        _bal_result = _bal_result + 1;
     }
     if (a >= b) {
-      f = false;
-      _bal_result = _bal_result + 1;
+        f = false;
+        _bal_result = _bal_result + 1;
     }
     else {
-      f = true;
-      _bal_result = _bal_result + 1;
+        f = true;
+        _bal_result = _bal_result + 1;
     }
     while (i < 10) {
-      i = i + 1;
-      _bal_result = _bal_result + 1;
+        i = i + 1;
+        _bal_result = _bal_result + 1;
     }
+    print_str("RESULT=");
     printu32(_bal_result);
 }
 
-// CHECK: RETVAL=13
+// CHECK: RESULT=13
