@@ -30,14 +30,12 @@ jobs:
 
       - name: Build nballerinacc
         run: | 
-          cmake -DCMAKE_BUILD_TYPE=Release ../
-          make -j
-        working-directory: ./build
+          cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/
+          cmake --build ./build/ -- -j
       
       - name: Build runtime header
         run: | 
-          make runtime_header
-        working-directory: ./build
+          cmake --build ./build/ -t runtime_header
       
       - name: Setup Ballerina pack
         run: |
@@ -49,5 +47,5 @@ jobs:
 
       - name: Run LIT tests
         run: | 
-          make check
-        working-directory: ./build
+          cmake --build ./build/ -t check
+        working-directory: ./

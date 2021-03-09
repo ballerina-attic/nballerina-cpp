@@ -7,9 +7,8 @@ Translate Ballerina IR to LLVM IR.
 * `pip3 install lit filecheck`
 
 ### Build steps
-1.  `cd build`
-2. `cmake ../ -DCMAKE_BUILD_TYPE=Debug`
-3. `make -j`
+1. `cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build/`
+2. `cmake --build ./build/ -- -j`
 
 This will build:
 * The Rust runtime : runtime/target/release/libballerina_rt.so
@@ -20,10 +19,9 @@ This will build:
 2. Create `JAVA_HOME` environment variable and point it to the Java install dir
 3. Get this specific Ballerina version : [link](https://drive.google.com/file/d/1a1TlJdw-rTtCLOFrrvJe4nr1FkGzwpKH/view?usp=sharing)
 4. Extract Ballerina pack and add the `bin` folder with the `ballerina` executable to your `PATH` system variable 
-5. Navigate to nBallerina `build/` folder and run tests
+5. Run:
 
-        cd build/
-        make check
+        cmake --build ./build/ -t check
 
 ### Usage
 * Run nballerinacc against a BIR dump file to generate the .ll LLVM IR file
@@ -42,8 +40,7 @@ This will build:
         cargo install cbindgen
 2. Execute build command
 
-        cd build/
-        make runtime_header
+        cmake --build ./build/ -t runtime_header
 3. The generated header will be at : runtime/include/ballerina_rt.h
 
 
