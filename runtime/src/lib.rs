@@ -25,7 +25,6 @@ use std::ffi::CStr;
 use std::mem;
 use std::os::raw::c_char;
 use std::slice;
-use std::io::{self, Write};
 
 mod bal_map;
 pub use bal_map::map::BalMapInt;
@@ -77,8 +76,7 @@ pub extern "C" fn printu64(num64: u64) {
 // Prints 32 bit unsigned integer
 #[no_mangle]
 pub extern "C" fn printu32(num32: u32) {
-    print!("{}", num32);
-    io::stdout().flush().unwrap();
+    println!("{}", num32);
 }
 
 // Prints 16 bit unsigned integer
@@ -111,7 +109,6 @@ pub extern "C" fn print_str(val: *const c_char) {
     let cstr: &CStr = unsafe { CStr::from_ptr(val) };
     let string: String = cstr.to_str().unwrap().to_owned();
     print!("{}", string);
-    io::stdout().flush().unwrap();
 }
 
 #[no_mangle]
