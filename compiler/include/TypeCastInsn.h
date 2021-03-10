@@ -30,9 +30,8 @@ class Operand;
 
 class TypeCastInsn : public NonTerminatorInsn {
   private:
-    Operand *rhsOp;
-    LLVMValueRef getIsSameTypeDeclaration(LLVMModuleRef &modRef, Package *pkg, LLVMValueRef lhsRef,
-                                          LLVMValueRef rhsRef);
+    Operand rhsOp;
+    LLVMValueRef getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
     LLVMValueRef generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag);
     LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
     static bool isBoxValueSupport(TypeTag typeTag);
@@ -40,7 +39,7 @@ class TypeCastInsn : public NonTerminatorInsn {
 
   public:
     TypeCastInsn() = delete;
-    TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp, Type *tDecl, bool checkTypes);
+    TypeCastInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp);
     ~TypeCastInsn() = default;
     void translate(LLVMModuleRef &modRef) final;
 };

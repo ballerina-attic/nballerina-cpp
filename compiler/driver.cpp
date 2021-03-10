@@ -22,6 +22,7 @@
 #include <iostream>
 #include <llvm-c/Core.h>
 #include <llvm/ADT/Triple.h>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -64,11 +65,12 @@ int main(int argc, char **argv) {
     }
 
     BIRReader::reader.setFileStream(inFileName);
-    BIRReader::reader.deserialize();
-    Package &birPackage = BIRReader::reader.birPackage;
+
+    std::shared_ptr<nballerina::Package> birPackage = BIRReader::reader.deserialize();
+
     char *message;
     bool dumpLlvm = true; // temp value
-    string moduleName = birPackage.getOrgName() + birPackage.getPackageName() + birPackage.getVersion();
+    string moduleName = birPackage->getOrgName() + birPackage->getPackageName() + birPackage->getVersion();
     LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
     const char *tripleStr = LLVM_DEFAULT_TARGET_TRIPLE;
 
@@ -85,10 +87,10 @@ int main(int argc, char **argv) {
         }
     }
 
-    LLVMSetSourceFileName(mod, birPackage.getSrcFileName().c_str(), birPackage.getSrcFileName().length());
+    LLVMSetSourceFileName(mod, birPackage->getSrcFileName().c_str(), birPackage->getSrcFileName().length());
     LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
     LLVMSetTarget(mod, tripleStr);
-    birPackage.translate(mod);
+    birPackage->translate(mod);
 
     if (dumpLlvm) {
         if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &message)) {

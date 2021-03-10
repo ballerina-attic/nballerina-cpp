@@ -16,8 +16,8 @@
  * under the License.
  */
 
-#include "Function.h"
 #include "MoveInsn.h"
+#include "Function.h"
 #include "Operand.h"
 #include "Package.h"
 #include "Variable.h"
@@ -25,13 +25,15 @@
 
 namespace nballerina {
 
-MoveInsn::MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp) : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp) {}
+MoveInsn::MoveInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhsOp) {}
 
-void MoveInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
+void MoveInsn::translate(LLVMModuleRef &) {
 
-    LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-    LLVMValueRef lhsRef = getFunction()->getLLVMLocalOrGlobalVar(getLHS());
-    LLVMValueRef rhsVarOpRef = getFunction()->getTempLocalVariable(rhsOp);
+    const auto &funcRef = getFunctionRef();
+    LLVMBuilderRef builder = funcRef.getLLVMBuilder();
+    LLVMValueRef lhsRef = funcRef.getLLVMLocalOrGlobalVar(getLhsOperand());
+    LLVMValueRef rhsVarOpRef = funcRef.createTempVariable(rhsOp);
     LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
 }
 

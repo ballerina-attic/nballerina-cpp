@@ -29,12 +29,12 @@ class Variable;
 
 class StructureInsn : public NonTerminatorInsn {
   private:
-    void mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef);
+    void mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
     LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef);
 
   public:
     StructureInsn() = delete;
-    StructureInsn(Operand *lOp, BasicBlock *currentBB, Operand *rhsOp);
+    StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);
     ~StructureInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

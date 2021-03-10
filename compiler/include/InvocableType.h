@@ -16,19 +16,31 @@
  * under the License.
  */
 
-#ifndef __PACKAGENODE__H__
-#define __PACKAGENODE__H__
+#ifndef __INVOCABLETYPE__H__
+#define __INVOCABLETYPE__H__
+
+#include "Types.h"
+#include <optional>
+#include <vector>
 
 namespace nballerina {
 
 // Forward Declaration
-class Package;
+class Type;
 
-class PackageNode {
+class InvocableType {
+  private:
+    std::vector<Type> paramTypes;
+    Type returnType;
+    std::optional<Type> restType;
+
   public:
-    virtual Package *getPackage() = 0;
+    InvocableType() = delete;
+    InvocableType(std::vector<Type> paramTy, const Type &restTy, const Type &retTy);
+    InvocableType(std::vector<Type> paramTy, const Type &retTy);
+    ~InvocableType() = default;
 };
 
 } // namespace nballerina
 
-#endif //!__PACKAGENODE__H__
+#endif //!__INVOCABLETYPE__H__

@@ -19,64 +19,72 @@
 #ifndef __PACKAGE__H__
 #define __PACKAGE__H__
 
+#include "Function.h"
+#include "Variable.h"
 #include "interfaces/Translatable.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace nballerina {
 
 // Forward Declaration
-class Function;
-class Variable;
 class Type;
 
 class Package : public Translatable {
   private:
+    inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     std::string org;
     std::string name;
     std::string version;
     std::string sourceFileName;
-    std::vector<Function *> functions;
-    std::map<std::string, Variable *> globalVars;
+    std::map<std::string, Variable> globalVars;
     std::map<std::string, LLVMValueRef> globalVarRefs;
-    std::map<std::string, Function *> functionLookUp;
-    llvm::StructType *boxType;
-    llvm::StringTableBuilder *strBuilder;
+    std::map<std::string, std::shared_ptr<Function>> functionLookUp;
+    std::unique_ptr<llvm::StructType> boxType;
+    std::unique_ptr<llvm::StringTableBuilder> strBuilder;
     std::map<std::string, std::vector<LLVMValueRef>> structElementStoreInst;
     std::map<std::string, LLVMValueRef> functionRefs;
+    std::vector<std::unique_ptr<llvm::GlobalVariable>> globalStringValues;
     void applyStringOffsetRelocations(LLVMModuleRef &modRef);
-    inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     LLVMValueRef strBuilderGlobalPtr;
-    void setStringBuilderTableGlobalPointer(LLVMValueRef strTblPtr);
 
   public:
     Package() = default;
     ~Package() = default;
+    Package(const Package &) = delete;
+    Package(Package &&obj) noexcept = delete;
+    Package &operator=(const Package &obj) = delete;
+    Package &operator=(Package &&obj) noexcept = delete;
 
-    std::string getOrgName();
-    std::string getPackageName();
-    std::string getVersion();
-    std::string getSrcFileName();
-    Variable *getGlobalVariable(const std::string &name);
-    LLVMValueRef getGlobalLLVMVar(const std::string &globVar);
-    LLVMTypeRef getLLVMTypeOfType(Type *typeD);
-    llvm::StringTableBuilder *getStrTableBuilder();
-    Function *getFunction(const std::string &name);
-    LLVMValueRef getFunctionRef(const std::string &arrayName);
-    LLVMValueRef getGlobalNilVar();
+    const std::string &getOrgName() const;
+    const std::string &getVersion() const;
+    const std::string &getSrcFileName() const;
+    const std::string &getPackageName() const;
+    const Function &getFunction(const std::string &name) const;
+    LLVMValueRef getGlobalLLVMVar(const std::string &globVar) const;
+    LLVMTypeRef getLLVMTypeOfType(const Type &type) const;
+    LLVMValueRef getFunctionRef(const std::string &arrayName) const;
+    LLVMValueRef getGlobalNilVar() const;
     LLVMValueRef getStringBuilderTableGlobalPointer();
+    // Return is optional only because we need to support _bal_resul
+    // ToDo remove optional when support for _bal_result is removed
+    std::optional<Variable> getGlobalVariable(const std::string &name) const;
 
+    void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
     void setPackageName(std::string pkgName);
     void setVersion(std::string verName);
     void setSrcFileName(std::string srcFileName);
-    void insertGlobalVar(Variable *var);
-    void insertFunction(Function *function);
-    void addFunctionRef(const std::string &, LLVMValueRef functionRef);
-    void addStringOffsetRelocationEntry(const std::string &, LLVMValueRef storeInsn);
+    void insertGlobalVar(Variable var);
+    void insertFunction(const std::shared_ptr<Function> &function);
+    void addFunctionRef(const std::string &arrayName, LLVMValueRef functionRef);
+    void addStringOffsetRelocationEntry(const std::string &eleType, LLVMValueRef storeInsn);
+
     void translate(LLVMModuleRef &modRef) final;
 };
 

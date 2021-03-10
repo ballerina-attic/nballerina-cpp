@@ -24,9 +24,6 @@
 
 namespace nballerina {
 
-// Forward Declaration
-class Type;
-
 class Operand : public AbstractVariable {
   public:
     Operand() = delete;
