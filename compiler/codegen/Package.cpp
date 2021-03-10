@@ -152,7 +152,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     // iterating over each function translate the function body.
     for (const auto &function : functions) {
         if ((function->getFlags() & NATIVE) == NATIVE)
-          continue;
+            continue;
         function->translate(modRef);
     }
 
