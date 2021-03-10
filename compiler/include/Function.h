@@ -39,8 +39,8 @@ class Type;
 class Package;
 
 // Function flags
-static constexpr long PUBLIC = 1;
-static constexpr long NATIVE = PUBLIC << 1;
+static constexpr unsigned int PUBLIC = 1;
+static constexpr unsigned int NATIVE = PUBLIC << 1;
 
 class Function : public PackageNode, public Debuggable, public Translatable {
   private:
