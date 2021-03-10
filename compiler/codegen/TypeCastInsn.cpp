@@ -24,6 +24,9 @@
 #include "Variable.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
+#ifndef unix
+#define __attribute__(unused)
+#endif
 
 using namespace std;
 using namespace llvm;
