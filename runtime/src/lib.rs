@@ -22,6 +22,7 @@
 mod type_checker;
 
 use std::ffi::CStr;
+use std::io::{self, Write};
 use std::mem;
 use std::os::raw::c_char;
 use std::slice;
@@ -109,6 +110,7 @@ pub extern "C" fn print_str(val: *const c_char) {
     let cstr: &CStr = unsafe { CStr::from_ptr(val) };
     let string: String = cstr.to_str().unwrap().to_owned();
     print!("{}", string);
+    io::stdout().flush().unwrap();
 }
 
 #[no_mangle]
