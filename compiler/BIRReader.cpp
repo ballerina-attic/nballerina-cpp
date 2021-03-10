@@ -164,7 +164,7 @@ Type *ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
     std::string name = getStringCp(shapeCp->getNameIndex());
     // if name is empty, create a random name anon-<5-digits>
     if (name == "")
-        name.append("anon-" + std::to_string(random() % 100000));
+        name.append("anon-" + std::to_string(std::rand() % 100000));
 
     TypeTag type = TypeTag(shapeCp->getTypeTag());
 

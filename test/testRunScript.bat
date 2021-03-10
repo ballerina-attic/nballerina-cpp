@@ -9,9 +9,9 @@ set "JAVA_HOME=%JAVA_HOME_TEMP:"=%"
 call ballerina build --dump-bir-file=%basename%-bir-dump %FILE%
 %2.exe %basename%-bir-dump -o %basename%-bir-dump.ll
 
-clang -o %basename%.exe %basename%-bir-dump.ll -L..\..\..\runtime\target\release
+clang -o %basename%.exe %basename%-bir-dump.ll -L..\..\..\runtime\target\release -lballerina_rt.dll
 
-SET LD_LIBRARY_PATH=..\..\..\runtime\target\release
+set PATH=%PATH%;..\..\..\runtime\target\release
 
 %basename%.exe
 
