@@ -24,6 +24,7 @@
 #include "BinaryOpInsn.h"
 #include "ConditionBrInsn.h"
 #include "ConstantLoad.h"
+#include "ErrorTypeInsn.h"
 #include "Function.h"
 #include "FunctionCallInsn.h"
 #include "FunctionParam.h"
@@ -119,6 +120,7 @@ class BIRReader {
     friend class ReadArrayStoreInsn;
     friend class ReadArrayLoadInsn;
     friend class ReadMapStoreInsn;
+    friend class ReadErrorTypeInsn;
 };
 
 class ConstantPoolEntry {
@@ -458,6 +460,14 @@ class ReadMapStoreInsn : public ReadNonTerminatorInstruction {
     static ReadMapStoreInsn readMapStoreInsn;
     ~ReadMapStoreInsn() {}
     nballerina::MapStoreInsn *readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
+};
+
+class ReadErrorTypeInsn : public ReadNonTerminatorInstruction {
+  public:
+    ReadErrorTypeInsn() {}
+    static ReadErrorTypeInsn readErrorTypeInsn;
+    ~ReadErrorTypeInsn() {}
+    nballerina::ErrorTypeInsn *readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
 };
 
 #endif // BIRREADER_H

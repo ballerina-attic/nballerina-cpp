@@ -47,6 +47,7 @@ ReadArrayInsn ReadArrayInsn::readArrayInsn;
 ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
 ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
+ReadErrorTypeInsn ReadErrorTypeInsn::readErrorTypeInsn;
 
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
@@ -453,6 +454,17 @@ MapStoreInsn *ReadMapStoreInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
     return new MapStoreInsn(lhsOperand, currentBB, keyOperand, rhsOperand);
 }
 
+// Read Error Type Insn
+ErrorTypeInsn *ReadErrorTypeInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
+    uint32_t typeCpIndex = readerRef.readS4be();
+    Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+    Operand *lhsOperand = readerRef.readOperand();
+    Operand *msgOperand = readerRef.readOperand();
+    Operand *causeOperand = readerRef.readOperand();
+    Operand *detailOperand = readerRef.readOperand();
+    return new ErrorTypeInsn(lhsOperand, currentBB, msgOperand, causeOperand, detailOperand, typeDecl);
+}
+
 GoToInsn *ReadGoToInsn::readTerminatorInsn(BasicBlock *currentBB) {
     uint32_t nameId = readerRef.readS4be();
     BasicBlock *dummybasicBlock = new BasicBlock(readerRef.constantPool->getStringCp(nameId), currentBB->getFunction());
@@ -566,6 +578,11 @@ void BIRReader::readInsn(BasicBlock *basicBlock) {
     case INSTRUCTION_KIND_MAP_STORE: {
         MapStoreInsn *mapStoreInsn = ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn(basicBlock);
         basicBlock->addNonTermInsn(mapStoreInsn);
+        break;
+    }
+    case INSTRUCTION_KIND_NEW_ERROR: {
+        ErrorTypeInsn *errorTypeInsn = ReadErrorTypeInsn::readErrorTypeInsn.readNonTerminatorInsn(basicBlock);
+        basicBlock->addNonTermInsn(errorTypeInsn);
         break;
     }
     default:
