@@ -42,8 +42,8 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
     LLVMTypeRef lhsTypeRef = wrap(unwrap(lhsOpRef)->getType());
 
-    TypeTag rhsTypeTag = funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag();
-    TypeTag lhsTypeTag = funcObj->getLocalOrGlobalVariable(rhsOp)->getTypeDecl()->getTypeTag();
+    TypeTag rhsTypeTag = funcObj->getLocalOrGlobalVariable(rhsOp)->getTypeDecl()->getTypeTag();
+    TypeTag lhsTypeTag = funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag();
     if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
         LLVMValueRef lastTypeIdx __attribute__((unused)) = LLVMBuildStructGEP(builder, rhsOpRef, 0, "inherentTypeIdx");
         if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
