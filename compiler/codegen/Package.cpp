@@ -99,13 +99,6 @@ void Package::translate(LLVMModuleRef &modRef) {
                                  llvm::GlobalValue::InternalLinkage, charValue, strTablePtrChar, 0);
     charGloablVar->setAlignment(llvm::Align(4));
     setStringBuilderTableGlobalPointer(llvm::wrap(charGloablVar));
-    // create global var for nil value
-    llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
-    llvm::GlobalVariable *gVar =
-        new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
-                                 llvm::GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, 0);
-    LLVMValueRef globVarRef = llvm::wrap(gVar);
-    globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
 
     // creating struct smart pointer to store any type variables data.
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
@@ -129,6 +122,14 @@ void Package::translate(LLVMModuleRef &modRef) {
         LLVMValueRef globVarRef = wrap(gVar);
         globalVarRefs.insert({varName, globVarRef});
     }
+
+    // create global var for nil value
+    llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
+    llvm::GlobalVariable *gVar =
+        new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
+                                 llvm::GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, 0);
+    LLVMValueRef globVarRef = llvm::wrap(gVar);
+    globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.
