@@ -42,9 +42,8 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
     LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
 
-    TypeTag rhsTypeTag = funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag();
-    TypeTag lhsTypeTag = funcObj->getLocalOrGlobalVariable(rhsOp)->getTypeDecl()->getTypeTag();
-
+    TypeTag rhsTypeTag = funcObj->getLocalOrGlobalVariable(rhsOp)->getTypeDecl()->getTypeTag();
+    TypeTag lhsTypeTag = funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag();
     StringTableBuilder *strTable = pkgObj->getStrTableBuilder();
     if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
         if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
