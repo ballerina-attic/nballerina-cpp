@@ -27,7 +27,7 @@
 
 namespace nballerina {
 
-Function::Function(Package *_parentPackage, std::string name, std::string workerName, [[maybe_unused]] int flags,
+Function::Function(Package *_parentPackage, std::string name, std::string workerName, int flags,
                    [[maybe_unused]] InvokableType *type)
     : parentPackage(_parentPackage), name(std::move(name)), workerName(std::move(workerName)), flags(flags),
       returnVar(nullptr), restParam(nullptr), receiver(nullptr), llvmBuilder(nullptr), llvmFunction(nullptr) {}
