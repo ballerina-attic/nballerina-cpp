@@ -667,7 +667,6 @@ Function *BIRReader::readFunction(Package *package) {
     Function *birFunction = new Function(package, functionName, constantPool->getStringCp(workdernameCpIndex), flags,
                                          constantPool->getInvokableType(typeCpIndex));
     birFunction->setLocation(location);
-    birFunction->setFlags(flags);
 
     uint64_t annotationLength __attribute__((unused)) = readS8be();
     uint32_t annotationAttachments __attribute__((unused)) = readS4be();

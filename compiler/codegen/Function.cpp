@@ -29,8 +29,8 @@ namespace nballerina {
 
 Function::Function(Package *_parentPackage, std::string name, std::string workerName, [[maybe_unused]] int flags,
                    [[maybe_unused]] InvokableType *type)
-    : parentPackage(_parentPackage), name(std::move(name)), workerName(std::move(workerName)), returnVar(nullptr),
-      restParam(nullptr), receiver(nullptr), llvmBuilder(nullptr), llvmFunction(nullptr) {}
+    : parentPackage(_parentPackage), name(std::move(name)), workerName(std::move(workerName)), flags(flags),
+      returnVar(nullptr), restParam(nullptr), receiver(nullptr), llvmBuilder(nullptr), llvmFunction(nullptr) {}
 
 // Search basic block based on the basic block ID
 BasicBlock *Function::FindBasicBlock(const std::string &id) {
@@ -113,7 +113,6 @@ void Function::insertLocalVar(Variable *var) {
     localVars.insert(std::pair<std::string, Variable *>(var->getName(), var));
 }
 void Function::setReturnVar(Variable *var) { returnVar = var; }
-void Function::setFlags(unsigned int f) { flags = f; }
 void Function::insertBasicBlock(BasicBlock *bb) {
     basicBlocks.push_back(bb);
     basicBlocksMap.insert(std::pair<std::string, BasicBlock *>(bb->getId(), bb));
@@ -150,6 +149,8 @@ Package *Function::getPackage() { return parentPackage; }
 size_t Function::getNumParams() { return requiredParams.size(); }
 
 bool Function::isMainFunction() { return (name.compare(MAIN_FUNCTION_NAME) == 0); }
+
+bool Function::isExternalFunction() { return ((flags & NATIVE) == NATIVE); }
 
 void Function::translate(LLVMModuleRef &modRef) {
 

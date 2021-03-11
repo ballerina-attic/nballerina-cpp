@@ -38,10 +38,6 @@ class RestParam;
 class Type;
 class Package;
 
-// Function flags
-static constexpr unsigned int PUBLIC = 1;
-static constexpr unsigned int NATIVE = PUBLIC << 1;
-
 class Function : public PackageNode, public Debuggable, public Translatable {
   private:
     Package *parentPackage;
@@ -60,6 +56,8 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     std::map<std::string, LLVMValueRef> localVarRefs;
     std::vector<FunctionParam *> requiredParams;
     inline static const std::string MAIN_FUNCTION_NAME = "main";
+    static constexpr unsigned int PUBLIC = 1;
+    static constexpr unsigned int NATIVE = PUBLIC << 1;
 
   public:
     Function() = delete;
@@ -86,6 +84,7 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     Variable *getLocalOrGlobalVariable(Operand *op);
     LLVMTypeRef getLLVMTypeOfReturnVal();
     bool isMainFunction();
+    bool isExternalFunction();
 
     void insertParam(FunctionParam *param);
     void setRestParam(RestParam *param);
