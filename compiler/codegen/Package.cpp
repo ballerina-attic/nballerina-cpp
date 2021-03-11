@@ -93,6 +93,14 @@ void Package::translate(LLVMModuleRef &modRef) {
     // String Table initialization
     strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
 
+    // creating struct smart pointer to store any type variables data.
+    LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
+    LLVMTypeRef *structElementTypes = new LLVMTypeRef[2];
+    structElementTypes[0] = LLVMInt32Type();
+    structElementTypes[1] = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMStructSetBody(structGen, structElementTypes, 2, 0);
+    boxType = llvm::unwrap<llvm::StructType>(structGen);
+
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {
         Variable *globVar = it.second;
@@ -115,14 +123,6 @@ void Package::translate(LLVMModuleRef &modRef) {
                                  llvm::GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, 0);
     LLVMValueRef globVarRef = llvm::wrap(gVar);
     globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
-
-    // creating struct smart pointer to store any type variables data.
-    LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
-    LLVMTypeRef *structElementTypes = new LLVMTypeRef[2];
-    structElementTypes[0] = LLVMInt32Type();
-    structElementTypes[1] = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMStructSetBody(structGen, structElementTypes, 2, 0);
-    boxType = llvm::unwrap<llvm::StructType>(structGen);
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.
