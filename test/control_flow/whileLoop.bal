@@ -1,15 +1,11 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
-public function print_str(string val) = external;
-
-public function printu32(int val) = external;
-
+int _bal_result = 0;
 public function main() {
     int i = 0;
     while (i < 5) {
         i = i + 2;
     }
-    print_str("RESULT=");
-    printu32(i);
+    _bal_result = i;
 }
-// CHECK: RESULT=6
+// CHECK: RETVAL=6

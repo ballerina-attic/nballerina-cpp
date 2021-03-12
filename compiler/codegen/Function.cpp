@@ -27,10 +27,10 @@
 
 namespace nballerina {
 
-Function::Function(Package *_parentPackage, std::string name, std::string workerName, int flags,
+Function::Function(Package *_parentPackage, std::string name, std::string workerName, [[maybe_unused]] int flags,
                    [[maybe_unused]] InvokableType *type)
-    : parentPackage(_parentPackage), name(std::move(name)), workerName(std::move(workerName)), flags(flags),
-      returnVar(nullptr), restParam(nullptr), receiver(nullptr), llvmBuilder(nullptr), llvmFunction(nullptr) {}
+    : parentPackage(_parentPackage), name(std::move(name)), workerName(std::move(workerName)), returnVar(nullptr),
+      restParam(nullptr), receiver(nullptr), llvmBuilder(nullptr), llvmFunction(nullptr) {}
 
 // Search basic block based on the basic block ID
 BasicBlock *Function::FindBasicBlock(const std::string &id) {
@@ -45,7 +45,6 @@ std::string Function::getName() { return name; }
 FunctionParam *Function::getParam(int i) { return requiredParams[i]; }
 RestParam *Function::getRestParam() { return restParam; }
 Variable *Function::getReturnVar() { return returnVar; }
-unsigned int Function::getFlags() { return flags; }
 std::vector<BasicBlock *> Function::getBasicBlocks() { return basicBlocks; }
 LLVMBuilderRef Function::getLLVMBuilder() { return llvmBuilder; }
 LLVMValueRef Function::getLLVMFunctionValue() { return llvmFunction; }
@@ -149,8 +148,6 @@ Package *Function::getPackage() { return parentPackage; }
 size_t Function::getNumParams() { return requiredParams.size(); }
 
 bool Function::isMainFunction() { return (name.compare(MAIN_FUNCTION_NAME) == 0); }
-
-bool Function::isExternalFunction() { return ((flags & NATIVE) == NATIVE); }
 
 void Function::translate(LLVMModuleRef &modRef) {
 

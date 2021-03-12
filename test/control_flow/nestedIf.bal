@@ -1,26 +1,22 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
-public function print_str(string val) = external;
-
-public function printu32(int val) = external;
-
+int _bal_result = 0;
 public function main() {
     int a = 10;
     int b = 5;
     int c = 8;
     boolean e = false;
     boolean f = true;
-    print_str("RESULT=");
     if (a > b) {
         if (f) {
-            printu32(a);
+            _bal_result = a;
         }
         else {
-            printu32(b);
+            _bal_result = b;
         }
     }
     else {
-        printu32(c);
+        _bal_result = c;
     }
 }
-// CHECK: RESULT=10
+// CHECK: RETVAL=10
