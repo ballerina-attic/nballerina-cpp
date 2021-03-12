@@ -1,9 +1,13 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
-int _bal_result = 0;
+public function print_str(string val) = external;
+
+public function printu32(int val) = external;
+
 public function main() {
     int[] arr1 = [5];
-    _bal_result = 1;
+    print_str("RESULT=");
+    printu32(1);
 }
 
-// CHECK: RETVAL=1
+// CHECK: RESULT=1
