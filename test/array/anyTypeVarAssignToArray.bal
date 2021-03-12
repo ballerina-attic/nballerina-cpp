@@ -2,8 +2,10 @@
 
 int _bal_result = 0;
 public function main() {
-    int[] arr1 = [5];
-    _bal_result = 1;
+    int[] a = [5];
+    any x = 2;
+    a[0] = <int>x;
+    _bal_result = a[0];
 }
 
-// CHECK: RETVAL=1
+// CHECK: RETVAL=2
