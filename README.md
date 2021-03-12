@@ -134,7 +134,7 @@ Clone the nballerina source and run below commands.
 5. Extract Ballerina pack and add the bin folder with the ballerina executable to your PATH system variable
 4. Run tests
 
-        msbuild ALL_BUILD.vcxproj /p:configuration=Release
+        msbuild test /p:configuration=Release
 
 
 ## Setting up for Development (Ubuntu 20.04)
