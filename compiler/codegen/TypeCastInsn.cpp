@@ -47,11 +47,11 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     StringTableBuilder *strTable = pkgObj->getStrTableBuilder();
     if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
         if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
-            LLVMValueRef rhsVarOpRef = getFunction()->getTempLocalVariable(rhsOp);
+            LLVMValueRef rhsVarOpRef = funcObj->getTempLocalVariable(rhsOp);
             LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
             return;
         }
-        LLVMValueRef lastTypeIdx __attribute__((unused)) = LLVMBuildStructGEP(builder, rhsOpRef, 0, "inherentTypeIdx");
+        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 0, "inherentTypeIdx");
         LLVMValueRef lastTypeLoad = LLVMBuildLoad(builder, lastTypeIdx, "");
         LLVMValueRef sExt = LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
 
