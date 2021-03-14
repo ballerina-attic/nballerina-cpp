@@ -141,7 +141,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 // Search float from the constant pool based on index
 float ConstantPoolSet::getFloatCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
-    assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
+    assert(poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
     FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
     return floatCp->getValue();
 }

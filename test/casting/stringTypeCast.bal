@@ -1,7 +1,6 @@
 // RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
 
-public function print_str(string val) = external;
-
+int _bal_result = 0;
 public function bar(any z) returns string
 {
     string strl = <string>z;
@@ -9,10 +8,8 @@ public function bar(any z) returns string
 }
 
 public function main() {
-    string b = "Hello World";
+    string b = "Hello Wolrd";
     string c = bar(b);
-    print_str("RESULT=");
-    print_str(c);
 }
 
-// CHECK: RESULT=Hello World
+// CHECK: RETVAL=0
