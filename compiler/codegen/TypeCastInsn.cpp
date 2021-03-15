@@ -25,7 +25,6 @@
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
 
-using namespace std;
 using namespace llvm;
 
 namespace nballerina {
@@ -37,8 +36,8 @@ TypeCastInsn::TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp, [[
 void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     Function *funcObj = getFunction();
     Package *pkgObj = getPackage();
-    string lhsOpName = getLHS()->getName();
-    string rhsOpName = rhsOp->getName();
+    const std::string lhsOpName = getLHS()->getName();
+    const std::string rhsOpName = rhsOp->getName();
     LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
     LLVMValueRef rhsOpRef = funcObj->getLLVMLocalVar(rhsOpName);

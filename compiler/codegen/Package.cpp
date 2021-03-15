@@ -26,9 +26,6 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/IRBuilder.h"
 
-using namespace std;
-using namespace llvm;
-
 namespace nballerina {
 
 // return ValueRef of global variable based on variable name.
@@ -93,19 +90,20 @@ void Package::translate(LLVMModuleRef &modRef) {
     // String Table initialization
     strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
     // creating external char pointer to store string builder table.
-    const char *strTablePtr = "__string_table_ptr";
+    const char *strTablePtrChar = "__string_table_ptr";
     LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    llvm::Constant *charValue = llvm::Constant::getNullValue(unwrap(charPtrType));
-    llvm::GlobalVariable *charGloablVar = new llvm::GlobalVariable(
-        *unwrap(modRef), unwrap(charPtrType), false, llvm::GlobalValue::InternalLinkage, charValue, strTablePtr, 0);
-    charGloablVar->setAlignment(Align(4));
-    globalVarRefs.insert({strTablePtr, wrap(charGloablVar)});
+    llvm::Constant *charValue = llvm::Constant::getNullValue(llvm::unwrap(charPtrType));
+    llvm::GlobalVariable *charGloablVar =
+        new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(charPtrType), false,
+                                 llvm::GlobalValue::InternalLinkage, charValue, strTablePtrChar, 0);
+    charGloablVar->setAlignment(llvm::Align(4));
+    globalVarRefs.insert({strTablePtrChar, llvm::wrap(charGloablVar)});
 
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {
         Variable *globVar = it.second;
         LLVMTypeRef varTyperef = getLLVMTypeOfType(globVar->getTypeDecl());
-        string varName = globVar->getName();
+        const std::string varName = globVar->getName();
         // emit/adding the global variable.
         llvm::Constant *initValue = llvm::Constant::getNullValue(llvm::unwrap(varTyperef));
         llvm::GlobalVariable *gVar =
@@ -173,9 +171,8 @@ void Package::translate(LLVMModuleRef &modRef) {
         // char arr[100] = { 'a' };
         // char *ptr = arr;
         const char *stringTblChar = "__string_table";
-        const char *stringTblPtrChar = "__string_table_ptr";
         LLVMValueRef stringTableAddr = getGlobalLLVMVar(stringTblChar);
-        LLVMValueRef stringTablePtrAddress = getGlobalLLVMVar(stringTblPtrChar);
+        LLVMValueRef stringTablePtrAddress = getGlobalLLVMVar(strTablePtrChar);
         LLVMValueRef bitCastRes =
             LLVMBuildBitCast(llvmBuilder, stringTableAddr, LLVMPointerType(LLVMInt8Type(), 0), "");
         LLVMSetInitializer(stringTablePtrAddress, bitCastRes);
@@ -201,13 +198,12 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
         LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
         for (const auto &insn : element.second) {
             LLVMValueRef constOperand;
-            llvm::GetElementPtrInst *GEPInst = dyn_cast<llvm::GetElementPtrInst>(unwrap(insn));
+            llvm::GetElementPtrInst *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(llvm::unwrap(insn));
             if (GEPInst)
                 constOperand = LLVMGetOperand(insn, 1);
             else
                 constOperand = LLVMGetOperand(insn, 0);
             LLVMReplaceAllUsesWith(constOperand, tempVal);
-            // break;
         }
     }
     LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), sizeof(concatString) + 1);

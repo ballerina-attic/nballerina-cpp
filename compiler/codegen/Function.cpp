@@ -29,7 +29,6 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 
-using namespace std;
 using namespace llvm;
 
 namespace nballerina {
@@ -216,23 +215,22 @@ LLVMValueRef Function::generateAbortInsn(LLVMModuleRef &modRef) {
 // In IfBB we are doing casing and from ElseBB Aborting.
 void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
     llvm::Function *llvmFunc = unwrap<llvm::Function>(llvmFunction);
+    const char *isSameTypeChar = "is_same_type";
     for (llvm::Function::iterator FI = llvmFunc->begin(), FE = llvmFunc->end(); FI != FE; ++FI) {
 
         llvm::BasicBlock *bBlock = &*FI;
         for (llvm::BasicBlock::iterator I = bBlock->begin(); I != bBlock->end(); ++I) {
-            llvm::CallInst *callInst = dyn_cast<CallInst>(&*I);
+            llvm::CallInst *callInst = dyn_cast<llvm::CallInst>(&*I);
             if (!callInst) {
                 continue;
             }
-            const char *insnName;
             size_t totalOperands = callInst->getNumOperands();
-            insnName = callInst->getOperand(totalOperands - 1)->getName().data();
-            const char *isSameTypeChar = "is_same_type";
+            const char *insnName = callInst->getOperand(totalOperands - 1)->getName().data();
             if (strcmp(insnName, isSameTypeChar) != 0) {
                 continue;
             }
-            advance(I, 1);
-            Instruction *compInsn = &*I;
+            std::advance(I, 1);
+            llvm::Instruction *compInsn = &*I;
             // Splitting BasicBlock.
             llvm::BasicBlock *splitBB = bBlock->splitBasicBlock(++I, bBlock->getName() + ".split");
             llvm::BasicBlock::iterator ILoc = bBlock->end();
@@ -240,7 +238,7 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             // branch intruction to the split BB is creating in BB2 (last BB)
             // basicblock, removing from BB2 and insert this branch instruction
             // into BB0(split original BB).
-            LLVMInstructionRemoveFromParent(wrap(lastInsn));
+            lastInsn->removeFromParent();
             // Creating abortBB (elseBB).
             llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(*unwrap(LLVMGetGlobalContext()), "abortBB");
 
@@ -253,11 +251,11 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             bBlock->getInstList().push_back(compInsnRef);
 
             // get the last instruction from splitBB.
-            llvm::Instruction *newBBLastInsn;
+            llvm::Instruction *newBBLastInsn = nullptr;
             llvm::BasicBlock::iterator SI = splitBB->end();
-            if (SI == splitBB->begin())
-                newBBLastInsn = nullptr;
-            newBBLastInsn = &*--SI;
+            if (SI != splitBB->begin())
+                newBBLastInsn = &*--SI;
+            assert(newBBLastInsn);
             llvm::BasicBlock *elseBBSucc = newBBLastInsn->getSuccessor(0);
             // creating branch to else basicblock.
             llvm::Instruction *brInsn = unwrap(llvmBuilder)->CreateBr(elseBBSucc);
@@ -267,7 +265,7 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             LLVMValueRef abortFuncCallInsn = LLVMBuildCall(llvmBuilder, abortInsn, nullptr, 0, "");
             LLVMInstructionRemoveFromParent(abortFuncCallInsn);
             // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).
-            elseBB->getInstList().push_back(unwrap<Instruction>(abortFuncCallInsn));
+            elseBB->getInstList().push_back(unwrap<llvm::Instruction>(abortFuncCallInsn));
             elseBB->getInstList().push_back(brInsn);
             // Inserting elseLLVMBB (abort BB) after splitBB (bb0.split)
             // basicblock.
