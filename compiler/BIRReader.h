@@ -131,7 +131,8 @@ class ConstantPoolEntry {
         TAG_ENUM_CP_ENTRY_BYTE = 6,
         TAG_ENUM_CP_ENTRY_SHAPE = 7
     };
-    ConstantPoolEntry() {}
+    ConstantPoolEntry() = default;
+    virtual ~ConstantPoolEntry() = default;
     virtual void read() {}
 
   private:
@@ -147,8 +148,8 @@ class StringCpInfo : public ConstantPoolEntry {
 
   public:
     StringCpInfo();
-    void read();
-    ~StringCpInfo();
+    void read() override;
+    ~StringCpInfo() override = default;
 
   private:
     std::string value;
@@ -162,8 +163,8 @@ class ShapeCpInfo : public ConstantPoolEntry {
 
   public:
     ShapeCpInfo();
-    void read();
-    ~ShapeCpInfo();
+    void read() override;
+    ~ShapeCpInfo() override = default;
 
   private:
     uint32_t shapeLength;
@@ -210,8 +211,8 @@ class PackageCpInfo : public ConstantPoolEntry {
 
   public:
     PackageCpInfo();
-    void read();
-    ~PackageCpInfo();
+    void read() override;
+    ~PackageCpInfo() override = default;
 
   private:
     uint32_t orgIndex;
@@ -231,8 +232,8 @@ class IntCpInfo : public ConstantPoolEntry {
 
   public:
     IntCpInfo();
-    void read();
-    ~IntCpInfo();
+    void read() override;
+    ~IntCpInfo() override = default;
 
   private:
     uint64_t value;
@@ -246,8 +247,8 @@ class BooleanCpInfo : public ConstantPoolEntry {
 
   public:
     BooleanCpInfo();
-    void read();
-    ~BooleanCpInfo();
+    void read() override;
+    ~BooleanCpInfo() override = default;
 
   private:
     uint8_t value;
@@ -261,8 +262,8 @@ class FloatCpInfo : public ConstantPoolEntry {
 
   public:
     FloatCpInfo();
-    void read();
-    ~FloatCpInfo();
+    void read() override;
+    ~FloatCpInfo() override = default;
 
   private:
     double value;
@@ -276,8 +277,8 @@ class ByteCpInfo : public ConstantPoolEntry {
 
   public:
     ByteCpInfo();
-    void read();
-    ~ByteCpInfo();
+    void read() override;
+    ~ByteCpInfo() override = default;
 
   private:
     uint32_t value;
@@ -295,11 +296,11 @@ class ConstantPoolSet {
     ~ConstantPoolSet();
 
   private:
-    std::vector<ConstantPoolEntry *> *poolEntries;
+    std::vector<std::unique_ptr<ConstantPoolEntry>> poolEntries;
 
   public:
     BIRReader &readerRef = BIRReader::reader;
-    ConstantPoolEntry *getEntry(int index) { return (*poolEntries)[index]; }
+    ConstantPoolEntry *getEntry(int index) { return poolEntries[index].get(); }
     std::string getStringCp(uint32_t index);
     uint32_t getIntCp(uint32_t index);
     nballerina::Type getTypeCp(uint32_t index, bool voidToInt);
@@ -381,7 +382,8 @@ class ReadConstLoadInsn : public ReadNonTerminatorInstruction {
     static ReadConstLoadInsn readConstLoadInsn;
     ReadConstLoadInsn() {}
     ~ReadConstLoadInsn() {}
-    std::unique_ptr<nballerina::ConstantLoadInsn> readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
+    std::unique_ptr<nballerina::ConstantLoadInsn>
+    readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
 };
 
 class ReadMoveInsn : public ReadNonTerminatorInstruction {
@@ -437,7 +439,8 @@ class ReadArrayStoreInsn : public ReadNonTerminatorInstruction {
     ReadArrayStoreInsn() {}
     static ReadArrayStoreInsn readArrayStoreInsn;
     ~ReadArrayStoreInsn() {}
-    std::unique_ptr<nballerina::ArrayStoreInsn> readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
+    std::unique_ptr<nballerina::ArrayStoreInsn>
+    readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
 };
 
 class ReadArrayLoadInsn : public ReadNonTerminatorInstruction {

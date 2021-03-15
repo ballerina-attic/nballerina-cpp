@@ -812,51 +812,51 @@ void ByteCpInfo::read() { value = readerRef.readU1(); }
 
 void ConstantPoolSet::read() {
     int constantPoolEntries = readerRef.readS4be();
-    poolEntries = new std::vector<ConstantPoolEntry *>();
-    poolEntries->reserve(constantPoolEntries);
+    poolEntries = std::vector<std::unique_ptr<ConstantPoolEntry>>();
+    poolEntries.reserve(constantPoolEntries);
     for (int i = 0; i < constantPoolEntries; i++) {
         ConstantPoolEntry::tagEnum tag = static_cast<ConstantPoolEntry::tagEnum>(readerRef.readU1());
         switch (tag) {
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_PACKAGE: {
-            PackageCpInfo *poolEntry = new PackageCpInfo();
+            auto poolEntry = std::make_unique<PackageCpInfo>();
             poolEntry->read();
-            poolEntries->push_back(poolEntry);
+            poolEntries.push_back(std::move(poolEntry));
             break;
         }
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE: {
-            ShapeCpInfo *poolEntry = new ShapeCpInfo();
+            auto poolEntry = std::make_unique<ShapeCpInfo>();
             poolEntry->read();
-            poolEntries->push_back(poolEntry);
+            poolEntries.push_back(std::move(poolEntry));
             break;
         }
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_STRING: {
-            StringCpInfo *poolEntry = new StringCpInfo();
+            auto poolEntry = std::make_unique<StringCpInfo>();
             poolEntry->read();
-            poolEntries->push_back(poolEntry);
+            poolEntries.push_back(std::move(poolEntry));
             break;
         }
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER: {
-            IntCpInfo *poolEntry = new IntCpInfo();
+            auto poolEntry = std::make_unique<IntCpInfo>();
             poolEntry->read();
-            poolEntries->push_back(poolEntry);
+            poolEntries.push_back(std::move(poolEntry));
             break;
         }
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT: {
-            FloatCpInfo *poolEntry = new FloatCpInfo();
+            auto poolEntry = std::make_unique<FloatCpInfo>();
             poolEntry->read();
-            poolEntries->push_back(poolEntry);
+            poolEntries.push_back(std::move(poolEntry));
             break;
         }
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN: {
-            BooleanCpInfo *poolEntry = new BooleanCpInfo();
+            auto poolEntry = std::make_unique<BooleanCpInfo>();
             poolEntry->read();
-            poolEntries->push_back(poolEntry);
+            poolEntries.push_back(std::move(poolEntry));
             break;
         }
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BYTE: {
-            ByteCpInfo *poolEntry = new ByteCpInfo();
+            auto poolEntry = std::make_unique<ByteCpInfo>();
             poolEntry->read();
-            poolEntries->push_back(poolEntry);
+            poolEntries.push_back(std::move(poolEntry));
             break;
         }
         default:
