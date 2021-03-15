@@ -57,8 +57,7 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
         // Data object of smart pointer.
         LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 2, "data");
         LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
-        const char *strTblPtrChar = "__string_table_ptr";
-        LLVMValueRef strTblPtr = pkgObj->getGlobalLLVMVar(strTblPtrChar);
+        LLVMValueRef strTblPtr = pkgObj->getStringBuilderTableGlobalPointer();
         LLVMValueRef strTblLoad = LLVMBuildLoad(builder, strTblPtr, "");
         LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
         sizeOpValueRef[0] = sExt;

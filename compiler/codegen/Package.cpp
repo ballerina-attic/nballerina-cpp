@@ -44,6 +44,7 @@ std::string Package::getPackageName() { return name; }
 std::string Package::getVersion() { return version; }
 std::string Package::getSrcFileName() { return sourceFileName; }
 llvm::StringTableBuilder *Package::getStrTableBuilder() { return strBuilder; }
+LLVMValueRef Package::getStringBuilderTableGlobalPointer() { return strBuilderGlobalPtr; }
 void Package::setOrgName(std::string orgName) { org = std::move(orgName); }
 void Package::setPackageName(std::string pkgName) { name = std::move(pkgName); }
 void Package::setVersion(std::string verName) { version = std::move(verName); }
@@ -61,6 +62,7 @@ void Package::addFunctionRef(const std::string &arrayName, LLVMValueRef function
     functionRefs.insert(std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
 }
 
+void Package::setStringBuilderTableGlobalPointer(LLVMValueRef strTblPtr) { strBuilderGlobalPtr = strTblPtr; }
 LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
     int typeTag = typeD->getTypeTag();
     switch (typeTag) {
@@ -96,8 +98,7 @@ void Package::translate(LLVMModuleRef &modRef) {
         new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(charPtrType), false,
                                  llvm::GlobalValue::InternalLinkage, charValue, strTablePtrChar, 0);
     charGloablVar->setAlignment(llvm::Align(4));
-    globalVarRefs.insert({strTablePtrChar, llvm::wrap(charGloablVar)});
-
+    setStringBuilderTableGlobalPointer(llvm::wrap(charGloablVar));
     // create global var for nil value
     llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
     llvm::GlobalVariable *gVar =
@@ -173,7 +174,7 @@ void Package::translate(LLVMModuleRef &modRef) {
         // char *ptr = arr;
         const char *stringTblChar = "__string_table";
         LLVMValueRef stringTableAddr = getGlobalLLVMVar(stringTblChar);
-        LLVMValueRef stringTablePtrAddress = getGlobalLLVMVar(strTablePtrChar);
+        LLVMValueRef stringTablePtrAddress = getStringBuilderTableGlobalPointer();
         LLVMValueRef bitCastRes =
             LLVMBuildBitCast(llvmBuilder, stringTableAddr, LLVMPointerType(LLVMInt8Type(), 0), "");
         LLVMSetInitializer(stringTablePtrAddress, bitCastRes);
