@@ -40,14 +40,10 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     const std::string rhsOpName = rhsOp->getName();
     LLVMBuilderRef builder = funcObj->getLLVMBuilder();
 
-    LLVMValueRef rhsOpRef = funcObj->getLLVMLocalVar(rhsOpName);
-    if (rhsOpRef == nullptr)
-        pkgObj->getGlobalLLVMVar(rhsOpName);
-    LLVMValueRef lhsOpRef = funcObj->getLLVMLocalVar(lhsOpName);
-    if (lhsOpRef == nullptr)
-        pkgObj->getGlobalLLVMVar(lhsOpName);
+    LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
+    LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
     LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
-    Variable *orignamVarDecl = funcObj->getLocalVariable(rhsOpName);
+    Variable *orignamVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
     StringTableBuilder *strTable = pkgObj->getStrTableBuilder();
     const char *lastTypeChar = "lastTypeIdx";
     const char *origTypeChar = "origTypeIdx";
@@ -70,10 +66,10 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
 
         // get the mangled name of the lhs type and store it to string
         // builder table.
-        Variable *origVarDecl = funcObj->getLocalVariable(lhsOpName);
+        Variable *origVarDecl = funcObj->getLocalOrGlobalVariable(getLHS());
         assert(origVarDecl->getTypeDecl()->getTypeTag());
         TypeTag lhsTypeTag = TypeTag(origVarDecl->getTypeDecl()->getTypeTag());
-        char const *lhsTypeName = typeStringMangleName(lhsTypeRef, lhsTypeTag);
+        std::string_view lhsTypeName = typeStringMangleName(lhsTypeRef, lhsTypeTag);
         if (!strTable->contains(lhsTypeName))
             strTable->add(lhsTypeName);
         int tempRandNum = rand() % 1000 + 1;
@@ -88,41 +84,40 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
         paramRefs[1] = gepOfStr;
         LLVMValueRef sameTypeResult = LLVMBuildCall(builder, addedIsSameTypeFunc, paramRefs, 2, "call");
         // creating branch condition using is_same_type() function result.
-        LLVMValueRef brCondition __attribute__((unused)) = LLVMBuildIsNotNull(builder, sameTypeResult, "");
-        pkgObj->addStringOffsetRelocationEntry(lhsTypeName, lhsGep);
+        LLVMValueRef brCondition[[maybe_unused]] = LLVMBuildIsNotNull(builder, sameTypeResult, "");
+        pkgObj->addStringOffsetRelocationEntry(lhsTypeName.data(), lhsGep);
 
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
-    } else if (funcObj->getLocalVariable(lhsOpName)->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-        LLVMValueRef structAllocaRef = funcObj->getLLVMLocalVar(lhsOpName);
+    } else if (funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
 
         // struct first element original type
-        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, structAllocaRef, 0, origTypeChar);
-        Variable *origVarDecl = funcObj->getLocalVariable(lhsOpName);
+        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, origTypeChar);
+        Variable *origVarDecl = funcObj->getLocalOrGlobalVariable(getLHS());
         assert(origVarDecl->getTypeDecl()->getTypeTag());
         TypeTag origTypeTag = TypeTag(origVarDecl->getTypeDecl()->getTypeTag());
-        char const *origTypeName = typeStringMangleName(lhsTypeRef, origTypeTag);
+        std::string_view origTypeName = typeStringMangleName(lhsTypeRef, origTypeTag);
         if (!strTable->contains(origTypeName))
             strTable->add(origTypeName);
         int tempRandNum1 = rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
         LLVMValueRef origStoreRef = LLVMBuildStore(builder, constValue, origTypeIdx);
-        pkgObj->addStringOffsetRelocationEntry(origTypeName, origStoreRef);
+        pkgObj->addStringOffsetRelocationEntry(origTypeName.data(), origStoreRef);
         // struct second element last type
-        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, structAllocaRef, 1, lastTypeChar);
-        Variable *lastTypeVarDecl = funcObj->getLocalVariable(rhsOpName);
+        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 1, lastTypeChar);
+        Variable *lastTypeVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
         assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
         TypeTag lastTypeTag = TypeTag(lastTypeVarDecl->getTypeDecl()->getTypeTag());
-        char const *lastTypeName = typeStringMangleName(LLVMTypeOf(rhsOpRef), lastTypeTag);
+        std::string_view lastTypeName = typeStringMangleName(LLVMTypeOf(rhsOpRef), lastTypeTag);
         if (!strTable->contains(lastTypeName))
-            strTable->add(lastTypeName);
+            strTable->add(lastTypeName.data());
         int tempRandNum2 = rand() % 1000 + 1;
         LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), tempRandNum2, 0);
         LLVMValueRef lastStoreRef = LLVMBuildStore(builder, constValue1, lastTypeIdx);
-        pkgObj->addStringOffsetRelocationEntry(lastTypeName, lastStoreRef);
+        pkgObj->addStringOffsetRelocationEntry(lastTypeName.data(), lastStoreRef);
         // struct third element void pointer data.
-        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, structAllocaRef, 2, "data");
+        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 2, "data");
         LLVMValueRef bitCastRes1 = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
         LLVMBuildStore(builder, bitCastRes1, elePtr2);
     } else {
@@ -145,45 +140,35 @@ LLVMValueRef TypeCastInsn::isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef
     return addedFuncRef;
 }
 
-char const *TypeCastInsn::typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag) {
-    char const *finalString;
+std::string_view TypeCastInsn::typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag) {
     switch (typeTag) {
     case TYPE_TAG_INT: {
-        finalString = "__I";
-        break;
+        return "__I";
     }
     case TYPE_TAG_FLOAT: {
-        finalString = "__F";
-        break;
+        return "__F";
     }
     case TYPE_TAG_CHAR_STRING: {
-        finalString = "__C";
-        break;
+        return "__C";
     }
     case TYPE_TAG_STRING: {
-        finalString = "__S";
-        break;
+        return "__S";
     }
     case TYPE_TAG_BOOLEAN: {
-        finalString = "__B";
-        break;
+        return "__B";
     }
     case TYPE_TAG_ARRAY: {
         // TODO Need to add Size of the array.
         if (unwrap(valType)->getPointerElementType()->isIntegerTy())
-            finalString = "__AI";
-        else
-            finalString = "__A";
-        break;
+            return "__AI";
+        return "__A";
     }
     case TYPE_TAG_ANY: {
-        finalString = "__X";
-        break;
+        return "__X";
     }
     default:
         return "";
     }
-    return finalString;
 }
 
 } // namespace nballerina

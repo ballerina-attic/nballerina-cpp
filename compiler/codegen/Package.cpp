@@ -75,7 +75,6 @@ LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
     case TYPE_TAG_ARRAY:
-        return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_NIL:
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
@@ -99,21 +98,6 @@ void Package::translate(LLVMModuleRef &modRef) {
     charGloablVar->setAlignment(llvm::Align(4));
     globalVarRefs.insert({strTablePtrChar, llvm::wrap(charGloablVar)});
 
-    // iterate over all global variables and translate
-    for (auto const &it : globalVars) {
-        Variable *globVar = it.second;
-        LLVMTypeRef varTyperef = getLLVMTypeOfType(globVar->getTypeDecl());
-        const std::string varName = globVar->getName();
-        // emit/adding the global variable.
-        llvm::Constant *initValue = llvm::Constant::getNullValue(llvm::unwrap(varTyperef));
-        llvm::GlobalVariable *gVar =
-            new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(varTyperef), false,
-                                     llvm::GlobalValue::ExternalLinkage, initValue, varName, nullptr);
-        gVar->setAlignment(llvm::Align(4));
-        LLVMValueRef globVarRef = wrap(gVar);
-        globalVarRefs.insert({varName, globVarRef});
-    }
-
     // create global var for nil value
     llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
     llvm::GlobalVariable *gVar =
@@ -130,6 +114,21 @@ void Package::translate(LLVMModuleRef &modRef) {
     structElementTypes[2] = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMStructSetBody(structGen, structElementTypes, 3, 0);
     boxType = llvm::unwrap<llvm::StructType>(structGen);
+
+    // iterate over all global variables and translate
+    for (auto const &it : globalVars) {
+        Variable *globVar = it.second;
+        LLVMTypeRef varTyperef = getLLVMTypeOfType(globVar->getTypeDecl());
+        const std::string varName = globVar->getName();
+        // emit/adding the global variable.
+        llvm::Constant *initValue = llvm::Constant::getNullValue(llvm::unwrap(varTyperef));
+        llvm::GlobalVariable *gVar =
+            new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(varTyperef), false,
+                                     llvm::GlobalValue::ExternalLinkage, initValue, varName, nullptr);
+        gVar->setAlignment(llvm::Align(4));
+        LLVMValueRef globVarRef = wrap(gVar);
+        globalVarRefs.insert({varName, globVarRef});
+    }
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.

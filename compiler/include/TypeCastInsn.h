@@ -39,7 +39,7 @@ class TypeCastInsn : public NonTerminatorInsn {
     TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp, Type *tDecl, bool checkTypes);
     ~TypeCastInsn() = default;
     LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-    char const *typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag);
+    std::string_view typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag);
     void translate(LLVMModuleRef &modRef) final;
 };
 

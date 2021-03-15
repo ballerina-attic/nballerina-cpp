@@ -237,11 +237,11 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             // Splitting BasicBlock.
             llvm::BasicBlock *splitBB = bBlock->splitBasicBlock(++I, bBlock->getName() + ".split");
             llvm::BasicBlock::iterator ILoc = bBlock->end();
-            llvm::Instruction *lastInsn = (&*--ILoc);
+            llvm::Instruction &lastInsn = *--ILoc;
             // branch intruction to the split BB is creating in BB2 (last BB)
             // basicblock, removing from BB2 and insert this branch instruction
             // into BB0(split original BB).
-            lastInsn->removeFromParent();
+            lastInsn.removeFromParent();
             // Creating abortBB (elseBB).
             llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(*unwrap(LLVMGetGlobalContext()), "abortBB");
 
@@ -254,12 +254,10 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             bBlock->getInstList().push_back(compInsnRef);
 
             // get the last instruction from splitBB.
-            llvm::Instruction *newBBLastInsn = nullptr;
             llvm::BasicBlock::iterator SI = splitBB->end();
-            if (SI != splitBB->begin())
-                newBBLastInsn = &*--SI;
-            assert(newBBLastInsn);
-            llvm::BasicBlock *elseBBSucc = newBBLastInsn->getSuccessor(0);
+            assert(SI != splitBB->begin());
+            auto &newBBLastInsn = *--SI;
+            llvm::BasicBlock *elseBBSucc = newBBLastInsn.getSuccessor(0);
             // creating branch to else basicblock.
             llvm::Instruction *brInsn = unwrap(llvmBuilder)->CreateBr(elseBBSucc);
             brInsn->removeFromParent();
