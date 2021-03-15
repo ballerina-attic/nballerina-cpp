@@ -77,6 +77,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
+    case TYPE_TAG_ARRAY:
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_NIL:
         return LLVMPointerType(LLVMInt8Type(), 0);

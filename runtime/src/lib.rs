@@ -146,6 +146,69 @@ pub extern "C" fn int_array_load(arr_ptr: *mut Vec<*mut i32>, n: i32) -> *mut i3
     return return_val;
 }
 
+#[no_mangle]
+pub extern "C" fn float_array_store(arr_ptr: *mut Vec<*mut f32>, n: i32, ref_ptr: *mut f32) {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let n_size = n as usize;
+    let len = n_size + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut f32);
+    }
+    arr[n_size] = ref_ptr;
+    mem::forget(arr);
+}
+
+#[no_mangle]
+pub extern "C" fn float_array_load(arr_ptr: *mut Vec<*mut f32>, n: i32) -> *mut f32 {
+    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let n_size = n as usize;
+    let return_val = arr[n_size];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn boolean_array_store(arr_ptr: *mut Vec<*mut bool>, n: i32, ref_ptr: *mut bool) {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let n_size = n as usize;
+    let len = n_size + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut bool);
+    }
+    arr[n_size] = ref_ptr;
+    mem::forget(arr);
+}
+
+#[no_mangle]
+pub extern "C" fn boolean_array_load(arr_ptr: *mut Vec<*mut bool>, n: i32) -> *mut bool {
+    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let n_size = n as usize;
+    let return_val = arr[n_size];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn string_array_store(arr_ptr: *mut Vec<*mut String>, n: i32, ref_ptr: *mut String) {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let n_size = n as usize;
+    let len = n_size + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut String);
+    }
+    arr[n_size] = ref_ptr;
+    mem::forget(arr);
+}
+
+#[no_mangle]
+pub extern "C" fn string_array_load(arr_ptr: *mut Vec<*mut String>, n: i32) -> *mut String {
+    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let n_size = n as usize;
+    let return_val = arr[n_size];
+    mem::forget(arr);
+    return return_val;
+}
+
 // Ballerina Map implementation
 #[no_mangle]
 pub extern "C" fn map_new_int() -> *mut BalMapInt {
