@@ -43,6 +43,7 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     Package *parentPackage;
     std::string name;
     std::string workerName;
+    unsigned int flags;
     Variable *returnVar;
     RestParam *restParam;
     Variable *receiver;
@@ -57,6 +58,8 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     LLVMValueRef generateAbortInsn(LLVMModuleRef &modRef);
     void splitBBIfPossible(LLVMModuleRef &modRef);
     inline static const std::string MAIN_FUNCTION_NAME = "main";
+    static constexpr unsigned int PUBLIC = 1;
+    static constexpr unsigned int NATIVE = PUBLIC << 1;
 
   public:
     Function() = delete;
@@ -69,6 +72,7 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     size_t getNumParams();
     RestParam *getRestParam();
     Variable *getReturnVar();
+    unsigned int getFlags();
     std::vector<BasicBlock *> getBasicBlocks();
     LLVMBuilderRef getLLVMBuilder();
     LLVMValueRef getLLVMFunctionValue();
@@ -82,11 +86,13 @@ class Function : public PackageNode, public Debuggable, public Translatable {
     Variable *getLocalOrGlobalVariable(Operand *op);
     LLVMTypeRef getLLVMTypeOfReturnVal();
     bool isMainFunction();
+    bool isExternalFunction();
 
     void insertParam(FunctionParam *param);
     void setRestParam(RestParam *param);
     void setReceiver(Variable *var);
     void setReturnVar(Variable *var);
+    void setFlags(unsigned int);
     void insertLocalVar(Variable *var);
     void insertBasicBlock(BasicBlock *bb);
     void insertBranchComparisonValue(const std::string &lhsName, LLVMValueRef compRef);
