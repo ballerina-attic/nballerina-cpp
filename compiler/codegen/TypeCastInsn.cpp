@@ -49,7 +49,7 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     Variable *orignamVarDecl = funcObj->getLocalVariable(rhsOpName);
 
     if (orignamVarDecl && orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-        LLVMValueRef lastTypeIdx __attribute__((unused)) = LLVMBuildStructGEP(builder, rhsOpRef, 1, "lastTypeIdx");
+        [[maybe_unused]] LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 1, "lastTypeIdx");
 
         // TBD: Here, We should be checking whether this type can be cast to
         // lhsType or not by calling a runtime library function in Rust.
