@@ -50,6 +50,7 @@ class Package : public Translatable {
     void applyStringOffsetRelocations(LLVMModuleRef &modRef);
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     LLVMValueRef strBuilderGlobalPtr;
+    void setStringBuilderTableGlobalPointer(LLVMValueRef strTblPtr);
 
   public:
     Package() = default;
@@ -76,7 +77,6 @@ class Package : public Translatable {
     void insertFunction(Function *function);
     void addFunctionRef(const std::string &, LLVMValueRef functionRef);
     void addStringOffsetRelocationEntry(const std::string &, LLVMValueRef storeInsn);
-    void setStringBuilderTableGlobalPointer(LLVMValueRef strTblPtr);
     void translate(LLVMModuleRef &modRef) final;
 };
 
