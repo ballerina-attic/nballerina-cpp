@@ -153,7 +153,7 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
     LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
     paramTypes[0] = LLVMPointerType(LLVMInt8Type(), 0);
     paramTypes[1] = LLVMInt32Type();
-    paramTypes[2] = LLVMPointerType(LLVMInt32Type(), 0);
+    paramTypes[2] = LLVMTypeOf(getFunction()->getLLVMLocalVar(rhsOp->getName()));
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName, funcType);
     getPackage()->addFunctionRef(arrayTypeFuncName, addedFuncRef);
