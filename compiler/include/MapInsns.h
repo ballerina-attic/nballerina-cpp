@@ -23,24 +23,26 @@
 
 namespace nballerina {
 
-enum MappingConstructorBodyKind { Spread_Field_Kind = 0, Key_Value_Kind = 1 };
+enum MapConstrctBodyKind { Spread_Field_Kind = 0, Key_Value_Kind = 1 };
 
-class MappingConstructorKeyValue {
+class MapConstrctKeyValue {
   private:
     Operand keyOp;
     Operand valueOp;
 
   public:
-    MappingConstructorKeyValue() = delete;
-    MappingConstructorKeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
-    ~MappingConstructorKeyValue() = default;
+    MapConstrctKeyValue() = delete;
+    MapConstrctKeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
+    ~MapConstrctKeyValue() = default;
+
+    const Operand &getKey() const { return keyOp; }
+    const Operand &getValue() const { return valueOp; }
 };
 
 class MapStoreInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
 
   public:
     MapStoreInsn() = delete;
@@ -48,6 +50,8 @@ class MapStoreInsn : public NonTerminatorInsn {
     ~MapStoreInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;
+    static void codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStoreFunc, LLVMValueRef map, LLVMValueRef key,
+                                LLVMValueRef value);
 };
 } // namespace nballerina
 

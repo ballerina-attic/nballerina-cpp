@@ -24,7 +24,6 @@
 #include "Types.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
-#include <iostream>
 
 using namespace std;
 using namespace llvm;
@@ -32,8 +31,11 @@ using namespace llvm;
 namespace nballerina {
 
 StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                             std::vector<MappingConstructorKeyValue> initValues)
+                             std::vector<MapConstrctKeyValue> initValues)
     : NonTerminatorInsn(lhs, std::move(currentBB)), initValues(std::move(initValues)) {}
+
+StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
+    : NonTerminatorInsn(lhs, std::move(currentBB)) {}
 
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
@@ -47,13 +49,30 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 
     // Only handle Map type
     if (structType != TYPE_TAG_MAP) {
-        std::cerr << "Non MAP type structs are currently not supported" << std::endl;
-        llvm_unreachable("");
+        llvm_unreachable("Only Map type structs are currently supported");
     }
-    mapInsnTranslate(*lhsVar, modRef);
+    mapInstructionTranslate(*lhsVar, modRef);
+
+    if (initValues.size() == 0) {
+        return;
+    }
+
+    // Only handle Int type
+    if (lhsVar->getType().getMemberTypeTag() != TYPE_TAG_INT) {
+        llvm_unreachable("Only int type maps are currently supported");
+    }
+
+    // Codegen for map<int> type store
+    LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapIntStoreDeclaration(modRef);
+    auto builder = funcObj.getLLVMBuilder();
+    for (const auto &initValue : initValues) {
+        MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
+                                      funcObj.createTempVariable(initValue.getKey()),
+                                      funcObj.getLLVMLocalOrGlobalVar(initValue.getValue()));
+    }
 }
 
-void StructureInsn::mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
+void StructureInsn::mapInstructionTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
@@ -64,8 +83,7 @@ void StructureInsn::mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modR
     TypeTag memberTypeTag = mapType.getMemberTypeTag();
     // Only handle Int type
     if (memberTypeTag != TYPE_TAG_INT) {
-        std::cerr << "Non INT type maps are currently not supported" << std::endl;
-        llvm_unreachable("");
+        llvm_unreachable("Only int type maps are currently supporte");
     }
 
     // Codegen for Map of Int type

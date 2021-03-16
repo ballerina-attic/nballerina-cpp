@@ -62,7 +62,7 @@ class BIRReader {
     nballerina::Variable readGlobalVar();
     nballerina::Operand readOperand();
     nballerina::Variable readLocalVar();
-    nballerina::MappingConstructorKeyValue readMappingConstructorKeyValue();
+    nballerina::MapConstrctKeyValue readMappingConstructorKeyValue();
     nballerina::TypeDescInsn *readTypeDescInsn();
     nballerina::StructureInsn *readStructureInsn();
     void readInsn(std::shared_ptr<nballerina::BasicBlock> basicBlock);

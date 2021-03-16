@@ -27,18 +27,19 @@ namespace nballerina {
 // Forward Declaration
 class Operand;
 class Variable;
-class MappingConstructorKeyValue;
+class MapConstrctKeyValue;
 
 class StructureInsn : public NonTerminatorInsn {
   private:
-    std::vector<MappingConstructorKeyValue> initValues;
-    void mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
+    std::vector<MapConstrctKeyValue> initValues;
+    void mapInstructionTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
     LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef);
 
   public:
     StructureInsn() = delete;
+    StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);
     StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                  std::vector<MappingConstructorKeyValue> initValues);
+                  std::vector<MapConstrctKeyValue> initValues);
     ~StructureInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

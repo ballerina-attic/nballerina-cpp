@@ -254,4 +254,22 @@ void Package::insertGlobalVar(Variable var) {
     globalVars.insert(std::pair<std::string, Variable>(var.getName(), std::move(var)));
 }
 
+// Declaration for map<int> type store function
+LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
+    const auto *externalFunctionName= "map_store_int";
+
+    LLVMValueRef mapStoreFunc = getFunctionRef(externalFunctionName);
+    if (mapStoreFunc != nullptr) {
+        return mapStoreFunc;
+    }
+    LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
+    LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMTypeRef paramTypes[] = {memPtrType, charArrayPtrType, int32PtrType};
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
+    mapStoreFunc = LLVMAddFunction(modRef, externalFunctionName, funcType);
+    addFunctionRef(externalFunctionName, mapStoreFunc);
+    return mapStoreFunc;
+}
+
 } // namespace nballerina

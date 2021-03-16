@@ -266,16 +266,16 @@ Operand BIRReader::readOperand() {
 }
 
 // Read Mapping Constructor Key Value body
-MappingConstructorKeyValue BIRReader::readMappingConstructorKeyValue() {
+MapConstrctKeyValue BIRReader::readMappingConstructorKeyValue() {
 
     auto kind = readU1();
-    if ((MappingConstructorBodyKind)kind != Key_Value_Kind) {
+    if ((MapConstrctBodyKind)kind != Key_Value_Kind) {
         llvm_unreachable("Unsupported mapping_constructor_body_kind");
     }
     auto key = readOperand();
     auto value = readOperand();
 
-    return MappingConstructorKeyValue(key, value);
+    return MapConstrctKeyValue(key, value);
 }
 
 // Read TYPEDESC Insn
@@ -291,7 +291,12 @@ std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::sha
     [[maybe_unused]] auto lhsOp = readerRef.readOperand();
 
     auto initValuesCount = readerRef.readS4be();
-    std::vector<MappingConstructorKeyValue> initValues;
+
+    if (initValuesCount == 0) {
+        return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB);
+    }
+
+    std::vector<MapConstrctKeyValue> initValues;
     initValues.reserve(initValuesCount);
     for (size_t i = 0; i < initValuesCount; i++) {
         initValues.push_back(readerRef.readMappingConstructorKeyValue());

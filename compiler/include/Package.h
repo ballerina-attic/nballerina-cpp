@@ -75,6 +75,7 @@ class Package : public Translatable {
     // Return is optional only because we need to support _bal_resul
     // ToDo remove optional when support for _bal_result is removed
     std::optional<Variable> getGlobalVariable(const std::string &name) const;
+    LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
 
     void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
