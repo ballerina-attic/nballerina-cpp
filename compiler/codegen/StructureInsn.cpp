@@ -18,6 +18,7 @@
 
 #include "StructureInsn.h"
 #include "Function.h"
+#include "MapInsns.h"
 #include "Operand.h"
 #include "Package.h"
 #include "Types.h"
@@ -30,8 +31,9 @@ using namespace llvm;
 
 namespace nballerina {
 
-StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
-    : NonTerminatorInsn(lhs, std::move(currentBB)) {}
+StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
+                             std::vector<MappingConstructorKeyValue> initValues)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), initValues(std::move(initValues)) {}
 
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 

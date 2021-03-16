@@ -20,21 +20,25 @@
 #define __STRUCTUREINSN__H__
 
 #include "NonTerminatorInsn.h"
+#include <vector>
 
 namespace nballerina {
 
 // Forward Declaration
 class Operand;
 class Variable;
+class MappingConstructorKeyValue;
 
 class StructureInsn : public NonTerminatorInsn {
   private:
+    std::vector<MappingConstructorKeyValue> initValues;
     void mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
     LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef);
 
   public:
     StructureInsn() = delete;
-    StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);
+    StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
+                  std::vector<MappingConstructorKeyValue> initValues);
     ~StructureInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

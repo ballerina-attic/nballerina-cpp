@@ -22,6 +22,20 @@
 #include "NonTerminatorInsn.h"
 
 namespace nballerina {
+
+enum MappingConstructorBodyKind { Spread_Field_Kind = 0, Key_Value_Kind = 1 };
+
+class MappingConstructorKeyValue {
+  private:
+    Operand keyOp;
+    Operand valueOp;
+
+  public:
+    MappingConstructorKeyValue() = delete;
+    MappingConstructorKeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
+    ~MappingConstructorKeyValue() = default;
+};
+
 class MapStoreInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
