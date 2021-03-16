@@ -6,8 +6,7 @@ public function print_str(string val) = external;
 public function main() {
     string[5] arr4 = [];
     arr4[0] = "Hello";
-    any b1 = arr4[0];
-    string b = <string>b1;
+    string b = arr4[0];
     print_str("RESULT=");
     print_str(b);
 }
