@@ -1,4 +1,4 @@
-// RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
+// RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 
 public function print_str(string val) = external;
 
