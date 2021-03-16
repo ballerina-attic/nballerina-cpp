@@ -38,6 +38,7 @@ class Type;
 class Package : public Translatable {
   private:
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
+    inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
     std::string org;
     std::string name;
     std::string version;

@@ -94,12 +94,11 @@ void Package::translate(LLVMModuleRef &modRef) {
     strBuilder = std::make_unique<llvm::StringTableBuilder>(llvm::StringTableBuilder::RAW, 1);
 
     // creating external char pointer to store string builder table.
-    const char *strTableName = "__string_table_ptr";
     LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
     llvm::Constant *charValue = llvm::Constant::getNullValue(llvm::unwrap(charPtrType));
-    auto stringBuilderTable =
-        std::make_unique<llvm::GlobalVariable>(*llvm::unwrap(modRef), llvm::unwrap(charPtrType), false,
-                                               llvm::GlobalValue::InternalLinkage, charValue, strTableName, nullptr);
+    auto stringBuilderTable = std::make_unique<llvm::GlobalVariable>(*llvm::unwrap(modRef), llvm::unwrap(charPtrType),
+                                                                     false, llvm::GlobalValue::InternalLinkage,
+                                                                     charValue, STRING_TABLE_NAME, nullptr);
     stringBuilderTable->setAlignment(llvm::Align(4));
     strBuilderGlobalPtr = llvm::wrap(stringBuilderTable.get());
     globalStringValues.push_back(std::move(stringBuilderTable));
@@ -176,8 +175,7 @@ void Package::translate(LLVMModuleRef &modRef) {
         // like below example.
         // char arr[100] = { 'a' };
         // char *ptr = arr;
-        const char *stringTblChar = "__string_table";
-        LLVMValueRef stringTableAddr = getGlobalLLVMVar(stringTblChar);
+        LLVMValueRef stringTableAddr = getGlobalLLVMVar(STRING_TABLE_NAME);
         LLVMValueRef stringTablePtrAddress = getStringBuilderTableGlobalPointer();
         LLVMValueRef bitCastRes =
             LLVMBuildBitCast(llvmBuilder, stringTableAddr, LLVMPointerType(LLVMInt8Type(), 0), "");
@@ -194,11 +192,12 @@ void Package::addStringOffsetRelocationEntry(const std::string &eleType, LLVMVal
 void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
     strBuilder->finalizeInOrder();
-    unsigned char *concatString = new unsigned char[strBuilder->getSize()];
-    char *charPtr = (char *)concatString;
+    auto concatStringLen = strBuilder->getSize();
+    std::unique_ptr<char[]> concatString(new char[concatStringLen]);
+    auto *charPtr = concatString.get();
     for (const auto &element : structElementStoreInst) {
-        const std::string &eleType = element.first;
-        charPtr = stpcpy((char *)charPtr, eleType.c_str());
+        const auto &eleType = element.first;
+        charPtr = stpcpy(charPtr, eleType.c_str());
         charPtr++;
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
         LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
@@ -212,11 +211,11 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
             LLVMReplaceAllUsesWith(constOperand, tempVal);
         }
     }
-    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), sizeof(concatString) + 1);
-    LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, "__string_table", 0);
-    globalVarRefs.insert({"__string_table", createAddrsSpace});
+    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), concatStringLen + 1);
+    LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, STRING_TABLE_NAME.c_str(), 0);
+    globalVarRefs.insert({STRING_TABLE_NAME, createAddrsSpace});
 
-    LLVMValueRef constString = LLVMConstString((const char *)concatString, sizeof(concatString), false);
+    LLVMValueRef constString = LLVMConstString(concatString.get(), concatStringLen, false);
     // Initializing global address space with generated string(concat all the
     // strings from string builder table).
     LLVMSetInitializer(createAddrsSpace, constString);
