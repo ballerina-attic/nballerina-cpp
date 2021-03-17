@@ -37,6 +37,7 @@ pub struct BString {
 // Return a pointer to struct containing heap allocated string
 #[no_mangle]
 pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
+    assert!(!c_string.is_null());
     let slice = unsafe { std::slice::from_raw_parts(c_string, size) };
     let string = std::str::from_utf8(slice);
     let opaque = BString {
@@ -48,6 +49,7 @@ pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
 
 #[no_mangle]
 pub extern "C" fn print_string(opaque_ptr: *mut BString) {
+    assert!(!opaque_ptr.is_null());
     println!("{}", unsafe { (*opaque_ptr).value });
 }
 
