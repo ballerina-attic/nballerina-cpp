@@ -31,16 +31,24 @@ mod bal_map;
 pub use bal_map::map::BalMapInt;
 
 pub struct BString {
-    value: &'static str
+    value: &'static str,
+}
+
+// Return a pointer to struct containing heap allocated string
+#[no_mangle]
+pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
+    let slice = unsafe { std::slice::from_raw_parts(c_string, size) };
+    let string = std::str::from_utf8(slice);
+    let opaque = BString {
+        value: string.unwrap(),
+    };
+    let opaque_ptr = Box::into_raw(Box::new(opaque));
+    return opaque_ptr;
 }
 
 #[no_mangle]
-pub extern "C" fn new_string(bal_string: *const u8, size: usize) -> *mut BString {
-    let slice = unsafe { std::slice::from_raw_parts(bal_string, size) };
-    let string = std::str::from_utf8(slice);
-    let opaque = BString { value: string.unwrap() };
-    let opaque_ptr = Box::into_raw(Box::new(opaque));
-    return opaque_ptr;
+pub extern "C" fn print_string(opaque_ptr: *mut BString) {
+    println!("{}", unsafe { (*opaque_ptr).value });
 }
 
 // To check whether typecast is possible from source to destination
