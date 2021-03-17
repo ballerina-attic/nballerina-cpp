@@ -1,4 +1,4 @@
-// RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
+// RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 int _bal_result = 0;
 public function main() {
     map<int> marks = {};

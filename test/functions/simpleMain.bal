@@ -2,9 +2,10 @@
 
 public function print_str(string val) = external;
 
+public function printu32(int val) = external;
+
 public function main() {
-    string str = "Hello World!";
     print_str("RESULT=");
-    print_str(str);
+    printu32(128);
 }
-// CHECK: RESULT=Hello World!
+// CHECK: RESULT=128

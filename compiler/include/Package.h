@@ -47,8 +47,10 @@ class Package : public Translatable {
     llvm::StringTableBuilder *strBuilder;
     std::map<std::string, std::vector<LLVMValueRef>> structElementStoreInst;
     std::map<std::string, LLVMValueRef> functionRefs;
-    void applyStringOffsetRelocations();
+    void applyStringOffsetRelocations(LLVMModuleRef &modRef);
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
+    LLVMValueRef strBuilderGlobalPtr;
+    void setStringBuilderTableGlobalPointer(LLVMValueRef strTblPtr);
 
   public:
     Package() = default;
@@ -65,6 +67,7 @@ class Package : public Translatable {
     Function *getFunction(const std::string &name);
     LLVMValueRef getFunctionRef(const std::string &arrayName);
     LLVMValueRef getGlobalNilVar();
+    LLVMValueRef getStringBuilderTableGlobalPointer();
 
     void setOrgName(std::string orgName);
     void setPackageName(std::string pkgName);
@@ -74,7 +77,6 @@ class Package : public Translatable {
     void insertFunction(Function *function);
     void addFunctionRef(const std::string &, LLVMValueRef functionRef);
     void addStringOffsetRelocationEntry(const std::string &, LLVMValueRef storeInsn);
-
     void translate(LLVMModuleRef &modRef) final;
 };
 

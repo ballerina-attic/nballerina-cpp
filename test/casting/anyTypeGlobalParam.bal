@@ -4,10 +4,19 @@ public function print_str(string val) = external;
 
 public function printu32(int val) = external;
 
-public function main() {
-    int a = 10;
-    int b = 5;
-    print_str("RESULT=");
-    printu32(a / b);
+int g = 0;
+any an = 0;
+int a = 0;
+public function bar(any l) returns int
+{
+    an = l;
+    g = <int>an;
+    return g;
 }
-// CHECK: RESULT=2
+
+public function main() {
+    a = 35;
+    print_str("RESULT=");
+    printu32(bar(a));
+}
+// CHECK: RESULT=35
