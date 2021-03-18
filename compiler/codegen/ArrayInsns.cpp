@@ -79,7 +79,7 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeT
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING:
         arrayTypeFuncName = "string_array_load";
-        funcRetType = LLVMPointerType(LLVMInt8Type(), 0);
+        funcRetType = LLVMPointerType(LLVMPointerType(LLVMInt8Type(), 0), 0);
         break;
     case TYPE_TAG_BOOLEAN:
         arrayTypeFuncName = "boolean_array_load";
@@ -115,12 +115,7 @@ void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
     sizeOpValueRef[1] = funcObj->getTempLocalVariable(keyOp);
     LLVMValueRef valueInArrayPointer = LLVMBuildCall(builder, ArrayLoadFunc, sizeOpValueRef, 2, "");
     LLVMValueRef ArrayLoadVal = LLVMBuildLoad(builder, valueInArrayPointer, "");
-    // For string/char lhsOpRef type is same as array function(valueInArrayPointer) type.
-    // No need to Load the value.
-    if (lhsOpTypeTag == TYPE_TAG_STRING || lhsOpTypeTag == TYPE_TAG_CHAR_STRING)
-        LLVMBuildStore(builder, valueInArrayPointer, lhsOpRef);
-    else
-        LLVMBuildStore(builder, ArrayLoadVal, lhsOpRef);
+    LLVMBuildStore(builder, ArrayLoadVal, lhsOpRef);
 }
 
 // Array Store Instruction
