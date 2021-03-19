@@ -122,9 +122,8 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
             LLVMValueRef rhsTempOpRef = funcObj->getTempLocalVariable(rhsOp);
             LLVMValueRef *paramRefs = new LLVMValueRef[1];
             paramRefs[0] = rhsTempOpRef;
-            // LLVMValueRef boxIntFunc = boxInteger(modRef, rhsTempOpRef);
-            LLVMValueRef boxIntFunc = boxValue(modRef, rhsTempOpRef, rhsTypeTag);
-            rhsOpRef = LLVMBuildCall(builder, boxIntFunc, paramRefs, 1, "call");
+            LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(rhsTempOpRef), rhsTypeTag);
+            rhsOpRef = LLVMBuildCall(builder, boxValFunc, paramRefs, 1, "call");
         }
         LLVMValueRef bitCastRes = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
         LLVMBuildStore(builder, bitCastRes, elePtr2);
@@ -133,62 +132,19 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     }
 }
 
-LLVMValueRef TypeCastInsn::boxInteger(LLVMModuleRef &modRef, LLVMValueRef paramRef) {
-    const char *boxIntChar = "box_bal_integer";
-    LLVMValueRef boxIntFuncRef = getPackage()->getFunctionRef(boxIntChar);
-    if (boxIntFuncRef != nullptr) {
-        return boxIntFuncRef;
+LLVMValueRef TypeCastInsn::generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag) {
+    std::string functionName = "box_bal_";
+    functionName += Type::getNameOfType(typeTag);
+    LLVMValueRef boxValFuncRef = getPackage()->getFunctionRef(functionName);
+    if (boxValFuncRef != nullptr) {
+        return boxValFuncRef;
     }
     LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
-    paramTypes[0] = LLVMTypeOf(paramRef);
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt32Type(), 0), paramTypes, 1, 0);
-    boxIntFuncRef = LLVMAddFunction(modRef, boxIntChar, funcType);
-    getPackage()->addFunctionRef(boxIntChar, boxIntFuncRef);
-    return boxIntFuncRef;
-}
-
-LLVMValueRef TypeCastInsn::boxFloat(LLVMModuleRef &modRef, LLVMValueRef paramRef) {
-    const char *boxFloatChar = "box_bal_float";
-    LLVMValueRef boxFloatFuncRef = getPackage()->getFunctionRef(boxFloatChar);
-    if (boxFloatFuncRef != nullptr) {
-        return boxFloatFuncRef;
-    }
-    LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
-    paramTypes[0] = LLVMTypeOf(paramRef);
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMFloatType(), 0), paramTypes, 1, 0);
-    boxFloatFuncRef = LLVMAddFunction(modRef, boxFloatChar, funcType);
-    getPackage()->addFunctionRef(boxFloatChar, boxFloatFuncRef);
-    return boxFloatFuncRef;
-}
-
-LLVMValueRef TypeCastInsn::boxBoolean(LLVMModuleRef &modRef, LLVMValueRef paramRef) {
-    const char *boxBoolChar = "box_bal_bool";
-    LLVMValueRef boxBoolFuncRef = getPackage()->getFunctionRef(boxBoolChar);
-    if (boxBoolFuncRef != nullptr) {
-        return boxBoolFuncRef;
-    }
-    LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
-    paramTypes[0] = LLVMTypeOf(paramRef);
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), paramTypes, 1, 0);
-    boxBoolFuncRef = LLVMAddFunction(modRef, boxBoolChar, funcType);
-    getPackage()->addFunctionRef(boxBoolChar, boxBoolFuncRef);
-    return boxBoolFuncRef;
-}
-
-LLVMValueRef TypeCastInsn::boxValue(LLVMModuleRef &modRef, LLVMValueRef paramRef, TypeTag typeTag) {
-    switch (typeTag) {
-    case TYPE_TAG_INT: {
-        return boxInteger(modRef, paramRef);
-    }
-    case TYPE_TAG_FLOAT: {
-        return boxFloat(modRef, paramRef);
-    }
-    case TYPE_TAG_BOOLEAN: {
-        return boxBoolean(modRef, paramRef);
-    }
-    default:
-        new LLVMValueRef();
-    }
+    paramTypes[0] = paramTypeRef;
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(paramTypeRef, 0), paramTypes, 1, 0);
+    boxValFuncRef = LLVMAddFunction(modRef, functionName.c_str(), funcType);
+    getPackage()->addFunctionRef(functionName, boxValFuncRef);
+    return boxValFuncRef;
 }
 
 bool TypeCastInsn::isBoxValueSupport(TypeTag typeTag) {
