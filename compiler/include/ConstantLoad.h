@@ -23,6 +23,7 @@
 #include "Types.h"
 #include "llvm/IR/GlobalVariable.h"
 #include <string>
+#include <variant>
 
 namespace nballerina {
 
@@ -30,10 +31,7 @@ namespace nballerina {
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
-    int intValue;
-    double floatValue;
-    bool boolValue;
-    std::string strValue;
+    std::variant<int, double, bool, std::string> value;
     std::unique_ptr<llvm::GlobalVariable> globalStringValue;
 
   public:

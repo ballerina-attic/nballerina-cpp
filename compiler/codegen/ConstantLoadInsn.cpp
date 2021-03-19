@@ -33,16 +33,16 @@ ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBloc
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_NIL) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, int intVal)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_INT), intValue(intVal) {}
+    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_INT), value(intVal) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, float floatVal)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_FLOAT), floatValue(floatVal) {}
+    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_FLOAT), value(floatVal) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, bool boolVal)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_BOOLEAN), boolValue(boolVal) {}
+    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::string str)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_STRING), strValue(std::move(str)) {}
+    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
 
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef constRef = nullptr;
@@ -55,20 +55,20 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
 
     switch (typeTag) {
     case TYPE_TAG_INT: {
-        constRef = LLVMConstInt(LLVMInt32Type(), intValue, 0);
+        constRef = LLVMConstInt(LLVMInt32Type(), std::get<int>(value), 0);
         break;
     }
     case TYPE_TAG_FLOAT: {
-        constRef = LLVMConstReal(LLVMFloatType(), floatValue);
+        constRef = LLVMConstReal(LLVMFloatType(), std::get<double>(value));
         break;
     }
     case TYPE_TAG_BOOLEAN: {
-        constRef = LLVMConstInt(LLVMInt8Type(), boolValue, 0);
+        constRef = LLVMConstInt(LLVMInt8Type(), std::get<bool>(value), 0);
         break;
     }
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
-        std::string stringValue = strValue;
+        std::string stringValue = std::get<std::string>(value);
         llvm::Constant *C = llvm::ConstantDataArray::getString(
             *llvm::unwrap(LLVMGetGlobalContext()), llvm::StringRef(stringValue.c_str(), stringValue.length()));
         globalStringValue = std::make_unique<llvm::GlobalVariable>(*llvm::unwrap(modRef), C->getType(), false,
