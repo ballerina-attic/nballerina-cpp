@@ -43,11 +43,11 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
     LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
     LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
-    Variable *orignamVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
+    Variable *orignalVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
     StringTableBuilder *strTable = pkgObj->getStrTableBuilder();
     const char *lastTypeChar = "lastTypeIdx";
     const char *origTypeChar = "origTypeIdx";
-    if (orignamVarDecl && orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
+    if (orignalVarDecl && orignalVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
         // GEP of last type of smart pointer(original type of any variable(smart
         // pointer))
         LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 1, lastTypeChar);
@@ -83,7 +83,7 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
         paramRefs[1] = gepOfStr;
         LLVMValueRef sameTypeResult = LLVMBuildCall(builder, addedIsSameTypeFunc, paramRefs, 2, "call");
         // creating branch condition using is_same_type() function result.
-        LLVMValueRef brCondition[[maybe_unused]] = LLVMBuildIsNotNull(builder, sameTypeResult, "");
+        LLVMValueRef brCondition [[maybe_unused]] = LLVMBuildIsNotNull(builder, sameTypeResult, "");
         pkgObj->addStringOffsetRelocationEntry(lhsTypeName.data(), lhsGep);
 
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
@@ -117,10 +117,88 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
         pkgObj->addStringOffsetRelocationEntry(lastTypeName.data(), lastStoreRef);
         // struct third element void pointer data.
         LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 2, "data");
-        LLVMValueRef bitCastRes1 = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
-        LLVMBuildStore(builder, bitCastRes1, elePtr2);
+        TypeTag rhsTypeTag = TypeTag(orignalVarDecl->getTypeDecl()->getTypeTag());
+        if (isBoxValueSupport(rhsTypeTag)) {
+            LLVMValueRef rhsTempOpRef = funcObj->getTempLocalVariable(rhsOp);
+            LLVMValueRef *paramRefs = new LLVMValueRef[1];
+            paramRefs[0] = rhsTempOpRef;
+            // LLVMValueRef boxIntFunc = boxInteger(modRef, rhsTempOpRef);
+            LLVMValueRef boxIntFunc = boxValue(modRef, rhsTempOpRef, rhsTypeTag);
+            rhsOpRef = LLVMBuildCall(builder, boxIntFunc, paramRefs, 1, "call");
+        }
+        LLVMValueRef bitCastRes = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
+        LLVMBuildStore(builder, bitCastRes, elePtr2);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
+    }
+}
+
+LLVMValueRef TypeCastInsn::boxInteger(LLVMModuleRef &modRef, LLVMValueRef paramRef) {
+    const char *boxIntChar = "box_bal_integer";
+    LLVMValueRef boxIntFuncRef = getPackage()->getFunctionRef(boxIntChar);
+    if (boxIntFuncRef != nullptr) {
+        return boxIntFuncRef;
+    }
+    LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
+    paramTypes[0] = LLVMTypeOf(paramRef);
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt32Type(), 0), paramTypes, 1, 0);
+    boxIntFuncRef = LLVMAddFunction(modRef, boxIntChar, funcType);
+    getPackage()->addFunctionRef(boxIntChar, boxIntFuncRef);
+    return boxIntFuncRef;
+}
+
+LLVMValueRef TypeCastInsn::boxFloat(LLVMModuleRef &modRef, LLVMValueRef paramRef) {
+    const char *boxFloatChar = "box_bal_float";
+    LLVMValueRef boxFloatFuncRef = getPackage()->getFunctionRef(boxFloatChar);
+    if (boxFloatFuncRef != nullptr) {
+        return boxFloatFuncRef;
+    }
+    LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
+    paramTypes[0] = LLVMTypeOf(paramRef);
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMFloatType(), 0), paramTypes, 1, 0);
+    boxFloatFuncRef = LLVMAddFunction(modRef, boxFloatChar, funcType);
+    getPackage()->addFunctionRef(boxFloatChar, boxFloatFuncRef);
+    return boxFloatFuncRef;
+}
+
+LLVMValueRef TypeCastInsn::boxBoolean(LLVMModuleRef &modRef, LLVMValueRef paramRef) {
+    const char *boxBoolChar = "box_bal_bool";
+    LLVMValueRef boxBoolFuncRef = getPackage()->getFunctionRef(boxBoolChar);
+    if (boxBoolFuncRef != nullptr) {
+        return boxBoolFuncRef;
+    }
+    LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
+    paramTypes[0] = LLVMTypeOf(paramRef);
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), paramTypes, 1, 0);
+    boxBoolFuncRef = LLVMAddFunction(modRef, boxBoolChar, funcType);
+    getPackage()->addFunctionRef(boxBoolChar, boxBoolFuncRef);
+    return boxBoolFuncRef;
+}
+
+LLVMValueRef TypeCastInsn::boxValue(LLVMModuleRef &modRef, LLVMValueRef paramRef, TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT: {
+        return boxInteger(modRef, paramRef);
+    }
+    case TYPE_TAG_FLOAT: {
+        return boxFloat(modRef, paramRef);
+    }
+    case TYPE_TAG_BOOLEAN: {
+        return boxBoolean(modRef, paramRef);
+    }
+    default:
+        new LLVMValueRef();
+    }
+}
+
+bool TypeCastInsn::isBoxValueSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_BOOLEAN:
+        return true;
+    default:
+        return false;
     }
 }
 
