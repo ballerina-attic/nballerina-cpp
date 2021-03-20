@@ -189,13 +189,28 @@ void Package::addStringOffsetRelocationEntry(const std::string &eleType, LLVMVal
 // and Storing the any type data (string table offset).
 void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
-    strBuilder->finalizeInOrder();
-    unsigned char *concatString = new unsigned char[strBuilder->getSize()];
-    char *charPtr = (char *)concatString;
+    // finalizing the string builder table.
+    strBuilder->finalize();
+
+    // After finalize the string table, re arranging the actual offset values.
+    std::map<size_t, std::string, std::less<size_t>> stringOffsetAfterFinalize;
+    strBuilder->finalize();
+    std::map<std::string, std::vector<LLVMValueRef>>::iterator itr1;
     for (const auto &element : structElementStoreInst) {
-        const std::string &eleType = element.first;
-        charPtr = stpcpy((char *)charPtr, eleType.c_str());
-        charPtr++;
+        const std::string &typeString = element.first;
+        size_t finalOrigOffset = strBuilder->getOffset(element.first);
+        stringOffsetAfterFinalize.insert({finalOrigOffset, typeString});
+    }
+
+    // creating the concat string to store in the global address space(string table
+    // global pointer)
+    std::string concatString;
+    std::map<size_t, std::string>::iterator itrtemp;
+    for (const auto &element : stringOffsetAfterFinalize) {
+        concatString = concatString + element.second;
+    }
+
+    for (const auto &element : structElementStoreInst) {
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
         LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
         for (const auto &insn : element.second) {
@@ -208,11 +223,11 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
             LLVMReplaceAllUsesWith(constOperand, tempVal);
         }
     }
-    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), sizeof(concatString) + 1);
+    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), concatString.size() + 1);
     LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, "__string_table", 0);
     globalVarRefs.insert({"__string_table", createAddrsSpace});
 
-    LLVMValueRef constString = LLVMConstString((const char *)concatString, sizeof(concatString), false);
+    LLVMValueRef constString = LLVMConstString(concatString.c_str(), concatString.size(), false);
     // Initializing global address space with generated string(concat all the
     // strings from string builder table).
     LLVMSetInitializer(createAddrsSpace, constString);
