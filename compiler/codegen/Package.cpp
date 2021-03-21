@@ -194,8 +194,6 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
     // After finalize the string table, re arranging the actual offset values.
     std::map<size_t, std::string, std::less<size_t>> stringOffsetAfterFinalize;
-    strBuilder->finalize();
-    std::map<std::string, std::vector<LLVMValueRef>>::iterator itr1;
     for (const auto &element : structElementStoreInst) {
         const std::string &typeString = element.first;
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
@@ -205,7 +203,6 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
     // creating the concat string to store in the global address space(string table
     // global pointer)
     std::string concatString;
-    std::map<size_t, std::string>::iterator itrtemp;
     for (const auto &element : stringOffsetAfterFinalize) {
         concatString = concatString + element.second;
     }
