@@ -191,7 +191,8 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
     // finalizing the string builder table.
     strBuilder->finalize();
     // After finalize the string table, re arranging the actual offset values.
-    std::vector<std::pair<int, std::string>> offsetStringPair;
+    std::vector<std::pair<size_t, std::string>> offsetStringPair;
+    offsetStringPair.reserve(structElementStoreInst.size());
 
     for (const auto &element : structElementStoreInst) {
         const std::string &typeString = element.first;

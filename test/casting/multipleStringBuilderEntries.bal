@@ -22,7 +22,9 @@ public function main() {
     float f11 = <float>f1;
     if (b11) {
     	print_str("RESULT=");
-     	print_str(s11);
+    }
+    if (a11 == 35) {
+	print_str(s11);
     }
 }
 // CHECK: RESULT=Hello
