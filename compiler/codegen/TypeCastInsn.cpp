@@ -90,7 +90,8 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
         std::string_view rhsTypeName = typeStringMangleName(lhsTypeRef, rhsTypeTag);
         if (!strTable->contains(rhsTypeName))
             strTable->add(rhsTypeName);
-        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), -1, 0);
+        int  tempRandNum = rand() % 1000 + 1;
+        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
         LLVMValueRef lhsTypeStoreRef = LLVMBuildStore(builder, constValue, inherentTypeIdx);
         pkgObj->addStringOffsetRelocationEntry(rhsTypeName.data(), lhsTypeStoreRef);
         LLVMValueRef data = LLVMBuildStructGEP(builder, lhsOpRef, 1, "data");
