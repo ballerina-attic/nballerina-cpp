@@ -87,7 +87,6 @@ LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
 }
 
 void Package::translate(LLVMModuleRef &modRef) {
-
     // String Table initialization
     strBuilder = new llvm::StringTableBuilder(llvm::StringTableBuilder::RAW, 1);
     // creating external char pointer to store string builder table.
@@ -192,18 +191,20 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
     // finalizing the string builder table.
     strBuilder->finalize();
     // After finalize the string table, re arranging the actual offset values.
-    std::map<size_t, std::string, std::less<size_t>> stringOffsetAfterFinalize;
+    std::vector<std::pair<int, std::string>> offsetStringPair;
+
     for (const auto &element : structElementStoreInst) {
         const std::string &typeString = element.first;
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
-        stringOffsetAfterFinalize.insert({finalOrigOffset, typeString});
+        offsetStringPair.push_back(std::make_pair(finalOrigOffset, typeString));
     }
 
     // creating the concat string to store in the global address space(string table
     // global pointer)
     std::string concatString;
-    for (const auto &element : stringOffsetAfterFinalize) {
-        concatString.append(element.second);
+    std::sort(offsetStringPair.begin(), offsetStringPair.end());
+    for (unsigned int i = 0; i < offsetStringPair.size(); i++) {
+        concatString.append(offsetStringPair[i].second);
     }
 
     for (const auto &element : structElementStoreInst) {
