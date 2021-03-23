@@ -151,7 +151,6 @@ double BIRReader::readS8bef() {
     return result;
 }
 
-
 // Search string from the constant pool based on index
 std::string ConstantPoolSet::getStringCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);

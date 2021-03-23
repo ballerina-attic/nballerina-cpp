@@ -1,5 +1,9 @@
 // RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 
+public function print_str(string val) = external;
+
+public function printf32(float val) = external;
+
 public function bar(any z) returns float
 {
     float fl = <float>z;
@@ -9,6 +13,8 @@ public function bar(any z) returns float
 public function main() {
     float b = 10.5;
     float c = bar(b);
+    print_str("RESULT=");
+    printf32(c);
 }
 
-// CHECK: RETVAL=40
+// CHECK: RESULT=10.5
