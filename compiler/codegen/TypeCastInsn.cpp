@@ -47,16 +47,20 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     auto rhsType = rhsVar->getType().getTypeTag();
 
     const char *lastTypeChar = "lastTypeIdx";
-    const char *origTypeChar = "origTypeIdx";
+    const char *inherentTypeChar = "inherentTypeIdx";
 
-    if (rhsType == TYPE_TAG_ANY) {
+    if (rhsType == TYPE_TAG_ANY || rhsType == TYPE_TAG_UNION) {
+        if (lhsType == TYPE_TAG_UNION || lhsType == TYPE_TAG_ANY) {
+            LLVMValueRef rhsVarOpRef = funcObj.createTempVariable(rhsOp);
+            LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
+            return;
+        }
         // GEP of last type of smart pointer(original type of any variable(smart pointer))
-        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 1, lastTypeChar);
+        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 0, lastTypeChar);
         LLVMValueRef lastTypeLoad = LLVMBuildLoad(builder, lastTypeIdx, "");
-        // sign extent of GEP to i64.
         LLVMValueRef sExt = LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
-        // Data object of smart pointer.
-        LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 2, "data");
+
+        LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 1, "data");
         LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
         LLVMValueRef strTblPtr = getPackageMutableRef().getStringBuilderTableGlobalPointer();
         LLVMValueRef strTblLoad = LLVMBuildLoad(builder, strTblPtr, "");
@@ -80,26 +84,18 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
 
-    } else if (lhsType == TYPE_TAG_ANY) {
+    } else if (lhsType == TYPE_TAG_ANY || lhsType == TYPE_TAG_UNION) {
 
         // struct first element original type
-        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, origTypeChar);
-        std::string_view origTypeName = typeStringMangleName(lhsTypeRef, lhsType);
-        getPackageMutableRef().addToStrTable(origTypeName);
+        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeChar);
+        std::string_view rhsTypeName = typeStringMangleName(lhsTypeRef, rhsType);
+        getPackageMutableRef().addToStrTable(rhsTypeName);
         int tempRandNum1 = rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
-        LLVMValueRef origStoreRef = LLVMBuildStore(builder, constValue, origTypeIdx);
-        getPackageMutableRef().addStringOffsetRelocationEntry(origTypeName.data(), origStoreRef);
-        // struct second element last type
-        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 1, lastTypeChar);
-        std::string_view lastTypeName = typeStringMangleName(LLVMTypeOf(rhsOpRef), rhsType);
-        getPackageMutableRef().addToStrTable(lastTypeName);
-        int tempRandNum2 = rand() % 1000 + 1;
-        LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), tempRandNum2, 0);
-        LLVMValueRef lastStoreRef = LLVMBuildStore(builder, constValue1, lastTypeIdx);
-        getPackageMutableRef().addStringOffsetRelocationEntry(lastTypeName.data(), lastStoreRef);
-        // struct third element void pointer data.
-        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 2, "data");
+        LLVMValueRef lhsTypeStoreRef = LLVMBuildStore(builder, constValue, origTypeIdx);
+        getPackageMutableRef().addStringOffsetRelocationEntry(rhsTypeName.data(), lhsTypeStoreRef);
+        // struct second element void pointer data.
+        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 1, "data");
         if (isBoxValueSupport(rhsType)) {
             LLVMValueRef rhsTempOpRef = funcObj.createTempVariable(rhsOp);
             LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(rhsTempOpRef), rhsType);

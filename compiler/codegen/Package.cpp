@@ -82,6 +82,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const {
     case TYPE_TAG_NIL:
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
+    case TYPE_TAG_UNION:
         return wrap(boxType.get());
     default:
         return LLVMInt32Type();
@@ -89,7 +90,6 @@ LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const {
 }
 
 void Package::translate(LLVMModuleRef &modRef) {
-
     // String Table initialization
     strBuilder = std::make_unique<llvm::StringTableBuilder>(llvm::StringTableBuilder::RAW, 1);
 
@@ -114,8 +114,8 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // creating struct smart pointer to store any type variables data.
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
-    LLVMTypeRef structElementTypes[] = {LLVMInt32Type(), LLVMInt32Type(), LLVMPointerType(LLVMInt8Type(), 0)};
-    LLVMStructSetBody(structGen, structElementTypes, 3, 0);
+    LLVMTypeRef structElementTypes[] = {LLVMInt32Type(), LLVMPointerType(LLVMInt8Type(), 0)};
+    LLVMStructSetBody(structGen, structElementTypes, 2, 0);
     boxType = std::unique_ptr<llvm::StructType>(llvm::unwrap<llvm::StructType>(structGen));
 
     // iterate over all global variables and translate
@@ -191,14 +191,27 @@ void Package::addStringOffsetRelocationEntry(const std::string &eleType, LLVMVal
 // and Storing the any type data (string table offset).
 void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
-    strBuilder->finalizeInOrder();
-    auto concatStringLen = strBuilder->getSize();
-    std::unique_ptr<char[]> concatString(new char[concatStringLen]);
-    auto *charPtr = concatString.get();
+    // finalizing the string builder table.
+    strBuilder->finalize();
+    // After finalize the string table, re arranging the actual offset values.
+    std::vector<std::pair<size_t, std::string>> offsetStringPair;
+    offsetStringPair.reserve(structElementStoreInst.size());
+
     for (const auto &element : structElementStoreInst) {
-        const auto &eleType = element.first;
-        charPtr = stpcpy(charPtr, eleType.c_str());
-        charPtr++;
+        const std::string &typeString = element.first;
+        size_t finalOrigOffset = strBuilder->getOffset(element.first);
+        offsetStringPair.push_back(std::make_pair(finalOrigOffset, typeString));
+    }
+
+    // creating the concat string to store in the global address space(string table
+    // global pointer)
+    std::string concatString;
+    std::sort(offsetStringPair.begin(), offsetStringPair.end());
+    for (unsigned int i = 0; i < offsetStringPair.size(); i++) {
+        concatString.append(offsetStringPair[i].second);
+    }
+
+    for (const auto &element : structElementStoreInst) {
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
         LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
         for (const auto &insn : element.second) {
@@ -211,11 +224,11 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
             LLVMReplaceAllUsesWith(constOperand, tempVal);
         }
     }
-    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), concatStringLen + 1);
+    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), concatString.size() + 1);
     LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, STRING_TABLE_NAME.c_str(), 0);
     globalVarRefs.insert({STRING_TABLE_NAME, createAddrsSpace});
 
-    LLVMValueRef constString = LLVMConstString(concatString.get(), concatStringLen, false);
+    LLVMValueRef constString = LLVMConstString(concatString.c_str(), concatString.size(), false);
     // Initializing global address space with generated string(concat all the
     // strings from string builder table).
     LLVMSetInitializer(createAddrsSpace, constString);

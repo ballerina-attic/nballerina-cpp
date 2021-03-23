@@ -49,6 +49,8 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "bool";
     case TYPE_TAG_ANY:
         return "any";
+    case TYPE_TAG_UNION:
+        return "union";
     default:
         return "";
     }
