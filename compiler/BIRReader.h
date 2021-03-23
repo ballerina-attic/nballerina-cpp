@@ -76,6 +76,7 @@ class BIRReader {
     uint16_t readS2be();
     uint32_t readS4be();
     uint64_t readS8be();
+    double readS8bef();
     static bool ignoreFunction(std::string funcName);
 
   public:
@@ -305,7 +306,7 @@ class ConstantPoolSet {
     std::string getStringCp(uint32_t index);
     uint32_t getIntCp(uint32_t index);
     nballerina::Type *getTypeCp(uint32_t index, bool voidToInt);
-    float getFloatCp(uint32_t index);
+    double getFloatCp(uint32_t index);
     bool getBooleanCp(uint32_t index);
     nballerina::TypeTag getTypeTag(uint32_t index);
     nballerina::InvokableType *getInvokableType(uint32_t index);

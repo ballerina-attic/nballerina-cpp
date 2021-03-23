@@ -122,6 +122,36 @@ uint64_t BIRReader::readS8be() {
     return result;
 }
 
+// Read 8 bytes from the stream for float value
+double BIRReader::readS8bef() {
+    double value;
+    double result;
+    is.read(reinterpret_cast<char *>(&value), sizeof(value));
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    char *p = (char *)&value;
+    char tmp;
+
+    tmp = p[0];
+    p[0] = p[7];
+    p[7] = tmp;
+
+    tmp = p[1];
+    p[1] = p[6];
+    p[6] = tmp;
+
+    tmp = p[2];
+    p[2] = p[5];
+    p[5] = tmp;
+
+    tmp = p[3];
+    p[3] = p[4];
+    p[4] = tmp;
+#endif
+    result = value;
+    return result;
+}
+
+
 // Search string from the constant pool based on index
 std::string ConstantPoolSet::getStringCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
@@ -139,7 +169,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 }
 
 // Search float from the constant pool based on index
-float ConstantPoolSet::getFloatCp(uint32_t index) {
+double ConstantPoolSet::getFloatCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
     FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
@@ -878,7 +908,7 @@ void BooleanCpInfo::read() { value = readerRef.readU1(); }
 
 FloatCpInfo::FloatCpInfo() { setTag(TAG_ENUM_CP_ENTRY_FLOAT); }
 
-void FloatCpInfo::read() { value = readerRef.readS8be(); }
+void FloatCpInfo::read() { value = readerRef.readS8bef(); }
 
 ByteCpInfo::ByteCpInfo() { setTag(TAG_ENUM_CP_ENTRY_BYTE); }
 
