@@ -80,6 +80,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(Type *typeD) {
     case TYPE_TAG_NIL:
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
+    case TYPE_TAG_UNION:
         return wrap(boxType);
     default:
         return LLVMInt32Type();
@@ -98,21 +99,13 @@ void Package::translate(LLVMModuleRef &modRef) {
                                  llvm::GlobalValue::InternalLinkage, charValue, strTablePtrChar, 0);
     charGloablVar->setAlignment(llvm::Align(4));
     setStringBuilderTableGlobalPointer(llvm::wrap(charGloablVar));
-    // create global var for nil value
-    llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
-    llvm::GlobalVariable *gVar =
-        new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
-                                 llvm::GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, 0);
-    LLVMValueRef globVarRef = llvm::wrap(gVar);
-    globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
 
     // creating struct smart pointer to store any type variables data.
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
-    LLVMTypeRef *structElementTypes = new LLVMTypeRef[3];
+    LLVMTypeRef *structElementTypes = new LLVMTypeRef[2];
     structElementTypes[0] = LLVMInt32Type();
-    structElementTypes[1] = LLVMInt32Type();
-    structElementTypes[2] = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMStructSetBody(structGen, structElementTypes, 3, 0);
+    structElementTypes[1] = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMStructSetBody(structGen, structElementTypes, 2, 0);
     boxType = llvm::unwrap<llvm::StructType>(structGen);
 
     // iterate over all global variables and translate
@@ -129,6 +122,14 @@ void Package::translate(LLVMModuleRef &modRef) {
         LLVMValueRef globVarRef = wrap(gVar);
         globalVarRefs.insert({varName, globVarRef});
     }
+
+    // create global var for nil value
+    llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
+    llvm::GlobalVariable *gVar =
+        new llvm::GlobalVariable(*llvm::unwrap(modRef), llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
+                                 llvm::GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, 0);
+    LLVMValueRef globVarRef = llvm::wrap(gVar);
+    globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.

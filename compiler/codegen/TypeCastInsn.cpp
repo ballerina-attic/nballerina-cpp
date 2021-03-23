@@ -37,37 +37,33 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     Function *funcObj = getFunction();
     Package *pkgObj = getPackage();
     const std::string lhsOpName = getLHS()->getName();
-    const std::string rhsOpName = rhsOp->getName();
     LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-
     LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
     LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
     LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
-    Variable *orignalVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
+
+    TypeTag rhsTypeTag = funcObj->getLocalOrGlobalVariable(rhsOp)->getTypeDecl()->getTypeTag();
+    TypeTag lhsTypeTag = funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag();
     StringTableBuilder *strTable = pkgObj->getStrTableBuilder();
-    const char *lastTypeChar = "lastTypeIdx";
-    const char *origTypeChar = "origTypeIdx";
-    if (orignalVarDecl && orignalVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-        // GEP of last type of smart pointer(original type of any variable(smart
-        // pointer))
-        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 1, lastTypeChar);
+    if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
+        if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
+            LLVMValueRef rhsVarOpRef = funcObj->getTempLocalVariable(rhsOp);
+            LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
+            return;
+        }
+        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 0, "inherentTypeIdx");
         LLVMValueRef lastTypeLoad = LLVMBuildLoad(builder, lastTypeIdx, "");
-        // sign extent of GEP to i64.
         LLVMValueRef sExt = LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
-        // Data object of smart pointer.
-        LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 2, "data");
+
+        LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 1, "data");
         LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
         LLVMValueRef strTblPtr = pkgObj->getStringBuilderTableGlobalPointer();
         LLVMValueRef strTblLoad = LLVMBuildLoad(builder, strTblPtr, "");
         LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
         sizeOpValueRef[0] = sExt;
         LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
-
         // get the mangled name of the lhs type and store it to string
         // builder table.
-        Variable *origVarDecl = funcObj->getLocalOrGlobalVariable(getLHS());
-        assert(origVarDecl->getTypeDecl()->getTypeTag());
-        TypeTag lhsTypeTag = TypeTag(origVarDecl->getTypeDecl()->getTypeTag());
         std::string_view lhsTypeName = typeStringMangleName(lhsTypeRef, lhsTypeTag);
         if (!strTable->contains(lhsTypeName))
             strTable->add(lhsTypeName);
@@ -89,35 +85,16 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
-    } else if (funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-
-        // struct first element original type
-        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, origTypeChar);
-        Variable *origVarDecl = funcObj->getLocalOrGlobalVariable(getLHS());
-        assert(origVarDecl->getTypeDecl()->getTypeTag());
-        TypeTag origTypeTag = TypeTag(origVarDecl->getTypeDecl()->getTypeTag());
-        std::string_view origTypeName = typeStringMangleName(lhsTypeRef, origTypeTag);
-        if (!strTable->contains(origTypeName))
-            strTable->add(origTypeName);
-        int tempRandNum1 = rand() % 1000 + 1;
-        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
-        LLVMValueRef origStoreRef = LLVMBuildStore(builder, constValue, origTypeIdx);
-        pkgObj->addStringOffsetRelocationEntry(origTypeName.data(), origStoreRef);
-        // struct second element last type
-        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 1, lastTypeChar);
-        Variable *lastTypeVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
-        assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
-        TypeTag lastTypeTag = TypeTag(lastTypeVarDecl->getTypeDecl()->getTypeTag());
-        std::string_view lastTypeName = typeStringMangleName(LLVMTypeOf(rhsOpRef), lastTypeTag);
-        if (!strTable->contains(lastTypeName))
-            strTable->add(lastTypeName.data());
-        int tempRandNum2 = rand() % 1000 + 1;
-        LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), tempRandNum2, 0);
-        LLVMValueRef lastStoreRef = LLVMBuildStore(builder, constValue1, lastTypeIdx);
-        pkgObj->addStringOffsetRelocationEntry(lastTypeName.data(), lastStoreRef);
-        // struct third element void pointer data.
-        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 2, "data");
-        TypeTag rhsTypeTag = TypeTag(orignalVarDecl->getTypeDecl()->getTypeTag());
+    } else if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
+        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, "inherentTypeIdx");
+        std::string_view rhsTypeName = typeStringMangleName(lhsTypeRef, rhsTypeTag);
+        if (!strTable->contains(rhsTypeName))
+            strTable->add(rhsTypeName);
+        int  tempRandNum = rand() % 1000 + 1;
+        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
+        LLVMValueRef lhsTypeStoreRef = LLVMBuildStore(builder, constValue, inherentTypeIdx);
+        pkgObj->addStringOffsetRelocationEntry(rhsTypeName.data(), lhsTypeStoreRef);
+        LLVMValueRef data = LLVMBuildStructGEP(builder, lhsOpRef, 1, "data");
         if (isBoxValueSupport(rhsTypeTag)) {
             LLVMValueRef rhsTempOpRef = funcObj->getTempLocalVariable(rhsOp);
             LLVMValueRef *paramRefs = new LLVMValueRef[1];
@@ -125,8 +102,8 @@ void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
             LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(rhsTempOpRef), rhsTypeTag);
             rhsOpRef = LLVMBuildCall(builder, boxValFunc, paramRefs, 1, "call");
         }
-        LLVMValueRef bitCastRes = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
-        LLVMBuildStore(builder, bitCastRes, elePtr2);
+        LLVMValueRef bitCast = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
+        LLVMBuildStore(builder, bitCast, data);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
     }
