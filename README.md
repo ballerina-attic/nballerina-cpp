@@ -121,7 +121,20 @@ Clone the nballerina source and run below commands.
         a.exe
 
 ### Run tests
-* Tests are currently not supported in Windows
+1. Install cbindgen
+
+        cargo install cbindgen
+
+2. Install lit
+
+        pip3 Install lit filecheck
+
+3. Install java and set up JAVA_HOME in your PATH system variable
+4. Get this specific Ballerina version : [link](https://drive.google.com/file/d/1a1TlJdw-rTtCLOFrrvJe4nr1FkGzwpKH/view?usp=sharing)
+5. Extract Ballerina pack and add the bin folder with the ballerina executable to your PATH system variable
+4. Run tests
+
+        msbuild test /p:configuration=Release
 
 
 ## Setting up for Development (Ubuntu 20.04)

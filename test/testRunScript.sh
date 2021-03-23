@@ -3,6 +3,7 @@
 FILE=$(basename $1)
 filename="${FILE%.*}"
 
+export JAVA_HOME=$3
 if [ -z "$JAVA_HOME" ]
 then
   echo "\$JAVA_HOME not set."

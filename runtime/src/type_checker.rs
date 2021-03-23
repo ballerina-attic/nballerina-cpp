@@ -29,10 +29,10 @@ use num_derive::FromPrimitive;
 use std::ffi::CString;
 use std::os::raw::c_char;
 
-pub const BASE_TYPE_INDEX: usize = 0;
-pub const ARRAY_MEMBER_TYPE_INDEX: usize = 1;
-pub const ARRAY_SIZE_LSB_INDEX: usize = 2;
-pub const ARRAY_SIZE_MSB_INDEX: usize = 3;
+pub const BASE_TYPE_INDEX: usize = 2;
+pub const ARRAY_MEMBER_TYPE_INDEX: usize = 3;
+pub const ARRAY_SIZE_LSB_INDEX: usize = 4;
+pub const ARRAY_SIZE_MSB_INDEX: usize = 5;
 
 #[derive(Debug, PartialEq, FromPrimitive)]
 #[repr(u32)]
@@ -110,6 +110,9 @@ pub fn type_size(type_string: &str) -> i32 {
  * */
 #[no_mangle]
 pub extern "C" fn same_type(source: String, destination: String) -> bool {
+    if (source.len() == 0) || (destination.len() == 0) {
+        return false;
+    }
     //If type strings are same
     if source == destination {
         return true;
@@ -144,8 +147,8 @@ pub extern "C" fn same_type(source: String, destination: String) -> bool {
 
 #[test]
 fn src_type_size_less_than_dest() {
-    let src = CString::new("AF03122").unwrap();
-    let dest = CString::new("AX03122").unwrap();
+    let src = CString::new("__AF03122").unwrap();
+    let dest = CString::new("__AX03122").unwrap();
     assert_eq!(
         is_same_type(
             src.as_ptr() as *const c_char,
@@ -157,8 +160,8 @@ fn src_type_size_less_than_dest() {
 
 #[test]
 fn src_type_size_greater_than_dest() {
-    let src = CString::new("AS03122").unwrap();
-    let dest = CString::new("AB03122").unwrap();
+    let src = CString::new("__AS03122").unwrap();
+    let dest = CString::new("__AB03122").unwrap();
     assert_eq!(
         is_same_type(
             src.as_ptr() as *const c_char,
@@ -170,8 +173,8 @@ fn src_type_size_greater_than_dest() {
 
 #[test]
 fn src_elements_less_than_dest() {
-    let src = CString::new("AB041023").unwrap();
-    let dest = CString::new("AX041024").unwrap();
+    let src = CString::new("__AB041023").unwrap();
+    let dest = CString::new("__AX041024").unwrap();
     assert_eq!(
         is_same_type(
             src.as_ptr() as *const c_char,
@@ -183,8 +186,8 @@ fn src_elements_less_than_dest() {
 
 #[test]
 fn src_elements_greater_than_dest() {
-    let src = CString::new("AB0519999").unwrap();
-    let dest = CString::new("AX03199").unwrap();
+    let src = CString::new("__AB0519999").unwrap();
+    let dest = CString::new("__AX03199").unwrap();
     assert_eq!(
         is_same_type(
             src.as_ptr() as *const c_char,
@@ -196,8 +199,8 @@ fn src_elements_greater_than_dest() {
 
 #[test]
 fn src_type_string_equal_to_dest() {
-    let src = CString::new("AF0599999").unwrap();
-    let dest = CString::new("AF0599999").unwrap();
+    let src = CString::new("__AF0599999").unwrap();
+    let dest = CString::new("__AF0599999").unwrap();
     assert_eq!(
         is_same_type(
             src.as_ptr() as *const c_char,
@@ -209,6 +212,19 @@ fn src_type_string_equal_to_dest() {
 
 #[test]
 fn map_test() {
+    let src = CString::new("__MX0599999").unwrap();
+    let dest = CString::new("__MF0599999").unwrap();
+    assert_eq!(
+        is_same_type(
+            src.as_ptr() as *const c_char,
+            dest.as_ptr() as *const c_char
+        ),
+        false
+    );
+}
+
+#[test]
+fn without_underscore_test() {
     let src = CString::new("MX0599999").unwrap();
     let dest = CString::new("MF0599999").unwrap();
     assert_eq!(

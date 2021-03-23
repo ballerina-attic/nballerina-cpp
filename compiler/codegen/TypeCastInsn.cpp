@@ -25,7 +25,6 @@
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
 
-using namespace std;
 using namespace llvm;
 
 namespace nballerina {
@@ -36,65 +35,172 @@ TypeCastInsn::TypeCastInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp, [[
 
 void TypeCastInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
     Function *funcObj = getFunction();
-    string lhsOpName = getLHS()->getName();
-    string rhsOpName = rhsOp->getName();
+    Package *pkgObj = getPackage();
+    const std::string lhsOpName = getLHS()->getName();
+    const std::string rhsOpName = rhsOp->getName();
     LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-    LLVMValueRef rhsOpRef;
-    LLVMValueRef lhsOpRef;
-    LLVMTypeRef lhsTypeRef;
 
-    rhsOpRef = funcObj->getLLVMLocalVar(rhsOpName);
-    lhsOpRef = funcObj->getLLVMLocalVar(lhsOpName);
-    lhsTypeRef = wrap(unwrap(lhsOpRef)->getType());
-    Variable *orignamVarDecl = funcObj->getLocalVariable(rhsOpName);
-
-    if (orignamVarDecl && orignamVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-        LLVMValueRef lastTypeIdx __attribute__((unused)) = LLVMBuildStructGEP(builder, rhsOpRef, 1, "lastTypeIdx");
-
-        // TBD: Here, We should be checking whether this type can be cast to
-        // lhsType or not by calling a runtime library function in Rust.
-        // And the return value of the call should be checked.
-        //  If it returns false, then should be a call to abort().
-
+    LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
+    LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
+    LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
+    Variable *orignalVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
+    StringTableBuilder *strTable = pkgObj->getStrTableBuilder();
+    const char *lastTypeChar = "lastTypeIdx";
+    const char *origTypeChar = "origTypeIdx";
+    if (orignalVarDecl && orignalVarDecl->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
+        // GEP of last type of smart pointer(original type of any variable(smart
+        // pointer))
+        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 1, lastTypeChar);
+        LLVMValueRef lastTypeLoad = LLVMBuildLoad(builder, lastTypeIdx, "");
+        // sign extent of GEP to i64.
+        LLVMValueRef sExt = LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
+        // Data object of smart pointer.
         LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 2, "data");
-
         LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
+        LLVMValueRef strTblPtr = pkgObj->getStringBuilderTableGlobalPointer();
+        LLVMValueRef strTblLoad = LLVMBuildLoad(builder, strTblPtr, "");
+        LLVMValueRef *sizeOpValueRef = new LLVMValueRef[1];
+        sizeOpValueRef[0] = sExt;
+        LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
+
+        // get the mangled name of the lhs type and store it to string
+        // builder table.
+        Variable *origVarDecl = funcObj->getLocalOrGlobalVariable(getLHS());
+        assert(origVarDecl->getTypeDecl()->getTypeTag());
+        TypeTag lhsTypeTag = TypeTag(origVarDecl->getTypeDecl()->getTypeTag());
+        std::string_view lhsTypeName = typeStringMangleName(lhsTypeRef, lhsTypeTag);
+        if (!strTable->contains(lhsTypeName))
+            strTable->add(lhsTypeName);
+        int tempRandNum = rand() % 1000 + 1;
+        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
+        sizeOpValueRef[0] = constValue;
+        LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, sizeOpValueRef, 1, "");
+        // call is_same_type rust function to check LHS and RHS type are same or
+        // not.
+        LLVMValueRef addedIsSameTypeFunc = isSameType(modRef, lhsGep, gepOfStr);
+        LLVMValueRef *paramRefs = new LLVMValueRef[2];
+        paramRefs[0] = lhsGep;
+        paramRefs[1] = gepOfStr;
+        LLVMValueRef sameTypeResult = LLVMBuildCall(builder, addedIsSameTypeFunc, paramRefs, 2, "call");
+        // creating branch condition using is_same_type() function result.
+        LLVMValueRef brCondition [[maybe_unused]] = LLVMBuildIsNotNull(builder, sameTypeResult, "");
+        pkgObj->addStringOffsetRelocationEntry(lhsTypeName.data(), lhsGep);
 
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, lhsOpName.c_str());
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
-    } else if (getLHS() && funcObj->getLocalVariable(lhsOpName)->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
-        LLVMValueRef structAllocaRef = funcObj->getLLVMLocalVar(getLHS()->getName());
-        StringTableBuilder *strTable = getPackage()->getStrTableBuilder();
+    } else if (funcObj->getLocalOrGlobalVariable(getLHS())->getTypeDecl()->getTypeTag() == TYPE_TAG_ANY) {
 
         // struct first element original type
-        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, structAllocaRef, 0, "origTypeIdx");
-        Variable *origVarDecl = funcObj->getLocalVariable(lhsOpName);
-        TypeTag origTypeTag = origVarDecl->getTypeDecl()->getTypeTag();
-        const char *origTypeName = Type::getNameOfType(origTypeTag);
+        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, origTypeChar);
+        Variable *origVarDecl = funcObj->getLocalOrGlobalVariable(getLHS());
+        assert(origVarDecl->getTypeDecl()->getTypeTag());
+        TypeTag origTypeTag = TypeTag(origVarDecl->getTypeDecl()->getTypeTag());
+        std::string_view origTypeName = typeStringMangleName(lhsTypeRef, origTypeTag);
         if (!strTable->contains(origTypeName))
             strTable->add(origTypeName);
-        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), -1, 0);
+        int tempRandNum1 = rand() % 1000 + 1;
+        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
         LLVMValueRef origStoreRef = LLVMBuildStore(builder, constValue, origTypeIdx);
-        getPackage()->addStringOffsetRelocationEntry(origTypeName, origStoreRef);
+        pkgObj->addStringOffsetRelocationEntry(origTypeName.data(), origStoreRef);
         // struct second element last type
-        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, structAllocaRef, 1, "lastTypeIdx");
-        Variable *lastTypeVarDecl = funcObj->getLocalVariable(rhsOpName);
+        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 1, lastTypeChar);
+        Variable *lastTypeVarDecl = funcObj->getLocalOrGlobalVariable(rhsOp);
         assert(lastTypeVarDecl->getTypeDecl()->getTypeTag());
-        TypeTag lastTypeTag = lastTypeVarDecl->getTypeDecl()->getTypeTag();
-        const char *lastTypeName = Type::getNameOfType(lastTypeTag);
+        TypeTag lastTypeTag = TypeTag(lastTypeVarDecl->getTypeDecl()->getTypeTag());
+        std::string_view lastTypeName = typeStringMangleName(LLVMTypeOf(rhsOpRef), lastTypeTag);
         if (!strTable->contains(lastTypeName))
-            strTable->add(lastTypeName);
-        LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), -2, 0);
+            strTable->add(lastTypeName.data());
+        int tempRandNum2 = rand() % 1000 + 1;
+        LLVMValueRef constValue1 = LLVMConstInt(LLVMInt32Type(), tempRandNum2, 0);
         LLVMValueRef lastStoreRef = LLVMBuildStore(builder, constValue1, lastTypeIdx);
-        getPackage()->addStringOffsetRelocationEntry(lastTypeName, lastStoreRef);
-
+        pkgObj->addStringOffsetRelocationEntry(lastTypeName.data(), lastStoreRef);
         // struct third element void pointer data.
-        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, structAllocaRef, 2, "data");
-        LLVMValueRef bitCastRes1 = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
-        LLVMBuildStore(builder, bitCastRes1, elePtr2);
+        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 2, "data");
+        TypeTag rhsTypeTag = TypeTag(orignalVarDecl->getTypeDecl()->getTypeTag());
+        if (isBoxValueSupport(rhsTypeTag)) {
+            LLVMValueRef rhsTempOpRef = funcObj->getTempLocalVariable(rhsOp);
+            LLVMValueRef *paramRefs = new LLVMValueRef[1];
+            paramRefs[0] = rhsTempOpRef;
+            LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(rhsTempOpRef), rhsTypeTag);
+            rhsOpRef = LLVMBuildCall(builder, boxValFunc, paramRefs, 1, "call");
+        }
+        LLVMValueRef bitCastRes = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
+        LLVMBuildStore(builder, bitCastRes, elePtr2);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
+    }
+}
+
+LLVMValueRef TypeCastInsn::generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag) {
+    std::string functionName = "box_bal_";
+    functionName += Type::getNameOfType(typeTag);
+    LLVMValueRef boxValFuncRef = getPackage()->getFunctionRef(functionName);
+    if (boxValFuncRef != nullptr) {
+        return boxValFuncRef;
+    }
+    LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
+    paramTypes[0] = paramTypeRef;
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(paramTypeRef, 0), paramTypes, 1, 0);
+    boxValFuncRef = LLVMAddFunction(modRef, functionName.c_str(), funcType);
+    getPackage()->addFunctionRef(functionName, boxValFuncRef);
+    return boxValFuncRef;
+}
+
+bool TypeCastInsn::isBoxValueSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_BOOLEAN:
+        return true;
+    default:
+        return false;
+    }
+}
+
+LLVMValueRef TypeCastInsn::isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef) {
+    const char *isSameTypeChar = "is_same_type";
+    LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(isSameTypeChar);
+    if (addedFuncRef != nullptr) {
+        return addedFuncRef;
+    }
+    LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
+    paramTypes[0] = LLVMTypeOf(lhsRef);
+    paramTypes[1] = LLVMTypeOf(rhsRef);
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMInt8Type(), paramTypes, 2, 0);
+    addedFuncRef = LLVMAddFunction(modRef, isSameTypeChar, funcType);
+    getPackage()->addFunctionRef(isSameTypeChar, addedFuncRef);
+    return addedFuncRef;
+}
+
+std::string_view TypeCastInsn::typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT: {
+        return "__I";
+    }
+    case TYPE_TAG_FLOAT: {
+        return "__F";
+    }
+    case TYPE_TAG_CHAR_STRING: {
+        return "__C";
+    }
+    case TYPE_TAG_STRING: {
+        return "__S";
+    }
+    case TYPE_TAG_BOOLEAN: {
+        return "__B";
+    }
+    case TYPE_TAG_ARRAY: {
+        // TODO Need to add Size of the array.
+        if (unwrap(valType)->getPointerElementType()->isIntegerTy())
+            return "__AI";
+        return "__A";
+    }
+    case TYPE_TAG_ANY: {
+        return "__X";
+    }
+    default:
+        return "";
     }
 }
 

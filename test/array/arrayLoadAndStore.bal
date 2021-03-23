@@ -5,9 +5,12 @@ public function print_str(string val) = external;
 public function printu32(int val) = external;
 
 public function main() {
-    int a = 10;
-    int b = 5;
+    int[] arr1 = [5];
+    arr1[0] = 1;
+    arr1[1] = 5;
+    arr1[3] = 10;
+    int a = arr1[0] + arr1[1] + arr1[3];
     print_str("RESULT=");
-    printu32(a / b);
+    printu32(a);
 }
-// CHECK: RESULT=2
+// CHECK: RESULT=16
