@@ -49,4 +49,10 @@ MapTypeDecl::MapTypeDecl(TypeTag type, std::string name, int flags, TypeTag memb
 
 TypeTag MapTypeDecl::getMemberTypeTag() { return memberType; }
 
+ArrayTypeDecl::ArrayTypeDecl(TypeTag type, std::string name, int flags, TypeTag memberType, const int size,
+                             const int state)
+    : Type{type, std::move(name), flags}, memberType{memberType}, size(size), state(state) {}
+
+TypeTag ArrayTypeDecl::getMemberTypeTag() { return memberType; }
+
 } // namespace nballerina

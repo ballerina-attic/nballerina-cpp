@@ -114,7 +114,7 @@ pub extern "C" fn print_str(val: *const c_char) {
 }
 
 #[no_mangle]
-pub extern "C" fn new_int_array(size: i32) -> *mut Vec<*mut i32> {
+pub extern "C" fn int_new_array(size: i32) -> *mut Vec<*mut i32> {
     let mut size_t = size;
     if size < 0 {
         size_t = 8;
@@ -123,6 +123,42 @@ pub extern "C" fn new_int_array(size: i32) -> *mut Vec<*mut i32> {
     let foo: Box<Vec<*mut i32>> = Box::new(Vec::with_capacity(size_t));
     let vec_pointer = Box::into_raw(foo);
     return vec_pointer as *mut Vec<*mut i32>;
+}
+
+#[no_mangle]
+pub extern "C" fn float_new_array(size: i32) -> *mut Vec<*mut f32> {
+    let mut size_t = size;
+    if size < 0 {
+        size_t = 8;
+    }
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut f32>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut f32>;
+}
+
+#[no_mangle]
+pub extern "C" fn bool_new_array(size: i32) -> *mut Vec<*mut bool> {
+    let mut size_t = size;
+    if size < 0 {
+        size_t = 8;
+    }
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut bool>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut bool>;
+}
+
+#[no_mangle]
+pub extern "C" fn string_new_array(size: i32) -> *mut Vec<*mut String> {
+    let mut size_t = size;
+    if size < 0 {
+        size_t = 8;
+    }
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut String>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut String>;
 }
 
 #[no_mangle]
@@ -168,7 +204,7 @@ pub extern "C" fn float_array_load(arr_ptr: *mut Vec<*mut f32>, n: i32) -> *mut 
 }
 
 #[no_mangle]
-pub extern "C" fn boolean_array_store(arr_ptr: *mut Vec<*mut bool>, n: i32, ref_ptr: *mut bool) {
+pub extern "C" fn bool_array_store(arr_ptr: *mut Vec<*mut bool>, n: i32, ref_ptr: *mut bool) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let n_size = n as usize;
     let len = n_size + 1;
@@ -180,7 +216,7 @@ pub extern "C" fn boolean_array_store(arr_ptr: *mut Vec<*mut bool>, n: i32, ref_
 }
 
 #[no_mangle]
-pub extern "C" fn boolean_array_load(arr_ptr: *mut Vec<*mut bool>, n: i32) -> *mut bool {
+pub extern "C" fn bool_array_load(arr_ptr: *mut Vec<*mut bool>, n: i32) -> *mut bool {
     let arr = unsafe { Box::from_raw(arr_ptr)};
     let n_size = n as usize;
     let return_val = arr[n_size];
@@ -207,6 +243,46 @@ pub extern "C" fn string_array_load(arr_ptr: *mut Vec<*mut String>, n: i32) -> *
     let return_val = arr[n_size];
     mem::forget(arr);
     return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn array_deinit_int(ptr: *mut Vec<*mut i32>) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn array_deinit_float(ptr: *mut Vec<*mut f32>) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn array_deinit_bool(ptr: *mut Vec<*mut bool>) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn array_deinit_string(ptr: *mut Vec<*mut String>) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
 }
 
 // Ballerina Map implementation

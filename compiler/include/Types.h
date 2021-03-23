@@ -108,6 +108,19 @@ class MapTypeDecl : public Type {
     TypeTag getMemberTypeTag();
 };
 
+class ArrayTypeDecl : public Type {
+  private:
+    const TypeTag memberType;
+    const int size;
+    const int state;
+
+  public:
+    ArrayTypeDecl() = delete;
+    ArrayTypeDecl(TypeTag type, std::string name, int flags, TypeTag memberType, const int size, const int state);
+    ~ArrayTypeDecl() = default;
+    TypeTag getMemberTypeTag();
+};
+
 } // namespace nballerina
 
 #endif //!__TYPEDECL__H__

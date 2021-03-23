@@ -33,16 +33,20 @@ ArrayInsn::ArrayInsn(Operand *lOp, BasicBlock *currentBB, Operand *sOp, [[maybe_
     : NonTerminatorInsn(lOp, currentBB), sizeOp(sOp) {}
 
 LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
-    const char *newIntArrayChar = "new_int_array";
-    LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(newIntArrayChar);
+    Variable *lhsVar = getFunction()->getLocalOrGlobalVariable(getLHS());
+    auto *arrayTypeDelare = dynamic_cast<ArrayTypeDecl *>(lhsVar->getTypeDecl());
+    TypeTag memberTypeTag = arrayTypeDelare->getMemberTypeTag();
+    const string &typeStr(Type::getNameOfType(memberTypeTag));
+    const string &arrayTypeFuncName = typeStr + "_new_array";
+    LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
     LLVMTypeRef *paramTypes = new LLVMTypeRef[1];
     paramTypes[0] = LLVMInt32Type();
     LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), paramTypes, 1, 0);
-    addedFuncRef = LLVMAddFunction(modRef, newIntArrayChar, funcType);
-    getPackage()->addFunctionRef(newIntArrayChar, addedFuncRef);
+    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
+    getPackage()->addFunctionRef(arrayTypeFuncName, addedFuncRef);
     return addedFuncRef;
 }
 
@@ -65,29 +69,10 @@ ArrayLoadInsn::ArrayLoadInsn(Operand *lOp, BasicBlock *currentBB, [[maybe_unused
     : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
-    const char *arrayTypeFuncName;
-    LLVMTypeRef funcRetType;
-    switch (lhsOpTypeTag) {
-    case TYPE_TAG_INT:
-        arrayTypeFuncName = "int_array_load";
-        funcRetType = LLVMPointerType(LLVMInt32Type(), 0);
-        break;
-    case TYPE_TAG_FLOAT:
-        arrayTypeFuncName = "float_array_load";
-        funcRetType = LLVMPointerType(LLVMFloatType(), 0);
-        break;
-    case TYPE_TAG_STRING:
-    case TYPE_TAG_CHAR_STRING:
-        arrayTypeFuncName = "string_array_load";
-        funcRetType = LLVMPointerType(LLVMPointerType(LLVMInt8Type(), 0), 0);
-        break;
-    case TYPE_TAG_BOOLEAN:
-        arrayTypeFuncName = "boolean_array_load";
-        funcRetType = LLVMPointerType(LLVMInt8Type(), 0);
-        break;
-    default:
-        llvm_unreachable("Unknown Type");
-    }
+    const string &typeStr(Type::getNameOfType(lhsOpTypeTag));
+    const string &arrayTypeFuncName = typeStr + "_array_load";
+    Type *lhsType = getFunction()->getLocalOrGlobalVariable(getLHS())->getTypeDecl();
+    LLVMTypeRef funcRetType = LLVMPointerType(getPackage()->getLLVMTypeOfType(lhsType), 0);
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
@@ -96,7 +81,7 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeT
     paramTypes[0] = LLVMPointerType(LLVMInt8Type(), 0);
     paramTypes[1] = LLVMInt32Type();
     LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 2, 0);
-    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName, funcType);
+    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackage()->addFunctionRef(arrayTypeFuncName, addedFuncRef);
     return addedFuncRef;
 }
@@ -123,24 +108,9 @@ ArrayStoreInsn::ArrayStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp
     : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
 LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag) {
-    const char *arrayTypeFuncName;
-    switch (rhsOpTypeTag) {
-    case TYPE_TAG_INT:
-        arrayTypeFuncName = "int_array_store";
-        break;
-    case TYPE_TAG_FLOAT:
-        arrayTypeFuncName = "float_array_store";
-        break;
-    case TYPE_TAG_STRING:
-    case TYPE_TAG_CHAR_STRING:
-        arrayTypeFuncName = "string_array_store";
-        break;
-    case TYPE_TAG_BOOLEAN:
-        arrayTypeFuncName = "boolean_array_store";
-        break;
-    default:
-        llvm_unreachable("Unknown Type");
-    }
+    const string &typeStr(Type::getNameOfType(rhsOpTypeTag));
+    const string &arrayTypeFuncName = typeStr + "_array_store";
+
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
@@ -150,7 +120,7 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
     paramTypes[1] = LLVMInt32Type();
     paramTypes[2] = LLVMTypeOf(getFunction()->getLLVMLocalVar(rhsOp->getName()));
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
-    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName, funcType);
+    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackage()->addFunctionRef(arrayTypeFuncName, addedFuncRef);
     return addedFuncRef;
 }
