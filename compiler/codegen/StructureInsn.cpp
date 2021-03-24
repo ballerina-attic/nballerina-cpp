@@ -31,7 +31,7 @@ using namespace llvm;
 namespace nballerina {
 
 StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                             std::vector<MapConstrctKeyValue> initValues)
+                             std::vector<std::unique_ptr<MapConstruct>> initValues)
     : NonTerminatorInsn(lhs, std::move(currentBB)), initValues(std::move(initValues)) {}
 
 StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
@@ -64,11 +64,21 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 
     // Codegen for map<int> type store
     LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapIntStoreDeclaration(modRef);
+    LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
     auto builder = funcObj.getLLVMBuilder();
     for (const auto &initValue : initValues) {
+        if (initValue->getKind() == Spread_Field_Kind) {
+            auto *expr = static_cast<MapConstructSpreadField *>(initValue.get());
+            LLVMValueRef argOpValueRef[] = {funcObj.createTempVariable(getLhsOperand()),
+                                            funcObj.createTempVariable(expr->getExpr())};
+            LLVMBuildCall(builder, mapSpreadFieldFunc, argOpValueRef, 2, "");
+            continue;
+        }
+        // For Key_Value_Kind
+        auto *keyVal = static_cast<MapConstructKeyValue *>(initValue.get());
         MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
-                                      funcObj.createTempVariable(initValue.getKey()),
-                                      funcObj.getLLVMLocalOrGlobalVar(initValue.getValue()));
+                                      funcObj.createTempVariable(keyVal->getKey()),
+                                      funcObj.getLLVMLocalOrGlobalVar(keyVal->getValue()));
     }
 }
 

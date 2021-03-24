@@ -1,7 +1,5 @@
 // RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 
-int _bal_result = 0;
-
 map<int> marks = {};
 int value = 60;
 string key = "";

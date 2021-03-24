@@ -20,23 +20,48 @@
 #define __MAPSTOREINSN__H__
 
 #include "NonTerminatorInsn.h"
+#include <variant>
 
 namespace nballerina {
 
 enum MapConstrctBodyKind { Spread_Field_Kind = 0, Key_Value_Kind = 1 };
 
-class MapConstrctKeyValue {
+class MapConstruct {
+  private:
+    MapConstrctBodyKind kind;
+
+  public:
+    MapConstruct() = delete;
+    MapConstruct(MapConstrctBodyKind kind) : kind(kind) {}
+    virtual ~MapConstruct() = default;
+    MapConstrctBodyKind getKind() { return kind; }
+};
+
+class MapConstructKeyValue : public MapConstruct {
   private:
     Operand keyOp;
     Operand valueOp;
 
   public:
-    MapConstrctKeyValue() = delete;
-    MapConstrctKeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
-    ~MapConstrctKeyValue() = default;
+    MapConstructKeyValue() = delete;
+    MapConstructKeyValue(const Operand &key, const Operand &value)
+        : MapConstruct(Key_Value_Kind), keyOp(key), valueOp(value) {}
+    ~MapConstructKeyValue() = default;
 
     const Operand &getKey() const { return keyOp; }
     const Operand &getValue() const { return valueOp; }
+};
+
+class MapConstructSpreadField : public MapConstruct {
+  private:
+    Operand expr;
+
+  public:
+    MapConstructSpreadField() = delete;
+    MapConstructSpreadField(const Operand &expr) : MapConstruct(Spread_Field_Kind), expr(expr) {}
+    ~MapConstructSpreadField() = default;
+
+    const Operand &getExpr() const { return expr; }
 };
 
 class MapStoreInsn : public NonTerminatorInsn {

@@ -268,4 +268,18 @@ LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
     return mapStoreFunc;
 }
 
+LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef) {
+    const auto *externalFunctionName = "map_spread_field_init";
+
+    LLVMValueRef func = getFunctionRef(externalFunctionName);
+    if (func != nullptr) {
+        return func;
+    }
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0)};
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 2, 0);
+    func = LLVMAddFunction(modRef, externalFunctionName, funcType);
+    addFunctionRef(externalFunctionName, func);
+    return func;
+}
+
 } // namespace nballerina

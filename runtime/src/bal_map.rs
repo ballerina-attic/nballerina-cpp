@@ -19,6 +19,14 @@ pub mod map {
         pub fn insert(&mut self, key: &str, member: i32) {
             self.map.insert(String::from(key), member);
         }
+
+        // Insert with spread field expression
+        pub fn insert_spread_field(&mut self, expr: &BalMapInt) {
+            for (key, value) in expr.map.iter() {
+                self.map.insert(String::from(key), *value);
+            }
+        }
+
         // test functions
         pub fn length(&self) -> usize {
             self.map.len()
