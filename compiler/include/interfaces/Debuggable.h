@@ -24,13 +24,13 @@
 namespace nballerina {
 
 class Debuggable {
-    Location *pos;
+    Location pos;
 
   public:
     Debuggable() = default;
     virtual ~Debuggable() = default;
-    Location *getLocation() { return pos; };
-    void setLocation(Location *newPos) { pos = newPos; };
+    const Location &getLocation() const { return pos; };
+    void setLocation(Location newPos) { pos = std::move(newPos); };
 };
 
 } // namespace nballerina

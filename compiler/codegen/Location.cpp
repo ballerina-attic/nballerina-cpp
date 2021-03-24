@@ -23,10 +23,10 @@ namespace nballerina {
 Location::Location(std::string name, int sline, int scol, int eline, int ecol)
     : fileName(std::move(name)), sLine(sline), sCol(scol), eLine(eline), eCol(ecol) {}
 
-std::string Location::getFileName() { return fileName; }
-int Location::getStartLineNum() { return sLine; }
-int Location::getStartColumnNum() { return sCol; }
-int Location::getEndLineNum() { return eLine; }
-int Location::getEndColumnNum() { return eCol; }
+const std::string &Location::getFileName() const { return fileName; }
+int Location::getStartLineNum() const { return sLine; }
+int Location::getStartColumnNum() const { return sCol; }
+int Location::getEndLineNum() const { return eLine; }
+int Location::getEndColumnNum() const { return eCol; }
 
 } // namespace nballerina

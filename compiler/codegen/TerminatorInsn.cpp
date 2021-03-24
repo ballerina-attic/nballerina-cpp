@@ -17,18 +17,21 @@
  */
 
 #include "TerminatorInsn.h"
+#include <memory>
 
 namespace nballerina {
 
-TerminatorInsn::TerminatorInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *then, bool _patchRequire)
-    : AbstractInstruction(lOp, currentBB), thenBB(then), patchRequire(_patchRequire), kind() {}
+TerminatorInsn::TerminatorInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
+                               std::shared_ptr<BasicBlock> then, bool patchRequired)
+    : AbstractInstruction(lhs, std::move(currentBB)), thenBB(std::move(then)), patchRequired(patchRequired),
+      kind(INSTRUCTION_NOT_AN_INSTRUCTION) {}
 
-BasicBlock *TerminatorInsn::getNextBB() { return thenBB; }
-bool TerminatorInsn::getPatchStatus() { return patchRequire; }
-InstructionKind TerminatorInsn::getInstKind() { return kind; }
-void TerminatorInsn::setPatched() { patchRequire = false; }
-void TerminatorInsn::setNextBB(BasicBlock *bb) { thenBB = bb; }
+BasicBlock *TerminatorInsn::getNextBB() const { return thenBB.get(); }
+bool TerminatorInsn::isPatched() const { return patchRequired; }
+InstructionKind TerminatorInsn::getInstKind() const { return kind; }
+void TerminatorInsn::setPatched() { patchRequired = false; }
+void TerminatorInsn::setNextBB(std::shared_ptr<BasicBlock> bb) { thenBB = std::move(bb); }
 
-void TerminatorInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {}
+void TerminatorInsn::translate(LLVMModuleRef &) {}
 
 } // namespace nballerina

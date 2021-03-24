@@ -16,8 +16,8 @@
  * under the License.
  */
 
-#include "BasicBlock.h"
 #include "ConditionBrInsn.h"
+#include "BasicBlock.h"
 #include "Function.h"
 #include "Operand.h"
 #include "Types.h"
@@ -28,24 +28,27 @@ using namespace std;
 
 namespace nballerina {
 
-ConditionBrInsn::ConditionBrInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *_ifThenBB, BasicBlock *_elseBB)
-    : TerminatorInsn(lOp, currentBB, nullptr, true), ifThenBB(_ifThenBB), elseBB(_elseBB) {
+ConditionBrInsn::ConditionBrInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
+                                 std::shared_ptr<BasicBlock> ifThenBB, std::shared_ptr<BasicBlock> elseBB)
+    : TerminatorInsn(lhs, std::move(currentBB), nullptr, true), ifThenBB(std::move(ifThenBB)),
+      elseBB(std::move(elseBB)) {
     kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
 }
 
-BasicBlock *ConditionBrInsn::getIfThenBB() { return ifThenBB; }
-BasicBlock *ConditionBrInsn::getElseBB() { return elseBB; }
-void ConditionBrInsn::setIfThenBB(BasicBlock *bb) { ifThenBB = bb; }
-void ConditionBrInsn::setElseBB(BasicBlock *bb) { elseBB = bb; }
+const BasicBlock &ConditionBrInsn::getIfThenBB() const { return *ifThenBB; }
+const BasicBlock &ConditionBrInsn::getElseBB() const { return *elseBB; }
+void ConditionBrInsn::setIfThenBB(std::shared_ptr<BasicBlock> bb) { ifThenBB = std::move(bb); }
+void ConditionBrInsn::setElseBB(std::shared_ptr<BasicBlock> bb) { elseBB = std::move(bb); }
 
-void ConditionBrInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
+void ConditionBrInsn::translate(LLVMModuleRef &) {
 
-    LLVMBuilderRef builder = getFunction()->getLLVMBuilder();
-    string lhsName = getLHS()->getName();
+    const auto &funcRef = getFunctionRef();
+    LLVMBuilderRef builder = funcRef.getLLVMBuilder();
+    string lhsName = getLhsOperand().getName();
 
-    LLVMValueRef brCondition = getFunction()->getLLVMValueForBranchComparison(lhsName);
+    LLVMValueRef brCondition = funcRef.getLLVMValueForBranchComparison(lhsName);
     if (brCondition == nullptr) {
-        brCondition = LLVMBuildIsNotNull(builder, getFunction()->getTempLocalVariable(getLHS()), lhsName.c_str());
+        brCondition = LLVMBuildIsNotNull(builder, funcRef.createTempVariable(getLhsOperand()), lhsName.c_str());
     }
 
     LLVMBuildCondBr(builder, brCondition, ifThenBB->getLLVMBBRef(), elseBB->getLLVMBBRef());

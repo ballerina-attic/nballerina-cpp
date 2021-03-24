@@ -21,7 +21,9 @@
 
 #include "NonTerminatorInsn.h"
 #include "Types.h"
+#include "llvm/IR/GlobalVariable.h"
 #include <string>
+#include <variant>
 
 namespace nballerina {
 
@@ -29,34 +31,17 @@ namespace nballerina {
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
-    union value {
-        int intValue;
-        double floatValue;
-        bool boolValue;
-        std::string *strValue;
-        value() {}
-        value(int x) : intValue(x) {}
-        value(float x) : floatValue(x) {}
-        value(bool x) : boolValue(x) {}
-        value(std::string *x) : strValue(x) {}
-    } val;
+    std::variant<int, double, bool, std::string> value;
+    std::unique_ptr<llvm::GlobalVariable> globalStringValue;
 
   public:
     ConstantLoadInsn() = delete;
-    ConstantLoadInsn(Operand *lOp, BasicBlock *currentBB);
+    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, int intVal);
+    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, float floatVal);
+    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, bool boolVal);
+    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::string str);
+    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);
     ~ConstantLoadInsn() = default;
-
-    int getIntValue();
-    float getFloatValue();
-    bool getBoolValue();
-    std::string *getStringValue();
-    TypeTag getTypeTag();
-
-    void setIntValue(int intVal, TypeTag TypeTag);
-    void setFloatValue(float floatVal, TypeTag TypeTag);
-    void setBoolValue(bool boolVal, TypeTag TypeTag);
-    void setStringValue(std::string *str, TypeTag TypeTag);
-    void setTypeTagNil(TypeTag TypeTag);
 
     void translate(LLVMModuleRef &modRef) final;
 };

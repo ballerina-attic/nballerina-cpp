@@ -16,28 +16,26 @@
  * under the License.
  */
 
+#include "UnaryOpInsn.h"
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
-#include "UnaryOpInsn.h"
 #include <llvm-c/Core.h>
 #include <string>
 
-using namespace std;
-
 namespace nballerina {
 
-UnaryOpInsn::UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp)
-    : NonTerminatorInsn(lOp, currentBB), rhsOp(rOp) {}
+UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhs) {}
 
-void UnaryOpInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
+void UnaryOpInsn::translate(LLVMModuleRef &) {
 
-    Function *funcObj = getFunction();
-    LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-    Operand *lhsOp = getLHS();
-    string lhsTmpName = lhsOp->getName() + "_temp";
-    LLVMValueRef lhsRef = funcObj->getLLVMLocalOrGlobalVar(lhsOp);
-    LLVMValueRef rhsOpref = funcObj->getTempLocalVariable(rhsOp);
+    const auto &funcObj = getFunctionRef();
+    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
+    const auto &lhsOp = getLhsOperand();
+    std::string lhsTmpName = lhsOp.getName() + "_temp";
+    LLVMValueRef lhsRef = funcObj.getLLVMLocalOrGlobalVar(lhsOp);
+    LLVMValueRef rhsOpref = funcObj.createTempVariable(rhsOp);
     LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhsTmpName.c_str());
     LLVMBuildStore(builder, ifReturn, lhsRef);
 }

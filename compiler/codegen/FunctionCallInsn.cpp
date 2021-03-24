@@ -16,9 +16,9 @@
  * under the License.
  */
 
+#include "FunctionCallInsn.h"
 #include "BasicBlock.h"
 #include "Function.h"
-#include "FunctionCallInsn.h"
 #include "Operand.h"
 #include "Package.h"
 #include "llvm-c/Core.h"
@@ -27,36 +27,29 @@ using namespace std;
 
 namespace nballerina {
 
-FunctionCallInsn::FunctionCallInsn([[maybe_unused]] bool funcVirtual, std::string funcName, int argNumber,
-                                   BasicBlock *nextBB, Operand *lhsOp, std::vector<Operand *> &fnArgs,
-                                   BasicBlock *currentBB)
-    : TerminatorInsn(lhsOp, currentBB, nextBB, true), functionName(std::move(funcName)), argCount(argNumber),
+FunctionCallInsn::FunctionCallInsn(std::string funcName, int argNumber, std::shared_ptr<BasicBlock> nextBB,
+                                   const Operand &lhs, std::vector<Operand> fnArgs,
+                                   std::shared_ptr<BasicBlock> currentBB)
+    : TerminatorInsn(lhs, std::move(currentBB), std::move(nextBB), true), functionName(std::move(funcName)), argCount(argNumber),
       argsList(std::move(fnArgs)) {
     kind = INSTRUCTION_KIND_CALL;
 }
 
-std::string FunctionCallInsn::getFunctionName() { return functionName; }
-int FunctionCallInsn::getArgCount() { return argCount; }
-Operand *FunctionCallInsn::getArgumentFromList(int i) { return argsList[i]; }
+void FunctionCallInsn::translate(LLVMModuleRef &) {
+    const auto &funcObj = getFunctionRef();
+    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
+    std::unique_ptr<LLVMValueRef[]> ParamRefs(new LLVMValueRef[argCount]);
 
-void FunctionCallInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
-    Function *funcObj = getFunction();
-    LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-    LLVMValueRef *ParamRefs = new LLVMValueRef[argCount];
-
-    Function *function = getPackage()->getFunction(functionName);
-    if (function == nullptr) {
-        llvm_unreachable("Unknown function call");
-    }
+    const auto &function = getPackageRef().getFunction(functionName);
     for (int i = 0; i < argCount; i++) {
-        Operand *op = argsList[i];
-        LLVMValueRef opRef = funcObj->getTempLocalVariable(op);
+        auto op = argsList[i];
+        LLVMValueRef opRef = funcObj.createTempVariable(op);
         ParamRefs[i] = opRef;
     }
 
-    LLVMValueRef lhsRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
-    LLVMValueRef namedFuncRef = function->getLLVMFunctionValue();
-    LLVMValueRef callResult = LLVMBuildCall(builder, namedFuncRef, ParamRefs, argCount, "call");
+    LLVMValueRef lhsRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
+    LLVMValueRef namedFuncRef = function.getLLVMFunctionValue();
+    LLVMValueRef callResult = LLVMBuildCall(builder, namedFuncRef, ParamRefs.get(), argCount, "call");
     LLVMBuildStore(builder, callResult, lhsRef);
 
     // creating branch to next basic block.
