@@ -172,6 +172,9 @@ std::string_view TypeCastInsn::typeStringMangleName(LLVMTypeRef valType, TypeTag
     case TYPE_TAG_ANY: {
         return "__X";
     }
+    case TYPE_TAG_NIL: {
+        return "__N";
+    }
     default:
         return "";
     }
