@@ -7,5 +7,5 @@ if (NOT UNIX)
 endif()
 
 add_custom_target(check
-  COMMAND ${PYTHON_EXE} ${CMAKE_SOURCE_DIR}/test/run_lit_tests.py "${CMAKE_CURRENT_BINARY_DIR}" "${CHECK_FILTER}" -v
+  COMMAND ${PYTHON_EXE} ${CMAKE_SOURCE_DIR}/test/run_lit_tests.py "${CMAKE_CURRENT_BINARY_DIR}" "${CHECK_FILTER}" -vv
   DEPENDS nballerinacc)

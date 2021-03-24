@@ -79,13 +79,6 @@ LLVMValueRef Function::createTempVariable(const Operand &operand) const {
 
 static bool isParamter(const Variable &locVar) {
     switch (locVar.getKind()) {
-    case LOCAL_VAR_KIND:
-    case TEMP_VAR_KIND:
-    case RETURN_VAR_KIND:
-    case GLOBAL_VAR_KIND:
-    case SELF_VAR_KIND:
-    case CONSTANT_VAR_KIND:
-        return false;
     case ARG_VAR_KIND:
         return true;
     default:
@@ -112,7 +105,6 @@ LLVMTypeRef Function::getLLVMTypeOfReturnVal() const {
 }
 
 void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
-void Function::setRestParam(RestParam param) { restParam = param; }
 void Function::insertLocalVar(const Variable &var) {
     localVars.insert(std::pair<std::string, Variable>(var.getName(), var));
 }

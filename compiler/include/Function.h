@@ -92,7 +92,6 @@ class Function : public Debuggable, public Translatable {
 
     void patchBasicBlocks();
     void insertParam(const FunctionParam &param);
-    void setRestParam(RestParam param);
     void setReturnVar(const Variable &var);
     void insertLocalVar(const Variable &var);
     void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);

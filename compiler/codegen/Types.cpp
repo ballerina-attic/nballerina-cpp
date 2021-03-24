@@ -17,6 +17,7 @@
  */
 
 #include "Types.h"
+#include <cassert>
 
 namespace nballerina {
 
@@ -47,7 +48,6 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "int";
     case TYPE_TAG_FLOAT:
         return "float";
-    case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
         return "string";
     case TYPE_TAG_BOOLEAN:
@@ -57,6 +57,7 @@ std::string Type::getNameOfType(TypeTag typeTag) {
     case TYPE_TAG_UNION:
         return "union";
     default:
+        assert(false);
         return "";
     }
 }
