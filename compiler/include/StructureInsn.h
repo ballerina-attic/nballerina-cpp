@@ -31,7 +31,7 @@ class MapConstruct;
 
 class StructureInsn : public NonTerminatorInsn {
   private:
-    std::vector<std::unique_ptr<MapConstruct>> initValues;
+    std::vector<MapConstruct> initValues;
     void mapInstructionTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
     LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef);
 
@@ -39,7 +39,7 @@ class StructureInsn : public NonTerminatorInsn {
     StructureInsn() = delete;
     StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);
     StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                  std::vector<std::unique_ptr<MapConstruct>> initValues);
+                  std::vector<MapConstruct> initValues);
     ~StructureInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

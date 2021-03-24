@@ -31,7 +31,7 @@ using namespace llvm;
 namespace nballerina {
 
 StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                             std::vector<std::unique_ptr<MapConstruct>> initValues)
+                             std::vector<MapConstruct> initValues)
     : NonTerminatorInsn(lhs, std::move(currentBB)), initValues(std::move(initValues)) {}
 
 StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
@@ -67,18 +67,19 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
     auto builder = funcObj.getLLVMBuilder();
     for (const auto &initValue : initValues) {
-        if (initValue->getKind() == Spread_Field_Kind) {
-            auto *expr = static_cast<MapConstructSpreadField *>(initValue.get());
+        const auto &initstruct = initValue.getInitValStruct();
+        if (initValue.getKind() == Spread_Field_Kind) {
+            const auto &expr = std::get<SpreadField>(initstruct).getExpr();
             LLVMValueRef argOpValueRef[] = {funcObj.createTempVariable(getLhsOperand()),
-                                            funcObj.createTempVariable(expr->getExpr())};
+                                            funcObj.createTempVariable(expr)};
             LLVMBuildCall(builder, mapSpreadFieldFunc, argOpValueRef, 2, "");
             continue;
         }
         // For Key_Value_Kind
-        auto *keyVal = static_cast<MapConstructKeyValue *>(initValue.get());
+        const auto &keyVal = std::get<KeyValue>(initstruct);
         MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
-                                      funcObj.createTempVariable(keyVal->getKey()),
-                                      funcObj.getLLVMLocalOrGlobalVar(keyVal->getValue()));
+                                      funcObj.createTempVariable(keyVal.getKey()),
+                                      funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue()));
     }
 }
 

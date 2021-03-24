@@ -26,42 +26,44 @@ namespace nballerina {
 
 enum MapConstrctBodyKind { Spread_Field_Kind = 0, Key_Value_Kind = 1 };
 
-class MapConstruct {
-  private:
-    MapConstrctBodyKind kind;
-
-  public:
-    MapConstruct() = delete;
-    MapConstruct(MapConstrctBodyKind kind) : kind(kind) {}
-    virtual ~MapConstruct() = default;
-    MapConstrctBodyKind getKind() { return kind; }
-};
-
-class MapConstructKeyValue : public MapConstruct {
+class KeyValue {
   private:
     Operand keyOp;
     Operand valueOp;
 
   public:
-    MapConstructKeyValue() = delete;
-    MapConstructKeyValue(const Operand &key, const Operand &value)
-        : MapConstruct(Key_Value_Kind), keyOp(key), valueOp(value) {}
-    ~MapConstructKeyValue() = default;
+    KeyValue() = delete;
+    KeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
+    ~KeyValue() = default;
 
     const Operand &getKey() const { return keyOp; }
     const Operand &getValue() const { return valueOp; }
 };
 
-class MapConstructSpreadField : public MapConstruct {
+class SpreadField {
   private:
     Operand expr;
 
   public:
-    MapConstructSpreadField() = delete;
-    MapConstructSpreadField(const Operand &expr) : MapConstruct(Spread_Field_Kind), expr(expr) {}
-    ~MapConstructSpreadField() = default;
+    SpreadField() = delete;
+    SpreadField(const Operand &expr) : expr(expr) {}
+    ~SpreadField() = default;
 
     const Operand &getExpr() const { return expr; }
+};
+
+class MapConstruct {
+  private:
+    MapConstrctBodyKind kind;
+    std::variant<KeyValue, SpreadField> initValueStruct;
+
+  public:
+    MapConstruct() = delete;
+    MapConstruct(KeyValue initVal) : kind(Key_Value_Kind), initValueStruct(initVal) {}
+    MapConstruct(SpreadField initVal) : kind(Spread_Field_Kind), initValueStruct(initVal) {}
+    virtual ~MapConstruct() = default;
+    MapConstrctBodyKind getKind() const { return kind; }
+    const std::variant<KeyValue, SpreadField> &getInitValStruct() const { return initValueStruct; }
 };
 
 class MapStoreInsn : public NonTerminatorInsn {

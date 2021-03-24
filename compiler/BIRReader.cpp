@@ -266,17 +266,17 @@ Operand BIRReader::readOperand() {
 }
 
 // Read Mapping Constructor Key Value body
-std::unique_ptr<MapConstruct> BIRReader::readMapConstructor() {
+MapConstruct BIRReader::readMapConstructor() {
 
     auto kind = readU1();
     if ((MapConstrctBodyKind)kind == Spread_Field_Kind) {
         auto expr = readOperand();
-        return std::make_unique<MapConstructSpreadField>(expr);
+        return MapConstruct(SpreadField(expr));
     }
     // For Key_Value_Kind
     auto key = readOperand();
     auto value = readOperand();
-    return std::make_unique<MapConstructKeyValue>(key, value);
+    return MapConstruct(KeyValue(key, value));
 }
 
 // Read TYPEDESC Insn
@@ -297,7 +297,7 @@ std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::sha
         return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB);
     }
 
-    std::vector<std::unique_ptr<MapConstruct>> initValues;
+    std::vector<MapConstruct> initValues;
     initValues.reserve(initValuesCount);
     for (size_t i = 0; i < initValuesCount; i++) {
         initValues.push_back(readerRef.readMapConstructor());
