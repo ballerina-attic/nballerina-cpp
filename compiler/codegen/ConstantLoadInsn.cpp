@@ -35,7 +35,7 @@ ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBloc
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, int intVal)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_INT), value(intVal) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, float floatVal)
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, double floatVal)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_FLOAT), value(floatVal) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, bool boolVal)

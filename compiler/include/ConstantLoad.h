@@ -37,7 +37,7 @@ class ConstantLoadInsn : public NonTerminatorInsn {
   public:
     ConstantLoadInsn() = delete;
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, int intVal);
-    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, float floatVal);
+    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, double floatVal);
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, bool boolVal);
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::string str);
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);
