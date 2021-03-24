@@ -48,6 +48,12 @@ ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
 ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
 
+constexpr int BIRReader::isLittleEndian() {
+    unsigned int val = 1;
+    char *c = (char *)&val;
+    return (int)*c;
+}
+
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
     uint8_t value;
@@ -69,11 +75,11 @@ uint16_t BIRReader::readS2be() {
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
     char *p = (char *)&value;
     char tmp;
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    tmp = p[0];
-    p[0] = p[1];
-    p[1] = tmp;
-#endif
+    if (isLittleEndian()) {
+        tmp = p[0];
+        p[0] = p[1];
+        p[1] = tmp;
+    }
     result = value;
     return result;
 }
@@ -82,14 +88,14 @@ uint16_t BIRReader::readS2be() {
 uint32_t BIRReader::readS4be() {
     uint32_t value;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    uint32_t result = 0;
-    result |= (value & 0x000000FF) << 24;
-    result |= (value & 0x0000FF00) << 8;
-    result |= (value & 0x00FF0000) >> 8;
-    result |= (value & 0xFF000000) >> 24;
-    value = result;
-#endif
+    if (isLittleEndian()) {
+        uint32_t result = 0;
+        result |= (value & 0x000000FF) << 24;
+        result |= (value & 0x0000FF00) << 8;
+        result |= (value & 0x00FF0000) >> 8;
+        result |= (value & 0xFF000000) >> 24;
+        value = result;
+    }
     return value;
 }
 
@@ -98,26 +104,26 @@ uint64_t BIRReader::readS8be() {
     uint64_t value;
     uint64_t result;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    char *p = (char *)&value;
-    char tmp;
+    if (isLittleEndian()) {
+        char *p = (char *)&value;
+        char tmp;
 
-    tmp = p[0];
-    p[0] = p[7];
-    p[7] = tmp;
+        tmp = p[0];
+        p[0] = p[7];
+        p[7] = tmp;
 
-    tmp = p[1];
-    p[1] = p[6];
-    p[6] = tmp;
+        tmp = p[1];
+        p[1] = p[6];
+        p[6] = tmp;
 
-    tmp = p[2];
-    p[2] = p[5];
-    p[5] = tmp;
+        tmp = p[2];
+        p[2] = p[5];
+        p[5] = tmp;
 
-    tmp = p[3];
-    p[3] = p[4];
-    p[4] = tmp;
-#endif
+        tmp = p[3];
+        p[3] = p[4];
+        p[4] = tmp;
+    }
     result = value;
     return result;
 }
@@ -127,26 +133,26 @@ double BIRReader::readS8bef() {
     double value;
     double result;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    char *p = (char *)&value;
-    char tmp;
+    if (isLittleEndian()) {
+        char *p = (char *)&value;
+        char tmp;
 
-    tmp = p[0];
-    p[0] = p[7];
-    p[7] = tmp;
+        tmp = p[0];
+        p[0] = p[7];
+        p[7] = tmp;
 
-    tmp = p[1];
-    p[1] = p[6];
-    p[6] = tmp;
+        tmp = p[1];
+        p[1] = p[6];
+        p[6] = tmp;
 
-    tmp = p[2];
-    p[2] = p[5];
-    p[5] = tmp;
+        tmp = p[2];
+        p[2] = p[5];
+        p[5] = tmp;
 
-    tmp = p[3];
-    p[3] = p[4];
-    p[4] = tmp;
-#endif
+        tmp = p[3];
+        p[3] = p[4];
+        p[4] = tmp;
+    }
     result = value;
     return result;
 }
