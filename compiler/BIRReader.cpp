@@ -170,18 +170,18 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 
     // Handle voidToInt flag
     if (type == TYPE_TAG_NIL && voidToInt)
-        return Type(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
+        return Type(TYPE_TAG_INT, name);
 
     // Handle Map type
     if (type == TYPE_TAG_MAP) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getConstraintTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, shapeCp->getTypeFlag(), typeShapeCp->getTypeTag());
+        return Type(type, name, typeShapeCp->getTypeTag());
     }
 
     // Default return
-    return Type(type, name, shapeCp->getTypeFlag());
+    return Type(type, name);
 }
 
 // Get the Type tag from the constant pool based on the index passed

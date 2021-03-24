@@ -65,7 +65,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
     // Codegen for map<int> type store
     LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapIntStoreDeclaration(modRef);
     LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
-    auto builder = funcObj.getLLVMBuilder();
+    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
     for (const auto &initValue : initValues) {
         const auto &initstruct = initValue.getInitValStruct();
         if (initValue.getKind() == Spread_Field_Kind) {

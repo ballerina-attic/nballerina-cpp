@@ -164,8 +164,9 @@ std::string_view TypeCastInsn::typeStringMangleName(LLVMTypeRef valType, TypeTag
     }
     case TYPE_TAG_ARRAY: {
         // TODO Need to add Size of the array.
-        if (unwrap(valType)->getPointerElementType()->isIntegerTy())
+        if (unwrap(valType)->getPointerElementType()->isIntegerTy()){
             return "__AI";
+        }
         return "__A";
     }
     case TYPE_TAG_ANY: {

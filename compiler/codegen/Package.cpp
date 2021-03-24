@@ -200,15 +200,15 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
     for (const auto &element : structElementStoreInst) {
         const std::string &typeString = element.first;
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
-        offsetStringPair.push_back(std::make_pair(finalOrigOffset, typeString));
+        offsetStringPair.emplace_back(finalOrigOffset, typeString);
     }
 
     // creating the concat string to store in the global address space(string table
     // global pointer)
     std::string concatString;
     std::sort(offsetStringPair.begin(), offsetStringPair.end());
-    for (unsigned int i = 0; i < offsetStringPair.size(); i++) {
-        concatString.append(offsetStringPair[i].second);
+    for (const auto &pair : offsetStringPair) {
+        concatString.append(pair.second);
     }
 
     for (const auto &element : structElementStoreInst) {
@@ -224,7 +224,7 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
     LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, STRING_TABLE_NAME.c_str(), 0);
     globalVarRefs.insert({STRING_TABLE_NAME, createAddrsSpace});
 
-    LLVMValueRef constString = LLVMConstString(concatString.c_str(), concatString.size(), false);
+    LLVMValueRef constString = LLVMConstString(concatString.c_str(), concatString.size(), 0);
     // Initializing global address space with generated string(concat all the
     // strings from string builder table).
     LLVMSetInitializer(createAddrsSpace, constString);

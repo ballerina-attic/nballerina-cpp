@@ -63,7 +63,11 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         break;
     }
     case TYPE_TAG_BOOLEAN: {
-        constRef = LLVMConstInt(LLVMInt8Type(), std::get<bool>(value), 0);
+        if (std::get<bool>(value)) {
+            constRef = LLVMConstInt(LLVMInt8Type(), 1, 0);
+        } else {
+            constRef = LLVMConstInt(LLVMInt8Type(), 0, 0);
+        }
         break;
     }
     case TYPE_TAG_STRING:
