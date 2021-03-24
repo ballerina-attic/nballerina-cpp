@@ -82,7 +82,7 @@ class Package : public Translatable {
     void setPackageName(std::string pkgName);
     void setVersion(std::string verName);
     void setSrcFileName(std::string srcFileName);
-    void insertGlobalVar(Variable var);
+    void insertGlobalVar(const Variable &var);
     void insertFunction(const std::shared_ptr<Function> &function);
     void addFunctionRef(const std::string &arrayName, LLVMValueRef functionRef);
     void addStringOffsetRelocationEntry(const std::string &eleType, LLVMValueRef storeInsn);

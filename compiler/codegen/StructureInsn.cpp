@@ -53,7 +53,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
     }
     mapInstructionTranslate(*lhsVar, modRef);
 
-    if (initValues.size() == 0) {
+    if (initValues.empty()) {
         return;
     }
 
