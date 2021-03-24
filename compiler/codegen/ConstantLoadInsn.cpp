@@ -59,7 +59,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         break;
     }
     case TYPE_TAG_FLOAT: {
-        constRef = LLVMConstReal(LLVMFloatType(), std::get<double>(value));
+        constRef = LLVMConstReal(LLVMDoubleType(), std::get<double>(value));
         break;
     }
     case TYPE_TAG_BOOLEAN: {
