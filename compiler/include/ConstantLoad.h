@@ -40,6 +40,7 @@ class ConstantLoadInsn : public NonTerminatorInsn {
         value(bool x) : boolValue(x) {}
         value(std::string *x) : strValue(x) {}
     } val;
+    LLVMValueRef getNewString(LLVMModuleRef &modRef);
 
   public:
     ConstantLoadInsn() = delete;

@@ -62,6 +62,21 @@ void ConstantLoadInsn::setTypeTagNil(TypeTag TypeTag) { typeTag = TypeTag; }
 
 TypeTag ConstantLoadInsn::getTypeTag() { return typeTag; }
 
+LLVMValueRef ConstantLoadInsn::getNewString(LLVMModuleRef &modRef) {
+    const char *newString = "new_string";
+    LLVMValueRef addedStringRef = getPackage()->getFunctionRef(newString);
+    if (addedStringRef != nullptr) {
+        return addedStringRef;
+    }
+    LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
+    paramTypes[0] = LLVMPointerType(LLVMInt8Type(), 0);
+    paramTypes[1] = LLVMInt32Type();
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMPointerType(LLVMInt8Type(), 0), 0), paramTypes, 2, 0);
+    addedStringRef = LLVMAddFunction(modRef, newString, funcType);
+    getPackage()->addFunctionRef(newString, addedStringRef);
+    return addedStringRef;
+}
+
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef constRef = nullptr;
     Operand *lhsOp = getLHS();
@@ -94,9 +109,16 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         GV->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
         GV->setAlignment(llvm::Align(1));
 
-        paramTypes[0] = wrap(unwrap(builder)->getInt64(0)); //
+        paramTypes[0] = wrap(unwrap(builder)->getInt64(0));
         paramTypes[1] = wrap(unwrap(builder)->getInt64(0));
-        constRef = LLVMBuildInBoundsGEP(builder, wrap(GV), paramTypes, 2, "simple");
+        LLVMValueRef valueRef = LLVMBuildInBoundsGEP(builder, wrap(GV), paramTypes, 2, "simple");
+        LLVMValueRef addedStringRef = getNewString(modRef);
+
+        LLVMValueRef *sizeOpValueRef = new LLVMValueRef[2];
+        sizeOpValueRef[0] = valueRef;
+        sizeOpValueRef[1] = LLVMConstInt(LLVMInt32Type(), stringValue.length(), false);
+        LLVMValueRef OutputRef = LLVMBuildCall(builder, addedStringRef, sizeOpValueRef, 2, "");
+        constRef = LLVMBuildLoad(builder, OutputRef, "");
         break;
     }
     case TYPE_TAG_NIL: {
