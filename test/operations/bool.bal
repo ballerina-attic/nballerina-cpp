@@ -6,7 +6,7 @@ public function printu32(int val) = external;
 
 public function main() {
     boolean f = false;
-    boolean e = false;
+    boolean e = true;
     print_str("RESULT=");
     if (f) {
         printu32(0);

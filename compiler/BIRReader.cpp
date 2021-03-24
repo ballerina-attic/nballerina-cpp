@@ -149,7 +149,7 @@ float ConstantPoolSet::getFloatCp(uint32_t index) {
 // Search boolean from the constant pool based on index
 bool ConstantPoolSet::getBooleanCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
-    assert(poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
+    assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
     BooleanCpInfo *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
     return booleanCp->getValue();
 }
@@ -333,9 +333,12 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
                                                   (int)readerRef.constantPool->getIntCp(valueCpIndex));
     }
     case TYPE_TAG_BOOLEAN: {
-        uint8_t valueCpIndex = readerRef.readU1(); // ToDo why is the index unit8 ?
-        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
-                                                  readerRef.constantPool->getBooleanCp(valueCpIndex));
+        uint8_t boolean_constant = readerRef.readU1();
+        if (boolean_constant == 0) {
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, false);
+        } else {
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, true);
+        }
     }
     case TYPE_TAG_FLOAT: {
         uint32_t valueCpIndex = readerRef.readS4be();
