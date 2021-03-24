@@ -24,6 +24,7 @@
 namespace nballerina {
 
 enum VarKind {
+    NOT_A_KIND = 0,
     LOCAL_VAR_KIND = 1,
     ARG_VAR_KIND = 2,
     TEMP_VAR_KIND = 3,
@@ -40,11 +41,11 @@ class AbstractVariable {
 
   public:
     AbstractVariable() = delete;
-    AbstractVariable(std::string _name, VarKind _kind) : name(_name), kind(_kind) {}
+    AbstractVariable(std::string name, VarKind kind) : name(std::move(name)), kind(kind) {}
     virtual ~AbstractVariable() = default;
 
-    VarKind getKind() { return kind; }
-    std::string &getName() { return name; };
+    VarKind getKind() const { return kind; }
+    const std::string &getName() const { return name; };
 };
 
 } // namespace nballerina

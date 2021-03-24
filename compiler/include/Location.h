@@ -26,21 +26,21 @@ namespace nballerina {
 class Location {
   private:
     std::string fileName;
-    const int sLine;
-    const int sCol;
-    const int eLine;
-    const int eCol;
+    int sLine;
+    int sCol;
+    int eLine;
+    int eCol;
 
   public:
-    Location() = delete;
+    Location() = default;
     Location(std::string name, int sline, int scol, int eline, int ecol);
     ~Location() = default;
 
-    std::string getFileName();
-    int getStartLineNum();
-    int getStartColumnNum();
-    int getEndLineNum();
-    int getEndColumnNum();
+    const std::string &getFileName() const;
+    int getStartLineNum() const;
+    int getStartColumnNum() const;
+    int getEndLineNum() const;
+    int getEndColumnNum() const;
 };
 
 } // namespace nballerina

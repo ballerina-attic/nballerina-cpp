@@ -30,35 +30,36 @@ using namespace llvm;
 
 namespace nballerina {
 
-StructureInsn::StructureInsn(Operand *lOp, BasicBlock *currentBB, [[maybe_unused]] Operand *_rhsOp)
-    : NonTerminatorInsn(lOp, currentBB) {}
+StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
+    : NonTerminatorInsn(lhs, std::move(currentBB)) {}
 
 void StructureInsn::translate(LLVMModuleRef &modRef) {
 
-    Function *funcObj = getFunction();
+    const auto &funcObj = getFunctionRef();
     // Find Variable corresponding to lhs to determine structure and member type
-    Variable *lhsVar = funcObj->getLocalOrGlobalVariable(getLHS());
+    auto lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
+    assert(lhsVar.has_value());
 
     // Determine structure type
-    TypeTag structType = lhsVar->getTypeDecl()->getTypeTag();
+    TypeTag structType = lhsVar->getType().getTypeTag();
 
     // Only handle Map type
     if (structType != TYPE_TAG_MAP) {
         std::cerr << "Non MAP type structs are currently not supported" << std::endl;
         llvm_unreachable("");
     }
-    mapInsnTranslate(lhsVar, modRef);
+    mapInsnTranslate(*lhsVar, modRef);
 }
 
-void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
+void StructureInsn::mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
 
-    Function *funcObj = getFunction();
-    LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-    LLVMValueRef lhsOpRef = funcObj->getLLVMLocalOrGlobalVar(getLHS());
-    auto *mapTypeDelare = dynamic_cast<MapTypeDecl *>(lhsVar->getTypeDecl());
+    const auto &funcObj = getFunctionRef();
+    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
+    LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
+    const auto &mapType = lhsVar.getType();
 
     // Get member type
-    TypeTag memberTypeTag = mapTypeDelare->getMemberTypeTag();
+    TypeTag memberTypeTag = mapType.getMemberTypeTag();
     // Only handle Int type
     if (memberTypeTag != TYPE_TAG_INT) {
         std::cerr << "Non INT type maps are currently not supported" << std::endl;
@@ -74,14 +75,14 @@ void StructureInsn::mapInsnTranslate(Variable *lhsVar, LLVMModuleRef &modRef) {
 // Declaration for new map<int> function
 LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef) {
 
-    LLVMValueRef newMapIntFunc = getPackage()->getFunctionRef("map_new_int");
+    LLVMValueRef newMapIntFunc = getPackageRef().getFunctionRef("map_new_int");
     if (newMapIntFunc != nullptr) {
         return newMapIntFunc;
     }
     LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
     newMapIntFunc = LLVMAddFunction(modRef, "map_new_int", funcType);
-    getPackage()->addFunctionRef("map_new_int", newMapIntFunc);
+    getPackageMutableRef().addFunctionRef("map_new_int", newMapIntFunc);
     return newMapIntFunc;
 }
 
