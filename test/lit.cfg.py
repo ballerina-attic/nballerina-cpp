@@ -21,5 +21,7 @@ config.substitutions.append(('%nballerinacc', nballerinacc_path))
 
 config.substitutions.append(('%java_path',config.java_path))
 
+config.substitutions.append(('%skip_bir_gen',config.skip_bir_gen))
+
 config.substitutions.append(('%testRunScript',
     os.path.join(config.test_source_root, run_script)))

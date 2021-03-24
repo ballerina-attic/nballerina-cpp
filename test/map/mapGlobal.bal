@@ -1,4 +1,4 @@
-// RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
+// RUN: "%testRunScript" %s %nballerinacc "%java_path" "%skip_bir_gen" | filecheck %s
 
 map<int> marks = {};
 int value = 60;

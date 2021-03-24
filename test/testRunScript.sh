@@ -10,7 +10,18 @@ then
   exit 1
 fi
 
-ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+# Skip BIR dump generation if forth input arg is set
+if [ -z "$4" ]
+then
+  ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+else
+  if [ ! -s $filename-bir-dump ]
+  then
+    ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+  fi
+fi
+
+
 
 #Ignoring Ballerina compiler errors due to the use of undefined external functions for print routines
 #if [ -s ./err.log ]
