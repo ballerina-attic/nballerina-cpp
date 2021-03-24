@@ -88,20 +88,10 @@ static bool isParamter(const Variable &locVar) {
 
 LLVMTypeRef Function::getLLVMTypeOfReturnVal() const {
 
-    const auto &retType = returnVar->getType();
-
-    // if main function return type is void, but user wants to return some
-    // value using _bal_result (global variable from BIR), change main function
-    // return type from void to global variable (_bal_result) type.
     if (isMainFunction()) {
-        assert(retType.getTypeTag() == TYPE_TAG_NIL);
-        auto globRetVar = parentPackage->getGlobalVariable("_bal_result");
-        if (!globRetVar) {
-            return LLVMVoidType();
-        }
-        return parentPackage->getLLVMTypeOfType(globRetVar->getType());
+        return LLVMVoidType();
     }
-    return parentPackage->getLLVMTypeOfType(retType);
+    return parentPackage->getLLVMTypeOfType(returnVar->getType());
 }
 
 void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
@@ -127,9 +117,8 @@ const Variable &Function::getLocalVariable(const std::string &opName) const {
     return varIt->second;
 }
 
-std::optional<Variable> Function::getLocalOrGlobalVariable(const Operand &op) const {
+const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
-        assert(parentPackage->getGlobalVariable(op.getName()));
         return parentPackage->getGlobalVariable(op.getName());
     }
     return getLocalVariable(op.getName());

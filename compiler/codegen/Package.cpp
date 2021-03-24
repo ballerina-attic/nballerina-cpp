@@ -236,11 +236,9 @@ LLVMValueRef Package::getFunctionRef(const std::string &arrayName) const {
     return it->second;
 }
 
-std::optional<Variable> Package::getGlobalVariable(const std::string &name) const {
+const Variable &Package::getGlobalVariable(const std::string &name) const {
     const auto &varIt = globalVars.find(name);
-    if (varIt == globalVars.end()) {
-        return std::nullopt;
-    }
+    assert(varIt != globalVars.end());
     return varIt->second;
 }
 

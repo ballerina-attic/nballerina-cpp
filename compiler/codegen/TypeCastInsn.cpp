@@ -39,13 +39,11 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
     LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
 
-    auto lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
-    assert(lhsVar.has_value());
-    auto rhsVar = funcObj.getLocalOrGlobalVariable(rhsOp);
-    assert(rhsVar.has_value());
-    const auto &lhsType = lhsVar->getType();
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
+    const auto &rhsVar = funcObj.getLocalOrGlobalVariable(rhsOp);
+    const auto &lhsType = lhsVar.getType();
     auto lhsTypeTag = lhsType.getTypeTag();
-    const auto &rhsType = rhsVar->getType();
+    const auto &rhsType = rhsVar.getType();
     auto rhsTypeTag = rhsType.getTypeTag();
 
     const char *inherentTypeName = "inherentTypeName";
@@ -68,7 +66,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, &sExt, 1, "");
 
         // get the mangled name of the lhs type and store it to string builder table.
-        std::string_view lhsTypeName = typeStringMangleName(lhsTypeTag, lhsType);
+        std::string_view lhsTypeName = typeStringMangleName(lhsType);
         getPackageMutableRef().addToStrTable(lhsTypeName);
         int tempRandNum = std::rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
@@ -89,7 +87,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
 
         // struct first element original type
         LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeName);
-        std::string_view rhsTypeName = typeStringMangleName(rhsTypeTag, rhsType);
+        std::string_view rhsTypeName = typeStringMangleName(rhsType);
         getPackageMutableRef().addToStrTable(rhsTypeName);
         int tempRandNum1 = std::rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
@@ -146,8 +144,8 @@ LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMV
     return addedFuncRef;
 }
 
-std::string_view TypeCastInsn::typeStringMangleName(TypeTag typeTag, const Type &type) {
-    switch (typeTag) {
+std::string_view TypeCastInsn::typeStringMangleName(const Type &type) {
+    switch (type.getTypeTag()) {
     case TYPE_TAG_INT: {
         return "__I";
     }

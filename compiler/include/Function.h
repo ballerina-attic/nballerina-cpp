@@ -83,7 +83,7 @@ class Function : public Debuggable, public Translatable {
     LLVMValueRef getLLVMLocalVar(const std::string &varName) const;
     LLVMValueRef getLLVMLocalOrGlobalVar(const Operand &op) const;
     const Variable &getLocalVariable(const std::string &opName) const;
-    std::optional<Variable> getLocalOrGlobalVariable(const Operand &op) const;
+    const Variable &getLocalOrGlobalVariable(const Operand &op) const;
     LLVMTypeRef getLLVMTypeOfReturnVal() const;
     bool isMainFunction() const;
     bool isExternalFunction() const;

@@ -26,7 +26,6 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include <map>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -72,9 +71,7 @@ class Package : public Translatable {
     LLVMValueRef getFunctionRef(const std::string &arrayName) const;
     LLVMValueRef getGlobalNilVar() const;
     LLVMValueRef getStringBuilderTableGlobalPointer();
-    // Return is optional only because we need to support _bal_resul
-    // ToDo remove optional when support for _bal_result is removed
-    std::optional<Variable> getGlobalVariable(const std::string &name) const;
+    const Variable &getGlobalVariable(const std::string &name) const;
     LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
     LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
 

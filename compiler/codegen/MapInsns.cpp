@@ -36,9 +36,8 @@ MapStoreInsn::MapStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> curre
 
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
     const auto &funcObj = getFunctionRef();
-    auto lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
-    assert(lhsVar.has_value());
-    auto memberTypeTag = lhsVar->getType().getMemberTypeTag();
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
+    auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
 
     // Only handle Int type
     if (memberTypeTag != TYPE_TAG_INT) {

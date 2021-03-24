@@ -41,23 +41,21 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
     // Find Variable corresponding to lhs to determine structure and member type
-    auto lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
-    assert(lhsVar.has_value());
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
 
     // Determine structure type
-    TypeTag structType = lhsVar->getType().getTypeTag();
+    TypeTag structType = lhsVar.getType().getTypeTag();
 
     // Only handle Map type
     if (structType != TYPE_TAG_MAP) {
         llvm_unreachable("Only Map type structs are currently supported");
     }
-    mapCreateTranslate(*lhsVar, modRef);
 
+    mapCreateTranslate(lhsVar, modRef);
     if (initValues.empty()) {
         return;
     }
-
-    mapInitTranslate(*lhsVar, modRef);
+    mapInitTranslate(lhsVar, modRef);
 }
 
 void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
