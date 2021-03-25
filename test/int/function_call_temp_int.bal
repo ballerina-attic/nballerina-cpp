@@ -4,11 +4,13 @@ public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
-public function main() {
-    int a = -3;
-    int b = 0;
-    b = ~a;
-    print_string("RESULT=");
-    printu32(b);
+public function bar(int z) returns int
+{
+    return z + 10;
 }
-// CHECK: RESULT=2
+
+public function main() {
+    print_string("RESULT=");
+    printu32(bar(5));
+}
+// CHECK: RESULT=15

@@ -4,12 +4,15 @@ public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
-public function main() {
-    int[] i = [3];
-    i[0] = 10;
-    any ix = i;
-    int[] j = <int[]>ix;
-    print_string("RESULT=");
-    printu32(j[0]);
+public function bar(int z) returns int
+{
+    return z + 10;
 }
-// CHECK: RESULT=10
+
+int a = 5;
+public function main() {
+    a = 5;
+    print_string("RESULT=");
+    printu32(bar(a));
+}
+// CHECK: RESULT=15

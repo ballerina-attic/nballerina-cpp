@@ -9,22 +9,23 @@ public function main() {
     string s = "Hello";
     boolean b = true;
     float f = 1.25;
+    
     any a1 = a;
-    int a11 = <int>a1;
-
     any s1 = s;
-    string s11 = <string>s1;
-
     any b1 = b;
-    boolean b11 = <boolean>b1;
-
     any f1 = f;
+
+    int a11 = <int>a1;
+    string s11 = <string>s1;
+    boolean b11 = <boolean>b1;
     float f11 = <float>f1;
+
     if (b11) {
         print_string("RESULT=");
     }
     if (a11 == 35) {
         print_string(s11);
     }
+    // TODO check float value
 }
 // CHECK: RESULT=Hello

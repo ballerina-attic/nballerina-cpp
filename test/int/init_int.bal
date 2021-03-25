@@ -2,17 +2,15 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print32(int val) = external;
 
 public function main() {
-    boolean e = false;
-    boolean f = true;
+    int a = 58;
     print_string("RESULT=");
-    if (f) {
-        printu32(20);
-    }
-    else {
-        printu32(10);
-    }
+    print32(a);
+    int b = -42;
+    print_string("RESULT=");
+    print32(b);
 }
-// CHECK: RESULT=20
+// CHECK: RESULT=58
+// CHECK: RESULT=-42

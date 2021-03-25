@@ -4,19 +4,20 @@ public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
-int g = 0;
-any an = 0;
-int a = 0;
-public function bar(any l) returns int
-{
-    an = l;
-    g = <int>an;
-    return g;
-}
-
 public function main() {
-    a = 35;
+    boolean e = false;
+    boolean f = true;
     print_string("RESULT=");
-    printu32(bar(a));
+    if (e) {
+        printu32(5);
+    }
+    else {
+        if (f) {
+            printu32(10);
+        }
+        else {
+            printu32(4);
+        }
+    }
 }
-// CHECK: RESULT=35
+// CHECK: RESULT=10

@@ -2,14 +2,19 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print32(int val) = external;
 
 public function main() {
-    int[] a = [5];
-    any x = 2;
-    a[0] = <int>x;
+    int a = -3;
+    int b = 0;
+    b = ~a;
     print_string("RESULT=");
-    printu32(a[0]);
+    print32(b);
+    int c = 10;
+    int d = 0;
+    d = ~c;
+    print_string("RESULT=");
+    print32(d);
 }
-
 // CHECK: RESULT=2
+// CHECK: RESULT=-11

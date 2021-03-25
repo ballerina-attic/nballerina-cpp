@@ -2,18 +2,19 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_boolean(boolean val) = external;
 
 public function main() {
     boolean e = false;
     boolean f = false;
     e = !f;
     print_string("RESULT=");
-    if (e) {
-        printu32(0);
-    }
-    else {
-        printu32(1);
-    }
+    print_boolean(e);
+    boolean g = true;
+    boolean h = true;
+    h = !g;
+    print_string("RESULT=");
+    print_boolean(h);
 }
-// CHECK: RESULT=0
+// CHECK: RESULT=true
+// CHECK: RESULT=false

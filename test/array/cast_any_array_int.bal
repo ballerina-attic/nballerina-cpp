@@ -2,9 +2,14 @@
 
 public function print_string(string val) = external;
 
+public function printu32(int val) = external;
+
 public function main() {
-    string str = "Hello World!";
+    int[] i = [3];
+    i[2] = 10;
+    any ix = i;
+    int[] j = <int[]>ix;
     print_string("RESULT=");
-    print_string(str);
+    printu32(j[2]);
 }
-// CHECK: RESULT=Hello World!
+// CHECK: RESULT=10
