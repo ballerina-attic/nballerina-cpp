@@ -21,6 +21,7 @@
 #include "Operand.h"
 #include "Package.h"
 #include "Variable.h"
+#include "Types.h"
 #include "llvm-c/Core.h"
 #include <string>
 
@@ -36,8 +37,8 @@ LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
     Variable *lhsVar = getFunction()->getLocalOrGlobalVariable(getLHS());
     auto *arrayTypeDelare = dynamic_cast<ArrayTypeDecl *>(lhsVar->getTypeDecl());
     TypeTag memberTypeTag = arrayTypeDelare->getMemberTypeTag();
-    const string &typeStr(Type::getNameOfType(memberTypeTag));
-    const string &arrayTypeFuncName = typeStr + "_new_array";
+    const string typeStr(Type::getNameOfType(memberTypeTag));
+    const string arrayTypeFuncName = "array_init_" + typeStr;
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
@@ -69,8 +70,8 @@ ArrayLoadInsn::ArrayLoadInsn(Operand *lOp, BasicBlock *currentBB, [[maybe_unused
     : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
-    const string &typeStr(Type::getNameOfType(lhsOpTypeTag));
-    const string &arrayTypeFuncName = typeStr + "_array_load";
+    const string typeStr(Type::getNameOfType(lhsOpTypeTag));
+    const string arrayTypeFuncName = "array_load_" + typeStr;
     Type *lhsType = getFunction()->getLocalOrGlobalVariable(getLHS())->getTypeDecl();
     LLVMTypeRef funcRetType = LLVMPointerType(getPackage()->getLLVMTypeOfType(lhsType), 0);
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(arrayTypeFuncName);
@@ -108,8 +109,8 @@ ArrayStoreInsn::ArrayStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp
     : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
 LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag) {
-    const string &typeStr(Type::getNameOfType(rhsOpTypeTag));
-    const string &arrayTypeFuncName = typeStr + "_array_store";
+    const string typeStr(Type::getNameOfType(rhsOpTypeTag));
+    const string arrayTypeFuncName = "array_store_" + typeStr;
 
     LLVMValueRef addedFuncRef = getPackage()->getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {

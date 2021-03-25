@@ -24,9 +24,6 @@
 
 namespace nballerina {
 
-// Forward Declaration
-class Type;
-
 class ArrayInsn : public NonTerminatorInsn {
   private:
     Operand *sizeOp;
