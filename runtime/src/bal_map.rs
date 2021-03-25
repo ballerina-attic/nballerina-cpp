@@ -22,9 +22,7 @@ pub mod map {
 
         // Insert with spread field expression
         pub fn insert_spread_field(&mut self, expr: &BalMapInt) {
-            for (key, value) in expr.map.iter() {
-                self.map.insert(String::from(key), *value);
-            }
+            self.map.extend(expr.map.clone().into_iter());
         }
 
         // test functions
