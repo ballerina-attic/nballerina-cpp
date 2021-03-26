@@ -1,6 +1,6 @@
 // RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 
-public function print_str(string val) = external;
+public function print_string(string val) = external;
 
 public function bar(any z) returns string
 {
@@ -11,8 +11,8 @@ public function bar(any z) returns string
 public function main() {
     string b = "Hello World";
     string c = bar(b);
-    print_str("RESULT=");
-    print_str(c);
+    print_string("RESULT=");
+    print_string(c);
 }
 
 // CHECK: RESULT=Hello World

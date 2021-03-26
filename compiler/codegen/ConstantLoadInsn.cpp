@@ -51,7 +51,7 @@ LLVMValueRef ConstantLoadInsn::getNewString(LLVMModuleRef &modRef) {
         return addedStringRef;
     }
     LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type()};
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMPointerType(LLVMInt8Type(), 0), 0), paramTypes, 2, 0);
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), paramTypes, 2, 0);
     addedStringRef = LLVMAddFunction(modRef, newString, funcType);
     getPackageMutableRef().addFunctionRef(newString, addedStringRef);
     return addedStringRef;
@@ -97,8 +97,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef *sizeOpValueRef = new LLVMValueRef[2];
         sizeOpValueRef[0] = valueRef;
         sizeOpValueRef[1] = LLVMConstInt(LLVMInt32Type(), stringValue.length(), false);
-        LLVMValueRef OutputRef = LLVMBuildCall(builder, addedStringRef, sizeOpValueRef, 2, "");
-        constRef = LLVMBuildLoad(builder, OutputRef, "");
+        constRef = LLVMBuildCall(builder, addedStringRef, sizeOpValueRef, 2, "");
         break;
     }
     case TYPE_TAG_NIL: {

@@ -50,7 +50,8 @@ pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
 #[no_mangle]
 pub extern "C" fn print_string(opaque_ptr: *mut BString) {
     assert!(!opaque_ptr.is_null());
-    println!("{}", unsafe { (*opaque_ptr).value });
+    print!("{}", unsafe { (*opaque_ptr).value });
+    io::stdout().flush().unwrap();
 }
 
 // To check whether typecast is possible from source to destination
