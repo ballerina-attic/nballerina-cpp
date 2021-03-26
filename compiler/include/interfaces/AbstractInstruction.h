@@ -19,18 +19,19 @@
 #ifndef __ABSTRACTINSN__H__
 #define __ABSTRACTINSN__H__
 
+#include "Operand.h"
 #include "interfaces/Debuggable.h"
-#include "interfaces/PackageNode.h"
+#include <memory>
 
 namespace nballerina {
 
 // Forward Declaration
-class Operand;
 class Function;
 class BasicBlock;
 class Package;
 
 enum InstructionKind {
+    INSTRUCTION_NOT_AN_INSTRUCTION = 0,
     INSTRUCTION_KIND_GOTO = 1,
     INSTRUCTION_KIND_CALL = 2,
     INSTRUCTION_KIND_CONDITIONAL_BRANCH = 3,
@@ -70,20 +71,22 @@ enum InstructionKind {
     INSTRUCTION_KIND_BINARY_BITWISE_UNSIGNED_RIGHT_SHIFT
 };
 
-class AbstractInstruction : public Debuggable, public PackageNode {
+class AbstractInstruction : public Debuggable {
   private:
-    Operand *lhsOp;
-    BasicBlock *parentBB;
+    Operand lhsOp;
+    std::shared_ptr<BasicBlock> parentBB;
 
   protected:
-    Operand *getLHS();
-    Function *getFunction();
+    const Operand &getLhsOperand() const;
+    const Function &getFunctionRef() const;
+    const Package &getPackageRef() const;
+    Function &getFunctionMutableRef() const;
+    Package &getPackageMutableRef() const;
 
   public:
     AbstractInstruction() = delete;
-    AbstractInstruction(Operand *lOp, BasicBlock *parentBB);
+    AbstractInstruction(const Operand &lOp, std::shared_ptr<BasicBlock> parentBB);
     virtual ~AbstractInstruction() = default;
-    Package *getPackage() final;
 };
 
 } // namespace nballerina

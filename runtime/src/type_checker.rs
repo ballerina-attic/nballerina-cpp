@@ -110,6 +110,9 @@ pub fn type_size(type_string: &str) -> i32 {
  * */
 #[no_mangle]
 pub extern "C" fn same_type(source: String, destination: String) -> bool {
+    if (source.len() == 0) || (destination.len() == 0) {
+        return false;
+    }
     //If type strings are same
     if source == destination {
         return true;

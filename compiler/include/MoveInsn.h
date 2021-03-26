@@ -25,11 +25,11 @@ namespace nballerina {
 
 class MoveInsn : public NonTerminatorInsn {
   private:
-    Operand *rhsOp;
+    Operand rhsOp;
 
   public:
     MoveInsn() = delete;
-    MoveInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
+    MoveInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp);
     ~MoveInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

@@ -210,3 +210,48 @@ pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_
     // Print length to test functionality
     println!("length={}", bal_map.length());
 }
+
+#[no_mangle]
+pub extern "C" fn box_bal_int(val: i32) -> *mut i32 {
+    Box::into_raw(Box::new(val))
+}
+
+#[no_mangle]
+pub extern "C" fn unbox_bal_int(ptr: *mut i32) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn box_bal_float(val: f64) -> *mut f64 {
+    Box::into_raw(Box::new(val))
+}
+
+#[no_mangle]
+pub extern "C" fn unbox_bal_float(ptr: *mut f64) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn box_bal_bool(val: i8) -> *mut i8 {
+    Box::into_raw(Box::new(val))
+}
+
+#[no_mangle]
+pub extern "C" fn unbox_bal_bool(ptr: *mut f64) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}

@@ -30,17 +30,13 @@ class FunctionCallInsn : public TerminatorInsn {
   private:
     std::string functionName;
     int argCount;
-    std::vector<Operand *> argsList;
+    std::vector<Operand> argsList;
 
   public:
     FunctionCallInsn() = delete;
-    FunctionCallInsn(bool funcVirtual, std::string _funcName, int argNumber, BasicBlock *nextBB, Operand *lhsOp,
-                     std::vector<Operand *> &fnArgs, BasicBlock *currentBB);
+    FunctionCallInsn(std::string _funcName, int argNumber, std::shared_ptr<BasicBlock> nextBB, const Operand &lhs,
+                     std::vector<Operand> fnArgs, std::shared_ptr<BasicBlock> currentBB);
     ~FunctionCallInsn() = default;
-
-    std::string getFunctionName();
-    int getArgCount();
-    Operand *getArgumentFromList(int i);
 
     void translate(LLVMModuleRef &modRef) final;
 };
