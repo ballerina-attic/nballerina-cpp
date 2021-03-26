@@ -94,9 +94,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef valueRef = LLVMBuildInBoundsGEP(builder, wrap(globalStringValue.get()), paramTypes, 2, "simple");
         LLVMValueRef addedStringRef = getNewString(modRef);
 
-        LLVMValueRef *sizeOpValueRef = new LLVMValueRef[2];
-        sizeOpValueRef[0] = valueRef;
-        sizeOpValueRef[1] = LLVMConstInt(LLVMInt32Type(), stringValue.length(), false);
+        LLVMValueRef sizeOpValueRef[] = {valueRef, LLVMConstInt(LLVMInt32Type(), stringValue.length(), false)};
         constRef = LLVMBuildCall(builder, addedStringRef, sizeOpValueRef, 2, "");
         break;
     }

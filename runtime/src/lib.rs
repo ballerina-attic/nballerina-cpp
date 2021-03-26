@@ -54,6 +54,26 @@ pub extern "C" fn print_string(opaque_ptr: *mut BString) {
     io::stdout().flush().unwrap();
 }
 
+#[no_mangle]
+pub extern "C" fn deinit_string(ptr: *mut BString) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn delete_string(ptr: *mut BString) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        drop(Box::from_raw(ptr));
+    }
+}
+
 // To check whether typecast is possible from source to destination
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char) -> bool {
@@ -126,15 +146,6 @@ pub extern "C" fn printf64(num64: f64) {
 #[no_mangle]
 pub extern "C" fn printf32(num32: f32) {
     println!("{}", num32);
-}
-
-// Prints string
-#[no_mangle]
-pub extern "C" fn print_str(val: *const c_char) {
-    let cstr: &CStr = unsafe { CStr::from_ptr(val) };
-    let string: String = cstr.to_str().unwrap().to_owned();
-    print!("{}", string);
-    io::stdout().flush().unwrap();
 }
 
 #[no_mangle]
