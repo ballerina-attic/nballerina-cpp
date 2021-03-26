@@ -50,9 +50,7 @@ LLVMValueRef ConstantLoadInsn::getNewString(LLVMModuleRef &modRef) {
     if (addedStringRef != nullptr) {
         return addedStringRef;
     }
-    LLVMTypeRef *paramTypes = new LLVMTypeRef[2];
-    paramTypes[0] = LLVMPointerType(LLVMInt8Type(), 0);
-    paramTypes[1] = LLVMInt32Type();
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type()};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMPointerType(LLVMInt8Type(), 0), 0), paramTypes, 2, 0);
     addedStringRef = LLVMAddFunction(modRef, newString, funcType);
     getPackageMutableRef().addFunctionRef(newString, addedStringRef);
