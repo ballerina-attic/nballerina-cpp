@@ -26,7 +26,7 @@ public function main() {
         i = i + 1;
     }
     float f = <float>fooFloat();
-    printu32(i+<int>f);
+    printu32(i + <int>f);
 }
 
 // CHECK: RESULT=222

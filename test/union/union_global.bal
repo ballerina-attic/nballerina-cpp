@@ -6,10 +6,10 @@ public function printu32(int val) = external;
 
 int|string a = 24;
 
-public function main() {    
+public function main() {
     a = 24;
     int x = <int>a;
     print_string("RESULT=");
-    printu32(x); 
+    printu32(x);
 }
 // CHECK: RESULT=24

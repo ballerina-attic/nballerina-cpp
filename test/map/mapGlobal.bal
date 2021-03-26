@@ -6,7 +6,7 @@ map<int> marks = {};
 int value = 60;
 string key = "";
 
-public function main() {    
+public function main() {
     marks = {};
     key = "jon";
     value = 60;

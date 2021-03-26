@@ -11,6 +11,6 @@ function foo() returns int|string {
 public function main() {
     int i = <int>foo();
     print_string("RESULT=");
-    printu32(i); 
+    printu32(i);
 }
 // CHECK: RESULT=221

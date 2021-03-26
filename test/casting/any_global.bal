@@ -6,7 +6,7 @@ public function printu32(int val) = external;
 
 any a = 23;
 
-public function main() {    
+public function main() {
     a = 23;
     int x = <int>a;
     print_string("RESULT=");
