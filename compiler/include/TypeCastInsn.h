@@ -35,7 +35,7 @@ class TypeCastInsn : public NonTerminatorInsn {
     LLVMValueRef generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag);
     LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
     static bool isBoxValueSupport(TypeTag typeTag);
-    static std::string_view typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag);
+    std::string_view typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag, const Type &type);
 
   public:
     TypeCastInsn() = delete;
