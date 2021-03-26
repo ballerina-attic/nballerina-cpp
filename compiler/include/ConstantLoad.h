@@ -31,17 +31,6 @@ namespace nballerina {
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
-    union value {
-        int intValue;
-        double floatValue;
-        bool boolValue;
-        std::string *strValue;
-        value() {}
-        value(int x) : intValue(x) {}
-        value(float x) : floatValue(x) {}
-        value(bool x) : boolValue(x) {}
-        value(std::string *x) : strValue(x) {}
-    } val;
     LLVMValueRef getNewString(LLVMModuleRef &modRef);
     std::variant<int, double, bool, std::string> value;
     std::unique_ptr<llvm::GlobalVariable> globalStringValue;
