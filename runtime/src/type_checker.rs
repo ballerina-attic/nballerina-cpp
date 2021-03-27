@@ -109,10 +109,7 @@ pub fn type_size(type_string: &str) -> i32 {
  * M - Map
  * */
 #[no_mangle]
-pub extern "C" fn same_type(source: String, destination: String) -> bool {
-    if (source.len() == 0) || (destination.len() == 0) {
-        return false;
-    }
+pub extern "C" fn same_type(source: &str, destination: &str) -> bool {
     //If type strings are same
     if source == destination {
         return true;
@@ -132,29 +129,29 @@ pub extern "C" fn same_type(source: String, destination: String) -> bool {
     }
 }
 
-fn is_same_array_type(source: String, destination: String) -> bool {
+fn is_same_array_type(source: &str, destination: &str) -> bool {
     if source.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
         != destination.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
     {
-        let src_type_size: i32 = type_size(&source);
-        let dest_type_size: i32 = type_size(&destination);
+        let src_type_size: i32 = type_size(source);
+        let dest_type_size: i32 = type_size(destination);
         if src_type_size > dest_type_size {
             return false;
         }
     }
     // Compute total number of elements present in the data structure
-    let src_size: i32 = compute_size(&source);
-    let dest_size: i32 = compute_size(&destination);
+    let src_size: i32 = compute_size(source);
+    let dest_size: i32 = compute_size(destination);
     return if src_size > dest_size { false } else { true };
 }
 
-fn is_same_map_type(mut source: String, mut destination: String) -> bool {
-    source.remove(0);
-    destination.remove(0);
-    return is_same_map_constraint_type(source, destination);
+fn is_same_map_type(source: &str, destination: &str) -> bool {
+    let filtered_source = &source[1..];
+    let filtered_destination = &destination[1..];
+    return is_same_map_constraint_type(filtered_source, filtered_destination);
 }
 
-fn is_same_map_constraint_type(source: String, destination: String) -> bool {
+fn is_same_map_constraint_type(source: &str, destination: &str) -> bool {
     return same_type(source, destination);
 }
 

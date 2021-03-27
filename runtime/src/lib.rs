@@ -73,13 +73,16 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
     let source_cstr: &CStr = unsafe { CStr::from_ptr(src_type) };
     let dest_cstr: &CStr = unsafe { CStr::from_ptr(dest_type) };
     //Conversion to rust strings
-    let mut source: String = source_cstr.to_str().unwrap().to_owned();
-    let mut destination: String = dest_cstr.to_str().unwrap().to_owned();
-    source.remove(0);
-    source.remove(0);
-    destination.remove(0);
-    destination.remove(0);
-    return type_checker::same_type(source, destination);
+    let source: String = source_cstr.to_str().unwrap().to_owned();
+    let destination: String = dest_cstr.to_str().unwrap().to_owned();
+
+    if (source.len() < 2) || (destination.len() < 2) {
+        return false;
+    }
+
+    let filtered_source = &source[2..];
+    let filtered_destination = &destination[2..];
+    return type_checker::same_type(filtered_source, filtered_destination);
 }
 
 // Prints 64 bit signed integer
