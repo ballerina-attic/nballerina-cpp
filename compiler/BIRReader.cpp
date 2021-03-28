@@ -180,6 +180,14 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
         return Type(type, name, shapeCp->getTypeFlag(), typeShapeCp->getTypeTag());
     }
 
+    // Handle Array type
+    if (type == TYPE_TAG_ARRAY) {
+        ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
+        assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
+        ShapeCpInfo *memberShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
+        return Type(type, name, shapeCp->getTypeFlag(), memberShapeCp->getTypeTag(), shapeCp->getSize(),
+                    shapeCp->getState());
+    }
     // Default return
     return Type(type, name, shapeCp->getTypeFlag());
 }
@@ -736,7 +744,6 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_STREAM:
     case TYPE_TAG_ANY:
     case TYPE_TAG_ENDPOINT:
-    case TYPE_TAG_ARRAY:
     case TYPE_TAG_UNION:
     case TYPE_TAG_INTERSECTION:
     case TYPE_TAG_PACKAGE:
@@ -772,6 +779,12 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_PARAMETERIZED_TYPE: {
         std::vector<char> result(shapeLengthTypeInfo);
         readerRef.is.read(&result[0], shapeLengthTypeInfo);
+        break;
+    }
+    case TYPE_TAG_ARRAY: {
+        state = readerRef.readU1();
+        size = readerRef.readS4be();
+        elementTypeCpIndex = readerRef.readS4be();
         break;
     }
     default:

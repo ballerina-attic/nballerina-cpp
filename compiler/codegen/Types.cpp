@@ -23,8 +23,10 @@ namespace nballerina {
 Type::Type(TypeTag type, std::string namep, int flagsp, TypeTag memberType)
     : type(type), name(std::move(namep)), flags(flagsp), memberType(memberType) {}
 
-Type::Type(TypeTag type, std::string namep, int flagsp)
-    : type(type), name(std::move(namep)), flags(flagsp) {}
+Type::Type(TypeTag type, std::string namep, int flagsp) : type(type), name(std::move(namep)), flags(flagsp) {}
+
+Type::Type(TypeTag type, std::string namep, int flagsp, TypeTag memberType, int size, int state)
+    : type(type), name(std::move(namep)), flags(flagsp), memberType(memberType), size(size), state(state) {}
 
 TypeTag Type::getTypeTag() const { return type; }
 const std::string &Type::getName() const { return name; }
@@ -55,5 +57,4 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "";
     }
 }
-
 } // namespace nballerina
