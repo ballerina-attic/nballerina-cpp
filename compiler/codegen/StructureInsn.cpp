@@ -51,20 +51,26 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
     if (structType != TYPE_TAG_MAP) {
         llvm_unreachable("Only Map type structs are currently supported");
     }
-    mapInstructionTranslate(*lhsVar, modRef);
+    mapCreateTranslate(*lhsVar, modRef);
 
     if (initValues.empty()) {
         return;
     }
 
+    mapInitTranslate(*lhsVar, modRef);
+}
+
+void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
+
     // Only handle Int type
-    if (lhsVar->getType().getMemberTypeTag() != TYPE_TAG_INT) {
+    if (lhsVar.getType().getMemberTypeTag() != TYPE_TAG_INT) {
         llvm_unreachable("Only int type maps are currently supported");
     }
 
     // Codegen for map<int> type store
     LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapIntStoreDeclaration(modRef);
     LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
+    const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
     for (const auto &initValue : initValues) {
         const auto &initstruct = initValue.getInitValStruct();
@@ -83,7 +89,7 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
     }
 }
 
-void StructureInsn::mapInstructionTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
+void StructureInsn::mapCreateTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
@@ -94,7 +100,7 @@ void StructureInsn::mapInstructionTranslate(const Variable &lhsVar, LLVMModuleRe
     TypeTag memberTypeTag = mapType.getMemberTypeTag();
     // Only handle Int type
     if (memberTypeTag != TYPE_TAG_INT) {
-        llvm_unreachable("Only int type maps are currently supporte");
+        llvm_unreachable("Only int type maps are currently supported");
     }
 
     // Codegen for Map of Int type

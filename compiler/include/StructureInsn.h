@@ -32,7 +32,8 @@ class MapConstruct;
 class StructureInsn : public NonTerminatorInsn {
   private:
     std::vector<MapConstruct> initValues;
-    void mapInstructionTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
+    void mapCreateTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
+    void mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
     LLVMValueRef getNewMapIntDeclaration(LLVMModuleRef &modRef);
 
   public:
