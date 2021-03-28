@@ -64,16 +64,6 @@ pub extern "C" fn deinit_string(ptr: *mut BString) {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn delete_string(ptr: *mut BString) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        drop(Box::from_raw(ptr));
-    }
-}
-
 // To check whether typecast is possible from source to destination
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char) -> bool {
