@@ -9,4 +9,3 @@ endif()
 add_custom_target(check
   COMMAND ${PYTHON_EXE} ${CMAKE_SOURCE_DIR}/test/run_lit_tests.py "${CMAKE_CURRENT_BINARY_DIR}" -v
   DEPENDS nballerinacc)
-  
