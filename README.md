@@ -25,7 +25,7 @@ This will build:
 ### Run tests
 1. Install Java 8 runtime (e.g. openjdk-8-jre on ubuntu)
 2. Create `JAVA_HOME` environment variable and point it to the Java install dir
-3. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010)
+3. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-Preview2-nballerina-r2)
 4. Extract Ballerina pack and add the `bin` folder with the `ballerina` executable to your `PATH` system variable 
 5. Run:
 
@@ -60,7 +60,7 @@ This will build:
 ### Run tests
 1. Install Java 8 runtime (e.g. JRE 8 package for MacOS)
 2. Create `JAVA_HOME` environment variable and point it to the Java install dir
-3. Get this specific Ballerina version : [link](https://drive.google.com/file/d/1a1TlJdw-rTtCLOFrrvJe4nr1FkGzwpKH/view?usp=sharing)
+3. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-Preview2-nballerina-r2)
 4. Extract Ballerina pack and add the `bin` folder with the `ballerina` executable to your `PATH` system variable 
 5. Navigate to nBallerina `build/` folder and run tests
 
@@ -130,7 +130,7 @@ Clone the nballerina source and run below commands.
         pip3 Install lit filecheck
 
 3. Install java and set up JAVA_HOME in your PATH system variable
-4. Get this specific Ballerina version : [link](https://drive.google.com/file/d/1a1TlJdw-rTtCLOFrrvJe4nr1FkGzwpKH/view?usp=sharing)
+4. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-Preview2-nballerina-r2)
 5. Extract Ballerina pack and add the bin folder with the ballerina executable to your PATH system variable
 4. Run tests
 

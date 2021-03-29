@@ -85,13 +85,12 @@ class Type {
   private:
     TypeTag type;
     std::string name;
-    int flags;
     std::optional<TypeTag> memberType;
 
   public:
     Type() = delete;
-    Type(TypeTag type, std::string name, int flags);
-    Type(TypeTag type, std::string name, int flags, TypeTag memberType);
+    Type(TypeTag type, std::string name);
+    Type(TypeTag type, std::string name, TypeTag memberType);
     virtual ~Type() = default;
 
     TypeTag getTypeTag() const;

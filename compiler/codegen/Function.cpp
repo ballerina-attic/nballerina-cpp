@@ -111,13 +111,13 @@ LLVMTypeRef Function::getLLVMTypeOfReturnVal() const {
     return parentPackage->getLLVMTypeOfType(retType);
 }
 
-void Function::insertParam(FunctionParam param) { requiredParams.push_back(param); }
+void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
 void Function::setRestParam(RestParam param) { restParam = param; }
 void Function::insertLocalVar(const Variable &var) {
     localVars.insert(std::pair<std::string, Variable>(var.getName(), var));
 }
 void Function::setReturnVar(const Variable &var) { returnVar = var; }
-void Function::insertBasicBlock(std::shared_ptr<BasicBlock> bb) {
+void Function::insertBasicBlock(const std::shared_ptr<BasicBlock> &bb) {
     if (!firstBlock) {
         firstBlock = bb;
     }
@@ -169,7 +169,7 @@ void Function::patchBasicBlocks() {
         }
         switch (terminator->getInstKind()) {
         case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
-            ConditionBrInsn *instruction = (static_cast<ConditionBrInsn *>(terminator));
+            auto *instruction = static_cast<ConditionBrInsn *>(terminator);
             auto trueBB = FindBasicBlock(instruction->getIfThenBB().getId());
             auto falseBB = FindBasicBlock(instruction->getElseBB().getId());
             instruction->setIfThenBB(trueBB);
@@ -256,14 +256,12 @@ LLVMValueRef Function::generateAbortInsn(LLVMModuleRef &modRef) {
 // splitBB Basicblock (ifBB) and abortBB(elseBB).
 // In IfBB we are doing casing and from ElseBB Aborting.
 void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
-    llvm::Function *llvmFunc = unwrap<llvm::Function>(llvmFunction);
+    auto *llvmFunc = unwrap<llvm::Function>(llvmFunction);
     const char *isSameTypeChar = "is_same_type";
-    for (llvm::Function::iterator FI = llvmFunc->begin(), FE = llvmFunc->end(); FI != FE; ++FI) {
-
-        llvm::BasicBlock *bBlock = &*FI;
-        for (llvm::BasicBlock::iterator I = bBlock->begin(); I != bBlock->end(); ++I) {
-            llvm::CallInst *callInst = dyn_cast<llvm::CallInst>(&*I);
-            if (!callInst) {
+    for (auto &bBlock : *llvmFunc) {
+        for (llvm::BasicBlock::iterator I = bBlock.begin(); I != bBlock.end(); ++I) {
+            auto *callInst = dyn_cast<llvm::CallInst>(&*I);
+            if (callInst == nullptr) {
                 continue;
             }
             size_t totalOperands = callInst->getNumOperands();
@@ -274,8 +272,8 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             std::advance(I, 1);
             llvm::Instruction *compInsn = &*I;
             // Splitting BasicBlock.
-            llvm::BasicBlock *splitBB = bBlock->splitBasicBlock(++I, bBlock->getName() + ".split");
-            llvm::BasicBlock::iterator ILoc = bBlock->end();
+            llvm::BasicBlock *splitBB = bBlock.splitBasicBlock(++I, bBlock.getName() + ".split");
+            llvm::BasicBlock::iterator ILoc = bBlock.end();
             llvm::Instruction &lastInsn = *--ILoc;
             // branch intruction to the split BB is creating in BB2 (last BB)
             // basicblock, removing from BB2 and insert this branch instruction
@@ -290,7 +288,7 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             // branch to abortBB instruction is generating in last(e.g bb2 BB)
             // basicblock. here, moving from bb2 to bb0.split basicblock.
             compInsnRef->removeFromParent();
-            bBlock->getInstList().push_back(compInsnRef);
+            bBlock.getInstList().push_back(compInsnRef);
 
             // get the last instruction from splitBB.
             llvm::BasicBlock::iterator SI = splitBB->end();

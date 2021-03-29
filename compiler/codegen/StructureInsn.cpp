@@ -18,17 +18,21 @@
 
 #include "StructureInsn.h"
 #include "Function.h"
+#include "MapInsns.h"
 #include "Operand.h"
 #include "Package.h"
 #include "Types.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
-#include <iostream>
 
 using namespace std;
 using namespace llvm;
 
 namespace nballerina {
+
+StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
+                             std::vector<MapConstruct> initValues)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), initValues(std::move(initValues)) {}
 
 StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
     : NonTerminatorInsn(lhs, std::move(currentBB)) {}
@@ -45,13 +49,47 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 
     // Only handle Map type
     if (structType != TYPE_TAG_MAP) {
-        std::cerr << "Non MAP type structs are currently not supported" << std::endl;
-        llvm_unreachable("");
+        llvm_unreachable("Only Map type structs are currently supported");
     }
-    mapInsnTranslate(*lhsVar, modRef);
+    mapCreateTranslate(*lhsVar, modRef);
+
+    if (initValues.empty()) {
+        return;
+    }
+
+    mapInitTranslate(*lhsVar, modRef);
 }
 
-void StructureInsn::mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
+void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
+
+    // Only handle Int type
+    if (lhsVar.getType().getMemberTypeTag() != TYPE_TAG_INT) {
+        llvm_unreachable("Only int type maps are currently supported");
+    }
+
+    // Codegen for map<int> type store
+    LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapIntStoreDeclaration(modRef);
+    LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
+    const auto &funcObj = getFunctionRef();
+    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
+    for (const auto &initValue : initValues) {
+        const auto &initstruct = initValue.getInitValStruct();
+        if (initValue.getKind() == Spread_Field_Kind) {
+            const auto &expr = std::get<MapConstruct::SpreadField>(initstruct).getExpr();
+            LLVMValueRef argOpValueRef[] = {funcObj.createTempVariable(getLhsOperand()),
+                                            funcObj.createTempVariable(expr)};
+            LLVMBuildCall(builder, mapSpreadFieldFunc, argOpValueRef, 2, "");
+            continue;
+        }
+        // For Key_Value_Kind
+        const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
+        MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
+                                      funcObj.createTempVariable(keyVal.getKey()),
+                                      funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue()));
+    }
+}
+
+void StructureInsn::mapCreateTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
@@ -62,8 +100,7 @@ void StructureInsn::mapInsnTranslate(const Variable &lhsVar, LLVMModuleRef &modR
     TypeTag memberTypeTag = mapType.getMemberTypeTag();
     // Only handle Int type
     if (memberTypeTag != TYPE_TAG_INT) {
-        std::cerr << "Non INT type maps are currently not supported" << std::endl;
-        llvm_unreachable("");
+        llvm_unreachable("Only int type maps are currently supported");
     }
 
     // Codegen for Map of Int type
