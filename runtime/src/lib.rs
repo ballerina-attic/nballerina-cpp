@@ -76,9 +76,8 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
     let source: String = source_cstr.to_str().unwrap().to_owned();
     let destination: String = dest_cstr.to_str().unwrap().to_owned();
 
-    if (source.len() < 2) || (destination.len() < 2) {
-        return false;
-    }
+    debug_assert!(&source[..2] == "__" && &destination[..2] == "__");
+    debug_assert!(source.len() > 2 && destination.len() > 2);
 
     let filtered_source = &source[2..];
     let filtered_destination = &destination[2..];
@@ -198,21 +197,15 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_ptr: *const i32) {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
-    let bal_map = unsafe {
-        &mut *ptr
-    };
+    let bal_map = unsafe { &mut *ptr };
     // Load Key C string
     assert!(!key.is_null());
-    let key = unsafe {
-        CStr::from_ptr(key)
-    };
+    let key = unsafe { CStr::from_ptr(key) };
     let key_str = key.to_str().unwrap();
 
     // Load member value
     assert!(!member_ptr.is_null());
-    let member = unsafe {
-        slice::from_raw_parts(member_ptr, 1)
-    };
+    let member = unsafe { slice::from_raw_parts(member_ptr, 1) };
     // Insert new field
     bal_map.insert(key_str, member[0]);
 
@@ -269,14 +262,10 @@ pub extern "C" fn unbox_bal_bool(ptr: *mut f64) {
 pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *mut BalMapInt) {
     // Load source BalMap from pointer
     assert!(!ptr_source.is_null());
-    let map_src = unsafe {
-        &mut *ptr_source
-    };
+    let map_src = unsafe { &mut *ptr_source };
     // Load expr BalMap from pointer
     assert!(!ptr_expr.is_null());
-    let map_expr = unsafe {
-        &mut *ptr_expr
-    };
+    let map_expr = unsafe { &mut *ptr_expr };
     // Insert from spread field expression
     map_src.insert_spread_field(map_expr);
 
