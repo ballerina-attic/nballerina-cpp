@@ -2,15 +2,13 @@
 
 public function print_str(string val) = external;
 
-public function bar(any l) returns string {
-    string g = <string>l;
-    return g;
-}
 public function main() {
     string[5] arr4 = [];
     arr4[0] = "Hello";
-    string b = bar(arr4[0]);
-    print_str("RESULT=");
+    arr4[1] = " World";
+    string b = arr4[0];
+    string c = arr4[1];
     print_str(b);
+    print_str(c);
 }
-// CHECK: RESULT=Hello
+// CHECK: Hello World
