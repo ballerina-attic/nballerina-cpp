@@ -30,6 +30,40 @@ use std::slice;
 mod bal_map;
 pub use bal_map::map::BalMapInt;
 
+pub struct BString {
+    value: &'static str,
+}
+
+// Return a pointer to struct containing heap allocated string
+#[no_mangle]
+pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
+    assert!(!c_string.is_null());
+    let slice = unsafe { std::slice::from_raw_parts(c_string, size) };
+    let string = std::str::from_utf8(slice);
+    let opaque = BString {
+        value: string.unwrap(),
+    };
+    let opaque_ptr = Box::into_raw(Box::new(opaque));
+    return opaque_ptr;
+}
+
+#[no_mangle]
+pub extern "C" fn print_string(opaque_ptr: *mut BString) {
+    assert!(!opaque_ptr.is_null());
+    print!("{}", unsafe { (*opaque_ptr).value });
+    io::stdout().flush().unwrap();
+}
+
+#[no_mangle]
+pub extern "C" fn deinit_string(ptr: *mut BString) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
 // To check whether typecast is possible from source to destination
 #[no_mangle]
 pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char) -> bool {
@@ -102,15 +136,6 @@ pub extern "C" fn printf64(num64: f64) {
 #[no_mangle]
 pub extern "C" fn printf32(num32: f32) {
     println!("{}", num32);
-}
-
-// Prints string
-#[no_mangle]
-pub extern "C" fn print_str(val: *const c_char) {
-    let cstr: &CStr = unsafe { CStr::from_ptr(val) };
-    let string: String = cstr.to_str().unwrap().to_owned();
-    print!("{}", string);
-    io::stdout().flush().unwrap();
 }
 
 #[no_mangle]
