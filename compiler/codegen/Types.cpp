@@ -20,20 +20,23 @@
 
 namespace nballerina {
 
-Type::Type(TypeTag type, std::string namep, int flagsp, TypeTag memberType)
-    : type(type), name(std::move(namep)), flags(flagsp), memberType(memberType) {}
-
 Type::Type(TypeTag type, std::string namep, int flagsp) : type(type), name(std::move(namep)), flags(flagsp) {}
 
-Type::Type(TypeTag type, std::string namep, int flagsp, TypeTag memberType, int size, int state)
-    : type(type), name(std::move(namep)), flags(flagsp), memberType(memberType), size(size), state(state) {}
+Type::Type(TypeTag type, std::string namep, int flagsp, ArrayType arrayType)
+    : type(type), name(std::move(namep)), flags(flagsp), typeInfo(arrayType) {}
+
+Type::Type(TypeTag type, std::string namep, int flagsp, MapType mapType)
+    : type(type), name(std::move(namep)), flags(flagsp), typeInfo(mapType) {}
 
 TypeTag Type::getTypeTag() const { return type; }
 const std::string &Type::getName() const { return name; }
 
 TypeTag Type::getMemberTypeTag() const {
-    if (memberType) {
-        return memberType.value();
+    if (type == TYPE_TAG_ARRAY) {
+        return std::get<Type::ArrayType>(typeInfo).memberType;
+    }
+    if (type == TYPE_TAG_MAP) {
+        return std::get<Type::MapType>(typeInfo).memberType;
     }
     return TYPE_TAG_INVALID;
 }
