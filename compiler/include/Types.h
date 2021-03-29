@@ -100,7 +100,7 @@ class Type {
 
   public:
     Type() = delete;
-    Type(TypeTag type, std::string name, int flags);
+    Type(TypeTag type, std::string name);
     Type(TypeTag type, std::string name, int flags, ArrayType arraType);
     Type(TypeTag type, std::string name, int flags, MapType mapType);
     virtual ~Type() = default;

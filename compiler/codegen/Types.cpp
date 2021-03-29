@@ -20,7 +20,7 @@
 
 namespace nballerina {
 
-Type::Type(TypeTag type, std::string namep, int flagsp) : type(type), name(std::move(namep)), flags(flagsp) {}
+Type::Type(TypeTag type, std::string namep) : type(type), name(std::move(namep))  {}
 
 Type::Type(TypeTag type, std::string namep, int flagsp, ArrayType arrayType)
     : type(type), name(std::move(namep)), flags(flagsp), typeInfo(arrayType) {}
