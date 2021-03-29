@@ -75,14 +75,14 @@ void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modR
     for (const auto &initValue : initValues) {
         const auto &initstruct = initValue.getInitValStruct();
         if (initValue.getKind() == Spread_Field_Kind) {
-            const auto &expr = std::get<SpreadField>(initstruct).getExpr();
+            const auto &expr = std::get<MapConstruct::SpreadField>(initstruct).getExpr();
             LLVMValueRef argOpValueRef[] = {funcObj.createTempVariable(getLhsOperand()),
                                             funcObj.createTempVariable(expr)};
             LLVMBuildCall(builder, mapSpreadFieldFunc, argOpValueRef, 2, "");
             continue;
         }
         // For Key_Value_Kind
-        const auto &keyVal = std::get<KeyValue>(initstruct);
+        const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
         MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
                                       funcObj.createTempVariable(keyVal.getKey()),
                                       funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue()));

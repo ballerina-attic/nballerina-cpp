@@ -271,12 +271,12 @@ MapConstruct BIRReader::readMapConstructor() {
     auto kind = readU1();
     if ((MapConstrctBodyKind)kind == Spread_Field_Kind) {
         auto expr = readOperand();
-        return MapConstruct(SpreadField(expr));
+        return MapConstruct(MapConstruct::SpreadField(expr));
     }
     // For Key_Value_Kind
     auto key = readOperand();
     auto value = readOperand();
-    return MapConstruct(KeyValue(key, value));
+    return MapConstruct(MapConstruct::KeyValue(key, value));
 }
 
 // Read TYPEDESC Insn

@@ -26,33 +26,33 @@ namespace nballerina {
 
 enum MapConstrctBodyKind { Spread_Field_Kind = 0, Key_Value_Kind = 1 };
 
-class KeyValue {
-  private:
-    Operand keyOp;
-    Operand valueOp;
-
-  public:
-    KeyValue() = delete;
-    KeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
-    ~KeyValue() = default;
-
-    const Operand &getKey() const { return keyOp; }
-    const Operand &getValue() const { return valueOp; }
-};
-
-class SpreadField {
-  private:
-    Operand expr;
-
-  public:
-    SpreadField() = delete;
-    SpreadField(const Operand &expr) : expr(expr) {}
-    ~SpreadField() = default;
-
-    const Operand &getExpr() const { return expr; }
-};
-
 class MapConstruct {
+  public:
+    class SpreadField {
+      private:
+        Operand expr;
+
+      public:
+        SpreadField() = delete;
+        SpreadField(const Operand &expr) : expr(expr) {}
+        ~SpreadField() = default;
+
+        const Operand &getExpr() const { return expr; }
+    };
+    class KeyValue {
+      private:
+        Operand keyOp;
+        Operand valueOp;
+
+      public:
+        KeyValue() = delete;
+        KeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
+        ~KeyValue() = default;
+
+        const Operand &getKey() const { return keyOp; }
+        const Operand &getValue() const { return valueOp; }
+    };
+
   private:
     MapConstrctBodyKind kind;
     std::variant<KeyValue, SpreadField> initValueStruct;
