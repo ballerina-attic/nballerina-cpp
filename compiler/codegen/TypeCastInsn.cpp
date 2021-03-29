@@ -70,7 +70,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         // get the mangled name of the lhs type and store it to string builder table.
         std::string_view lhsTypeName = typeStringMangleName(lhsTypeRef, lhsTypeTag, lhsType);
         getPackageMutableRef().addToStrTable(lhsTypeName);
-        int tempRandNum = rand() % 1000 + 1;
+        int tempRandNum = std::rand()  % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
         LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, &constValue, 1, "");
         // call is_same_type rust function to check LHS and RHS type are same or not.
@@ -91,7 +91,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeName);
         std::string_view rhsTypeName = typeStringMangleName(lhsTypeRef, rhsTypeTag, rhsType);
         getPackageMutableRef().addToStrTable(rhsTypeName);
-        int tempRandNum1 = rand() % 1000 + 1;
+        int tempRandNum1 = std::rand()  % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
         LLVMValueRef lhsTypeStoreRef = LLVMBuildStore(builder, constValue, inherentTypeIdx);
         getPackageMutableRef().addStringOffsetRelocationEntry(rhsTypeName.data(), lhsTypeStoreRef);

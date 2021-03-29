@@ -46,8 +46,8 @@ const std::string &Package::getSrcFileName() const { return sourceFileName; }
 LLVMValueRef Package::getStringBuilderTableGlobalPointer() { return strBuilderGlobalPtr; }
 
 void Package::addToStrTable(std::string_view name) {
-    if (!strBuilder->contains(name)) {
-        strBuilder->add(name);
+    if (!strBuilder->contains(name.data())) {
+        strBuilder->add(name.data());
     }
 }
 void Package::setOrgName(std::string orgName) { org = std::move(orgName); }
