@@ -4,7 +4,7 @@ public function print_str(string val) = external;
 
 public function printu32(int val) = external;
 
-int? a = 24;
+int? a = 4;
 
 public function main() {
     a = 24;

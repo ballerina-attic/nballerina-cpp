@@ -48,7 +48,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     const auto &rhsType = rhsVar->getType();
     auto rhsTypeTag = rhsType.getTypeTag();
 
-    const char *inherentTypeChar = "inherentTypeIdx";
+    const char *inherentTypeName = "inherentTypeName";
 
     if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
         if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
@@ -57,7 +57,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
             return;
         }
         // GEP of last type of smart pointer(original type of any variable(smart pointer))
-        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 0, inherentTypeChar);
+        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 0, inherentTypeName);
         LLVMValueRef inherentTypeLoad = LLVMBuildLoad(builder, inherentTypeIdx, "");
         LLVMValueRef sExt = LLVMBuildSExt(builder, inherentTypeLoad, LLVMInt64Type(), "");
 
@@ -88,7 +88,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     } else if (lhsTypeTag == TYPE_TAG_ANY || lhsTypeTag == TYPE_TAG_UNION) {
 
         // struct first element original type
-        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeChar);
+        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeName);
         std::string_view rhsTypeName = typeStringMangleName(lhsTypeRef, rhsTypeTag, rhsType);
         getPackageMutableRef().addToStrTable(rhsTypeName);
         int tempRandNum1 = rand() % 1000 + 1;
