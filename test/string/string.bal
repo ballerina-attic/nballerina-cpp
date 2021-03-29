@@ -1,7 +1,10 @@
-// RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
+// RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 
-int _bal_result = 0;
+public function print_string(string val) = external;
+
 public function main() {
     string str = "Hello World!";
+    print_string("RESULT=");
+    print_string(str);
 }
-// CHECK: RETVAL=0
+// CHECK: RESULT=Hello World!

@@ -22,12 +22,47 @@
 mod type_checker;
 
 use std::ffi::CStr;
+use std::io::{self, Write};
 use std::mem;
 use std::os::raw::c_char;
 use std::slice;
 
 mod bal_map;
 pub use bal_map::map::BalMapInt;
+
+pub struct BString {
+    value: &'static str,
+}
+
+// Return a pointer to struct containing heap allocated string
+#[no_mangle]
+pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
+    assert!(!c_string.is_null());
+    let slice = unsafe { std::slice::from_raw_parts(c_string, size) };
+    let string = std::str::from_utf8(slice);
+    let opaque = BString {
+        value: string.unwrap(),
+    };
+    let opaque_ptr = Box::into_raw(Box::new(opaque));
+    return opaque_ptr;
+}
+
+#[no_mangle]
+pub extern "C" fn print_string(opaque_ptr: *mut BString) {
+    assert!(!opaque_ptr.is_null());
+    print!("{}", unsafe { (*opaque_ptr).value });
+    io::stdout().flush().unwrap();
+}
+
+#[no_mangle]
+pub extern "C" fn deinit_string(ptr: *mut BString) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
 
 // To check whether typecast is possible from source to destination
 #[no_mangle]
@@ -155,20 +190,20 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 #[no_mangle]
 pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_ptr: *const i32) {
     // Load BalMap from pointer
+    assert!(!ptr.is_null());
     let bal_map = unsafe {
-        assert!(!ptr.is_null());
         &mut *ptr
     };
     // Load Key C string
+    assert!(!key.is_null());
     let key = unsafe {
-        assert!(!key.is_null());
         CStr::from_ptr(key)
     };
     let key_str = key.to_str().unwrap();
 
     // Load member value
+    assert!(!member_ptr.is_null());
     let member = unsafe {
-        assert!(!member_ptr.is_null());
         slice::from_raw_parts(member_ptr, 1)
     };
     // Insert new field
@@ -176,4 +211,68 @@ pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_
 
     // Print length to test functionality
     println!("length={}", bal_map.length());
+}
+
+#[no_mangle]
+pub extern "C" fn box_bal_int(val: i32) -> *mut i32 {
+    Box::into_raw(Box::new(val))
+}
+
+#[no_mangle]
+pub extern "C" fn unbox_bal_int(ptr: *mut i32) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn box_bal_float(val: f64) -> *mut f64 {
+    Box::into_raw(Box::new(val))
+}
+
+#[no_mangle]
+pub extern "C" fn unbox_bal_float(ptr: *mut f64) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn box_bal_bool(val: i8) -> *mut i8 {
+    Box::into_raw(Box::new(val))
+}
+
+#[no_mangle]
+pub extern "C" fn unbox_bal_bool(ptr: *mut f64) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *mut BalMapInt) {
+    // Load source BalMap from pointer
+    assert!(!ptr_source.is_null());
+    let map_src = unsafe {
+        &mut *ptr_source
+    };
+    // Load expr BalMap from pointer
+    assert!(!ptr_expr.is_null());
+    let map_expr = unsafe {
+        &mut *ptr_expr
+    };
+    // Insert from spread field expression
+    map_src.insert_spread_field(map_expr);
+
+    // Print length to test functionality
+    println!("length={}", map_src.length());
 }
