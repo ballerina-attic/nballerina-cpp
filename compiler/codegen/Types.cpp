@@ -22,11 +22,11 @@ namespace nballerina {
 
 Type::Type(TypeTag type, std::string namep) : type(type), name(std::move(namep))  {}
 
-Type::Type(TypeTag type, std::string namep, int flagsp, ArrayType arrayType)
-    : type(type), name(std::move(namep)), flags(flagsp), typeInfo(arrayType) {}
+Type::Type(TypeTag type, std::string namep, ArrayType arrayType)
+    : type(type), name(std::move(namep)), typeInfo(arrayType) {}
 
-Type::Type(TypeTag type, std::string namep, int flagsp, MapType mapType)
-    : type(type), name(std::move(namep)), flags(flagsp), typeInfo(mapType) {}
+Type::Type(TypeTag type, std::string namep, MapType mapType)
+    : type(type), name(std::move(namep)), typeInfo(mapType) {}
 
 TypeTag Type::getTypeTag() const { return type; }
 const std::string &Type::getName() const { return name; }

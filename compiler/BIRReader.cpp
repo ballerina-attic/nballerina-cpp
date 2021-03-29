@@ -177,7 +177,7 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getConstraintTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, shapeCp->getTypeFlag(), Type::MapType{typeShapeCp->getTypeTag()});
+        return Type(type, name, Type::MapType{typeShapeCp->getTypeTag()});
     }
 
     // Handle Array type
@@ -185,8 +185,8 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *memberShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, shapeCp->getTypeFlag(),
-                    Type::ArrayType{memberShapeCp->getTypeTag(), (int)shapeCp->getSize(), shapeCp->getState()});
+        return Type(type, name, Type::ArrayType{memberShapeCp->getTypeTag(), 
+			(int)shapeCp->getSize(), shapeCp->getState()});
     }
     // Default return
     return Type(type, name);
