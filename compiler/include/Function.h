@@ -91,11 +91,11 @@ class Function : public Debuggable, public Translatable {
     LLVMValueRef createTempVariable(const Operand &op) const;
 
     void patchBasicBlocks();
-    void insertParam(FunctionParam param);
+    void insertParam(const FunctionParam &param);
     void setRestParam(RestParam param);
     void setReturnVar(const Variable &var);
     void insertLocalVar(const Variable &var);
-    void insertBasicBlock(std::shared_ptr<BasicBlock> bb);
+    void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
     void insertBranchComparisonValue(const std::string &lhsName, LLVMValueRef compRef);
     void setLLVMBuilder(LLVMBuilderRef builder);
     void setLLVMFunctionValue(LLVMValueRef funcRef);

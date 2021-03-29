@@ -75,13 +75,15 @@ class Package : public Translatable {
     // Return is optional only because we need to support _bal_resul
     // ToDo remove optional when support for _bal_result is removed
     std::optional<Variable> getGlobalVariable(const std::string &name) const;
+    LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
+    LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
 
     void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
     void setPackageName(std::string pkgName);
     void setVersion(std::string verName);
     void setSrcFileName(std::string srcFileName);
-    void insertGlobalVar(Variable var);
+    void insertGlobalVar(const Variable &var);
     void insertFunction(const std::shared_ptr<Function> &function);
     void addFunctionRef(const std::string &arrayName, LLVMValueRef functionRef);
     void addStringOffsetRelocationEntry(const std::string &eleType, LLVMValueRef storeInsn);

@@ -44,6 +44,19 @@ ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBloc
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::string str)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
 
+LLVMValueRef ConstantLoadInsn::getNewString(LLVMModuleRef &modRef) {
+    const char *newString = "new_string";
+    LLVMValueRef addedStringRef = getPackageRef().getFunctionRef(newString);
+    if (addedStringRef != nullptr) {
+        return addedStringRef;
+    }
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type()};
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), paramTypes, 2, 0);
+    addedStringRef = LLVMAddFunction(modRef, newString, funcType);
+    getPackageMutableRef().addFunctionRef(newString, addedStringRef);
+    return addedStringRef;
+}
+
 void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef constRef = nullptr;
     const auto &lhsOp = getLhsOperand();
@@ -63,7 +76,11 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         break;
     }
     case TYPE_TAG_BOOLEAN: {
-        constRef = LLVMConstInt(LLVMInt8Type(), std::get<bool>(value), 0);
+        if (std::get<bool>(value)) {
+            constRef = LLVMConstInt(LLVMInt8Type(), 1, 0);
+        } else {
+            constRef = LLVMConstInt(LLVMInt8Type(), 0, 0);
+        }
         break;
     }
     case TYPE_TAG_STRING:
@@ -78,7 +95,11 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
 
         LLVMValueRef paramTypes[] = {llvm::wrap(llvm::unwrap(builder)->getInt64(0)),
                                      llvm::wrap(llvm::unwrap(builder)->getInt64(0))};
-        constRef = LLVMBuildInBoundsGEP(builder, wrap(globalStringValue.get()), paramTypes, 2, "simple");
+        LLVMValueRef valueRef = LLVMBuildInBoundsGEP(builder, wrap(globalStringValue.get()), paramTypes, 2, "simple");
+        LLVMValueRef addedStringRef = getNewString(modRef);
+
+        LLVMValueRef sizeOpValueRef[] = {valueRef, LLVMConstInt(LLVMInt32Type(), stringValue.length(), false)};
+        constRef = LLVMBuildCall(builder, addedStringRef, sizeOpValueRef, 2, "");
         break;
     }
     case TYPE_TAG_NIL: {
