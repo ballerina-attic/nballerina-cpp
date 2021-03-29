@@ -27,7 +27,7 @@ public function main() {
     }
     // TODO check float return
     //float f = <float>fooFloat();
-    // printu32(i + <int>f); 
+    // printu32(i + <int>f);
     printu32(i);
 }
 

@@ -2,8 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function bar(string z) returns string
-{
+public function bar(string z) returns string {
     return z;
 }
 

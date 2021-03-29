@@ -10,7 +10,7 @@ public function test(int[] a) returns int {
 }
 int[] arr1 = [5];
 public function main() {
-    arr1 = [5]; // TODO remove ressaignment when global init is fixed
+    arr1 = [5];    // TODO remove ressaignment when global init is fixed
     arr1[0] = 1;
     arr1[1] = 5;
     arr1[3] = 10;

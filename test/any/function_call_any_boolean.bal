@@ -4,8 +4,7 @@ public function print_string(string val) = external;
 
 public function print_boolean(boolean val) = external;
 
-public function bar(any z) returns boolean
-{
+public function bar(any z) returns boolean {
     return <boolean>z;
 }
 

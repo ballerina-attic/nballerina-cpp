@@ -4,8 +4,7 @@ public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
-public function bar(int z) returns int
-{
+public function bar(int z) returns int {
     return z + 10;
 }
 

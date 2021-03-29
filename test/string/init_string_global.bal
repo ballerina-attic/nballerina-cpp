@@ -5,8 +5,8 @@ public function print_string(string val) = external;
 string str = "Hello";
 string str2 = " World!";
 public function main() {
-    str = "Hello";     // TODO remove when global init is fixed
-    str2 = " World!";  // TODO remove when global init is fixed
+    str = "Hello";    // TODO remove when global init is fixed
+    str2 = " World!";    // TODO remove when global init is fixed
     print_string(str);
     print_string(str2);
 }

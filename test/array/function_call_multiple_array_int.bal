@@ -5,7 +5,7 @@ public function print_string(string val) = external;
 public function printu32(int val) = external;
 
 public function test(int[] a, int[] b) returns int {
-    int c =  b[3] + a[0] + a[1];
+    int c = b[3] + a[0] + a[1];
     return c;
 }
 public function main() {

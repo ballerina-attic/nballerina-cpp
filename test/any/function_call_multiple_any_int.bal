@@ -4,8 +4,7 @@ public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
-public function bar(any l, int m, any n) returns int
-{
+public function bar(any l, int m, any n) returns int {
     return <int>l + m + <int>n;
 }
 

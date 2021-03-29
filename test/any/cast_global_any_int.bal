@@ -6,8 +6,8 @@ public function printu32(int val) = external;
 
 any a = 23;
 
-public function main() {    
-    a = 23;             // TODO remove ressaignment when global init is fixed
+public function main() {
+    a = 23;    // TODO remove ressaignment when global init is fixed
     int x = <int>a;
     print_string("RESULT=");
     printu32(x);

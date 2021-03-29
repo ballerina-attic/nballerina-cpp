@@ -9,7 +9,7 @@ public function main() {
     string s = "Hello";
     boolean b = true;
     float f = 1.25;
-    
+
     any a1 = a;
     any s1 = s;
     any b1 = b;
@@ -26,6 +26,6 @@ public function main() {
     if (a11 == 35) {
         print_string(s11);
     }
-    // TODO check float value
+// TODO check float value
 }
 // CHECK: RESULT=Hello
