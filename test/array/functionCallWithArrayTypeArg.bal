@@ -1,6 +1,6 @@
 // RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 
-public function print_str(string val) = external;
+public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
@@ -13,7 +13,7 @@ public function main() {
     arr1[0] = 1;
     arr1[1] = 5;
     arr1[3] = 10;
-    print_str("RESULT=");
+    print_string("RESULT=");
     printu32(test(arr1));
 }
 

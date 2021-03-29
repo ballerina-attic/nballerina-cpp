@@ -1,6 +1,6 @@
 // RUN: "%testRunScript" %s %nballerinacc "%java_path" | filecheck %s
 
-public function print_str(string val) = external;
+public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
@@ -13,7 +13,7 @@ function fooBool() returns any {
 }
 
 public function main() {
-    print_str("RESULT=");
+    print_string("RESULT=");
     int i = <int>fooInt();
     boolean b = <boolean>fooBool();
     if (b) {

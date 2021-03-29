@@ -205,18 +205,18 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 
     // Handle voidToInt flag
     if (type == TYPE_TAG_NIL && voidToInt)
-        return Type(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
+        return Type(TYPE_TAG_INT, name);
 
     // Handle Map type
     if (type == TYPE_TAG_MAP) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getConstraintTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, shapeCp->getTypeFlag(), typeShapeCp->getTypeTag());
+        return Type(type, name, typeShapeCp->getTypeTag());
     }
 
     // Default return
-    return Type(type, name, shapeCp->getTypeFlag());
+    return Type(type, name);
 }
 
 // Get the Type tag from the constant pool based on the index passed
@@ -300,6 +300,20 @@ Operand BIRReader::readOperand() {
     return Operand(constantPool->getStringCp(varDclNameCpIndex), (VarKind)kind);
 }
 
+// Read Mapping Constructor Key Value body
+MapConstruct BIRReader::readMapConstructor() {
+
+    auto kind = readU1();
+    if ((MapConstrctBodyKind)kind == Spread_Field_Kind) {
+        auto expr = readOperand();
+        return MapConstruct(MapConstruct::SpreadField(expr));
+    }
+    // For Key_Value_Kind
+    auto key = readOperand();
+    auto value = readOperand();
+    return MapConstruct(MapConstruct::KeyValue(key, value));
+}
+
 // Read TYPEDESC Insn
 std::unique_ptr<TypeDescInsn> ReadTypeDescInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto lhsOp = readerRef.readOperand();
@@ -311,7 +325,19 @@ std::unique_ptr<TypeDescInsn> ReadTypeDescInsn::readNonTerminatorInsn(std::share
 std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto rhsOp = readerRef.readOperand();
     [[maybe_unused]] auto lhsOp = readerRef.readOperand();
-    return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB);
+
+    auto initValuesCount = readerRef.readS4be();
+
+    if (initValuesCount == 0) {
+        return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB);
+    }
+
+    std::vector<MapConstruct> initValues;
+    initValues.reserve(initValuesCount);
+    for (size_t i = 0; i < initValuesCount; i++) {
+        initValues.push_back(readerRef.readMapConstructor());
+    }
+    return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB, std::move(initValues));
 }
 
 // Read CONST_LOAD Insn
@@ -446,6 +472,12 @@ std::unique_ptr<ArrayInsn> ReadArrayInsn::readNonTerminatorInsn(std::shared_ptr<
     Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     auto lhsOp = readerRef.readOperand();
     auto sizeOperand = readerRef.readOperand();
+
+    // TODO handle Array init values
+    auto init_values_count = readerRef.readS4be();
+    for (size_t i = 0; i < init_values_count; i++) {
+        [[maybe_unused]] auto init_value = readerRef.readOperand();
+    }
     return std::make_unique<ArrayInsn>(lhsOp, currentBB, sizeOperand);
 }
 

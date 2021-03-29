@@ -9,5 +9,6 @@ if(NOT CLANG_TIDY_EXE)
 else() 
     message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}") 
     set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "--use-color=1" "-checks=*,-fuchsia-*,-google-*,-llvmlibc-*,\
-        -modernize-use-trailing-return-type, -hicpp-named-parameter, -readability-named-parameter")
+        -modernize-use-trailing-return-type, -hicpp-named-parameter, -readability-named-parameter, \
+        -cppcoreguidelines-pro-bounds-array-to-pointer-decay, -hicpp-no-array-decay")
 endif()
