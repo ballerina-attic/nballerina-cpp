@@ -2,8 +2,6 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
-
 public function test(string[] a) returns string {
     string c = a[1];
     return c;

@@ -8,9 +8,13 @@ boolean[5] arr4 = [];
 public function main() {
     arr4 = [];
     arr4[0] = true;
+    arr4[1] = true;
     boolean b = arr4[0];
+    boolean c = arr4[1];
     if (b) {
         print_string("RESULT=");
+    }
+    if (c) {
         printu32(1);
     }
 }

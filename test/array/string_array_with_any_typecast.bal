@@ -9,8 +9,10 @@ public function bar(any l) returns string {
 public function main() {
     string[5] arr4 = [];
     arr4[0] = "Hello";
+    arr4[1] = " World";
     string b = bar(arr4[0]);
-    print_string("RESULT=");
+    string c = arr4[1];
     print_string(b);
+    print_string(c);
 }
-// CHECK: RESULT=Hello
+// CHECK: Hello World

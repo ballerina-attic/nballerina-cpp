@@ -11,9 +11,12 @@ public function test(boolean[] a) returns boolean {
 public function main() {
     boolean[4] arr1 = [];
     arr1[0] = true;
-    arr1[1] = false;
-    if (!test(arr1)) {
+    arr1[1] = true;
+    boolean b = arr1[0];
+    if (test(arr1)) {
         print_string("RESULT=");
+    }
+    if (b) {
         printu32(1);
     }
 }
