@@ -190,6 +190,8 @@ pub extern "C" fn array_store_int(arr_ptr: *mut Vec<*mut i32>, index: i32, ref_p
 pub extern "C" fn array_load_int(arr_ptr: *mut Vec<*mut i32>, index: i32) -> *mut i32 {
     let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
+    // check the out of bounds.
+    assert!(arr.len() > index_n);
     let return_val = arr[index_n];
     mem::forget(arr);
     return return_val;
@@ -211,6 +213,8 @@ pub extern "C" fn array_store_float(arr_ptr: *mut Vec<*mut f32>, index: i32, ref
 pub extern "C" fn array_load_float(arr_ptr: *mut Vec<*mut f32>, index: i32) -> *mut f32 {
     let arr = unsafe { Box::from_raw(arr_ptr)};
     let index_n = index as usize;
+    // check the out of bounds.
+    assert!(arr.len() > index_n);
     let return_val = arr[index_n];
     mem::forget(arr);
     return return_val;
@@ -232,6 +236,8 @@ pub extern "C" fn array_store_bool(arr_ptr: *mut Vec<*mut bool>, index: i32, ref
 pub extern "C" fn array_load_bool(arr_ptr: *mut Vec<*mut bool>, index: i32) -> *mut bool {
     let arr = unsafe { Box::from_raw(arr_ptr)};
     let index_n = index as usize;
+    // check the out of bounds.
+    assert!(arr.len() > index_n);
     let return_val = arr[index_n];
     mem::forget(arr);
     return return_val;
@@ -253,6 +259,8 @@ pub extern "C" fn array_store_string(arr_ptr: *mut Vec<*mut String>, index: i32,
 pub extern "C" fn array_load_string(arr_ptr: *mut Vec<*mut String>, index: i32) -> *mut String {
     let arr = unsafe { Box::from_raw(arr_ptr)};
     let index_n = index as usize;
+    // check the out of bounds.
+    assert!(arr.len() > index_n);
     let return_val = arr[index_n];
     mem::forget(arr);
     return return_val;

@@ -99,9 +99,9 @@ class Type {
 
   public:
     Type() = delete;
-    Type(TypeTag type, std::string name);
-    Type(TypeTag type, std::string name, ArrayType arraType);
-    Type(TypeTag type, std::string name, MapType mapType);
+    Type(TypeTag type, std::string namep);
+    Type(TypeTag type, std::string namep, ArrayType arrayType);
+    Type(TypeTag type, std::string namep, MapType mapType);
     virtual ~Type() = default;
 
     TypeTag getTypeTag() const;
