@@ -37,21 +37,14 @@ void ReturnInsn::translate(LLVMModuleRef &) {
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
 
-    if (!funcObj.isMainFunction()) {
-        assert(funcObj.getReturnVar().has_value());
-        LLVMValueRef retValueRef =
-            LLVMBuildLoad(builder, funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
-        LLVMBuildRet(builder, retValueRef);
-        return;
-    }
-
-    LLVMValueRef globRetRef = getPackageRef().getGlobalLLVMVar("_bal_result");
-    if (globRetRef == nullptr) {
+    if (funcObj.isMainFunction()) {
         LLVMBuildRetVoid(builder);
         return;
     }
-    LLVMValueRef retValRef = LLVMBuildLoad(builder, globRetRef, "return_val_temp");
-    LLVMBuildRet(builder, retValRef);
+    assert(funcObj.getReturnVar().has_value());
+    LLVMValueRef retValueRef =
+        LLVMBuildLoad(builder, funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
+    LLVMBuildRet(builder, retValueRef);
 }
 
 } // namespace nballerina

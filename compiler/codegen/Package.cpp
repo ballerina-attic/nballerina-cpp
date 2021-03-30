@@ -31,9 +31,7 @@ namespace nballerina {
 // return ValueRef of global variable based on variable name.
 LLVMValueRef Package::getGlobalLLVMVar(const std::string &globVar) const {
     const auto &varIt = globalVarRefs.find(globVar);
-    if (varIt == globalVarRefs.end()) {
-        return nullptr;
-    }
+    assert(varIt != globalVarRefs.end());
     return varIt->second;
 }
 
@@ -238,11 +236,9 @@ LLVMValueRef Package::getFunctionRef(const std::string &arrayName) const {
     return it->second;
 }
 
-std::optional<Variable> Package::getGlobalVariable(const std::string &name) const {
+const Variable &Package::getGlobalVariable(const std::string &name) const {
     const auto &varIt = globalVars.find(name);
-    if (varIt == globalVars.end()) {
-        return std::nullopt;
-    }
+    assert(varIt != globalVars.end());
     return varIt->second;
 }
 

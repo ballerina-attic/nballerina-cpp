@@ -34,9 +34,8 @@ ArrayInsn::ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, 
     : NonTerminatorInsn(lhs, std::move(currentBB)), sizeOp(sizeOp) {}
 
 LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
-    auto lhsVar = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand());
-    assert(lhsVar.has_value());
-    const auto &arrayType = lhsVar->getType();
+    const auto &lhsVar = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand());
+    const auto &arrayType = lhsVar.getType();
     TypeTag memberTypeTag = arrayType.getMemberTypeTag();
     const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
     LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
@@ -68,7 +67,7 @@ ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> cur
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
     const auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(lhsOpTypeTag);
-    Type lhsType = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand())->getType();
+    const auto &lhsType = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand()).getType();
     LLVMTypeRef funcRetType = LLVMPointerType(getPackageRef().getLLVMTypeOfType(lhsType), 0);
     LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
@@ -84,7 +83,7 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeT
 void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
-    TypeTag lhsOpTypeTag = funcObj.getLocalOrGlobalVariable(getLhsOperand())->getType().getTypeTag();
+    const auto &lhsOpTypeTag = funcObj.getLocalOrGlobalVariable(getLhsOperand()).getType().getTypeTag();
     LLVMValueRef ArrayLoadFunc = getArrayLoadDeclaration(modRef, lhsOpTypeTag);
 
     LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
@@ -117,8 +116,7 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
 void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
-    assert(funcObj.getLocalOrGlobalVariable(rhsOp)->getType().getTypeTag());
-    TypeTag rhsOpTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp)->getType().getTypeTag();
+    const auto &rhsOpTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getTypeTag();
     LLVMValueRef ArrayLoadFunc = getArrayStoreDeclaration(modRef, rhsOpTypeTag);
 
     LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());

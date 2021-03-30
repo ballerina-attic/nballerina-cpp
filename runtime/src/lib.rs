@@ -144,6 +144,16 @@ pub extern "C" fn printf32(num32: f32) {
     println!("{}", num32);
 }
 
+// Prints boolean
+#[no_mangle]
+pub extern "C" fn print_boolean(num8: i8) {
+    if num8 == 0 {
+        println!("false");
+    } else {
+        println!("true");
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn array_init_int(size: i32) -> *mut Vec<*mut i32> {
     let size_t = if size > 0 { size } else { 8 };

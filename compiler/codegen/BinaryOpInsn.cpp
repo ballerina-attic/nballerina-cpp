@@ -105,7 +105,7 @@ void BinaryOpInsn::translate([[maybe_unused]] LLVMModuleRef &modRef) {
         break;
     }
     default:
-        break;
+        llvm_unreachable("");
     }
 }
 } // namespace nballerina

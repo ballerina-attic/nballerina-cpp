@@ -161,6 +161,10 @@ The valid additional flags are listed below:
   * Valid only for debug builds
   * Launch code coverage test via `cmake --build ./build/ -t nballerinacc_coverage`
   * `-UENABLE_COVERAGE` To unset it
+* `-DSKIP_BIR_GEN=ON` : Skip the execution of `ballerina build --dump-file` for check target, if dump files already exists. Set this to speed up LIT test execution.
+  * `-USKIP_BIR_GEN` To unset it
+* `-DCHECK_FILTER="--filter=<regex>"` : Filter tests to run. e.g. `-DCHECK_FILTER="--filter=\"simpleMain.bal\""`, `-DCHECK_FILTER="--filter=\"functions\""`
+  * `-UCHECK_FILTER` To unset it
 
 **Additional notes:**
 * Don't use parallel builds with static analysis ON; otherwise the suggestions dumped on stdout will be hard to parse
