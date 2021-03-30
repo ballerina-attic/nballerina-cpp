@@ -29,10 +29,10 @@ use num_derive::FromPrimitive;
 use std::ffi::CString;
 use std::os::raw::c_char;
 
-pub const BASE_TYPE_INDEX: usize = 2;
-pub const ARRAY_MEMBER_TYPE_INDEX: usize = 3;
-pub const ARRAY_SIZE_LSB_INDEX: usize = 4;
-pub const ARRAY_SIZE_MSB_INDEX: usize = 5;
+pub const BASE_TYPE_INDEX: usize = 0;
+pub const ARRAY_MEMBER_TYPE_INDEX: usize = 1;
+pub const ARRAY_SIZE_LSB_INDEX: usize = 2;
+pub const ARRAY_SIZE_MSB_INDEX: usize = 3;
 
 #[derive(Debug, PartialEq, FromPrimitive)]
 #[repr(u32)]
@@ -109,10 +109,7 @@ pub fn type_size(type_string: &str) -> i32 {
  * M - Map
  * */
 #[no_mangle]
-pub extern "C" fn same_type(source: String, destination: String) -> bool {
-    if (source.len() == 0) || (destination.len() == 0) {
-        return false;
-    }
+pub extern "C" fn same_type(source: &str, destination: &str) -> bool {
     //If type strings are same
     if source == destination {
         return true;
@@ -123,26 +120,39 @@ pub extern "C" fn same_type(source: String, destination: String) -> bool {
     }
     match source.chars().nth(BASE_TYPE_INDEX) {
         Some('A') => {
-            if source.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
-                != destination.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
-            {
-                let src_type_size: i32 = type_size(&source);
-                let dest_type_size: i32 = type_size(&destination);
-                if src_type_size > dest_type_size {
-                    return false;
-                }
-            }
-            // Compute total number of elements present in the data structure
-            let src_size: i32 = compute_size(&source);
-            let dest_size: i32 = compute_size(&destination);
-            if src_size > dest_size {
-                return false;
-            }
+            return is_same_array_type(source, destination);
+        }
+        Some('M') => {
+            return is_same_map_type(source, destination);
         }
         _ => return false,
     }
-    //If all the checks are passed, type cast from source to destination is valid
-    return true;
+}
+
+fn is_same_array_type(source: &str, destination: &str) -> bool {
+    if source.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
+        != destination.chars().nth(ARRAY_MEMBER_TYPE_INDEX)
+    {
+        let src_type_size: i32 = type_size(source);
+        let dest_type_size: i32 = type_size(destination);
+        if src_type_size > dest_type_size {
+            return false;
+        }
+    }
+    // Compute total number of elements present in the data structure
+    let src_size: i32 = compute_size(source);
+    let dest_size: i32 = compute_size(destination);
+    return if src_size > dest_size { false } else { true };
+}
+
+fn is_same_map_type(source: &str, destination: &str) -> bool {
+    let filtered_source = &source[1..];
+    let filtered_destination = &destination[1..];
+    return is_same_map_constraint_type(filtered_source, filtered_destination);
+}
+
+fn is_same_map_constraint_type(source: &str, destination: &str) -> bool {
+    return same_type(source, destination);
 }
 
 #[test]

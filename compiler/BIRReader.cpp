@@ -149,7 +149,7 @@ float ConstantPoolSet::getFloatCp(uint32_t index) {
 // Search boolean from the constant pool based on index
 bool ConstantPoolSet::getBooleanCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
-    assert(poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
+    assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
     BooleanCpInfo *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
     return booleanCp->getValue();
 }
@@ -170,18 +170,26 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 
     // Handle voidToInt flag
     if (type == TYPE_TAG_NIL && voidToInt)
-        return Type(TYPE_TAG_INT, name, shapeCp->getTypeFlag());
+        return Type(TYPE_TAG_INT, name);
 
     // Handle Map type
     if (type == TYPE_TAG_MAP) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getConstraintTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, shapeCp->getTypeFlag(), typeShapeCp->getTypeTag());
+        return Type(type, name, Type::MapType{typeShapeCp->getTypeTag()});
     }
 
+    // Handle Array type
+    if (type == TYPE_TAG_ARRAY) {
+        ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
+        assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
+        ShapeCpInfo *memberShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
+        return Type(type, name, Type::ArrayType{memberShapeCp->getTypeTag(), 
+			(int)shapeCp->getSize(), shapeCp->getState()});
+    }
     // Default return
-    return Type(type, name, shapeCp->getTypeFlag());
+    return Type(type, name);
 }
 
 // Get the Type tag from the constant pool based on the index passed
@@ -265,6 +273,20 @@ Operand BIRReader::readOperand() {
     return Operand(constantPool->getStringCp(varDclNameCpIndex), (VarKind)kind);
 }
 
+// Read Mapping Constructor Key Value body
+MapConstruct BIRReader::readMapConstructor() {
+
+    auto kind = readU1();
+    if ((MapConstrctBodyKind)kind == Spread_Field_Kind) {
+        auto expr = readOperand();
+        return MapConstruct(MapConstruct::SpreadField(expr));
+    }
+    // For Key_Value_Kind
+    auto key = readOperand();
+    auto value = readOperand();
+    return MapConstruct(MapConstruct::KeyValue(key, value));
+}
+
 // Read TYPEDESC Insn
 std::unique_ptr<TypeDescInsn> ReadTypeDescInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto lhsOp = readerRef.readOperand();
@@ -276,7 +298,19 @@ std::unique_ptr<TypeDescInsn> ReadTypeDescInsn::readNonTerminatorInsn(std::share
 std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto rhsOp = readerRef.readOperand();
     [[maybe_unused]] auto lhsOp = readerRef.readOperand();
-    return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB);
+
+    auto initValuesCount = readerRef.readS4be();
+
+    if (initValuesCount == 0) {
+        return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB);
+    }
+
+    std::vector<MapConstruct> initValues;
+    initValues.reserve(initValuesCount);
+    for (size_t i = 0; i < initValuesCount; i++) {
+        initValues.push_back(readerRef.readMapConstructor());
+    }
+    return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB, std::move(initValues));
 }
 
 // Read CONST_LOAD Insn
@@ -299,9 +333,12 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
                                                   (int)readerRef.constantPool->getIntCp(valueCpIndex));
     }
     case TYPE_TAG_BOOLEAN: {
-        uint8_t valueCpIndex = readerRef.readU1(); // ToDo why is the index unit8 ?
-        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
-                                                  readerRef.constantPool->getBooleanCp(valueCpIndex));
+        uint8_t boolean_constant = readerRef.readU1();
+        if (boolean_constant == 0) {
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, false);
+        } else {
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, true);
+        }
     }
     case TYPE_TAG_FLOAT: {
         uint32_t valueCpIndex = readerRef.readS4be();
@@ -411,6 +448,12 @@ std::unique_ptr<ArrayInsn> ReadArrayInsn::readNonTerminatorInsn(std::shared_ptr<
     Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     auto lhsOp = readerRef.readOperand();
     auto sizeOperand = readerRef.readOperand();
+
+    // TODO handle Array init values
+    auto init_values_count = readerRef.readS4be();
+    for (size_t i = 0; i < init_values_count; i++) {
+        [[maybe_unused]] auto init_value = readerRef.readOperand();
+    }
     return std::make_unique<ArrayInsn>(lhsOp, currentBB, sizeOperand);
 }
 
@@ -736,7 +779,6 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_STREAM:
     case TYPE_TAG_ANY:
     case TYPE_TAG_ENDPOINT:
-    case TYPE_TAG_ARRAY:
     case TYPE_TAG_UNION:
     case TYPE_TAG_INTERSECTION:
     case TYPE_TAG_PACKAGE:
@@ -772,6 +814,12 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_PARAMETERIZED_TYPE: {
         std::vector<char> result(shapeLengthTypeInfo);
         readerRef.is.read(&result[0], shapeLengthTypeInfo);
+        break;
+    }
+    case TYPE_TAG_ARRAY: {
+        state = readerRef.readU1();
+        size = readerRef.readS4be();
+        elementTypeCpIndex = readerRef.readS4be();
         break;
     }
     default:

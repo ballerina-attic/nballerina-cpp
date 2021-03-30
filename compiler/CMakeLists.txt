@@ -76,8 +76,7 @@ if(DEBUG_MODE)
         append_coverage_compiler_flags()
         setup_target_for_coverage_gcovr_html(NAME nballerinacc_coverage 
             EXECUTABLE ../test/cov_test_launch.sh 
-            DEPENDENCIES nballerinacc 
-            EXCLUDE "compiler/include")
+            DEPENDENCIES nballerinacc)
     endif()
 else()
     # Enable Link time optimizations for Release builds

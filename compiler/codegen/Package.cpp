@@ -31,9 +31,7 @@ namespace nballerina {
 // return ValueRef of global variable based on variable name.
 LLVMValueRef Package::getGlobalLLVMVar(const std::string &globVar) const {
     const auto &varIt = globalVarRefs.find(globVar);
-    if (varIt == globalVarRefs.end()) {
-        return nullptr;
-    }
+    assert(varIt != globalVarRefs.end());
     return varIt->second;
 }
 
@@ -46,8 +44,8 @@ const std::string &Package::getSrcFileName() const { return sourceFileName; }
 LLVMValueRef Package::getStringBuilderTableGlobalPointer() { return strBuilderGlobalPtr; }
 
 void Package::addToStrTable(std::string_view name) {
-    if (!strBuilder->contains(name)) {
-        strBuilder->add(name);
+    if (!strBuilder->contains(name.data())) {
+        strBuilder->add(name.data());
     }
 }
 void Package::setOrgName(std::string orgName) { org = std::move(orgName); }
@@ -122,7 +120,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     for (auto const &it : globalVars) {
         auto const &globVar = it.second;
         LLVMTypeRef varTyperef = getLLVMTypeOfType(globVar.getType());
-        const std::string varName = globVar.getName();
+        const auto &varName = globVar.getName();
         // emit/adding the global variable.
         llvm::Constant *initValue = llvm::Constant::getNullValue(llvm::unwrap(varTyperef));
         auto gVar =
@@ -200,27 +198,23 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
     for (const auto &element : structElementStoreInst) {
         const std::string &typeString = element.first;
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
-        offsetStringPair.push_back(std::make_pair(finalOrigOffset, typeString));
+        offsetStringPair.emplace_back(finalOrigOffset, typeString);
     }
 
     // creating the concat string to store in the global address space(string table
     // global pointer)
     std::string concatString;
     std::sort(offsetStringPair.begin(), offsetStringPair.end());
-    for (unsigned int i = 0; i < offsetStringPair.size(); i++) {
-        concatString.append(offsetStringPair[i].second);
+    for (const auto &pair : offsetStringPair) {
+        concatString.append(pair.second);
     }
 
     for (const auto &element : structElementStoreInst) {
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
         LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
         for (const auto &insn : element.second) {
-            LLVMValueRef constOperand;
-            llvm::GetElementPtrInst *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(llvm::unwrap(insn));
-            if (GEPInst)
-                constOperand = LLVMGetOperand(insn, 1);
-            else
-                constOperand = LLVMGetOperand(insn, 0);
+            auto *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(llvm::unwrap(insn));
+            LLVMValueRef constOperand = (GEPInst != nullptr) ? LLVMGetOperand(insn, 1) : LLVMGetOperand(insn, 0);
             LLVMReplaceAllUsesWith(constOperand, tempVal);
         }
     }
@@ -228,7 +222,7 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
     LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, STRING_TABLE_NAME.c_str(), 0);
     globalVarRefs.insert({STRING_TABLE_NAME, createAddrsSpace});
 
-    LLVMValueRef constString = LLVMConstString(concatString.c_str(), concatString.size(), false);
+    LLVMValueRef constString = LLVMConstString(concatString.c_str(), concatString.size(), 0);
     // Initializing global address space with generated string(concat all the
     // strings from string builder table).
     LLVMSetInitializer(createAddrsSpace, constString);
@@ -242,16 +236,46 @@ LLVMValueRef Package::getFunctionRef(const std::string &arrayName) const {
     return it->second;
 }
 
-std::optional<Variable> Package::getGlobalVariable(const std::string &name) const {
+const Variable &Package::getGlobalVariable(const std::string &name) const {
     const auto &varIt = globalVars.find(name);
-    if (varIt == globalVars.end()) {
-        return std::nullopt;
-    }
+    assert(varIt != globalVars.end());
     return varIt->second;
 }
 
-void Package::insertGlobalVar(Variable var) {
-    globalVars.insert(std::pair<std::string, Variable>(var.getName(), std::move(var)));
+void Package::insertGlobalVar(const Variable &var) {
+    globalVars.insert(std::pair<std::string, Variable>(var.getName(), var));
+}
+
+// Declaration for map<int> type store function
+LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
+    const auto *externalFunctionName = "map_store_int";
+
+    LLVMValueRef mapStoreFunc = getFunctionRef(externalFunctionName);
+    if (mapStoreFunc != nullptr) {
+        return mapStoreFunc;
+    }
+    LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
+    LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMTypeRef paramTypes[] = {memPtrType, charArrayPtrType, int32PtrType};
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
+    mapStoreFunc = LLVMAddFunction(modRef, externalFunctionName, funcType);
+    addFunctionRef(externalFunctionName, mapStoreFunc);
+    return mapStoreFunc;
+}
+
+LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef) {
+    const auto *externalFunctionName = "map_spread_field_init";
+
+    LLVMValueRef func = getFunctionRef(externalFunctionName);
+    if (func != nullptr) {
+        return func;
+    }
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0)};
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 2, 0);
+    func = LLVMAddFunction(modRef, externalFunctionName, funcType);
+    addFunctionRef(externalFunctionName, func);
+    return func;
 }
 
 } // namespace nballerina

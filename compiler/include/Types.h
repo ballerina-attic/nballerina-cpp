@@ -21,6 +21,7 @@
 
 #include <optional>
 #include <string>
+#include <variant>
 
 namespace nballerina {
 
@@ -81,17 +82,26 @@ enum TypeTag {
 };
 
 class Type {
+  public:
+    struct ArrayType {
+        TypeTag memberType;
+        int size;
+        int state;
+    };
+    struct MapType {
+        TypeTag memberType;
+    };
 
   private:
     TypeTag type;
     std::string name;
-    int flags;
-    std::optional<TypeTag> memberType;
+    std::variant<ArrayType, MapType> typeInfo;
 
   public:
     Type() = delete;
-    Type(TypeTag type, std::string name, int flags);
-    Type(TypeTag type, std::string name, int flags, TypeTag memberType);
+    Type(TypeTag type, std::string namep);
+    Type(TypeTag type, std::string namep, ArrayType arrayType);
+    Type(TypeTag type, std::string namep, MapType mapType);
     virtual ~Type() = default;
 
     TypeTag getTypeTag() const;

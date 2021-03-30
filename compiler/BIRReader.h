@@ -62,6 +62,7 @@ class BIRReader {
     nballerina::Variable readGlobalVar();
     nballerina::Operand readOperand();
     nballerina::Variable readLocalVar();
+    nballerina::MapConstruct readMapConstructor();
     nballerina::TypeDescInsn *readTypeDescInsn();
     nballerina::StructureInsn *readStructureInsn();
     void readInsn(std::shared_ptr<nballerina::BasicBlock> basicBlock);
@@ -179,6 +180,9 @@ class ShapeCpInfo : public ConstantPoolEntry {
     uint32_t restTypeIndex;
     std::vector<uint32_t> params;
     uint32_t constraintTypeCpIndex;
+    uint8_t state;
+    uint32_t size;
+    uint32_t elementTypeCpIndex;
 
   public:
     uint32_t getShapeLength() { return shapeLength; }
@@ -194,6 +198,9 @@ class ShapeCpInfo : public ConstantPoolEntry {
     void addParam(uint32_t param) { params.push_back(param); }
     uint32_t getParam(uint32_t index) { return params[index]; }
     uint32_t getConstraintTypeCpIndex() { return constraintTypeCpIndex; }
+    uint8_t getState() { return state; }
+    uint32_t getSize() { return size; }
+    uint32_t getElementTypeCpIndex() { return elementTypeCpIndex; }
 
     void setShapeLength(uint32_t s) { shapeLength = s; }
     void setValue(std::string v) { value = v; }
@@ -205,6 +212,9 @@ class ShapeCpInfo : public ConstantPoolEntry {
     void setRestType(uint8_t r) { hasRestType = r; }
     void setReturnTypeIndex(uint32_t r) { returnTypeIndex = r; }
     void setRestTypeIndex(uint32_t r) { restTypeIndex = r; }
+    void setState(uint8_t s) { state = s; }
+    void setSize(uint32_t s) { size = s; }
+    void setElementTypeCpIndex(uint32_t i) { elementTypeCpIndex = i; }
 };
 
 class PackageCpInfo : public ConstantPoolEntry {

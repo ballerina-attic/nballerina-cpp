@@ -10,7 +10,18 @@ then
   exit 1
 fi
 
-ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+# Skip BIR dump generation if forth input arg is set
+if [ -z "$4" ]
+then
+  ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+else
+  if [ ! -s $filename-bir-dump ]
+  then
+    ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+  fi
+fi
+
+
 
 #Ignoring Ballerina compiler errors due to the use of undefined external functions for print routines
 #if [ -s ./err.log ]
@@ -24,7 +35,7 @@ $2 $filename-bir-dump  2>nbal_err.log
 if [ -s ./nbal_err.log ]
 then
   echo "nballerinacc error. Error msg: "
-  echo ./nbal_err.log
+  cat ./nbal_err.log
   exit 1
 fi
 
@@ -33,7 +44,7 @@ clang -O0 -o $filename.out $filename-bir-dump.ll -L../../../runtime/target/relea
 if [ -s ./clang_err.log ]
 then
   echo "clang error/warning. Error msg: "
-  echo ./clang_err.log
+  cat ./clang_err.log
   exit 1
 fi
 

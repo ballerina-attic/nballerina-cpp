@@ -39,26 +39,25 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
     LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
 
-    auto lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
-    assert(lhsVar.has_value());
-    auto rhsVar = funcObj.getLocalOrGlobalVariable(rhsOp);
-    assert(rhsVar.has_value());
-    auto lhsType = lhsVar->getType().getTypeTag();
-    auto rhsType = rhsVar->getType().getTypeTag();
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
+    const auto &rhsVar = funcObj.getLocalOrGlobalVariable(rhsOp);
+    const auto &lhsType = lhsVar.getType();
+    auto lhsTypeTag = lhsType.getTypeTag();
+    const auto &rhsType = rhsVar.getType();
+    auto rhsTypeTag = rhsType.getTypeTag();
 
-    const char *lastTypeChar = "lastTypeIdx";
-    const char *inherentTypeChar = "inherentTypeIdx";
+    const char *inherentTypeName = "inherentTypeName";
 
-    if (rhsType == TYPE_TAG_ANY || rhsType == TYPE_TAG_UNION) {
-        if (lhsType == TYPE_TAG_UNION || lhsType == TYPE_TAG_ANY) {
+    if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
+        if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
             LLVMValueRef rhsVarOpRef = funcObj.createTempVariable(rhsOp);
             LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
             return;
         }
         // GEP of last type of smart pointer(original type of any variable(smart pointer))
-        LLVMValueRef lastTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 0, lastTypeChar);
-        LLVMValueRef lastTypeLoad = LLVMBuildLoad(builder, lastTypeIdx, "");
-        LLVMValueRef sExt = LLVMBuildSExt(builder, lastTypeLoad, LLVMInt64Type(), "");
+        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, rhsOpRef, 0, inherentTypeName);
+        LLVMValueRef inherentTypeLoad = LLVMBuildLoad(builder, inherentTypeIdx, "");
+        LLVMValueRef sExt = LLVMBuildSExt(builder, inherentTypeLoad, LLVMInt64Type(), "");
 
         LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 1, "data");
         LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
@@ -67,9 +66,9 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, &sExt, 1, "");
 
         // get the mangled name of the lhs type and store it to string builder table.
-        std::string_view lhsTypeName = typeStringMangleName(lhsTypeRef, lhsType);
+        std::string_view lhsTypeName = typeStringMangleName(lhsType);
         getPackageMutableRef().addToStrTable(lhsTypeName);
-        int tempRandNum = rand() % 1000 + 1;
+        int tempRandNum = std::rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
         LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, &constValue, 1, "");
         // call is_same_type rust function to check LHS and RHS type are same or not.
@@ -84,21 +83,21 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
 
-    } else if (lhsType == TYPE_TAG_ANY || lhsType == TYPE_TAG_UNION) {
+    } else if (lhsTypeTag == TYPE_TAG_ANY || lhsTypeTag == TYPE_TAG_UNION) {
 
         // struct first element original type
-        LLVMValueRef origTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeChar);
-        std::string_view rhsTypeName = typeStringMangleName(lhsTypeRef, rhsType);
+        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeName);
+        std::string_view rhsTypeName = typeStringMangleName(rhsType);
         getPackageMutableRef().addToStrTable(rhsTypeName);
-        int tempRandNum1 = rand() % 1000 + 1;
+        int tempRandNum1 = std::rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
-        LLVMValueRef lhsTypeStoreRef = LLVMBuildStore(builder, constValue, origTypeIdx);
+        LLVMValueRef lhsTypeStoreRef = LLVMBuildStore(builder, constValue, inherentTypeIdx);
         getPackageMutableRef().addStringOffsetRelocationEntry(rhsTypeName.data(), lhsTypeStoreRef);
         // struct second element void pointer data.
         LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 1, "data");
-        if (isBoxValueSupport(rhsType)) {
+        if (isBoxValueSupport(rhsTypeTag)) {
             LLVMValueRef rhsTempOpRef = funcObj.createTempVariable(rhsOp);
-            LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(rhsTempOpRef), rhsType);
+            LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(rhsTempOpRef), rhsTypeTag);
             rhsOpRef = LLVMBuildCall(builder, boxValFunc, &rhsTempOpRef, 1, "call");
         }
         LLVMValueRef bitCastRes = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
@@ -145,16 +144,13 @@ LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMV
     return addedFuncRef;
 }
 
-std::string_view TypeCastInsn::typeStringMangleName(LLVMTypeRef valType, TypeTag typeTag) {
-    switch (typeTag) {
+std::string_view TypeCastInsn::typeStringMangleName(const Type &type) {
+    switch (type.getTypeTag()) {
     case TYPE_TAG_INT: {
         return "__I";
     }
     case TYPE_TAG_FLOAT: {
         return "__F";
-    }
-    case TYPE_TAG_CHAR_STRING: {
-        return "__C";
     }
     case TYPE_TAG_STRING: {
         return "__S";
@@ -163,13 +159,23 @@ std::string_view TypeCastInsn::typeStringMangleName(LLVMTypeRef valType, TypeTag
         return "__B";
     }
     case TYPE_TAG_ARRAY: {
-        // TODO Need to add Size of the array.
-        if (unwrap(valType)->getPointerElementType()->isIntegerTy())
-            return "__AI";
+        // TODO add array type and size
         return "__A";
     }
     case TYPE_TAG_ANY: {
         return "__X";
+    }
+    case TYPE_TAG_NIL: {
+        return "__N";
+    }
+    case TYPE_TAG_MAP: {
+        TypeTag memberTypeTag = type.getMemberTypeTag();
+        switch (memberTypeTag) {
+        case TYPE_TAG_INT:
+            return "__MI";
+        default:
+            return "__M";
+        }
     }
     default:
         return "";

@@ -20,11 +20,9 @@
 #define __ARRAYINSNS__H__
 
 #include "NonTerminatorInsn.h"
+#include "Types.h"
 
 namespace nballerina {
-
-// Forward Declaration
-class Type;
 
 class ArrayInsn : public NonTerminatorInsn {
   private:
@@ -42,7 +40,7 @@ class ArrayLoadInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef);
+    LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag);
 
   public:
     ArrayLoadInsn() = delete;
@@ -55,7 +53,7 @@ class ArrayStoreInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef);
+    LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag);
 
   public:
     ArrayStoreInsn() = delete;
