@@ -17,20 +17,27 @@
  */
 
 #include "Types.h"
+#include <cassert>
 
 namespace nballerina {
 
-Type::Type(TypeTag type, std::string namep, TypeTag memberType)
-    : type(type), name(std::move(namep)), memberType(memberType) {}
+Type::Type(TypeTag type, std::string namep) : type(type), name(std::move(namep))  {}
 
-Type::Type(TypeTag type, std::string namep) : type(type), name(std::move(namep)) {}
+Type::Type(TypeTag type, std::string namep, ArrayType arrayType)
+    : type(type), name(std::move(namep)), typeInfo(arrayType) {}
+
+Type::Type(TypeTag type, std::string namep, MapType mapType)
+    : type(type), name(std::move(namep)), typeInfo(mapType) {}
 
 TypeTag Type::getTypeTag() const { return type; }
 const std::string &Type::getName() const { return name; }
 
 TypeTag Type::getMemberTypeTag() const {
-    if (memberType) {
-        return memberType.value();
+    if (type == TYPE_TAG_ARRAY) {
+        return std::get<Type::ArrayType>(typeInfo).memberType;
+    }
+    if (type == TYPE_TAG_MAP) {
+        return std::get<Type::MapType>(typeInfo).memberType;
     }
     return TYPE_TAG_INVALID;
 }
@@ -41,7 +48,6 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "int";
     case TYPE_TAG_FLOAT:
         return "float";
-    case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
         return "string";
     case TYPE_TAG_BOOLEAN:
@@ -51,8 +57,8 @@ std::string Type::getNameOfType(TypeTag typeTag) {
     case TYPE_TAG_UNION:
         return "union";
     default:
+        assert(false);
         return "";
     }
 }
-
 } // namespace nballerina

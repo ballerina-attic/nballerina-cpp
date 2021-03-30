@@ -184,7 +184,7 @@ double ConstantPoolSet::getFloatCp(uint32_t index) {
 // Search boolean from the constant pool based on index
 bool ConstantPoolSet::getBooleanCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
-    assert(poolEntry->getTag() != ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
+    assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
     BooleanCpInfo *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
     return booleanCp->getValue();
 }
@@ -212,9 +212,17 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getConstraintTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *typeShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, typeShapeCp->getTypeTag());
+        return Type(type, name, Type::MapType{typeShapeCp->getTypeTag()});
     }
 
+    // Handle Array type
+    if (type == TYPE_TAG_ARRAY) {
+        ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
+        assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
+        ShapeCpInfo *memberShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
+        return Type(type, name, Type::ArrayType{memberShapeCp->getTypeTag(), 
+			(int)shapeCp->getSize(), shapeCp->getState()});
+    }
     // Default return
     return Type(type, name);
 }
@@ -360,9 +368,12 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
                                                   (int)readerRef.constantPool->getIntCp(valueCpIndex));
     }
     case TYPE_TAG_BOOLEAN: {
-        uint8_t valueCpIndex = readerRef.readU1(); // ToDo why is the index unit8 ?
-        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
-                                                  readerRef.constantPool->getBooleanCp(valueCpIndex));
+        uint8_t boolean_constant = readerRef.readU1();
+        if (boolean_constant == 0) {
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, false);
+        } else {
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, true);
+        }
     }
     case TYPE_TAG_FLOAT: {
         uint32_t valueCpIndex = readerRef.readS4be();
@@ -803,7 +814,6 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_STREAM:
     case TYPE_TAG_ANY:
     case TYPE_TAG_ENDPOINT:
-    case TYPE_TAG_ARRAY:
     case TYPE_TAG_UNION:
     case TYPE_TAG_INTERSECTION:
     case TYPE_TAG_PACKAGE:
@@ -839,6 +849,12 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_PARAMETERIZED_TYPE: {
         std::vector<char> result(shapeLengthTypeInfo);
         readerRef.is.read(&result[0], shapeLengthTypeInfo);
+        break;
+    }
+    case TYPE_TAG_ARRAY: {
+        state = readerRef.readU1();
+        size = readerRef.readS4be();
+        elementTypeCpIndex = readerRef.readS4be();
         break;
     }
     default:
