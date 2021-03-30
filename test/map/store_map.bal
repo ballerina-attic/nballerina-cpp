@@ -2,8 +2,8 @@
 public function main() {
     map<int> marks = {};
     marks["jake"] = 80;
-    string key = "jon";    // TODO remove ressaignment when global init is fixed
-    int value = 60;    // TODO remove ressaignment when global init is fixed
+    string key = "jon";
+    int value = 60;
     marks[key] = value;
 }
 // CHECK: length=2

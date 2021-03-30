@@ -57,4 +57,12 @@ void MapStoreInsn::codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStore
     LLVMBuildCall(builder, mapStoreFunc, argOpValueRef, 3, "");
 }
 
+MapLoadInsn::MapLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
+                           const Operand &rOp)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
+
+void MapLoadInsn::translate(LLVMModuleRef &modRef) {
+    return;
+}
+
 } // namespace nballerina
