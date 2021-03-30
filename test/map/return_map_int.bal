@@ -4,21 +4,23 @@ public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
+function foo() returns map<int> {
+    return {sam: 50, jon: 60};
+}
+
 public function main() {
-    map<int> boys = {Jake: 80, Steve: 90};
-    map<int> girls = {Amy: 85, Sam: 88};
-    map<int> allMarks = {...boys, ...girls};
+    map<int> marks = foo();
 
-    int? loadVal = allMarks["Jake"];
-    int jakeMarks = <int>loadVal;
+    int? loadVal = marks["jon"];
+    int johnsMarks = <int>loadVal;
     print_string("RESULT=");
-    printu32(jakeMarks);
+    printu32(johnsMarks);
 
-    int? loadVal2 = allMarks["Sam"];
+    int? loadVal2 = marks["sam"];
     int samMarks = <int>loadVal2;
     print_string("RESULT=");
     printu32(samMarks);
-
 }
-// CHECK: RESULT=80
-// CHECK: RESULT=88
+// CHECK: RESULT=60
+// CHECK: RESULT=50
+

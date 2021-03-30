@@ -339,21 +339,40 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 }
 
 #[no_mangle]
-pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member_ptr: *const i32) {
+pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member: i32) {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
     let bal_map = unsafe { &mut *ptr };
     // Load Key C string
     assert!(!key.is_null());
     let key_str = unsafe { (*key).value };
-    // Load member value
-    assert!(!member_ptr.is_null());
-    let member = unsafe { slice::from_raw_parts(member_ptr, 1) };
     // Insert new field
-    bal_map.insert(key_str, member[0]);
+    bal_map.insert(key_str, member);
+}
 
-    // Print length to test functionality
-    println!("length={}", bal_map.length());
+#[no_mangle]
+pub extern "C" fn map_load_int(ptr: *mut BalMapInt, key: *mut BString) -> i32 {
+    // Load BalMap from pointer
+    assert!(!ptr.is_null());
+    let bal_map = unsafe { &mut *ptr };
+
+    // Load Key C string
+    assert!(!key.is_null());
+    let key_str = unsafe { (*key).value };
+
+    bal_map.get(key_str)
+}
+
+#[no_mangle]
+pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *mut BalMapInt) {
+    // Load source BalMap from pointer
+    assert!(!ptr_source.is_null());
+    let map_src = unsafe { &mut *ptr_source };
+    // Load expr BalMap from pointer
+    assert!(!ptr_expr.is_null());
+    let map_expr = unsafe { &mut *ptr_expr };
+    // Insert from spread field expression
+    map_src.insert_spread_field(map_expr);
 }
 
 #[no_mangle]
@@ -399,19 +418,4 @@ pub extern "C" fn unbox_bal_bool(ptr: *mut f64) {
     unsafe {
         Box::from_raw(ptr);
     }
-}
-
-#[no_mangle]
-pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *mut BalMapInt) {
-    // Load source BalMap from pointer
-    assert!(!ptr_source.is_null());
-    let map_src = unsafe { &mut *ptr_source };
-    // Load expr BalMap from pointer
-    assert!(!ptr_expr.is_null());
-    let map_expr = unsafe { &mut *ptr_expr };
-    // Insert from spread field expression
-    map_src.insert_spread_field(map_expr);
-
-    // Print length to test functionality
-    println!("length={}", map_src.length());
 }

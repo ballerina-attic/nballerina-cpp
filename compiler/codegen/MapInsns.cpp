@@ -47,7 +47,7 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
     // Codegen for map<int> type store
     codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapIntStoreDeclaration(modRef),
                     funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp),
-                    funcObj.getLLVMLocalOrGlobalVar(rhsOp));
+                    funcObj.createTempVariable(rhsOp));
 }
 
 // Generic map store static function
@@ -58,11 +58,31 @@ void MapStoreInsn::codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStore
 }
 
 MapLoadInsn::MapLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
-                           const Operand &rOp)
+                         const Operand &rOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
 
 void MapLoadInsn::translate(LLVMModuleRef &modRef) {
-    return;
+
+    const auto &funcObj = getFunctionRef();
+    LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp)};
+    LLVMValueRef valueFromMap = LLVMBuildCall(funcObj.getLLVMBuilder(), getMapLoadDeclaration(modRef), params, 2, "");
+    getFunctionMutableRef().addValueToSmartStruct(modRef, valueFromMap, Type(TYPE_TAG_INT, ""),
+                                                  funcObj.getLLVMLocalOrGlobalVar(getLhsOperand()), true);
+}
+
+LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef) {
+
+    const char *funcName = "map_load_int";
+    LLVMValueRef mapLoadFunc = getPackageRef().getFunctionRef(funcName);
+    if (mapLoadFunc != nullptr) {
+        return mapLoadFunc;
+    }
+    LLVMTypeRef funcRetType = LLVMInt32Type();
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0)};
+    LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 2, 0);
+    mapLoadFunc = LLVMAddFunction(modRef, funcName, funcType);
+    getPackageMutableRef().addFunctionRef(funcName, mapLoadFunc);
+    return mapLoadFunc;
 }
 
 } // namespace nballerina

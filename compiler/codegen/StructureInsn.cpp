@@ -83,7 +83,7 @@ void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modR
         const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
         MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
                                       funcObj.createTempVariable(keyVal.getKey()),
-                                      funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue()));
+                                      funcObj.createTempVariable(keyVal.getValue()));
     }
 }
 
