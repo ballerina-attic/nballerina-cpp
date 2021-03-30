@@ -339,15 +339,13 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 }
 
 #[no_mangle]
-pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_ptr: *const i32) {
+pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member_ptr: *const i32) {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
     let bal_map = unsafe { &mut *ptr };
     // Load Key C string
     assert!(!key.is_null());
-    let key = unsafe { CStr::from_ptr(key) };
-    let key_str = key.to_str().unwrap();
-
+    let key_str = unsafe { (*key).value };
     // Load member value
     assert!(!member_ptr.is_null());
     let member = unsafe { slice::from_raw_parts(member_ptr, 1) };
