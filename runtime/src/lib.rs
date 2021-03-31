@@ -283,6 +283,32 @@ pub extern "C" fn array_load_string(arr_ptr: *mut Vec<*mut String>, index: i32) 
 }
 
 #[no_mangle]
+pub extern "C" fn array_init_array(size: i32) -> *mut Vec<*mut Vec<*mut i32>> {
+    let size_t = if size > 0 { size } else { 8 };
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut Vec<*mut i32>>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut Vec<*mut i32>>;
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_array(arr_ptr: *mut Vec<*mut Vec<*mut i32>>, index: i32) -> *mut Vec<*mut i32> {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    let len = index_n + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut Vec<*mut i32>);
+    }
+    let mut return_val = arr[index_n];
+    if return_val.is_null() {
+        arr[index_n] = Box::into_raw(Box::new(Vec::with_capacity(len)));
+    }
+    return_val = arr[index_n];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
 pub extern "C" fn array_deinit_int(ptr: *mut Vec<*mut i32>) {
     if ptr.is_null() {
         return;
