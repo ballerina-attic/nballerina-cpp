@@ -55,6 +55,8 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "any";
     case TYPE_TAG_UNION:
         return "union";
+    case TYPE_TAG_ANYDATA:
+        return "anydata";
     default:
         assert(false);
         return "";

@@ -82,6 +82,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
     case TYPE_TAG_UNION:
+    case TYPE_TAG_ANYDATA:
         return wrap(boxType.get());
     default:
         return LLVMInt64Type();

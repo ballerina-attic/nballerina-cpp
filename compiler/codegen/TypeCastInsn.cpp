@@ -48,8 +48,8 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
 
     const char *inherentTypeName = "inherentTypeName";
 
-    if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
-        if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
+    if (isStructAvailable(rhsTypeTag)) {
+        if (isStructAvailable(lhsTypeTag)) {
             LLVMValueRef rhsVarOpRef = funcObj.createTempVariable(rhsOp);
             LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
             return;
@@ -82,8 +82,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, getLhsOperand().getName().c_str());
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
-
-    } else if (lhsTypeTag == TYPE_TAG_ANY || lhsTypeTag == TYPE_TAG_UNION) {
+    } else if (isStructAvailable(lhsTypeTag)) {
         getFunctionMutableRef().storeValueInSmartStruct(modRef, rhsOpRef, rhsType, lhsOpRef);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
@@ -101,6 +100,17 @@ LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMV
     addedFuncRef = LLVMAddFunction(modRef, isSameTypeChar, funcType);
     getPackageMutableRef().addFunctionRef(isSameTypeChar, addedFuncRef);
     return addedFuncRef;
+}
+
+bool TypeCastInsn::isStructAvailable(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_ANY:
+    case TYPE_TAG_UNION:
+    case TYPE_TAG_ANYDATA:
+        return true;
+    default:
+        return false;
+    }
 }
 
 } // namespace nballerina
