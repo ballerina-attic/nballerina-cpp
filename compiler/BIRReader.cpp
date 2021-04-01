@@ -185,8 +185,8 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *memberShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, Type::ArrayType{memberShapeCp->getTypeTag(), 
-			(int)shapeCp->getSize(), shapeCp->getState()});
+        return Type(type, name,
+                    Type::ArrayType{memberShapeCp->getTypeTag(), (int)shapeCp->getSize(), shapeCp->getState()});
     }
     // Default return
     return Type(type, name);
@@ -451,10 +451,12 @@ std::unique_ptr<ArrayInsn> ReadArrayInsn::readNonTerminatorInsn(std::shared_ptr<
 
     // TODO handle Array init values
     auto init_values_count = readerRef.readS4be();
+    std::vector<Operand> initValues;
     for (size_t i = 0; i < init_values_count; i++) {
-        [[maybe_unused]] auto init_value = readerRef.readOperand();
+        auto initValue = readerRef.readOperand();
+        initValues.push_back(initValue);
     }
-    return std::make_unique<ArrayInsn>(lhsOp, currentBB, sizeOperand);
+    return std::make_unique<ArrayInsn>(lhsOp, currentBB, sizeOperand, initValues);
 }
 
 // Read Array Store Insn

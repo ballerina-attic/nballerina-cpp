@@ -283,7 +283,7 @@ pub extern "C" fn array_load_string(arr_ptr: *mut Vec<*mut String>, index: i32) 
 }
 
 #[no_mangle]
-pub extern "C" fn array_init_array(size: i32) -> *mut Vec<*mut Vec<*mut i32>> {
+pub extern "C" fn array_init_array_array(size: i32) -> *mut Vec<*mut Vec<*mut i32>> {
     let size_t = if size > 0 { size } else { 8 };
     let size_t = size_t as usize;
     let foo: Box<Vec<*mut Vec<*mut i32>>> = Box::new(Vec::with_capacity(size_t));
@@ -292,7 +292,111 @@ pub extern "C" fn array_init_array(size: i32) -> *mut Vec<*mut Vec<*mut i32>> {
 }
 
 #[no_mangle]
-pub extern "C" fn array_load_array(arr_ptr: *mut Vec<*mut Vec<*mut i32>>, index: i32) -> *mut Vec<*mut i32> {
+pub extern "C" fn array_init_array_int(size: i32) -> *mut Vec<*mut Vec<*mut i32>> {
+    let size_t = if size > 0 { size } else { 8 };
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut Vec<*mut i32>>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut Vec<*mut i32>>;
+}
+
+#[no_mangle]
+pub extern "C" fn array_init_array_float(size: i32) -> *mut Vec<*mut Vec<*mut f32>> {
+    let size_t = if size > 0 { size } else { 8 };
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut Vec<*mut f32>>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut Vec<*mut f32>>;
+}
+
+#[no_mangle]
+pub extern "C" fn array_init_array_bool(size: i32) -> *mut Vec<*mut Vec<*mut bool>> {
+    let size_t = if size > 0 { size } else { 8 };
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut Vec<*mut bool>>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut Vec<*mut bool>>;
+}
+
+#[no_mangle]
+pub extern "C" fn array_init_array_string(size: i32) -> *mut Vec<*mut Vec<*mut String>> {
+    let size_t = if size > 0 { size } else { 8 };
+    let size_t = size_t as usize;
+    let foo: Box<Vec<*mut Vec<*mut String>>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(foo);
+    return vec_pointer as *mut Vec<*mut Vec<*mut String>>;
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_array_int(arr_ptr: *mut Vec<*mut Vec<*mut i32>>, index: i32) -> *mut Vec<*mut i32> {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    let len = index_n + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut Vec<*mut i32>);
+    }
+    let mut return_val = arr[index_n];
+    if return_val.is_null() {
+        arr[index_n] = Box::into_raw(Box::new(Vec::with_capacity(len)));
+    }
+    return_val = arr[index_n];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_array_bool(arr_ptr: *mut Vec<*mut Vec<*mut bool>>, index: i32) -> *mut Vec<*mut bool> {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    let len = index_n + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut Vec<*mut bool>);
+    }
+    let mut return_val = arr[index_n];
+    if return_val.is_null() {
+        arr[index_n] = Box::into_raw(Box::new(Vec::with_capacity(len)));
+    }
+    return_val = arr[index_n];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_array_float(arr_ptr: *mut Vec<*mut Vec<*mut f32>>, index: i32) -> *mut Vec<*mut f32> {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    let len = index_n + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut Vec<*mut f32>);
+    }
+    let mut return_val = arr[index_n];
+    if return_val.is_null() {
+        arr[index_n] = Box::into_raw(Box::new(Vec::with_capacity(len)));
+    }
+    return_val = arr[index_n];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_array_string(arr_ptr: *mut Vec<*mut Vec<*mut String>>, index: i32) -> *mut Vec<*mut String> {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    let len = index_n + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut Vec<*mut String>);
+    }
+    let mut return_val = arr[index_n];
+    if return_val.is_null() {
+        arr[index_n] = Box::into_raw(Box::new(Vec::with_capacity(len)));
+    }
+    return_val = arr[index_n];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_array_array(arr_ptr: *mut Vec<*mut Vec<*mut i32>>, index: i32) -> *mut Vec<*mut i32> {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     let len = index_n + 1;

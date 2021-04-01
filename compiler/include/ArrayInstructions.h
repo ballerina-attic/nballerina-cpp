@@ -27,11 +27,13 @@ namespace nballerina {
 class ArrayInsn : public NonTerminatorInsn {
   private:
     Operand sizeOp;
+    std::vector<Operand> initValues;
     LLVMValueRef getArrayInitDeclaration(LLVMModuleRef &modRef);
 
   public:
     ArrayInsn() = delete;
-    ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp);
+    ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp,
+              std::vector<Operand> initValues);
     ~ArrayInsn() = default;
     void translate(LLVMModuleRef &modRef) final;
 };

@@ -30,14 +30,20 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), sizeOp(sizeOp) {}
+ArrayInsn::ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp,
+                     std::vector<Operand> initValues)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), sizeOp(sizeOp), initValues(std::move(initValues)) {}
 
 LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
     const auto &lhsVar = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand());
     const auto &arrayType = lhsVar.getType();
     TypeTag memberTypeTag = arrayType.getMemberTypeTag();
-    const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
+    auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
+    if (memberTypeTag == TYPE_TAG_ARRAY) {
+        if (!initValues.empty())
+            memberTypeTag = getFunctionRef().getLocalOrGlobalVariable(initValues[0]).getType().getMemberTypeTag();
+        arrayTypeFuncName = "array_init_array_" + Type::getNameOfType(memberTypeTag);
+    }
     LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
@@ -66,9 +72,13 @@ ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> cur
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
-    const auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(lhsOpTypeTag);
+    auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(lhsOpTypeTag);
     const auto &lhsType = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand()).getType();
     LLVMTypeRef funcRetType = LLVMPointerType(getPackageRef().getLLVMTypeOfType(lhsType), 0);
+    if (lhsOpTypeTag == TYPE_TAG_ARRAY) {
+        lhsOpTypeTag = lhsType.getMemberTypeTag();
+        arrayTypeFuncName = "array_load_array_" + Type::getNameOfType(lhsOpTypeTag);
+    }
     LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
