@@ -149,6 +149,15 @@ pub extern "C" fn array_init_string(size: i32) -> *mut Vec<*mut BString> {
 }
 
 #[no_mangle]
+pub extern "C" fn array_init_anydata(size: i32) -> *mut Vec<*mut i8> {
+    let size_t = if size > 0 { size } else { 8 };
+    let size_t = size_t as usize;
+    let vec: Box<Vec<*mut i8>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(vec);
+    return vec_pointer;
+}
+
+#[no_mangle]
 pub extern "C" fn array_store_int(arr_ptr: *mut Vec<i64>, index: i64, ref_ptr: i64) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
@@ -178,6 +187,29 @@ pub extern "C" fn array_store_float(arr_ptr: *mut Vec<f32>, index: i32, ref_ptr:
     let len = index_n + 1;
     if arr.len() < len {
         arr.resize(len, 0.0);
+    }
+    arr[index_n] = ref_ptr;
+    mem::forget(arr);
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_anydata(arr_ptr: *mut Vec<*mut i8>, index: i32) -> *mut i8 {
+    let arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    // check the out of bounds.
+    assert!(arr.len() > index_n);
+    let return_val = arr[index_n];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn array_store_anydata(arr_ptr: *mut Vec<*mut i8>, index: i32, ref_ptr: *mut i8) {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    let len = index_n + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut i8);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);
