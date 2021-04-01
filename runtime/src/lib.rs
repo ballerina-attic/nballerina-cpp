@@ -351,7 +351,11 @@ pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member: 
 }
 
 #[no_mangle]
-pub extern "C" fn map_load_int(ptr: *mut BalMapInt, key: *mut BString) -> i32 {
+pub extern "C" fn map_load_int(
+    ptr: *mut BalMapInt,
+    key: *mut BString,
+    output_val: *mut i32,
+) -> bool {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
     let bal_map = unsafe { &mut *ptr };
@@ -360,7 +364,19 @@ pub extern "C" fn map_load_int(ptr: *mut BalMapInt, key: *mut BString) -> i32 {
     assert!(!key.is_null());
     let key_str = unsafe { (*key).value };
 
-    bal_map.get(key_str)
+    // Output param
+    assert!(!output_val.is_null());
+
+    match bal_map.get(key_str) {
+        Some(val) => {
+            unsafe { *output_val = val.clone() };
+            true
+        }
+        None => {
+            panic!("Invalid map key access")
+            //false,
+        }
+    }
 }
 
 #[no_mangle]

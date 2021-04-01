@@ -101,7 +101,7 @@ class Function : public Debuggable, public Translatable {
     void setLLVMBuilder(LLVMBuilderRef builder);
     void setLLVMFunctionValue(LLVMValueRef funcRef);
     void addValueToSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
-                               LLVMValueRef smartStruct, bool isTempValue = false);
+                               LLVMValueRef smartStruct);
 
     void translate(LLVMModuleRef &modRef) final;
 };

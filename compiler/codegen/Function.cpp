@@ -179,7 +179,7 @@ void Function::patchBasicBlocks() {
 }
 
 void Function::addValueToSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
-                                     LLVMValueRef smartStruct, bool isTempValue) {
+                                     LLVMValueRef smartStruct) {
 
     // struct first element original type
     LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(llvmBuilder, smartStruct, 0, "inherentTypeName");
@@ -195,11 +195,9 @@ void Function::addValueToSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, 
     // struct second element void pointer data.
     LLVMValueRef valuePtr = LLVMBuildStructGEP(llvmBuilder, smartStruct, 1, "data");
     if (isBoxValueSupport(valueType.getTypeTag())) {
-        if (!isTempValue) {
-            value = LLVMBuildLoad(llvmBuilder, value, "_temp");
-        }
-        LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(value), valueType.getTypeTag());
-        value = LLVMBuildCall(llvmBuilder, boxValFunc, &value, 1, "call");
+        auto valueTemp = LLVMBuildLoad(llvmBuilder, value, "_temp");
+        LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(valueTemp), valueType.getTypeTag());
+        value = LLVMBuildCall(llvmBuilder, boxValFunc, &valueTemp, 1, "call");
     }
     LLVMValueRef bitCastRes = LLVMBuildBitCast(llvmBuilder, value, LLVMPointerType(LLVMInt8Type(), 0), "");
     LLVMBuildStore(llvmBuilder, bitCastRes, valuePtr);

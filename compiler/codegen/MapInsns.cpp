@@ -64,10 +64,19 @@ MapLoadInsn::MapLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> current
 void MapLoadInsn::translate(LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
-    LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp)};
-    LLVMValueRef valueFromMap = LLVMBuildCall(funcObj.getLLVMBuilder(), getMapLoadDeclaration(modRef), params, 2, "");
-    getFunctionMutableRef().addValueToSmartStruct(modRef, valueFromMap, Type(TYPE_TAG_INT, ""),
-                                                  funcObj.getLLVMLocalOrGlobalVar(getLhsOperand()), true);
+    auto builder = funcObj.getLLVMBuilder();
+    
+    LLVMValueRef lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
+    LLVMValueRef outParam = LLVMBuildAlloca(builder, LLVMInt32Type(), "_out_param");
+    LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp), outParam};
+    
+    [[maybe_unused]] LLVMValueRef retVal = LLVMBuildCall(builder, getMapLoadDeclaration(modRef), params, 3, "");
+
+    // TODO check retVal and branch 
+    // if retVal is true
+    getFunctionMutableRef().addValueToSmartStruct(modRef, outParam, Type(TYPE_TAG_INT, ""), lhs);
+    // else
+    // getFunctionMutableRef().addValueToSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL, ""), lhs);
 }
 
 LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef) {
@@ -77,9 +86,10 @@ LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef) {
     if (mapLoadFunc != nullptr) {
         return mapLoadFunc;
     }
-    LLVMTypeRef funcRetType = LLVMInt32Type();
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0)};
-    LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 2, 0);
+    LLVMTypeRef funcRetType = LLVMInt8Type();
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0),
+                                LLVMPointerType(LLVMInt32Type(), 0)};
+    LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 3, 0);
     mapLoadFunc = LLVMAddFunction(modRef, funcName, funcType);
     getPackageMutableRef().addFunctionRef(funcName, mapLoadFunc);
     return mapLoadFunc;
