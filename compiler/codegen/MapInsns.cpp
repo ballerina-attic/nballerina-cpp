@@ -21,6 +21,7 @@
 #include "Operand.h"
 #include "Package.h"
 #include "Types.h"
+#include "TypeUtils.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
 
@@ -40,12 +41,10 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
 
     // Only handle Int type
-    if (memberTypeTag != TYPE_TAG_INT) {
-        llvm_unreachable("Only int type maps are currently supported");
-    }
+    TypeUtils::checkMapSupport(memberTypeTag);
 
     // Codegen for map<int> type store
-    codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapIntStoreDeclaration(modRef),
+    codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapStoreDeclaration(modRef, memberTypeTag),
                     funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp),
                     funcObj.createTempVariable(rhsOp));
 }

@@ -249,14 +249,16 @@ void Package::insertGlobalVar(const Variable &var) {
 }
 
 // Declaration for map<int> type store function
-LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
-    const auto *externalFunctionName = "map_store_int";
+LLVMValueRef Package::getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag typeTag) {
+    std::string funcName = "map_store_" + Type::getNameOfType(typeTag);
+    const char *externalFunctionName = funcName.c_str();
 
     LLVMValueRef mapStoreFunc = getFunctionRef(externalFunctionName);
     if (mapStoreFunc != nullptr) {
         return mapStoreFunc;
     }
-    LLVMTypeRef memberType = LLVMInt64Type();
+
+    LLVMTypeRef memberType = getLLVMTypeOfTypeTag(typeTag);
     LLVMTypeRef keyType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef mapType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef paramTypes[] = {mapType, keyType, memberType};
@@ -266,8 +268,9 @@ LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
     return mapStoreFunc;
 }
 
-LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef) {
-    const auto *externalFunctionName = "map_spread_field_init";
+LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef, TypeTag typeTag) {
+    std::string funcName = "map_spread_field_" + Type::getNameOfType(typeTag);
+    const auto *externalFunctionName = funcName.c_str();
 
     LLVMValueRef func = getFunctionRef(externalFunctionName);
     if (func != nullptr) {

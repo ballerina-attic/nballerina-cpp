@@ -28,6 +28,7 @@ use std::os::raw::c_char;
 use std::slice;
 
 mod bal_map;
+pub use bal_map::map::BalMapAnyData;
 pub use bal_map::map::BalMapInt;
 
 pub struct BString {
@@ -335,7 +336,6 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 #[no_mangle]
 pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member: i64) {
     // Load BalMap from pointer
-    assert!(!ptr.is_null());
     let bal_map = unsafe { &mut *ptr };
     // Load Key C string
     assert!(!key.is_null());
@@ -383,6 +383,51 @@ pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *m
     let map_expr = unsafe { &mut *ptr_expr };
     // Insert from spread field expression
     map_src.insert_spread_field(map_expr);
+}
+
+#[no_mangle]
+pub extern "C" fn map_new_anydata() -> *mut BalMapAnyData {
+    Box::into_raw(Box::new(BalMapAnyData::new()))
+}
+
+#[no_mangle]
+pub extern "C" fn map_store_anydata(
+    ptr: *mut BalMapAnyData,
+    key: *mut BString,
+    member_ptr: *const i8,
+) {
+    // Load BalMap from pointer
+    assert!(!ptr.is_null());
+    let bal_map = unsafe { &mut *ptr };
+    // Load Key C string
+    assert!(!key.is_null());
+
+    // Load member value
+    assert!(!member_ptr.is_null());
+    // Insert new field
+    let key_str = unsafe { (*key).value };
+    bal_map.insert(key_str, member_ptr);
+
+    // Print length to test functionality
+    println!("length={}", bal_map.length());
+}
+
+#[no_mangle]
+pub extern "C" fn map_spread_field_anydata(
+    ptr_source: *mut BalMapAnyData,
+    ptr_expr: *mut BalMapAnyData,
+) {
+    // Load source BalMap from pointer
+    assert!(!ptr_source.is_null());
+    let map_src = unsafe { &mut *ptr_source };
+    // Load expr BalMap from pointer
+    assert!(!ptr_expr.is_null());
+    let map_expr = unsafe { &mut *ptr_expr };
+    // Insert from spread field expression
+    map_src.insert_spread_field(map_expr);
+
+    // Print length to test functionality
+    println!("length={}", map_src.length());
 }
 
 #[no_mangle]

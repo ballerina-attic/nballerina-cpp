@@ -30,4 +30,30 @@ pub mod map {
             self.map.len()
         }
     }
+
+    pub struct BalMapAnyData {
+        map: HashMap<String, *const i8>,
+    }
+
+    impl BalMapAnyData {
+        pub fn new() -> BalMapAnyData {
+            BalMapAnyData {
+                map: HashMap::new(),
+            }
+        }
+
+        // Map insert
+        pub fn insert(&mut self, key: &str, member: *const i8) {
+            self.map.insert(String::from(key), member);
+        }
+
+        pub fn insert_spread_field(&mut self, expr: &BalMapAnyData) {
+            self.map.extend(expr.map.clone().into_iter());
+        }
+
+        // test functions
+        pub fn length(&self) -> usize {
+            self.map.len()
+        }
+    }
 }

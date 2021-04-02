@@ -18,14 +18,14 @@ function fooString() returns string {
 
 function fooAnyData1() returns anydata[] {
     anydata[] ax = [];
-    ax[0] = " Test2";
+    ax[0] = "Test2";
     return ax;
 }
 
 string s = "";
 
 function fooAnyData2() returns anydata[] {
-    s = " Test3"; // TODO remove ressaignment when global init is fixed
+    s = "Test3"; // TODO remove ressaignment when global init is fixed
     anydata[] ax = [];
     ax[0] = s;
     return ax;
@@ -39,10 +39,12 @@ public function main() {
 
     anydata[] ax1 = fooAnyData1();
     string i = <string>ax1[0];
+    print_string(" ");
     print_string(i);
 
     anydata[] ax2 = fooAnyData2();
     i = <string>ax2[0];
+    print_string(" ");
     print_string(i);
 }
 // CHECK: RESULT=45
