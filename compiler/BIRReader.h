@@ -182,6 +182,11 @@ class ShapeCpInfo : public ConstantPoolEntry {
     uint32_t restTypeIndex;
     std::vector<uint32_t> params;
     uint32_t constraintTypeCpIndex;
+    uint32_t pkgIndex;
+    uint32_t errorTypeNameCpIndex;
+    uint32_t detailTypeCpIndex;
+    uint32_t primaryTypeCount;
+    uint32_t secondaryTypeCount;
 
   public:
     uint32_t getShapeLength() { return shapeLength; }
@@ -197,6 +202,11 @@ class ShapeCpInfo : public ConstantPoolEntry {
     void addParam(uint32_t param) { params.push_back(param); }
     uint32_t getParam(uint32_t index) { return params[index]; }
     uint32_t getConstraintTypeCpIndex() { return constraintTypeCpIndex; }
+    uint32_t getPkgIndex() const { return pkgIndex; }
+    uint32_t getErrorTypeNameCpIndex() const { return errorTypeNameCpIndex; }
+    uint32_t getDetailTypeCpIndex() const { return detailTypeCpIndex; }
+    uint32_t getPrimaryTypeCount() const { return primaryTypeCount; }
+    uint32_t getSecondaryTypeCount() const { return secondaryTypeCount; }
 
     void setShapeLength(uint32_t s) { shapeLength = s; }
     void setValue(std::string v) { value = v; }
@@ -208,6 +218,11 @@ class ShapeCpInfo : public ConstantPoolEntry {
     void setRestType(uint8_t r) { hasRestType = r; }
     void setReturnTypeIndex(uint32_t r) { returnTypeIndex = r; }
     void setRestTypeIndex(uint32_t r) { restTypeIndex = r; }
+    void setPkgIndex(uint32_t p) const { p = pkgIndex; }
+    void setErrorTypeNameCpIndex(uint32_t e) const { e = errorTypeNameCpIndex; }
+    void setDetailTypeCpIndex(uint32_t d) const { d = detailTypeCpIndex; }
+    void setPrimaryTypeCount(uint32_t p) const { p = primaryTypeCount; }
+    void setSecondaryTypeCount(uint32_t s) const { s = secondaryTypeCount; }
 };
 
 class PackageCpInfo : public ConstantPoolEntry {

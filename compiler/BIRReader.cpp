@@ -836,7 +836,6 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_XMLNS:
     case TYPE_TAG_ANNOTATION:
     case TYPE_TAG_SEMANTIC_ERROR:
-    case TYPE_TAG_ERROR:
     case TYPE_TAG_ITERATOR:
     case TYPE_TAG_TUPLE:
     case TYPE_TAG_FUTURE:
@@ -863,6 +862,17 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_PARAMETERIZED_TYPE: {
         std::vector<char> result(shapeLengthTypeInfo);
         readerRef.is.read(&result[0], shapeLengthTypeInfo);
+        break;
+    }
+    case TYPE_TAG_ERROR: {
+        pkgIndex = readerRef.readS4be();
+        errorTypeNameCpIndex = readerRef.readS4be();
+        detailTypeCpIndex = readerRef.readS4be();
+        // TODO: Add support for primary and secondary types which is not required for basic error construction
+        primaryTypeCount = readerRef.readS4be();
+        assert(primaryTypeCount == 0);
+        secondaryTypeCount = readerRef.readS4be();
+        assert(secondaryTypeCount == 0);
         break;
     }
     default:
