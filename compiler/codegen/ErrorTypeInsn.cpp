@@ -19,6 +19,7 @@
 #include "ErrorTypeInsn.h"
 #include "Function.h"
 #include "Operand.h"
+#include "Types.h"
 #include "Package.h"
 
 using namespace std;
@@ -26,18 +27,18 @@ using namespace llvm;
 
 namespace nballerina {
 
-ErrorTypeInsn::ErrorTypeInsn(Operand *lOp, BasicBlock *currentBB, Operand *mOp, Operand *cOp, Operand *dOp, Type *tDecl)
-    : NonTerminatorInsn(lOp, currentBB), msgOp(mOp), causeOp(cOp), detailOp(dOp), typeDecl(tDecl) {}
+ErrorTypeInsn::ErrorTypeInsn(const Operand &lOp, std::shared_ptr<BasicBlock> currentBB, const Operand &mOp, const Operand &cOp, const Operand &dOp, Type type)
+    : NonTerminatorInsn(lOp, currentBB), msgOp(mOp), causeOp(cOp), detailOp(dOp), typeDecl(type) {}
 
-Operand *ErrorTypeInsn::getMsgOp() { return msgOp; }
-Operand *ErrorTypeInsn::getCauseOp() { return causeOp; }
-Operand *ErrorTypeInsn::getDetailOp() { return detailOp; }
-Type *ErrorTypeInsn::getTypeDecl() { return typeDecl; }
+const Operand &ErrorTypeInsn::getMsgOp() { return msgOp; }
+const Operand &ErrorTypeInsn::getCauseOp() { return causeOp; }
+const Operand &ErrorTypeInsn::getDetailOp() { return detailOp; }
+Type ErrorTypeInsn::getTypeDecl() { return typeDecl; }
 
-void ErrorTypeInsn::setMsgOp(Operand *op) { msgOp = op; }
-void ErrorTypeInsn::setCauseOp(Operand *op) { causeOp = op; }
-void ErrorTypeInsn::setDetailOp(Operand *op) { detailOp = op; }
-void ErrorTypeInsn::setTypeDecl(Type *tDecl) { typeDecl = tDecl; }
+void ErrorTypeInsn::setMsgOp(const Operand &op) { msgOp = op; }
+void ErrorTypeInsn::setCauseOp(const Operand &op) { causeOp = op; }
+void ErrorTypeInsn::setDetailOp(const Operand &op) { detailOp = op; }
+void ErrorTypeInsn::setTypeDecl(Type tDecl) { typeDecl = tDecl; }
 
 void ErrorTypeInsn::translate(LLVMModuleRef &modRef) {
     // Error Type Translation logic

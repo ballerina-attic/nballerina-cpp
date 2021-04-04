@@ -487,12 +487,12 @@ std::unique_ptr<MapStoreInsn> ReadMapStoreInsn::readNonTerminatorInsn(std::share
 // Read Error Type Insn
 std::unique_ptr<ErrorTypeInsn> ReadErrorTypeInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     uint32_t typeCpIndex = readerRef.readS4be();
-    Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+    auto type = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     auto lhsOperand = readerRef.readOperand();
     auto msgOperand = readerRef.readOperand();
     auto causeOperand = readerRef.readOperand();
     auto detailOperand = readerRef.readOperand();
-    return std::make_unique<ErrorTypeInsn>(lhsOperand, currentBB, msgOperand, causeOperand, detailOperand, typeDecl);
+    return std::make_unique<ErrorTypeInsn>(lhsOperand, currentBB, msgOperand, causeOperand, detailOperand, std::move(type));
 }
 
 std::unique_ptr<GoToInsn> ReadGoToInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
@@ -841,6 +841,7 @@ void ShapeCpInfo::read() {
         secondaryTypeCount = readerRef.readS4be();
         assert(secondaryTypeCount == 0);
         break;
+    }
     case TYPE_TAG_ARRAY: {
         state = readerRef.readU1();
         size = readerRef.readS4be();

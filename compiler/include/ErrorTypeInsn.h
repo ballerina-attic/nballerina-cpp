@@ -20,35 +20,31 @@
 #define __ERRORTYPEINSN__H__
 
 #include "NonTerminatorInsn.h"
+#include "Types.h"
 
 namespace nballerina {
 
-// Forward Declaration
-class Operand;
-class BasicBlock;
-class Type;
-
 class ErrorTypeInsn : public NonTerminatorInsn {
   private:
-    Operand *msgOp;
-    Operand *causeOp;
-    Operand *detailOp;
-    Type *typeDecl;
+    Operand msgOp;
+    Operand causeOp;
+    Operand detailOp;
+    Type typeDecl;
 
   public:
     ErrorTypeInsn() = delete;
-    ErrorTypeInsn(Operand *lOp, BasicBlock *currentBB, Operand *mOp, Operand *cOp, Operand *dOp, Type *tDecl);
+    ErrorTypeInsn(const Operand &lOp, std::shared_ptr<BasicBlock> currentBB, const Operand &mOp, const Operand &cOp, const Operand &dOp, Type tDecl);
     ~ErrorTypeInsn() = default;
 
-    Operand *getMsgOp();
-    Operand *getCauseOp();
-    Operand *getDetailOp();
-    Type *getTypeDecl();
+    const Operand &getMsgOp();
+    const Operand &getCauseOp();
+    const Operand &getDetailOp();
+    Type getTypeDecl();
 
-    void setMsgOp(Operand *op);
-    void setCauseOp(Operand *op);
-    void setDetailOp(Operand *op);
-    void setTypeDecl(Type *tDecl);
+    void setMsgOp(const Operand &op);
+    void setCauseOp(const Operand &op);
+    void setDetailOp(const Operand &op);
+    void setTypeDecl(Type tDecl);
     void translate(LLVMModuleRef &modRef) final;
 };
 
