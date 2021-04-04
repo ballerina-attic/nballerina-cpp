@@ -491,7 +491,7 @@ class ReadErrorTypeInsn : public ReadNonTerminatorInstruction {
     ReadErrorTypeInsn() {}
     static ReadErrorTypeInsn readErrorTypeInsn;
     ~ReadErrorTypeInsn() {}
-    nballerina::ErrorTypeInsn *readNonTerminatorInsn(nballerina::BasicBlock *currentBB) final;
+    std::unique_ptr<nballerina::ErrorTypeInsn> readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
 };
 
 #endif // BIRREADER_H

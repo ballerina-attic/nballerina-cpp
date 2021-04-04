@@ -485,14 +485,14 @@ std::unique_ptr<MapStoreInsn> ReadMapStoreInsn::readNonTerminatorInsn(std::share
 }
 
 // Read Error Type Insn
-ErrorTypeInsn *ReadErrorTypeInsn::readNonTerminatorInsn(BasicBlock *currentBB) {
+std::unique_ptr<ErrorTypeInsn> ReadErrorTypeInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     uint32_t typeCpIndex = readerRef.readS4be();
-    Type *typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
-    Operand *lhsOperand = readerRef.readOperand();
-    Operand *msgOperand = readerRef.readOperand();
-    Operand *causeOperand = readerRef.readOperand();
-    Operand *detailOperand = readerRef.readOperand();
-    return new ErrorTypeInsn(lhsOperand, currentBB, msgOperand, causeOperand, detailOperand, typeDecl);
+    Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
+    auto lhsOperand = readerRef.readOperand();
+    auto msgOperand = readerRef.readOperand();
+    auto causeOperand = readerRef.readOperand();
+    auto detailOperand = readerRef.readOperand();
+    return std::make_unique<ErrorTypeInsn>(lhsOperand, currentBB, msgOperand, causeOperand, detailOperand, typeDecl);
 }
 
 std::unique_ptr<GoToInsn> ReadGoToInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
@@ -599,8 +599,7 @@ void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
         break;
     }
     case INSTRUCTION_KIND_NEW_ERROR: {
-        ErrorTypeInsn *errorTypeInsn = ReadErrorTypeInsn::readErrorTypeInsn.readNonTerminatorInsn(basicBlock);
-        basicBlock->addNonTermInsn(errorTypeInsn);
+        basicBlock->addNonTermInsn(ReadErrorTypeInsn::readErrorTypeInsn.readNonTerminatorInsn(basicBlock));
         break;
     }
     default:
