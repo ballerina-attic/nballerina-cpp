@@ -139,31 +139,31 @@ pub extern "C" fn printf32(num32: f32) {
 }
 
 #[no_mangle]
-pub extern "C" fn new_int_array(size: i32) -> *mut Vec<*mut i32> {
+pub extern "C" fn new_int_array(size: i64) -> *mut Vec<*mut i64> {
     let mut size_t = size;
     if size < 0 {
         size_t = 8;
     }
     let size_t = size_t as usize;
-    let foo: Box<Vec<*mut i32>> = Box::new(Vec::with_capacity(size_t));
+    let foo: Box<Vec<*mut i64>> = Box::new(Vec::with_capacity(size_t));
     let vec_pointer = Box::into_raw(foo);
-    return vec_pointer as *mut Vec<*mut i32>;
+    return vec_pointer as *mut Vec<*mut i64>;
 }
 
 #[no_mangle]
-pub extern "C" fn int_array_store(arr_ptr: *mut Vec<*mut i32>, n: i32, ref_ptr: *mut i32) {
+pub extern "C" fn int_array_store(arr_ptr: *mut Vec<*mut i64>, n: i64, ref_ptr: *mut i64) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let n_size = n as usize;
     let len = n_size + 1;
     if arr.len() < len {
-        arr.resize(len, 0 as *mut i32);
+        arr.resize(len, 0 as *mut i64);
     }
     arr[n_size] = ref_ptr;
     mem::forget(arr);
 }
 
 #[no_mangle]
-pub extern "C" fn int_array_load(arr_ptr: *mut Vec<*mut i32>, n: i32) -> *mut i32 {
+pub extern "C" fn int_array_load(arr_ptr: *mut Vec<*mut i64>, n: i64) -> *mut i64 {
     let arr = unsafe { Box::from_raw(arr_ptr) };
     let n_size = n as usize;
     let return_val = arr[n_size];
@@ -191,21 +191,15 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_ptr: *const i32) {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
-    let bal_map = unsafe {
-        &mut *ptr
-    };
+    let bal_map = unsafe { &mut *ptr };
     // Load Key C string
     assert!(!key.is_null());
-    let key = unsafe {
-        CStr::from_ptr(key)
-    };
+    let key = unsafe { CStr::from_ptr(key) };
     let key_str = key.to_str().unwrap();
 
     // Load member value
     assert!(!member_ptr.is_null());
-    let member = unsafe {
-        slice::from_raw_parts(member_ptr, 1)
-    };
+    let member = unsafe { slice::from_raw_parts(member_ptr, 1) };
     // Insert new field
     bal_map.insert(key_str, member[0]);
 
@@ -214,12 +208,12 @@ pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *const c_char, member_
 }
 
 #[no_mangle]
-pub extern "C" fn box_bal_int(val: i32) -> *mut i32 {
+pub extern "C" fn box_bal_int(val: i64) -> *mut i64 {
     Box::into_raw(Box::new(val))
 }
 
 #[no_mangle]
-pub extern "C" fn unbox_bal_int(ptr: *mut i32) {
+pub extern "C" fn unbox_bal_int(ptr: *mut i64) {
     if ptr.is_null() {
         return;
     }
@@ -262,14 +256,10 @@ pub extern "C" fn unbox_bal_bool(ptr: *mut f64) {
 pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *mut BalMapInt) {
     // Load source BalMap from pointer
     assert!(!ptr_source.is_null());
-    let map_src = unsafe {
-        &mut *ptr_source
-    };
+    let map_src = unsafe { &mut *ptr_source };
     // Load expr BalMap from pointer
     assert!(!ptr_expr.is_null());
-    let map_expr = unsafe {
-        &mut *ptr_expr
-    };
+    let map_expr = unsafe { &mut *ptr_expr };
     // Insert from spread field expression
     map_src.insert_spread_field(map_expr);
 

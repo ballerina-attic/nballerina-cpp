@@ -68,7 +68,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
 
     switch (typeTag) {
     case TYPE_TAG_INT: {
-        constRef = LLVMConstInt(LLVMInt32Type(), std::get<int>(value), 0);
+        constRef = LLVMConstInt(LLVMInt64Type(), std::get<int>(value), 0);
         break;
     }
     case TYPE_TAG_FLOAT: {
