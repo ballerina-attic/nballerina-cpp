@@ -19,10 +19,13 @@
 #ifndef __FUNCTION__H__
 #define __FUNCTION__H__
 
+#include "RestParam.h"
+#include "Variable.h"
 #include "interfaces/Debuggable.h"
-#include "interfaces/PackageNode.h"
 #include "interfaces/Translatable.h"
 #include <map>
+#include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -32,61 +35,66 @@ namespace nballerina {
 class BasicBlock;
 class Operand;
 class FunctionParam;
-class Variable;
-class InvokableType;
-class RestParam;
+class InvocableType;
 class Type;
 class Package;
 
-class Function : public PackageNode, public Debuggable, public Translatable {
+class Function : public Debuggable, public Translatable {
   private:
-    Package *parentPackage;
+    inline static const std::string MAIN_FUNCTION_NAME = "main";
+    static constexpr unsigned int PUBLIC = 1;
+    static constexpr unsigned int NATIVE = PUBLIC << 1;
+    std::shared_ptr<Package> parentPackage;
     std::string name;
     std::string workerName;
-    Variable *returnVar;
-    RestParam *restParam;
-    Variable *receiver;
+    unsigned int flags;
+    std::optional<Variable> returnVar;
+    std::optional<RestParam> restParam;
     LLVMBuilderRef llvmBuilder;
     LLVMValueRef llvmFunction;
-    std::map<std::string, Variable *> localVars;
-    std::map<std::string, BasicBlock *> basicBlocksMap;
-    std::vector<BasicBlock *> basicBlocks;
+    std::shared_ptr<BasicBlock> firstBlock;
+    std::map<std::string, Variable> localVars;
+    std::map<std::string, std::shared_ptr<BasicBlock>> basicBlocksMap;
     std::map<std::string, LLVMValueRef> branchComparisonList;
     std::map<std::string, LLVMValueRef> localVarRefs;
-    std::vector<FunctionParam *> requiredParams;
-    inline static const std::string MAIN_FUNCTION_NAME = "main";
+    std::vector<FunctionParam> requiredParams;
+    std::shared_ptr<BasicBlock> FindBasicBlock(const std::string &id);
+    LLVMValueRef generateAbortInsn(LLVMModuleRef &modRef);
+    void splitBBIfPossible(LLVMModuleRef &modRef);
 
   public:
     Function() = delete;
-    Function(Package *parentPackage, std::string name, std::string workerName, int pflags, InvokableType *ptype);
+    Function(std::shared_ptr<Package> parentPackage, std::string name, std::string workerName, unsigned int flags);
     Function(const Function &) = delete;
+    Function(Function &&obj) noexcept = delete;
+    Function &operator=(const Function &obj) = delete;
+    Function &operator=(Function &&obj) noexcept = delete;
     ~Function() = default;
 
-    FunctionParam *getParam(int index);
-    std::string getName();
-    size_t getNumParams();
-    RestParam *getRestParam();
-    Variable *getReturnVar();
-    std::vector<BasicBlock *> getBasicBlocks();
-    LLVMBuilderRef getLLVMBuilder();
-    LLVMValueRef getLLVMFunctionValue();
-    LLVMValueRef getLLVMValueForBranchComparison(const std::string &lhsName);
-    BasicBlock *FindBasicBlock(const std::string &id);
-    Package *getPackage() final;
-    LLVMValueRef getTempLocalVariable(Operand *op);
-    LLVMValueRef getLLVMLocalVar(const std::string &varName);
-    LLVMValueRef getLLVMLocalOrGlobalVar(Operand *op);
-    Variable *getLocalVariable(const std::string &opName);
-    Variable *getLocalOrGlobalVariable(Operand *op);
-    LLVMTypeRef getLLVMTypeOfReturnVal();
-    bool isMainFunction();
+    const std::string &getName() const;
+    size_t getNumParams() const;
+    const std::optional<RestParam> &getRestParam() const;
+    const std::optional<Variable> &getReturnVar() const;
+    Package &getPackageMutableRef() const;
+    const Package &getPackageRef() const;
+    LLVMBuilderRef getLLVMBuilder() const;
+    LLVMValueRef getLLVMFunctionValue() const;
+    LLVMValueRef getLLVMValueForBranchComparison(const std::string &lhsName) const;
+    LLVMValueRef getLLVMLocalVar(const std::string &varName) const;
+    LLVMValueRef getLLVMLocalOrGlobalVar(const Operand &op) const;
+    const Variable &getLocalVariable(const std::string &opName) const;
+    const Variable &getLocalOrGlobalVariable(const Operand &op) const;
+    LLVMTypeRef getLLVMTypeOfReturnVal() const;
+    bool isMainFunction() const;
+    bool isExternalFunction() const;
+    const std::vector<FunctionParam> &getParams() const;
+    LLVMValueRef createTempVariable(const Operand &op) const;
 
-    void insertParam(FunctionParam *param);
-    void setRestParam(RestParam *param);
-    void setReceiver(Variable *var);
-    void setReturnVar(Variable *var);
-    void insertLocalVar(Variable *var);
-    void insertBasicBlock(BasicBlock *bb);
+    void patchBasicBlocks();
+    void insertParam(const FunctionParam &param);
+    void setReturnVar(const Variable &var);
+    void insertLocalVar(const Variable &var);
+    void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
     void insertBranchComparisonValue(const std::string &lhsName, LLVMValueRef compRef);
     void setLLVMBuilder(LLVMBuilderRef builder);
     void setLLVMFunctionValue(LLVMValueRef funcRef);

@@ -19,11 +19,14 @@
 #ifndef __TYPEDECL__H__
 #define __TYPEDECL__H__
 
+#include <optional>
 #include <string>
+#include <variant>
 
 namespace nballerina {
 
 enum TypeTag {
+    TYPE_TAG_INVALID = 0,
     TYPE_TAG_INT = 1,
     TYPE_TAG_BYTE = 2,
     TYPE_TAG_FLOAT = 3,
@@ -79,33 +82,32 @@ enum TypeTag {
 };
 
 class Type {
+  public:
+    struct ArrayType {
+        TypeTag memberType;
+        int size;
+        int state;
+    };
+    struct MapType {
+        TypeTag memberType;
+    };
 
   private:
     TypeTag type;
     std::string name;
-    const int flags;
+    std::variant<ArrayType, MapType> typeInfo;
 
   public:
     Type() = delete;
-    Type(TypeTag type, std::string name, int flags);
+    Type(TypeTag type, std::string namep);
+    Type(TypeTag type, std::string namep, ArrayType arrayType);
+    Type(TypeTag type, std::string namep, MapType mapType);
     virtual ~Type() = default;
 
-    TypeTag getTypeTag();
-    std::string getName();
-    int getFlags();
-    static const char *getNameOfType(TypeTag typeTag);
-};
-
-// Extend Type for MapTypeDecl; to store member type info
-class MapTypeDecl : public Type {
-  private:
-    const TypeTag memberType;
-
-  public:
-    MapTypeDecl() = delete;
-    MapTypeDecl(TypeTag type, std::string name, int flags, TypeTag memberType);
-    ~MapTypeDecl() = default;
-    TypeTag getMemberTypeTag();
+    TypeTag getTypeTag() const;
+    const std::string &getName() const;
+    static std::string getNameOfType(TypeTag typeTag);
+    TypeTag getMemberTypeTag() const;
 };
 
 } // namespace nballerina

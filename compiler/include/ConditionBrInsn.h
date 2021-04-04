@@ -25,19 +25,20 @@ namespace nballerina {
 
 class ConditionBrInsn : public TerminatorInsn {
   private:
-    BasicBlock *ifThenBB;
-    BasicBlock *elseBB;
+    std::shared_ptr<BasicBlock> ifThenBB;
+    std::shared_ptr<BasicBlock> elseBB;
 
   public:
     ConditionBrInsn() = delete;
-    ConditionBrInsn(Operand *lOp, BasicBlock *currentBB, BasicBlock *_ifThenBB, BasicBlock *_elseBB);
+    ConditionBrInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::shared_ptr<BasicBlock> ifThenBB,
+                    std::shared_ptr<BasicBlock> elseBB);
     ~ConditionBrInsn() = default;
 
-    BasicBlock *getIfThenBB();
-    BasicBlock *getElseBB();
+    const BasicBlock &getIfThenBB() const;
+    const BasicBlock &getElseBB() const;
 
-    void setIfThenBB(BasicBlock *bb);
-    void setElseBB(BasicBlock *bb);
+    void setIfThenBB(std::shared_ptr<BasicBlock> bb);
+    void setElseBB(std::shared_ptr<BasicBlock> bb);
 
     void translate(LLVMModuleRef &modRef) final;
 };

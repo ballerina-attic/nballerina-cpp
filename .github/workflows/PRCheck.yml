@@ -39,9 +39,9 @@ jobs:
       
       - name: Setup Ballerina pack
         run: |
-          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-Preview2-nballerina-r1/jballerina-tools-2.0.0-Preview2-nballerina-r1.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
-          unzip -q jballerina-tools-2.0.0-Preview2-nballerina-r1.zip
-          cd jballerina-tools-2.0.0-Preview2-nballerina-r1/bin
+          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-Preview2-nballerina-r2/jballerina-tools-2.0.0-Preview2-nballerina-r2.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-Preview2-nballerina-r2.zip
+          unzip -q jballerina-tools-2.0.0-Preview2-nballerina-r2.zip
+          cd jballerina-tools-2.0.0-Preview2-nballerina-r2/bin
           echo $(pwd) >> $GITHUB_PATH
         working-directory: ./build
 

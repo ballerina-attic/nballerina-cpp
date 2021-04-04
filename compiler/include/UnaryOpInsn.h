@@ -28,11 +28,11 @@ class Operand;
 
 class UnaryOpInsn : public NonTerminatorInsn {
   private:
-    Operand *rhsOp;
+    Operand rhsOp;
 
   public:
     UnaryOpInsn() = delete;
-    UnaryOpInsn(Operand *lOp, BasicBlock *currentBB, Operand *rOp);
+    UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs);
     ~UnaryOpInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

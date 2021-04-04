@@ -1,0 +1,75 @@
+name: Windows weekly build
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 0 * * 0'
+
+jobs:
+  build:
+    runs-on: windows-2019 
+    steps:
+      - name: Install cargo
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cbindgen
+
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9.1
+
+      - run: |
+          python -m pip install --upgrade pip
+          pip3 install lit filecheck
+
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          platform: x64      
+      
+      - name: Cache LLVM Build
+        uses: actions/cache@v2
+        with:
+          path: llvm-cache   
+          key: LLVM11
+
+      - name: Build LLVM
+        run: |
+          git clone https://github.com/llvm/llvm-project.git
+          cd llvm-project
+          git checkout llvmorg-11.0.1
+          git status
+          cd llvm
+          mkdir install
+          cmake -DLLVM_CCACHE_DIR=..\..\llvm-cache -DCMAKE_BUILD_TYPE=Release -Thost=x64 -G "Visual Studio 16 2019" -A x64 -DLLVM_USE_CRT_RELEASE=MT -DCMAKE_INSTALL_PREFIX=install -S . -B build\
+          cmake --build .\build -t install -- /p:configuration=Release
+          cd ..\..
+
+      - name: Install JRE 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+          java-package: jre
+          architecture: x64          
+
+      - name: Clone nBallerina
+        uses: actions/checkout@v2
+        with: 
+          path: nBallerina-project
+
+      - name: Build nballerinac
+        run: |
+          cmake -DLLVM_DIR="$(pwd)\llvm-project\llvm\install\lib\cmake\llvm" -S nBallerina-project -B nBallerina-project\build 
+          cmake --build nBallerina-project\build --config Release
+
+      - name: Setup Ballerina pack
+        run: |
+          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-Preview2-nballerina-r2/jballerina-tools-2.0.0-Preview2-nballerina-r2.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-Preview2-nballerina-r2.zip
+          unzip -q jballerina-tools-2.0.0-Preview2-nballerina-r2.zip
+          echo "$(pwd)\jballerina-tools-2.0.0-Preview2-nballerina-r2\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Run tests
+        run: | 
+          cmake --build nBallerina-project\build -t check --config Release

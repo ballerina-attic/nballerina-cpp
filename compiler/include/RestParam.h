@@ -24,14 +24,9 @@
 namespace nballerina {
 
 class RestParam {
-  private:
-    std::string name;
-
   public:
     RestParam() = default;
     ~RestParam() = default;
-
-    std::string getName() { return name; }
 };
 
 } // namespace nballerina

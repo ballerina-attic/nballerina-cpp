@@ -16,14 +16,13 @@
  * under the License.
  */
 
-#include "Function.h"
 #include "MapInsns.h"
+#include "Function.h"
 #include "Operand.h"
 #include "Package.h"
 #include "Types.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
-#include <iostream>
 
 using namespace std;
 
@@ -31,56 +30,31 @@ namespace nballerina {
 
 // new Map Instruction and Codegen logic are in the llvmStructure.cpp
 
-MapStoreInsn::MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp, Operand *rOp)
-    : NonTerminatorInsn(lOp, currentBB), keyOp(KOp), rhsOp(rOp) {}
+MapStoreInsn::MapStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
+                           const Operand &rOp)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
 
 void MapStoreInsn::translate(LLVMModuleRef &modRef) {
-    Function *funcObj = getFunction();
-    LLVMBuilderRef builder = funcObj->getLLVMBuilder();
-
-    // Find Variable corresponding to lhs to determine member type
-    Variable *lhsVar = funcObj->getLocalOrGlobalVariable(getLHS());
-    auto *mapTypeDelare = dynamic_cast<MapTypeDecl *>(lhsVar->getTypeDecl());
-    TypeTag memberTypeTag = mapTypeDelare->getMemberTypeTag();
+    const auto &funcObj = getFunctionRef();
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
+    auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
 
     // Only handle Int type
     if (memberTypeTag != TYPE_TAG_INT) {
-        std::cerr << "Non INT type maps are currently not supported" << std::endl;
-        llvm_unreachable("Unknown Type");
+        llvm_unreachable("Only int type maps are currently supported");
     }
 
-    // Codegen for Map of Int type store
-    LLVMValueRef mapStoreFunc = getMapIntStoreDeclaration(modRef);
-    LLVMValueRef lhsOpTempRef = funcObj->getTempLocalVariable(getLHS());
-    LLVMValueRef rhsOpRef = funcObj->getLLVMLocalOrGlobalVar(rhsOp);
-    LLVMValueRef keyRef = funcObj->getTempLocalVariable(keyOp);
-
-    LLVMValueRef *argOpValueRef = new LLVMValueRef[3];
-    argOpValueRef[0] = lhsOpTempRef;
-    argOpValueRef[1] = keyRef;
-    argOpValueRef[2] = rhsOpRef;
-
-    LLVMBuildCall(builder, mapStoreFunc, argOpValueRef, 3, "");
+    // Codegen for map<int> type store
+    codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapIntStoreDeclaration(modRef),
+                    funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp),
+                    funcObj.getLLVMLocalOrGlobalVar(rhsOp));
 }
 
-// Declaration for map<int> type store function
-LLVMValueRef MapStoreInsn::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
-
-    LLVMValueRef mapStoreFunc = getPackage()->getFunctionRef("map_store_int");
-    if (mapStoreFunc != nullptr) {
-        return mapStoreFunc;
-    }
-    LLVMTypeRef *paramTypes = new LLVMTypeRef[3];
-    LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
-    LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    paramTypes[0] = memPtrType;
-    paramTypes[1] = charArrayPtrType;
-    paramTypes[2] = int32PtrType;
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
-    mapStoreFunc = LLVMAddFunction(modRef, "map_store_int", funcType);
-    getPackage()->addFunctionRef("map_store_int", mapStoreFunc);
-    return mapStoreFunc;
+// Generic map store static function
+void MapStoreInsn::codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStoreFunc, LLVMValueRef map,
+                                   LLVMValueRef key, LLVMValueRef value) {
+    LLVMValueRef argOpValueRef[] = {map, key, value};
+    LLVMBuildCall(builder, mapStoreFunc, argOpValueRef, 3, "");
 }
 
 } // namespace nballerina

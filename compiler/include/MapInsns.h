@@ -20,20 +20,65 @@
 #define __MAPSTOREINSN__H__
 
 #include "NonTerminatorInsn.h"
+#include <variant>
 
 namespace nballerina {
+
+enum MapConstrctBodyKind { Spread_Field_Kind = 0, Key_Value_Kind = 1 };
+
+class MapConstruct {
+  public:
+    class SpreadField {
+      private:
+        Operand expr;
+
+      public:
+        SpreadField() = delete;
+        SpreadField(const Operand &expr) : expr(expr) {}
+        ~SpreadField() = default;
+
+        const Operand &getExpr() const { return expr; }
+    };
+    class KeyValue {
+      private:
+        Operand keyOp;
+        Operand valueOp;
+
+      public:
+        KeyValue() = delete;
+        KeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
+        ~KeyValue() = default;
+
+        const Operand &getKey() const { return keyOp; }
+        const Operand &getValue() const { return valueOp; }
+    };
+
+  private:
+    MapConstrctBodyKind kind;
+    std::variant<KeyValue, SpreadField> initValueStruct;
+
+  public:
+    MapConstruct() = delete;
+    MapConstruct(KeyValue initVal) : kind(Key_Value_Kind), initValueStruct(initVal) {}
+    MapConstruct(SpreadField initVal) : kind(Spread_Field_Kind), initValueStruct(initVal) {}
+    virtual ~MapConstruct() = default;
+    MapConstrctBodyKind getKind() const { return kind; }
+    const std::variant<KeyValue, SpreadField> &getInitValStruct() const { return initValueStruct; }
+};
+
 class MapStoreInsn : public NonTerminatorInsn {
   private:
-    Operand *keyOp;
-    Operand *rhsOp;
-    LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
+    Operand keyOp;
+    Operand rhsOp;
 
   public:
     MapStoreInsn() = delete;
-    MapStoreInsn(Operand *lOp, BasicBlock *currentBB, Operand *KOp, Operand *ROp);
+    MapStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
     ~MapStoreInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;
+    static void codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStoreFunc, LLVMValueRef map, LLVMValueRef key,
+                                LLVMValueRef value);
 };
 } // namespace nballerina
 

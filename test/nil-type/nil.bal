@@ -1,9 +1,17 @@
-// RUN: JAVA_HOME=%java_path %testRunScript %s %nballerinacc | filecheck %s
+// RUN: "%testRunScript" %s %nballerinacc "%java_path" "%skip_bir_gen" | filecheck %s
+
+public function print_string(string val) = external;
+
+public function printu32(int val) = external;
 
 public function main() {
     () nilVal = bar();
     foo();
     () n = baz();
+    if (n == ()) {
+        print_string("RESULT=");
+        printu32(1);
+    }
 }
 
 function foo() {
@@ -19,4 +27,4 @@ function baz() returns () {
     return nilVal;
 }
 
-// CHECK: RETVAL=0
+// CHECK: RESULT=1

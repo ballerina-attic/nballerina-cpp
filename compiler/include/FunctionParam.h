@@ -20,21 +20,22 @@
 #define __FUNCTIONPARAM__H__
 
 #include "Operand.h"
+#include <Types.h>
+#include <memory>
 #include <string>
 
 namespace nballerina {
 
 class FunctionParam : public Operand {
   private:
-    Type *type;
+    Type type;
 
   public:
     FunctionParam() = delete;
-    FunctionParam(std::string name) : Operand(std::move(name), ARG_VAR_KIND), type(nullptr) {}
+    FunctionParam(Operand paramOp, Type type) : Operand(std::move(paramOp)), type(std::move(type)) {}
     ~FunctionParam() = default;
 
-    Type *getType() { return type; }
-    void setType(Type *type) { this->type = type; }
+    const Type &getType() const { return type; }
 };
 
 } // namespace nballerina

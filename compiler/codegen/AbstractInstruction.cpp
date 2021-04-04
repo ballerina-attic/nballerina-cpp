@@ -18,13 +18,19 @@
 
 #include "interfaces/AbstractInstruction.h"
 #include "BasicBlock.h"
+#include "Function.h"
 
 namespace nballerina {
 
-AbstractInstruction::AbstractInstruction(Operand *lOp, BasicBlock *parentBB) : lhsOp(lOp), parentBB(parentBB) {}
+AbstractInstruction::AbstractInstruction(const Operand &lOp, std::shared_ptr<BasicBlock> parentBB)
+    : lhsOp(lOp), parentBB(std::move(parentBB)) {}
 
-Operand *AbstractInstruction::getLHS() { return lhsOp; }
-Function *AbstractInstruction::getFunction() { return parentBB->getFunction(); }
-Package *AbstractInstruction::getPackage() { return parentBB->getPackage(); }
+const Operand &AbstractInstruction::getLhsOperand() const { return lhsOp; }
+const Function &AbstractInstruction::getFunctionRef() const { return parentBB->getParentFunctionRef(); }
+const Package &AbstractInstruction::getPackageRef() const { return parentBB->getParentFunctionRef().getPackageRef(); }
+Function &AbstractInstruction::getFunctionMutableRef() const { return *parentBB->getFunctionSharedObj(); }
+Package &AbstractInstruction::getPackageMutableRef() const {
+    return parentBB->getFunctionSharedObj()->getPackageMutableRef();
+}
 
 } // namespace nballerina
