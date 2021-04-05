@@ -254,10 +254,10 @@ LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
     if (mapStoreFunc != nullptr) {
         return mapStoreFunc;
     }
-    LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
+    LLVMTypeRef int64PtrType = LLVMPointerType(LLVMInt64Type(), 0);
     LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMTypeRef paramTypes[] = {memPtrType, charArrayPtrType, int32PtrType};
+    LLVMTypeRef paramTypes[] = {memPtrType, charArrayPtrType, int64PtrType};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
     mapStoreFunc = LLVMAddFunction(modRef, externalFunctionName, funcType);
     addFunctionRef(externalFunctionName, mapStoreFunc);
