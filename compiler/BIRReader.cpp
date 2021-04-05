@@ -131,7 +131,7 @@ std::string ConstantPoolSet::getStringCp(uint32_t index) {
 }
 
 // Search string from the constant pool based on index
-uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
+uint64_t ConstantPoolSet::getIntCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER);
     IntCpInfo *intCp = static_cast<IntCpInfo *>(poolEntry);
@@ -330,7 +330,7 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
     case TYPE_TAG_BYTE: {
         uint32_t valueCpIndex = readerRef.readS4be();
         return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
-                                                  (int)readerRef.constantPool->getIntCp(valueCpIndex));
+                                                  (uint64_t)readerRef.constantPool->getIntCp(valueCpIndex));
     }
     case TYPE_TAG_BOOLEAN: {
         uint8_t boolean_constant = readerRef.readU1();
