@@ -369,7 +369,7 @@ pub extern "C" fn map_load_int(
 
     match bal_map.get(key_str) {
         Some(val) => {
-            unsafe { *output_val = val.clone() };
+            unsafe { *output_val = *val };
             true
         }
         None => {

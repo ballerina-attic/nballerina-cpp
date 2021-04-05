@@ -84,7 +84,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMBuildStore(builder, castLoad, lhsOpRef);
 
     } else if (lhsTypeTag == TYPE_TAG_ANY || lhsTypeTag == TYPE_TAG_UNION) {
-        getFunctionMutableRef().addValueToSmartStruct(modRef, rhsOpRef, rhsType, lhsOpRef);
+        getFunctionMutableRef().storeValueInSmartStruct(modRef, rhsOpRef, rhsType, lhsOpRef);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
     }

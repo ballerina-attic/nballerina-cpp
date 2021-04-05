@@ -178,8 +178,8 @@ void Function::patchBasicBlocks() {
     }
 }
 
-void Function::addValueToSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
-                                     LLVMValueRef smartStruct) {
+void Function::storeValueInSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
+                                       LLVMValueRef smartStruct) {
 
     // struct first element original type
     LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(llvmBuilder, smartStruct, 0, "inherentTypeName");

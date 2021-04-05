@@ -100,8 +100,8 @@ class Function : public Debuggable, public Translatable {
     void insertBranchComparisonValue(const std::string &lhsName, LLVMValueRef compRef);
     void setLLVMBuilder(LLVMBuilderRef builder);
     void setLLVMFunctionValue(LLVMValueRef funcRef);
-    void addValueToSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
-                               LLVMValueRef smartStruct);
+    void storeValueInSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
+                                 LLVMValueRef smartStruct);
 
     void translate(LLVMModuleRef &modRef) final;
 };

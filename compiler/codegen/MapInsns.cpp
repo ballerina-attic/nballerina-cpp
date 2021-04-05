@@ -74,9 +74,9 @@ void MapLoadInsn::translate(LLVMModuleRef &modRef) {
 
     // TODO check retVal and branch 
     // if retVal is true
-    getFunctionMutableRef().addValueToSmartStruct(modRef, outParam, Type(TYPE_TAG_INT, ""), lhs);
+    getFunctionMutableRef().storeValueInSmartStruct(modRef, outParam, Type(TYPE_TAG_INT, ""), lhs);
     // else
-    // getFunctionMutableRef().addValueToSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL, ""), lhs);
+    // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL, ""), lhs);
 }
 
 LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef) {
