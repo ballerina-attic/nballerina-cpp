@@ -4,12 +4,9 @@ public function print_string(string val) = external;
 
 public function printu64(int val) = external;
 
-int|string a = 24;
-
 public function main() {
-    a = 24;
-    int x = <int>a;
+    int val = 8589934591;
     print_string("RESULT=");
-    printu64(x);
+    printu64(val);
 }
-// CHECK: RESULT=24
+// CHECK: RESULT=8589934591

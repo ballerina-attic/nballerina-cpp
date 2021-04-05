@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 public function main() {
     () nilVal = bar();
@@ -10,7 +10,7 @@ public function main() {
     () n = baz();
     if (n == ()) {
         print_string("RESULT=");
-        printu32(1);
+        printu64(1);
     }
 }
 

@@ -2,13 +2,13 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 public function main() {
     string? x = ();
     () n = <()>x;
     print_string("RESULT=");
-    printu32(231);
+    printu64(231);
 }
 
 // CHECK: RESULT=231

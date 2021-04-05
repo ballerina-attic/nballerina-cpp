@@ -2,12 +2,12 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 public function main() {
     int a = 10;
     int b = 5;
     print_string("RESULT=");
-    printu32(a - b);
+    printu64(a - b);
 }
 // CHECK: RESULT=5

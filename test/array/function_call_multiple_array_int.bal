@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 public function test(int[] a, int[] b) returns int {
     int c = b[3] + a[0] + a[1];
@@ -15,7 +15,7 @@ public function main() {
     int[] arr2 = [5];
     arr2[3] = 10;
     print_string("RESULT=");
-    printu32(test(arr1, arr2));
+    printu64(test(arr1, arr2));
 }
 
 // CHECK: RESULT=16

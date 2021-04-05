@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 public function test(boolean[] a) returns boolean {
     boolean c = a[1];
@@ -17,7 +17,7 @@ public function main() {
         print_string("RESULT=");
     }
     if (b) {
-        printu32(1);
+        printu64(1);
     }
 }
 

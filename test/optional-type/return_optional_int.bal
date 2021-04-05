@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 function foo(int i) returns int? {
     return i + 1;
@@ -11,6 +11,6 @@ function foo(int i) returns int? {
 public function main() {
     int? s = foo(221);
     print_string("RESULT=");
-    printu32(<int>s);
+    printu64(<int>s);
 }
 // CHECK: RESULT=222

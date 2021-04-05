@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 public function bar(any l) returns int {
     return <int>l;
@@ -11,6 +11,6 @@ public function bar(any l) returns int {
 public function main() {
     int a = 35;
     print_string("RESULT=");
-    printu32(bar(a));
+    printu64(bar(a));
 }
 // CHECK: RESULT=35

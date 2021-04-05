@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printu64(int val) = external;
 
 public function main() {
     int a = 10;
@@ -28,6 +28,6 @@ public function main() {
         h = f;
     }
     print_string("RESULT=");
-    printu32(h);
+    printu64(h);
 }
 // CHECK: RESULT=250
