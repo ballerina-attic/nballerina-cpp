@@ -21,13 +21,12 @@
 
 namespace nballerina {
 
-Type::Type(TypeTag type, std::string namep) : type(type), name(std::move(namep))  {}
+Type::Type(TypeTag type, std::string namep) : type(type), name(std::move(namep)) {}
 
 Type::Type(TypeTag type, std::string namep, ArrayType arrayType)
     : type(type), name(std::move(namep)), typeInfo(arrayType) {}
 
-Type::Type(TypeTag type, std::string namep, MapType mapType)
-    : type(type), name(std::move(namep)), typeInfo(mapType) {}
+Type::Type(TypeTag type, std::string namep, MapType mapType) : type(type), name(std::move(namep)), typeInfo(mapType) {}
 
 TypeTag Type::getTypeTag() const { return type; }
 const std::string &Type::getName() const { return name; }
@@ -61,4 +60,43 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "";
     }
 }
+
+std::string_view Type::typeStringMangleName(const Type &type) {
+    switch (type.getTypeTag()) {
+    case TYPE_TAG_INT: {
+        return "__I";
+    }
+    case TYPE_TAG_FLOAT: {
+        return "__F";
+    }
+    case TYPE_TAG_STRING: {
+        return "__S";
+    }
+    case TYPE_TAG_BOOLEAN: {
+        return "__B";
+    }
+    case TYPE_TAG_ARRAY: {
+        // TODO add array type and size
+        return "__A";
+    }
+    case TYPE_TAG_ANY: {
+        return "__X";
+    }
+    case TYPE_TAG_NIL: {
+        return "__N";
+    }
+    case TYPE_TAG_MAP: {
+        TypeTag memberTypeTag = type.getMemberTypeTag();
+        switch (memberTypeTag) {
+        case TYPE_TAG_INT:
+            return "__MI";
+        default:
+            return "__M";
+        }
+    }
+    default:
+        return "";
+    }
+}
+
 } // namespace nballerina

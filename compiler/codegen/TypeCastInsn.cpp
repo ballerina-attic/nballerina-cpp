@@ -66,7 +66,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, &sExt, 1, "");
 
         // get the mangled name of the lhs type and store it to string builder table.
-        std::string_view lhsTypeName = typeStringMangleName(lhsType);
+        std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
         getPackageMutableRef().addToStrTable(lhsTypeName);
         int tempRandNum = std::rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
@@ -84,50 +84,9 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMBuildStore(builder, castLoad, lhsOpRef);
 
     } else if (lhsTypeTag == TYPE_TAG_ANY || lhsTypeTag == TYPE_TAG_UNION) {
-
-        // struct first element original type
-        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(builder, lhsOpRef, 0, inherentTypeName);
-        std::string_view rhsTypeName = typeStringMangleName(rhsType);
-        getPackageMutableRef().addToStrTable(rhsTypeName);
-        int tempRandNum1 = std::rand() % 1000 + 1;
-        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
-        LLVMValueRef lhsTypeStoreRef = LLVMBuildStore(builder, constValue, inherentTypeIdx);
-        getPackageMutableRef().addStringOffsetRelocationEntry(rhsTypeName.data(), lhsTypeStoreRef);
-        // struct second element void pointer data.
-        LLVMValueRef elePtr2 = LLVMBuildStructGEP(builder, lhsOpRef, 1, "data");
-        if (isBoxValueSupport(rhsTypeTag)) {
-            LLVMValueRef rhsTempOpRef = funcObj.createTempVariable(rhsOp);
-            LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(rhsTempOpRef), rhsTypeTag);
-            rhsOpRef = LLVMBuildCall(builder, boxValFunc, &rhsTempOpRef, 1, "call");
-        }
-        LLVMValueRef bitCastRes = LLVMBuildBitCast(builder, rhsOpRef, LLVMPointerType(LLVMInt8Type(), 0), "");
-        LLVMBuildStore(builder, bitCastRes, elePtr2);
+        getFunctionMutableRef().storeValueInSmartStruct(modRef, rhsOpRef, rhsType, lhsOpRef);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
-    }
-}
-
-LLVMValueRef TypeCastInsn::generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag) {
-    std::string functionName = "box_bal_";
-    functionName += Type::getNameOfType(typeTag);
-    LLVMValueRef boxValFuncRef = getPackageRef().getFunctionRef(functionName);
-    if (boxValFuncRef != nullptr) {
-        return boxValFuncRef;
-    }
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(paramTypeRef, 0), &paramTypeRef, 1, 0);
-    boxValFuncRef = LLVMAddFunction(modRef, functionName.c_str(), funcType);
-    getPackageMutableRef().addFunctionRef(functionName, boxValFuncRef);
-    return boxValFuncRef;
-}
-
-bool TypeCastInsn::isBoxValueSupport(TypeTag typeTag) {
-    switch (typeTag) {
-    case TYPE_TAG_INT:
-    case TYPE_TAG_FLOAT:
-    case TYPE_TAG_BOOLEAN:
-        return true;
-    default:
-        return false;
     }
 }
 
@@ -142,44 +101,6 @@ LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMV
     addedFuncRef = LLVMAddFunction(modRef, isSameTypeChar, funcType);
     getPackageMutableRef().addFunctionRef(isSameTypeChar, addedFuncRef);
     return addedFuncRef;
-}
-
-std::string_view TypeCastInsn::typeStringMangleName(const Type &type) {
-    switch (type.getTypeTag()) {
-    case TYPE_TAG_INT: {
-        return "__I";
-    }
-    case TYPE_TAG_FLOAT: {
-        return "__F";
-    }
-    case TYPE_TAG_STRING: {
-        return "__S";
-    }
-    case TYPE_TAG_BOOLEAN: {
-        return "__B";
-    }
-    case TYPE_TAG_ARRAY: {
-        // TODO add array type and size
-        return "__A";
-    }
-    case TYPE_TAG_ANY: {
-        return "__X";
-    }
-    case TYPE_TAG_NIL: {
-        return "__N";
-    }
-    case TYPE_TAG_MAP: {
-        TypeTag memberTypeTag = type.getMemberTypeTag();
-        switch (memberTypeTag) {
-        case TYPE_TAG_INT:
-            return "__MI";
-        default:
-            return "__M";
-        }
-    }
-    default:
-        return "";
-    }
 }
 
 } // namespace nballerina
