@@ -2,16 +2,16 @@
 
 public function print_string(string val) = external;
 
-public function print_i64(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     boolean f = true;
     print_string("RESULT=");
     if (f) {
-        print_i64(20);
+        print_integer(20);
     }
     else {
-        print_i64(10);
+        print_integer(10);
     }
 }
 // CHECK: RESULT=20

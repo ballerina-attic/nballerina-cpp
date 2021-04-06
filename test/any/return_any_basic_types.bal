@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function print_i64(int val) = external;
+public function print_integer(int val) = external;
 
 public function printf32(float val) = external;
 
@@ -27,8 +27,8 @@ public function main() {
     }
     // TODO check float return
     //float f = <float>fooFloat();
-    // print_i64(i + <int>f);
-    print_i64(i);
+    // print_integer(i + <int>f);
+    print_integer(i);
 }
 
 // CHECK: RESULT=222

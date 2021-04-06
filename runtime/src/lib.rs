@@ -86,26 +86,8 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
 
 // Prints 64 bit signed integer
 #[no_mangle]
-pub extern "C" fn print_i64(num64: i64) {
+pub extern "C" fn print_integer(num64: i64) {
     println!("{}", num64);
-}
-
-// Prints 32 bit signed integer
-#[no_mangle]
-pub extern "C" fn print_i32(num32: i32) {
-    println!("{}", num32);
-}
-
-// Prints 16 bit signed integer
-#[no_mangle]
-pub extern "C" fn print_i16(num16: i16) {
-    println!("{}", num16);
-}
-
-// Prints 8 bit signed integer
-#[no_mangle]
-pub extern "C" fn print_i8(num8: i8) {
-    println!("{}", num8);
 }
 
 // Prints 64 bit float

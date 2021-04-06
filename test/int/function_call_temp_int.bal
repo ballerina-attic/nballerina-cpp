@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function print_i64(int val) = external;
+public function print_integer(int val) = external;
 
 public function bar(int z) returns int {
     return z + 10;
@@ -10,6 +10,6 @@ public function bar(int z) returns int {
 
 public function main() {
     print_string("RESULT=");
-    print_i64(bar(5));
+    print_integer(bar(5));
 }
 // CHECK: RESULT=15

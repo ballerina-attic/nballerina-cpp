@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function print_i32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     map<int> marks = {sam: 50, jon: 60};
@@ -10,12 +10,12 @@ public function main() {
     int? loadVal = marks["jon"];
     int johnsMarks = <int>loadVal;
     print_string("RESULT=");
-    print_i32(johnsMarks);
+    print_integer(johnsMarks);
 
     int? loadVal2 = marks["sam"];
     int samMarks = <int>loadVal2;
     print_string("RESULT=");
-    print_i32(samMarks);
+    print_integer(samMarks);
 }
 // CHECK: RESULT=60
 // CHECK: RESULT=50

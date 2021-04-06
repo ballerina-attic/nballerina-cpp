@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function print_i64(int val) = external;
+public function print_integer(int val) = external;
 
 function foo() returns int|string {
     return 221;
@@ -11,6 +11,6 @@ function foo() returns int|string {
 public function main() {
     int i = <int>foo();
     print_string("RESULT=");
-    print_i64(i);
+    print_integer(i);
 }
 // CHECK: RESULT=221

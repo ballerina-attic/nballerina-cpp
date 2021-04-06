@@ -2,21 +2,21 @@
 
 public function print_string(string val) = external;
 
-public function print_i64(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     boolean e = false;
     boolean f = true;
     print_string("RESULT=");
     if (e) {
-        print_i64(5);
+        print_integer(5);
     }
     else {
         if (f) {
-            print_i64(10);
+            print_integer(10);
         }
         else {
-            print_i64(4);
+            print_integer(4);
         }
     }
 }
