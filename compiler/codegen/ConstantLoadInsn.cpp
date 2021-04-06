@@ -32,7 +32,7 @@ namespace nballerina {
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_NIL) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, uint64_t intVal)
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, int64_t intVal)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_INT), value(intVal) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, float floatVal)
@@ -68,7 +68,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
 
     switch (typeTag) {
     case TYPE_TAG_INT: {
-        constRef = LLVMConstInt(LLVMInt64Type(), std::get<uint64_t>(value), 0);
+        constRef = LLVMConstInt(LLVMInt64Type(), std::get<int64_t>(value), 0);
         break;
     }
     case TYPE_TAG_FLOAT: {

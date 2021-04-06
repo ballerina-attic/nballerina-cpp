@@ -2,11 +2,15 @@
 
 public function print_string(string val) = external;
 
-public function printu64(int val) = external;
+public function print64(int val) = external;
 
 public function main() {
-    int val = 8589934591;
+    int a = 9223372036854775806;
     print_string("RESULT=");
-    printu64(val);
+    print64(a);
+    int b = -9223372036854775807;
+    print_string("RESULT=");
+    print64(b);
 }
-// CHECK: RESULT=8589934591
+// CHECK: RESULT=9223372036854775806
+// CHECK: RESULT=-9223372036854775807

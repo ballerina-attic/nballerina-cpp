@@ -330,7 +330,7 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
     case TYPE_TAG_BYTE: {
         uint32_t valueCpIndex = readerRef.readS4be();
         return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
-                                                  (uint64_t)readerRef.constantPool->getIntCp(valueCpIndex));
+                                                  (int64_t)readerRef.constantPool->getIntCp(valueCpIndex));
     }
     case TYPE_TAG_BOOLEAN: {
         uint8_t boolean_constant = readerRef.readU1();
