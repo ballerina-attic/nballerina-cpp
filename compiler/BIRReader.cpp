@@ -51,7 +51,7 @@ ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
 constexpr bool BIRReader::isLittleEndian() {
     unsigned int val = 1;
     char *c = (char *)&val;
-    return (int)*c ? true : false;
+    return (int)*c != 0;
 }
 
 // Read 1 byte from the stream
