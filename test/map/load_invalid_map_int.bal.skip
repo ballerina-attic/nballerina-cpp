@@ -5,14 +5,10 @@ public function print_string(string val) = external;
 public function printu32(int val) = external;
 
 public function main() {
-    int? i = 23;
-    int j = <int>i;
-    boolean? b = true;
-    if (<boolean>b) {
-        j = j + 1;
-    }
-    print_string("RESULT=");
-    printu32(j);
-}
+    map<int> marks = {sam: 50, jon: 60};
 
-// CHECK: RESULT=24
+    int? val = marks["jake"];
+    () jakeMarks = <()>val;
+    print_string("RESULT=Pass");
+}
+// CHECK: RESULT=Pass

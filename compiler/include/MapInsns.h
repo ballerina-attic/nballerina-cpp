@@ -80,6 +80,20 @@ class MapStoreInsn : public NonTerminatorInsn {
     static void codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStoreFunc, LLVMValueRef map, LLVMValueRef key,
                                 LLVMValueRef value);
 };
+
+class MapLoadInsn : public NonTerminatorInsn {
+  private:
+    Operand keyOp;
+    Operand rhsOp;
+    LLVMValueRef getMapLoadDeclaration(LLVMModuleRef &modRef);
+
+  public:
+    MapLoadInsn() = delete;
+    MapLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
+    ~MapLoadInsn() = default;
+
+    void translate(LLVMModuleRef &modRef) final;
+};
 } // namespace nballerina
 
 #endif //!__MAPSTOREINSN__H__

@@ -178,6 +178,55 @@ void Function::patchBasicBlocks() {
     }
 }
 
+void Function::storeValueInSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
+                                       LLVMValueRef smartStruct) {
+
+    // struct first element original type
+    LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(llvmBuilder, smartStruct, 0, "inherentTypeName");
+
+    // package function?
+    std::string_view valueTypeName = Type::typeStringMangleName(valueType);
+    parentPackage->addToStrTable(valueTypeName);
+    int tempRandNum1 = std::rand() % 1000 + 1;
+    LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
+    LLVMValueRef valueTypeStoreRef = LLVMBuildStore(llvmBuilder, constValue, inherentTypeIdx);
+    parentPackage->addStringOffsetRelocationEntry(valueTypeName.data(), valueTypeStoreRef);
+
+    // struct second element void pointer data.
+    LLVMValueRef valuePtr = LLVMBuildStructGEP(llvmBuilder, smartStruct, 1, "data");
+    if (isBoxValueSupport(valueType.getTypeTag())) {
+        auto valueTemp = LLVMBuildLoad(llvmBuilder, value, "_temp");
+        LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(valueTemp), valueType.getTypeTag());
+        value = LLVMBuildCall(llvmBuilder, boxValFunc, &valueTemp, 1, "call");
+    }
+    LLVMValueRef bitCastRes = LLVMBuildBitCast(llvmBuilder, value, LLVMPointerType(LLVMInt8Type(), 0), "");
+    LLVMBuildStore(llvmBuilder, bitCastRes, valuePtr);
+}
+
+bool Function::isBoxValueSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_BOOLEAN:
+        return true;
+    default:
+        return false;
+    }
+}
+
+LLVMValueRef Function::generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag) {
+    std::string functionName = "box_bal_";
+    functionName += Type::getNameOfType(typeTag);
+    LLVMValueRef boxValFuncRef = parentPackage->getFunctionRef(functionName);
+    if (boxValFuncRef != nullptr) {
+        return boxValFuncRef;
+    }
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(paramTypeRef, 0), &paramTypeRef, 1, 0);
+    boxValFuncRef = LLVMAddFunction(modRef, functionName.c_str(), funcType);
+    parentPackage->addFunctionRef(functionName, boxValFuncRef);
+    return boxValFuncRef;
+}
+
 void Function::translate(LLVMModuleRef &modRef) {
 
     LLVMBasicBlockRef BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");

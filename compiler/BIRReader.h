@@ -118,6 +118,7 @@ class BIRReader {
     friend class ReadArrayStoreInsn;
     friend class ReadArrayLoadInsn;
     friend class ReadMapStoreInsn;
+    friend class ReadMapLoadInsn;
 };
 
 class ConstantPoolEntry {
@@ -467,6 +468,14 @@ class ReadMapStoreInsn : public ReadNonTerminatorInstruction {
     static ReadMapStoreInsn readMapStoreInsn;
     ~ReadMapStoreInsn() {}
     std::unique_ptr<nballerina::MapStoreInsn> readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
+};
+
+class ReadMapLoadInsn : public ReadNonTerminatorInstruction {
+  public:
+    ReadMapLoadInsn() {}
+    static ReadMapLoadInsn readMapLoadInsn;
+    ~ReadMapLoadInsn() {}
+    std::unique_ptr<nballerina::MapLoadInsn> readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
 };
 
 #endif // BIRREADER_H

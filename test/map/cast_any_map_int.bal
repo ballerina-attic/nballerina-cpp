@@ -5,19 +5,21 @@ public function print_string(string val) = external;
 public function printu32(int val) = external;
 
 public function main() {
-    map<int>? marksOrNil = {Dan: 56};
-    map<int> marks = <map<int>>marksOrNil;
-    marks["Sam"] = 60;
+    int[] i = [3];
+    i[2] = 10;
+    map<int> marks = {sam: 50, jon: 60};
+    any x = marks;
+    map<int> marks2 = <map<int>>x;
 
-    int? loadVal = marks["Dan"];
-    int danMarks = <int>loadVal;
+    int? loadVal = marks2["jon"];
+    int johnsMarks = <int>loadVal;
     print_string("RESULT=");
-    printu32(danMarks);
+    printu32(johnsMarks);
 
-    int? loadVal2 = marks["Sam"];
+    int? loadVal2 = marks2["sam"];
     int samMarks = <int>loadVal2;
     print_string("RESULT=");
     printu32(samMarks);
 }
-// CHECK: RESULT=56
 // CHECK: RESULT=60
+// CHECK: RESULT=50
