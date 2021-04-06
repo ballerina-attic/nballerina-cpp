@@ -55,7 +55,7 @@ class Package : public Translatable {
 
   public:
     Package() = default;
-    ~Package() = default;
+    virtual ~Package() = default;
     Package(const Package &) = delete;
     Package(Package &&obj) noexcept = delete;
     Package &operator=(const Package &obj) = delete;
