@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printf32(float val) = external;
 
 function fooInt() returns any {
     return 221;
@@ -10,6 +10,10 @@ function fooInt() returns any {
 
 function fooBool() returns any {
     return true;
+}
+
+function fooFloat() returns any {
+    return 7.1;
 }
 
 public function main() {
@@ -20,7 +24,8 @@ public function main() {
         i = i + 1;
     }
     // TODO check float return
-    printu32(i);
+    float f = <float>fooFloat();
+    printf32(f);
 }
 
-// CHECK: RESULT=222
+// CHECK: RESULT=7.1
