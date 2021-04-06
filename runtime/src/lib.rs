@@ -86,7 +86,7 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
 
 // Prints 64 bit signed integer
 #[no_mangle]
-pub extern "C" fn print64(num64: i64) {
+pub extern "C" fn print_i64(num64: i64) {
     println!("{}", num64);
 }
 

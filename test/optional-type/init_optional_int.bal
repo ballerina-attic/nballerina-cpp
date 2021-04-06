@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu64(int val) = external;
+public function print_i64(int val) = external;
 
 public function main() {
     int? i = 23;
@@ -12,7 +12,7 @@ public function main() {
         j = j + 1;
     }
     print_string("RESULT=");
-    printu64(j);
+    print_i64(j);
 }
 
 // CHECK: RESULT=24

@@ -2,10 +2,10 @@
 
 public function print_string(string val) = external;
 
-public function printu64(int val) = external;
+public function print_i64(int val) = external;
 
 public function main() {
     print_string("RESULT=");
-    printu64(128);
+    print_i64(128);
 }
 // CHECK: RESULT=128

@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu64(int val) = external;
+public function print_i64(int val) = external;
 
 int g = 0;
 any an = 0;
@@ -16,6 +16,6 @@ public function bar(any l) returns int {
 public function main() {
     a = 35;    // TODO remove ressaignment when global init is fixed
     print_string("RESULT=");
-    printu64(bar(a));
+    print_i64(bar(a));
 }
 // CHECK: RESULT=35

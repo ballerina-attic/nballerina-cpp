@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu64(int val) = external;
+public function print_i64(int val) = external;
 
 int index = 3;
 int[] arr1 = [5];
@@ -14,6 +14,6 @@ public function main() {
     arr1[3] = 10;
     int a = arr1[0] + arr1[1] + arr1[index];
     print_string("RESULT=");
-    printu64(a);
+    print_i64(a);
 }
 // CHECK: RESULT=16
