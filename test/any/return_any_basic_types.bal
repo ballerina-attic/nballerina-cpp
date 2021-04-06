@@ -2,6 +2,8 @@
 
 public function print_string(string val) = external;
 
+public function print64(int val) = external;
+
 public function printf32(float val) = external;
 
 function fooInt() returns any {
@@ -23,9 +25,11 @@ public function main() {
     if (b) {
         i = i + 1;
     }
-    // TODO check float return
+    print64(i);
     float f = <float>fooFloat();
+    print_string("RESULT=");
     printf32(f);
 }
 
+// CHECK: RESULT=222
 // CHECK: RESULT=7.1
