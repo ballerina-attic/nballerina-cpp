@@ -32,13 +32,13 @@ class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
     LLVMValueRef getNewString(LLVMModuleRef &modRef);
-    std::variant<int, double, bool, std::string> value;
+    std::variant<int, float, bool, std::string> value;
     std::unique_ptr<llvm::GlobalVariable> globalStringValue;
 
   public:
     ConstantLoadInsn() = delete;
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, int intVal);
-    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, double floatVal);
+    ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, float floatVal);
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, bool boolVal);
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::string str);
     ConstantLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);

@@ -69,7 +69,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const {
     case TYPE_TAG_INT:
         return LLVMInt32Type();
     case TYPE_TAG_FLOAT:
-        return LLVMDoubleType();
+        return LLVMFloatType();
     case TYPE_TAG_BOOLEAN:
         return LLVMInt8Type();
     case TYPE_TAG_CHAR_STRING:

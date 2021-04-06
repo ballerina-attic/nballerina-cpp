@@ -48,10 +48,10 @@ ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
 ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
 
-constexpr int BIRReader::isLittleEndian() {
+constexpr bool BIRReader::isLittleEndian() {
     unsigned int val = 1;
     char *c = (char *)&val;
-    return (int)*c;
+    return (int)*c ? true : false;
 }
 
 // Read 1 byte from the stream
@@ -174,7 +174,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 }
 
 // Search float from the constant pool based on index
-double ConstantPoolSet::getFloatCp(uint32_t index) {
+float ConstantPoolSet::getFloatCp(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
     FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
