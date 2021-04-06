@@ -20,22 +20,17 @@
 #define __TYPECASTINSN__H__
 
 #include "NonTerminatorInsn.h"
-#include "Types.h"
 
 namespace nballerina {
 
 // Forward Declare
-class Type;
 class Operand;
 
 class TypeCastInsn : public NonTerminatorInsn {
   private:
     Operand rhsOp;
     LLVMValueRef getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-    LLVMValueRef generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag);
     LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-    static bool isBoxValueSupport(TypeTag typeTag);
-    static std::string_view typeStringMangleName(const Type &type);
 
   public:
     TypeCastInsn() = delete;

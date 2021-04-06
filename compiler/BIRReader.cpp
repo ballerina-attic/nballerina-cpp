@@ -47,6 +47,7 @@ ReadArrayInsn ReadArrayInsn::readArrayInsn;
 ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
 ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
+ReadMapLoadInsn ReadMapLoadInsn::readMapLoadInsn;
 
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
@@ -185,8 +186,8 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *memberShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, Type::ArrayType{memberShapeCp->getTypeTag(), 
-			(int)shapeCp->getSize(), shapeCp->getState()});
+        return Type(type, name,
+                    Type::ArrayType{memberShapeCp->getTypeTag(), (int)shapeCp->getSize(), shapeCp->getState()});
     }
     // Default return
     return Type(type, name);
@@ -483,6 +484,16 @@ std::unique_ptr<MapStoreInsn> ReadMapStoreInsn::readNonTerminatorInsn(std::share
     return std::make_unique<MapStoreInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
 }
 
+// Read Map Load Insn
+std::unique_ptr<MapLoadInsn> ReadMapLoadInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
+    [[maybe_unused]] uint8_t optionalFieldAccess = readerRef.readU1();
+    [[maybe_unused]] uint8_t fillingRead = readerRef.readU1();
+    auto lhsOp = readerRef.readOperand();
+    auto keyOperand = readerRef.readOperand();
+    auto rhsOperand = readerRef.readOperand();
+    return std::make_unique<MapLoadInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
+}
+
 std::unique_ptr<GoToInsn> ReadGoToInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     uint32_t nameId = readerRef.readS4be();
     auto dummybasicBlock =
@@ -584,6 +595,10 @@ void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
     }
     case INSTRUCTION_KIND_MAP_STORE: {
         basicBlock->addNonTermInsn(ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn(basicBlock));
+        break;
+    }
+    case INSTRUCTION_KIND_MAP_LOAD: {
+        basicBlock->addNonTermInsn(ReadMapLoadInsn::readMapLoadInsn.readNonTerminatorInsn(basicBlock));
         break;
     }
     default:
