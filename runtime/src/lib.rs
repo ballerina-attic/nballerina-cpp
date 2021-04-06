@@ -92,43 +92,19 @@ pub extern "C" fn print_i64(num64: i64) {
 
 // Prints 32 bit signed integer
 #[no_mangle]
-pub extern "C" fn print32(num32: i32) {
+pub extern "C" fn print_i32(num32: i32) {
     println!("{}", num32);
 }
 
 // Prints 16 bit signed integer
 #[no_mangle]
-pub extern "C" fn print16(num16: i16) {
+pub extern "C" fn print_i16(num16: i16) {
     println!("{}", num16);
 }
 
 // Prints 8 bit signed integer
 #[no_mangle]
-pub extern "C" fn print8(num8: i8) {
-    println!("{}", num8);
-}
-
-// Prints 64 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu64(num64: u64) {
-    println!("{}", num64);
-}
-
-// Prints 32 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu32(num32: u32) {
-    println!("{}", num32);
-}
-
-// Prints 16 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu16(num16: u16) {
-    println!("{}", num16);
-}
-
-// Prints 8 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu8(num8: u8) {
+pub extern "C" fn print_i8(num8: i8) {
     println!("{}", num8);
 }
 
