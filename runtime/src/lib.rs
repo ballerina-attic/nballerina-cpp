@@ -151,10 +151,10 @@ pub extern "C" fn array_init_string(size: i32) -> *mut Vec<*mut BString> {
 }
 
 #[no_mangle]
-pub extern "C" fn array_init_anydata(size: i32) -> *mut Vec<*mut i8> {
+pub extern "C" fn array_init_anydata(size: i32) -> *mut Vec<*mut c_void> {
     let size_t = if size > 0 { size } else { 8 };
     let size_t = size_t as usize;
-    let vec: Box<Vec<*mut i8>> = Box::new(Vec::with_capacity(size_t));
+    let vec: Box<Vec<*mut c_void>> = Box::new(Vec::with_capacity(size_t));
     let vec_pointer = Box::into_raw(vec);
     return vec_pointer;
 }
