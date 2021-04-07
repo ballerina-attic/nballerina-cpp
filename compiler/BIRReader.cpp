@@ -207,8 +207,10 @@ InvocableType ConstantPoolSet::getInvocableType(uint32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
+    auto paramCount = shapeCp->getParamCount();
     std::vector<Type> paramTypes;
-    for (unsigned int i = 0; i < shapeCp->getParamCount(); i++) {
+    paramTypes.reserve(paramCount);
+    for (unsigned int i = 0; i < paramCount; i++) {
         paramTypes.push_back(getTypeCp(shapeCp->getParam(i), false));
     }
     auto returnTypeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
@@ -403,6 +405,7 @@ std::unique_ptr<FunctionCallInsn> ReadFuncCallInsn::readTerminatorInsn(std::shar
     uint32_t argumentsCount = readerRef.readS4be();
 
     std::vector<Operand> fnArgs;
+    fnArgs.reserve(argumentsCount);
     for (unsigned int i = 0; i < argumentsCount; i++) {
         fnArgs.push_back(readerRef.readOperand());
     }
@@ -670,12 +673,10 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     //   birFunction->setReceiver(NULL);
 
     uint64_t taintTableLength = readS8be();
-    std::vector<char> taint(taintTableLength);
-    is.read(&taint[0], taintTableLength);
+    is.ignore(taintTableLength);
 
     uint32_t docLength = readS4be();
-    std::vector<char> doc(docLength);
-    is.read(&doc[0], docLength);
+    is.ignore(docLength);
 
     uint64_t functionBodyLength __attribute__((unused)) = readS8be();
     uint32_t argsCount __attribute__((unused)) = readS4be();
@@ -735,9 +736,9 @@ StringCpInfo::StringCpInfo() { setTag(TAG_ENUM_CP_ENTRY_STRING); }
 
 void StringCpInfo::read() {
     uint32_t stringLength = readerRef.readS4be();
-    std::vector<char> result(stringLength);
-    readerRef.is.read(&result[0], stringLength);
-    value = std::string(result.begin(), result.end());
+    std::unique_ptr<char[]> result(new char[stringLength]);
+    readerRef.is.read(result.get(), stringLength);
+    value = std::string(result.get(), stringLength);
 }
 
 ShapeCpInfo::ShapeCpInfo() { setTag(TAG_ENUM_CP_ENTRY_SHAPE); }
@@ -819,8 +820,7 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_NEVER:
     case TYPE_TAG_NULL_SET:
     case TYPE_TAG_PARAMETERIZED_TYPE: {
-        std::vector<char> result(shapeLengthTypeInfo);
-        readerRef.is.read(&result[0], shapeLengthTypeInfo);
+        readerRef.is.ignore(shapeLengthTypeInfo);
         break;
     }
     case TYPE_TAG_ARRAY: {

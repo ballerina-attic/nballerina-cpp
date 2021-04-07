@@ -24,7 +24,6 @@
 #include <llvm/ADT/Triple.h>
 #include <memory>
 #include <string>
-#include <vector>
 
 using namespace std;
 using namespace nballerina;
