@@ -264,8 +264,12 @@ pub extern "C" fn array_store_string(arr_ptr: *mut Vec<*mut BString>, index: i32
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     let len = index_n + 1;
+    let emptystr = BString {
+        value: "",
+    };
+    let emptystr_ptr = Box::into_raw(Box::new(emptystr));
     if arr.len() < len {
-        arr.resize(len, 0 as *mut BString);
+        arr.resize(len, emptystr_ptr as *mut BString);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);
