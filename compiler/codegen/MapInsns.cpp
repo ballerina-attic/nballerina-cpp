@@ -44,7 +44,7 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
     TypeUtils::checkMapSupport(memberTypeTag);
 
     LLVMValueRef mapValue;
-    if (Type::isStructAvailable(memberTypeTag)) {
+    if (Type::isSmartStructType(memberTypeTag)) {
         mapValue = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
     } else {
         mapValue = funcObj.createTempVariable(rhsOp);

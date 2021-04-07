@@ -48,8 +48,8 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
 
     const char *inherentTypeName = "inherentTypeName";
 
-    if (Type::isStructAvailable(rhsTypeTag)) {
-        if (Type::isStructAvailable(lhsTypeTag)) {
+    if (Type::isSmartStructType(rhsTypeTag)) {
+        if (Type::isSmartStructType(lhsTypeTag)) {
             LLVMValueRef rhsVarOpRef = funcObj.createTempVariable(rhsOp);
             LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
             return;
@@ -82,7 +82,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, getLhsOperand().getName().c_str());
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
-    } else if (Type::isStructAvailable(lhsTypeTag)) {
+    } else if (Type::isSmartStructType(lhsTypeTag)) {
         getFunctionMutableRef().storeValueInSmartStruct(modRef, rhsOpRef, rhsType, lhsOpRef);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");

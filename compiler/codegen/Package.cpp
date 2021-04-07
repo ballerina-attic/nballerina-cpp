@@ -259,7 +259,7 @@ LLVMValueRef Package::getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag type
     }
 
     LLVMTypeRef memberType;
-    if (Type::isStructAvailable(typeTag)) {
+    if (Type::isSmartStructType(typeTag)) {
         memberType = LLVMPointerType(getLLVMTypeOfTypeTag(typeTag), 0);
     } else {
         memberType = getLLVMTypeOfTypeTag(typeTag);

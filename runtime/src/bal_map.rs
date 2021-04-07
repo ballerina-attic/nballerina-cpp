@@ -1,5 +1,6 @@
 pub mod map {
     use std::collections::HashMap;
+    use std::ffi::c_void;
 
     pub struct BalMapInt {
         map: HashMap<String, i64>,
@@ -31,8 +32,9 @@ pub mod map {
         }
     }
 
+    #[repr(C)]
     pub struct BalMapAnyData {
-        map: HashMap<String, *const i8>,
+        map: HashMap<String, *mut c_void>,
     }
 
     impl BalMapAnyData {
@@ -43,7 +45,7 @@ pub mod map {
         }
 
         // Map insert
-        pub fn insert(&mut self, key: &str, member: *const i8) {
+        pub fn insert(&mut self, key: &str, member: *mut c_void) {
             self.map.insert(String::from(key), member);
         }
 

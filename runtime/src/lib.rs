@@ -22,6 +22,7 @@
 mod type_checker;
 
 use std::ffi::CStr;
+use std::ffi::c_void;
 use std::io::{self, Write};
 use std::mem;
 use std::os::raw::c_char;
@@ -396,7 +397,7 @@ pub extern "C" fn map_new_anydata() -> *mut BalMapAnyData {
 pub extern "C" fn map_store_anydata(
     ptr: *mut BalMapAnyData,
     key: *mut BString,
-    member_ptr: *const i8,
+    member_ptr: *mut c_void,
 ) {
     // Load BalMap from pointer
     assert!(!ptr.is_null());

@@ -101,7 +101,7 @@ std::string_view Type::typeStringMangleName(const Type &type) {
     }
 }
 
-bool Type::isStructAvailable(TypeTag typeTag) {
+bool Type::isSmartStructType(TypeTag typeTag) {
     switch (typeTag) {
     case TYPE_TAG_ANY:
     case TYPE_TAG_UNION:

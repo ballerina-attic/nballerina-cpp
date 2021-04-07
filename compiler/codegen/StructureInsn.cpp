@@ -81,7 +81,7 @@ void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modR
         // For Key_Value_Kind
         const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
         LLVMValueRef mapValue;
-        if (Type::isStructAvailable(memTypeTag)) {
+        if (Type::isSmartStructType(memTypeTag)) {
             mapValue = funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue());
         } else {
             mapValue = funcObj.createTempVariable(keyVal.getValue());
