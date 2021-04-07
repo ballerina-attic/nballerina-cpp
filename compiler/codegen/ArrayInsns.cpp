@@ -105,8 +105,7 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
         return addedFuncRef;
     }
     LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type(),
-                                LLVMTypeOf(LLVMBuildLoad(getFunctionRef().getLLVMBuilder(),
-                                                         getFunctionRef().getLLVMLocalVar(rhsOp.getName()), ""))};
+                                getPackageRef().getLLVMTypeOfType(rhsOpTypeTag)};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
