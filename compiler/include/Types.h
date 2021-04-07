@@ -91,23 +91,28 @@ class Type {
     struct MapType {
         TypeTag memberType;
     };
+    struct ErrorType {
+        std::string message;
+    };
 
   private:
     TypeTag type;
     std::string name;
-    std::variant<ArrayType, MapType> typeInfo;
+    std::variant<ArrayType, MapType, ErrorType> typeInfo;
 
   public:
     Type() = delete;
     Type(TypeTag type, std::string namep);
     Type(TypeTag type, std::string namep, ArrayType arrayType);
     Type(TypeTag type, std::string namep, MapType mapType);
+    Type(TypeTag type, std::string namep, ErrorType errorType);
     virtual ~Type() = default;
 
     TypeTag getTypeTag() const;
     const std::string &getName() const;
     static std::string getNameOfType(TypeTag typeTag);
     TypeTag getMemberTypeTag() const;
+    const std::string &getMessage() const;
 };
 
 } // namespace nballerina

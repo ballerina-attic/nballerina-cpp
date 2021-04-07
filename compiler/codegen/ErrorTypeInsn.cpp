@@ -21,6 +21,7 @@
 #include "Operand.h"
 #include "Types.h"
 #include "Package.h"
+#include "llvm-c/Core.h"
 
 using namespace std;
 using namespace llvm;
@@ -30,18 +31,29 @@ namespace nballerina {
 ErrorTypeInsn::ErrorTypeInsn(const Operand &lOp, std::shared_ptr<BasicBlock> currentBB, const Operand &mOp, const Operand &cOp, const Operand &dOp, Type type)
     : NonTerminatorInsn(lOp, currentBB), msgOp(mOp), causeOp(cOp), detailOp(dOp), typeDecl(type) {}
 
-const Operand &ErrorTypeInsn::getMsgOp() { return msgOp; }
-const Operand &ErrorTypeInsn::getCauseOp() { return causeOp; }
-const Operand &ErrorTypeInsn::getDetailOp() { return detailOp; }
+const Operand &ErrorTypeInsn::getMsgOp() const { return msgOp; }
+const Operand &ErrorTypeInsn::getCauseOp() const { return causeOp; }
+const Operand &ErrorTypeInsn::getDetailOp() const { return detailOp; }
 Type ErrorTypeInsn::getTypeDecl() { return typeDecl; }
 
-void ErrorTypeInsn::setMsgOp(const Operand &op) { msgOp = op; }
-void ErrorTypeInsn::setCauseOp(const Operand &op) { causeOp = op; }
-void ErrorTypeInsn::setDetailOp(const Operand &op) { detailOp = op; }
-void ErrorTypeInsn::setTypeDecl(Type tDecl) { typeDecl = tDecl; }
+LLVMValueRef ErrorTypeInsn::getNewString(LLVMModuleRef &modRef) {
+    const char *newString = "new_string";
+    LLVMValueRef addedStringRef = getPackageRef().getFunctionRef(newString);
+    if (addedStringRef != nullptr) {
+        return addedStringRef;
+    }
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type()};
+    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), paramTypes, 2, 0);
+    addedStringRef = LLVMAddFunction(modRef, newString, funcType);
+    getPackageMutableRef().addFunctionRef(newString, addedStringRef);
+    return addedStringRef;
+}
 
 void ErrorTypeInsn::translate(LLVMModuleRef &modRef) {
-    // Error Type Translation logic
+    LLVMValueRef addedStringRef = getNewString(modRef);
+    // Fetch message string from Error Type Decl
+    // Get opaque pointer to message string
+    // Generate a function call to new_error() with above opaque pointer
 }
 
 } // namespace nballerina

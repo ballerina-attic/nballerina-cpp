@@ -78,6 +78,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const {
     case TYPE_TAG_MAP:
     case TYPE_TAG_ARRAY:
     case TYPE_TAG_NIL:
+    case TYPE_TAG_ERROR:
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
     case TYPE_TAG_UNION:

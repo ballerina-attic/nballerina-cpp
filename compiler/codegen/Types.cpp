@@ -29,8 +29,13 @@ Type::Type(TypeTag type, std::string namep, ArrayType arrayType)
 Type::Type(TypeTag type, std::string namep, MapType mapType)
     : type(type), name(std::move(namep)), typeInfo(mapType) {}
 
+Type::Type(TypeTag type, std::string namep, ErrorType errorType)
+    : type(type), name(std::move(namep)), typeInfo(errorType) {}
+
 TypeTag Type::getTypeTag() const { return type; }
 const std::string &Type::getName() const { return name; }
+
+const std::string &Type::getMessage() const { return std::get<Type::ErrorType>(typeInfo).message; }
 
 TypeTag Type::getMemberTypeTag() const {
     if (type == TYPE_TAG_ARRAY) {
@@ -56,6 +61,8 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "any";
     case TYPE_TAG_UNION:
         return "union";
+    case TYPE_TAG_ERROR:
+        return "error";
     default:
         assert(false);
         return "";

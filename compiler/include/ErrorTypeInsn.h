@@ -36,15 +36,12 @@ class ErrorTypeInsn : public NonTerminatorInsn {
     ErrorTypeInsn(const Operand &lOp, std::shared_ptr<BasicBlock> currentBB, const Operand &mOp, const Operand &cOp, const Operand &dOp, Type tDecl);
     ~ErrorTypeInsn() = default;
 
-    const Operand &getMsgOp();
-    const Operand &getCauseOp();
-    const Operand &getDetailOp();
+    const Operand &getMsgOp() const;
+    const Operand &getCauseOp() const;
+    const Operand &getDetailOp() const;
     Type getTypeDecl();
+    LLVMValueRef getNewString(LLVMModuleRef &modRef);
 
-    void setMsgOp(const Operand &op);
-    void setCauseOp(const Operand &op);
-    void setDetailOp(const Operand &op);
-    void setTypeDecl(Type tDecl);
     void translate(LLVMModuleRef &modRef) final;
 };
 

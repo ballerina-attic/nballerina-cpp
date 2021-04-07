@@ -28,7 +28,9 @@ use std::os::raw::c_char;
 use std::slice;
 
 mod bal_map;
+mod bal_error;
 pub use bal_map::map::BalMapInt;
+pub use bal_error::error::BalError;
 
 pub struct BString {
     value: &'static str,
@@ -320,6 +322,12 @@ pub extern "C" fn array_deinit_string(ptr: *mut Vec<*mut String>) {
     unsafe {
         Box::from_raw(ptr);
     }
+}
+
+// Ballerina Error Implementation
+#[no_mangle]
+pub extern "C" fn new_error(err: *mut BString) -> *mut BalError {
+    Box::into_raw(Box::new(BalError::new(err)))
 }
 
 // Ballerina Map implementation
