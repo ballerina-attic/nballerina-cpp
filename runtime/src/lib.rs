@@ -383,6 +383,8 @@ pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *m
     let map_expr = unsafe { &mut *ptr_expr };
     // Insert from spread field expression
     map_src.insert_spread_field(map_expr);
+    // Print length to test functionality
+    println!("length={}", map_src.length());
 }
 
 #[no_mangle]

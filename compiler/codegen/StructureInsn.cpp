@@ -66,7 +66,7 @@ void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modR
 
     // Codegen for map<int> type store
     LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapStoreDeclaration(modRef, memTypeTag);
-    LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef, memTypeTag);
+    LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
     for (const auto &initValue : initValues) {
@@ -80,9 +80,14 @@ void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modR
         }
         // For Key_Value_Kind
         const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
+        LLVMValueRef mapValue;
+        if (Type::isStructAvailable(memTypeTag)) {
+            mapValue = funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue());
+        } else {
+            mapValue = funcObj.createTempVariable(keyVal.getValue());
+        }
         MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
-                                      funcObj.createTempVariable(keyVal.getKey()),
-                                      funcObj.createTempVariable(keyVal.getValue()));
+                                      funcObj.createTempVariable(keyVal.getKey()), mapValue);
     }
 }
 

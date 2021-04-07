@@ -33,7 +33,6 @@ class TypeCastInsn : public NonTerminatorInsn {
     Operand rhsOp;
     LLVMValueRef getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
     LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-    bool isStructAvailable(TypeTag typeTag);
 
   public:
     TypeCastInsn() = delete;

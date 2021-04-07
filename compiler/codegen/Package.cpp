@@ -258,7 +258,13 @@ LLVMValueRef Package::getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag type
         return mapStoreFunc;
     }
 
-    LLVMTypeRef memberType = getLLVMTypeOfTypeTag(typeTag);
+    LLVMTypeRef memberType;
+    if (Type::isStructAvailable(typeTag)) {
+        memberType = LLVMPointerType(getLLVMTypeOfTypeTag(typeTag), 0);
+    } else {
+        memberType = getLLVMTypeOfTypeTag(typeTag);
+    }
+
     LLVMTypeRef keyType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef mapType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef paramTypes[] = {mapType, keyType, memberType};
@@ -268,8 +274,8 @@ LLVMValueRef Package::getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag type
     return mapStoreFunc;
 }
 
-LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef, TypeTag typeTag) {
-    std::string funcName = "map_spread_field_" + Type::getNameOfType(typeTag);
+LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef) {
+    std::string funcName = "map_spread_field_init";
     const auto *externalFunctionName = funcName.c_str();
 
     LLVMValueRef func = getFunctionRef(externalFunctionName);

@@ -74,7 +74,7 @@ class Package : public Translatable {
     LLVMValueRef getStringBuilderTableGlobalPointer();
     const Variable &getGlobalVariable(const std::string &name) const;
     LLVMValueRef getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag typeTag);
-    LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef, TypeTag typeTag);
+    LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
 
     void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);

@@ -101,4 +101,15 @@ std::string_view Type::typeStringMangleName(const Type &type) {
     }
 }
 
+bool Type::isStructAvailable(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_ANY:
+    case TYPE_TAG_UNION:
+    case TYPE_TAG_ANYDATA:
+        return true;
+    default:
+        return false;
+    }
+}
+
 } // namespace nballerina

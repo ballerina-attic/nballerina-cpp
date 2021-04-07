@@ -20,8 +20,8 @@
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
-#include "Types.h"
 #include "TypeUtils.h"
+#include "Types.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
 
@@ -43,10 +43,15 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
     // Only handle Int type
     TypeUtils::checkMapSupport(memberTypeTag);
 
+    LLVMValueRef mapValue;
+    if (Type::isStructAvailable(memberTypeTag)) {
+        mapValue = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
+    } else {
+        mapValue = funcObj.createTempVariable(rhsOp);
+    }
     // Codegen for map<int> type store
     codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapStoreDeclaration(modRef, memberTypeTag),
-                    funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp),
-                    funcObj.createTempVariable(rhsOp));
+                    funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp), mapValue);
 }
 
 // Generic map store static function
@@ -64,18 +69,19 @@ void MapLoadInsn::translate(LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
     auto builder = funcObj.getLLVMBuilder();
-    
+
     LLVMValueRef lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
     LLVMValueRef outParam = LLVMBuildAlloca(builder, LLVMInt64Type(), "_out_param");
     LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp), outParam};
-    
+
     [[maybe_unused]] LLVMValueRef retVal = LLVMBuildCall(builder, getMapLoadDeclaration(modRef), params, 3, "");
 
-    // TODO check retVal and branch 
+    // TODO check retVal and branch
     // if retVal is true
     getFunctionMutableRef().storeValueInSmartStruct(modRef, outParam, Type(TYPE_TAG_INT, ""), lhs);
     // else
-    // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL, ""), lhs);
+    // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
+    // ""), lhs);
 }
 
 LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef) {
