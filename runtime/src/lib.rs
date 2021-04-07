@@ -196,7 +196,7 @@ pub extern "C" fn array_store_int(arr_ptr: *mut Vec<i32>, index: i32, ref_ptr: i
     let index_n = index as usize;
     let len = index_n + 1;
     if arr.len() < len {
-        arr.resize(len, 0 as i32);
+        arr.resize(len, 0);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);
@@ -219,7 +219,7 @@ pub extern "C" fn array_store_float(arr_ptr: *mut Vec<f32>, index: i32, ref_ptr:
     let index_n = index as usize;
     let len = index_n + 1;
     if arr.len() < len {
-        arr.resize(len, 0 as f32);
+        arr.resize(len, 0.0);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);
@@ -242,7 +242,7 @@ pub extern "C" fn array_store_bool(arr_ptr: *mut Vec<bool>, index: i32, ref_ptr:
     let index_n = index as usize;
     let len = index_n + 1;
     if arr.len() < len {
-        arr.resize(len, 0 != 0);
+        arr.resize(len, false);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);

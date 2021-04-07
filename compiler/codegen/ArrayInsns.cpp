@@ -121,7 +121,7 @@ void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
 
     LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
     LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(builder, lhsOpRef, ""), funcObj.createTempVariable(keyOp),
-                                    LLVMBuildLoad(builder, funcObj.getLLVMLocalOrGlobalVar(rhsOp), "")};
+                                    funcObj.createTempVariable(rhsOp)};
     LLVMBuildCall(builder, ArrayLoadFunc, argOpValueRef, 3, "");
 }
 
