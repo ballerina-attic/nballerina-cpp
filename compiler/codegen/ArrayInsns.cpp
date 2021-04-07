@@ -30,7 +30,7 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp)
+ArrayInsn::ArrayInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &sizeOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), sizeOp(sizeOp) {}
 
 LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
@@ -61,7 +61,7 @@ void ArrayInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Load Instruction
-ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
+ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
                              const Operand &ROp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(ROp) {}
 
@@ -95,7 +95,7 @@ void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Store Instruction
-ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
+ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
                                const Operand &rOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
 

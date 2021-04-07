@@ -29,7 +29,7 @@ using namespace llvm;
 
 namespace nballerina {
 
-TypeCastInsn::TypeCastInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp)
+TypeCastInsn::TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhsOp) {}
 
 void TypeCastInsn::translate(LLVMModuleRef &modRef) {

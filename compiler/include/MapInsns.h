@@ -73,7 +73,7 @@ class MapStoreInsn : public NonTerminatorInsn {
 
   public:
     MapStoreInsn() = delete;
-    MapStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
+    MapStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
     ~MapStoreInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;
@@ -89,7 +89,7 @@ class MapLoadInsn : public NonTerminatorInsn {
 
   public:
     MapLoadInsn() = delete;
-    MapLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
+    MapLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
     ~MapLoadInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

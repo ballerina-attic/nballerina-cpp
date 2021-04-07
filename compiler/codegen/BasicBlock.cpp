@@ -23,18 +23,26 @@
 
 namespace nballerina {
 
-BasicBlock::BasicBlock(std::string pid, std::shared_ptr<Function> parentFunc)
-    : id(std::move(pid)), parentFunction(std::move(parentFunc)), terminator(nullptr), nextBB(nullptr),
-      bbRefObj(nullptr) {}
+BasicBlock::BasicBlock(std::string pid, std::weak_ptr<Function> parentFunc)
+    : id(std::move(pid)), parentFunction(std::move(parentFunc)), terminator(nullptr), bbRefObj(nullptr) {}
 
 const std::string &BasicBlock::getId() const { return id; }
 TerminatorInsn *BasicBlock::getTerminatorInsnPtr() const { return terminator.get(); }
-std::shared_ptr<Function> BasicBlock::getFunctionSharedObj() const { return parentFunction; }
-const Function &BasicBlock::getParentFunctionRef() const { return *parentFunction; }
+
+Function &BasicBlock::getFunctionMutableRef() const {
+    assert(!parentFunction.expired());
+    return *parentFunction.lock();
+}
+
+const Function &BasicBlock::getParentFunctionRef() const {
+    assert(!parentFunction.expired());
+    return *parentFunction.lock();
+}
+
 LLVMBasicBlockRef BasicBlock::getLLVMBBRef() const { return bbRefObj; }
 
 void BasicBlock::setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn) { terminator = std::move(insn); }
-void BasicBlock::setNextBB(std::shared_ptr<BasicBlock> bb) { nextBB = std::move(bb); }
+void BasicBlock::setNextBB(std::weak_ptr<BasicBlock> bb) { nextBB = std::move(bb); }
 void BasicBlock::setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
 void BasicBlock::addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn) { instructions.push_back(std::move(insn)); }
 

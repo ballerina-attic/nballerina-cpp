@@ -28,7 +28,7 @@ class BasicBlock;
 
 class ReturnInsn : public TerminatorInsn {
   public:
-    ReturnInsn(std::shared_ptr<BasicBlock> currentBB);
+    ReturnInsn(std::weak_ptr<BasicBlock> currentBB);
     ~ReturnInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

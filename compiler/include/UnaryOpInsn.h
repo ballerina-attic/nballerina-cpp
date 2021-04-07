@@ -32,7 +32,7 @@ class UnaryOpInsn : public NonTerminatorInsn {
 
   public:
     UnaryOpInsn() = delete;
-    UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs);
+    UnaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhs);
     ~UnaryOpInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;

@@ -381,13 +381,9 @@ std::unique_ptr<ConditionBrInsn> ReadCondBrInsn::readTerminatorInsn(std::shared_
     uint32_t trueBbIdNameCpIndex = readerRef.readS4be();
     uint32_t falseBbIdNameCpIndex = readerRef.readS4be();
 
-    auto trueDummybasicBlock = std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(trueBbIdNameCpIndex),
-                                                            currentBB->getFunctionSharedObj());
-
-    auto falseDummybasicBlock = std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(falseBbIdNameCpIndex),
-                                                             currentBB->getFunctionSharedObj());
-
-    return std::make_unique<ConditionBrInsn>(std::move(lhsOp), currentBB, trueDummybasicBlock, falseDummybasicBlock);
+    return std::make_unique<ConditionBrInsn>(std::move(lhsOp), currentBB,
+                                             readerRef.constantPool->getStringCp(trueBbIdNameCpIndex),
+                                             readerRef.constantPool->getStringCp(falseBbIdNameCpIndex));
 }
 
 // Read MOV Insn
@@ -415,11 +411,9 @@ std::unique_ptr<FunctionCallInsn> ReadFuncCallInsn::readTerminatorInsn(std::shar
     Operand lhsOp = (hasLhsOperand > 0) ? readerRef.readOperand() : Operand("", NOT_A_KIND);
 
     uint32_t thenBbIdNameCpIndex = readerRef.readS4be();
-    auto dummybasicBlock = std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(thenBbIdNameCpIndex),
-                                                        currentBB->getFunctionSharedObj());
 
-    return std::make_unique<FunctionCallInsn>(funcName, argumentsCount, dummybasicBlock, lhsOp, std::move(fnArgs),
-                                              currentBB);
+    return std::make_unique<FunctionCallInsn>(currentBB, readerRef.constantPool->getStringCp(thenBbIdNameCpIndex),
+                                              lhsOp, funcName, argumentsCount, std::move(fnArgs));
 }
 
 // Read TypeCast Insn
@@ -496,9 +490,7 @@ std::unique_ptr<MapLoadInsn> ReadMapLoadInsn::readNonTerminatorInsn(std::shared_
 
 std::unique_ptr<GoToInsn> ReadGoToInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     uint32_t nameId = readerRef.readS4be();
-    auto dummybasicBlock =
-        std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(nameId), currentBB->getFunctionSharedObj());
-    return std::make_unique<GoToInsn>(dummybasicBlock, currentBB);
+    return std::make_unique<GoToInsn>(currentBB, readerRef.constantPool->getStringCp(nameId));
 }
 
 std::unique_ptr<ReturnInsn> ReadReturnInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
