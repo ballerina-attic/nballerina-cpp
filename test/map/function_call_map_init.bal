@@ -4,20 +4,22 @@ public function print_string(string val) = external;
 
 public function printu32(int val) = external;
 
+public function bar(map<int> container, string key) returns int? {
+    return container[key];
+}
+
 public function main() {
-    map<int>? marksOrNil = {Dan: 56};
-    map<int> marks = <map<int>>marksOrNil;
-    marks["Sam"] = 60;
+    map<int> marks = {sam: 50, jon: 60};
 
-    int? loadVal = marks["Dan"];
-    int danMarks = <int>loadVal;
+    int? loadVal = bar(marks, "jon");
+    int johnsMarks = <int>loadVal;
     print_string("RESULT=");
-    printu32(danMarks);
+    printu32(johnsMarks);
 
-    int? loadVal2 = marks["Sam"];
+    int? loadVal2 = bar(marks, "sam");
     int samMarks = <int>loadVal2;
     print_string("RESULT=");
     printu32(samMarks);
 }
-// CHECK: RESULT=56
 // CHECK: RESULT=60
+// CHECK: RESULT=50

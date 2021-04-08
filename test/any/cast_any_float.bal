@@ -2,17 +2,13 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function printf32(float val) = external;
 
 public function main() {
-    int? i = 23;
-    int j = <int>i;
-    boolean? b = true;
-    if (<boolean>b) {
-        j = j + 1;
-    }
+    float a = 77.7;
+    any b = a;
+    float c = <float>b;
     print_string("RESULT=");
-    printu32(j);
+    printf32(c);
 }
-
-// CHECK: RESULT=24
+// CHECK: RESULT=77.7

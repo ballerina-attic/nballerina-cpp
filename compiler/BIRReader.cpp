@@ -47,6 +47,13 @@ ReadArrayInsn ReadArrayInsn::readArrayInsn;
 ReadArrayStoreInsn ReadArrayStoreInsn::readArrayStoreInsn;
 ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
+ReadMapLoadInsn ReadMapLoadInsn::readMapLoadInsn;
+
+constexpr bool BIRReader::isLittleEndian() {
+    unsigned int val = 1;
+    char *c = (char *)&val;
+    return (int)*c != 0;
+}
 
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
@@ -69,11 +76,11 @@ uint16_t BIRReader::readS2be() {
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
     char *p = (char *)&value;
     char tmp;
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    tmp = p[0];
-    p[0] = p[1];
-    p[1] = tmp;
-#endif
+    if (isLittleEndian()) {
+        tmp = p[0];
+        p[0] = p[1];
+        p[1] = tmp;
+    }
     result = value;
     return result;
 }
@@ -82,14 +89,14 @@ uint16_t BIRReader::readS2be() {
 uint32_t BIRReader::readS4be() {
     uint32_t value;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    uint32_t result = 0;
-    result |= (value & 0x000000FF) << 24;
-    result |= (value & 0x0000FF00) << 8;
-    result |= (value & 0x00FF0000) >> 8;
-    result |= (value & 0xFF000000) >> 24;
-    value = result;
-#endif
+    if (isLittleEndian()) {
+        uint32_t result = 0;
+        result |= (value & 0x000000FF) << 24;
+        result |= (value & 0x0000FF00) << 8;
+        result |= (value & 0x00FF0000) >> 8;
+        result |= (value & 0xFF000000) >> 24;
+        value = result;
+    }
     return value;
 }
 
@@ -98,26 +105,55 @@ uint64_t BIRReader::readS8be() {
     uint64_t value;
     uint64_t result;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    char *p = (char *)&value;
-    char tmp;
+    if (isLittleEndian()) {
+        char *p = (char *)&value;
+        char tmp;
 
-    tmp = p[0];
-    p[0] = p[7];
-    p[7] = tmp;
+        tmp = p[0];
+        p[0] = p[7];
+        p[7] = tmp;
 
-    tmp = p[1];
-    p[1] = p[6];
-    p[6] = tmp;
+        tmp = p[1];
+        p[1] = p[6];
+        p[6] = tmp;
 
-    tmp = p[2];
-    p[2] = p[5];
-    p[5] = tmp;
+        tmp = p[2];
+        p[2] = p[5];
+        p[5] = tmp;
 
-    tmp = p[3];
-    p[3] = p[4];
-    p[4] = tmp;
-#endif
+        tmp = p[3];
+        p[3] = p[4];
+        p[4] = tmp;
+    }
+    result = value;
+    return result;
+}
+
+// Read 8 bytes from the stream for float value
+double BIRReader::readS8bef() {
+    double value;
+    double result;
+    is.read(reinterpret_cast<char *>(&value), sizeof(value));
+    if (isLittleEndian()) {
+        char *p = (char *)&value;
+        char tmp;
+
+        tmp = p[0];
+        p[0] = p[7];
+        p[7] = tmp;
+
+        tmp = p[1];
+        p[1] = p[6];
+        p[6] = tmp;
+
+        tmp = p[2];
+        p[2] = p[5];
+        p[5] = tmp;
+
+        tmp = p[3];
+        p[3] = p[4];
+        p[4] = tmp;
+    }
     result = value;
     return result;
 }
@@ -185,8 +221,8 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         ShapeCpInfo *memberShapeCp = static_cast<ShapeCpInfo *>(shapeEntry);
-        return Type(type, name, Type::ArrayType{memberShapeCp->getTypeTag(), 
-			(int)shapeCp->getSize(), shapeCp->getState()});
+        return Type(type, name,
+                    Type::ArrayType{memberShapeCp->getTypeTag(), (int)shapeCp->getSize(), shapeCp->getState()});
     }
     // Default return
     return Type(type, name);
@@ -483,6 +519,16 @@ std::unique_ptr<MapStoreInsn> ReadMapStoreInsn::readNonTerminatorInsn(std::share
     return std::make_unique<MapStoreInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
 }
 
+// Read Map Load Insn
+std::unique_ptr<MapLoadInsn> ReadMapLoadInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
+    [[maybe_unused]] uint8_t optionalFieldAccess = readerRef.readU1();
+    [[maybe_unused]] uint8_t fillingRead = readerRef.readU1();
+    auto lhsOp = readerRef.readOperand();
+    auto keyOperand = readerRef.readOperand();
+    auto rhsOperand = readerRef.readOperand();
+    return std::make_unique<MapLoadInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
+}
+
 std::unique_ptr<GoToInsn> ReadGoToInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     uint32_t nameId = readerRef.readS4be();
     auto dummybasicBlock =
@@ -584,6 +630,10 @@ void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
     }
     case INSTRUCTION_KIND_MAP_STORE: {
         basicBlock->addNonTermInsn(ReadMapStoreInsn::readMapStoreInsn.readNonTerminatorInsn(basicBlock));
+        break;
+    }
+    case INSTRUCTION_KIND_MAP_LOAD: {
+        basicBlock->addNonTermInsn(ReadMapLoadInsn::readMapLoadInsn.readNonTerminatorInsn(basicBlock));
         break;
     }
     default:
@@ -852,7 +902,7 @@ void BooleanCpInfo::read() { value = readerRef.readU1(); }
 
 FloatCpInfo::FloatCpInfo() { setTag(TAG_ENUM_CP_ENTRY_FLOAT); }
 
-void FloatCpInfo::read() { value = readerRef.readS8be(); }
+void FloatCpInfo::read() { value = readerRef.readS8bef(); }
 
 ByteCpInfo::ByteCpInfo() { setTag(TAG_ENUM_CP_ENTRY_BYTE); }
 

@@ -64,11 +64,12 @@ void Package::addFunctionRef(const std::string &arrayName, LLVMValueRef function
     functionRefs.insert(std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
 }
 
-LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const {
-    switch (type.getTypeTag()) {
+LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const { return getLLVMTypeOfType(type.getTypeTag()); }
+
+LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
+    switch (typeTag) {
     case TYPE_TAG_INT:
         return LLVMInt32Type();
-    case TYPE_TAG_BYTE:
     case TYPE_TAG_FLOAT:
         return LLVMFloatType();
     case TYPE_TAG_BOOLEAN:
@@ -254,10 +255,10 @@ LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
     if (mapStoreFunc != nullptr) {
         return mapStoreFunc;
     }
-    LLVMTypeRef int32PtrType = LLVMPointerType(LLVMInt32Type(), 0);
-    LLVMTypeRef charArrayPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMTypeRef paramTypes[] = {memPtrType, charArrayPtrType, int32PtrType};
+    LLVMTypeRef memberType = LLVMInt32Type();
+    LLVMTypeRef keyType = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMTypeRef mapType = LLVMPointerType(LLVMInt8Type(), 0);
+    LLVMTypeRef paramTypes[] = {mapType, keyType, memberType};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
     mapStoreFunc = LLVMAddFunction(modRef, externalFunctionName, funcType);
     addFunctionRef(externalFunctionName, mapStoreFunc);
