@@ -15,7 +15,7 @@ function fooBool() returns any {
 }
 
 function fooFloat() returns any {
-    return 0.0;
+    return 7.1;
 }
 
 public function main() {
@@ -25,10 +25,11 @@ public function main() {
     if (b) {
         i = i + 1;
     }
-    // TODO check float return
-    //float f = <float>fooFloat();
-    // print_integer(i + <int>f);
     print_integer(i);
+    float f = <float>fooFloat();
+    print_string("RESULT=");
+    printf32(f);
 }
 
 // CHECK: RESULT=222
+// CHECK: RESULT=7.1

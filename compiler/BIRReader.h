@@ -76,6 +76,8 @@ class BIRReader {
     int16_t readS2be();
     int32_t readS4be();
     int64_t readS8be();
+    double readS8bef();
+    constexpr bool isLittleEndian();
     static bool ignoreFunction(std::string funcName);
 
   public:
