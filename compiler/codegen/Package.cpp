@@ -64,8 +64,10 @@ void Package::addFunctionRef(const std::string &arrayName, LLVMValueRef function
     functionRefs.insert(std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
 }
 
-LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const {
-    switch (type.getTypeTag()) {
+LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const { return getLLVMTypeOfType(type.getTypeTag()); }
+
+LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
+    switch (typeTag) {
     case TYPE_TAG_INT:
         return LLVMInt64Type();
     case TYPE_TAG_FLOAT:
