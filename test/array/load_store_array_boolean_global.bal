@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 boolean[5] arr4 = [];
 public function main() {
@@ -15,7 +15,7 @@ public function main() {
         print_string("RESULT=");
     }
     if (c) {
-        printu32(1);
+        print_integer(1);
     }
 }
 // CHECK: RESULT=1

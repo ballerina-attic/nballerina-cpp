@@ -69,7 +69,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const { return getLLVMT
 LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
     switch (typeTag) {
     case TYPE_TAG_INT:
-        return LLVMInt32Type();
+        return LLVMInt64Type();
     case TYPE_TAG_FLOAT:
         return LLVMFloatType();
     case TYPE_TAG_BOOLEAN:
@@ -255,7 +255,7 @@ LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
     if (mapStoreFunc != nullptr) {
         return mapStoreFunc;
     }
-    LLVMTypeRef memberType = LLVMInt32Type();
+    LLVMTypeRef memberType = LLVMInt64Type();
     LLVMTypeRef keyType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef mapType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef paramTypes[] = {mapType, keyType, memberType};

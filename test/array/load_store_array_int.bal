@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     int[] arr1 = [5];
@@ -20,6 +20,6 @@ public function main() {
     int a = arr1[0] + arr1[1] + arr1[index1];
     int b = arr2[1] + arr2[3] + arr2[index2];
     print_string("RESULT=");
-    printu32(a + b);
+    print_integer(a + b);
 }
 // CHECK: RESULT=176

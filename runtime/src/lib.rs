@@ -86,50 +86,8 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
 
 // Prints 64 bit signed integer
 #[no_mangle]
-pub extern "C" fn print64(num64: i64) {
+pub extern "C" fn print_integer(num64: i64) {
     println!("{}", num64);
-}
-
-// Prints 32 bit signed integer
-#[no_mangle]
-pub extern "C" fn print32(num32: i32) {
-    println!("{}", num32);
-}
-
-// Prints 16 bit signed integer
-#[no_mangle]
-pub extern "C" fn print16(num16: i16) {
-    println!("{}", num16);
-}
-
-// Prints 8 bit signed integer
-#[no_mangle]
-pub extern "C" fn print8(num8: i8) {
-    println!("{}", num8);
-}
-
-// Prints 64 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu64(num64: u64) {
-    println!("{}", num64);
-}
-
-// Prints 32 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu32(num32: u32) {
-    println!("{}", num32);
-}
-
-// Prints 16 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu16(num16: u16) {
-    println!("{}", num16);
-}
-
-// Prints 8 bit unsigned integer
-#[no_mangle]
-pub extern "C" fn printu8(num8: u8) {
-    println!("{}", num8);
 }
 
 // Prints 64 bit float
@@ -155,12 +113,12 @@ pub extern "C" fn print_boolean(num8: i8) {
 }
 
 #[no_mangle]
-pub extern "C" fn array_init_int(size: i32) -> *mut Vec<i32> {
+pub extern "C" fn array_init_int(size: i64) -> *mut Vec<i64> {
     let size_t = if size > 0 { size } else { 8 };
     let size_t = size_t as usize;
-    let foo: Box<Vec<i32>> = Box::new(Vec::with_capacity(size_t));
+    let foo: Box<Vec<i64>> = Box::new(Vec::with_capacity(size_t));
     let vec_pointer = Box::into_raw(foo);
-    return vec_pointer as *mut Vec<i32>;
+    return vec_pointer as *mut Vec<i64>;
 }
 
 #[no_mangle]
@@ -191,7 +149,7 @@ pub extern "C" fn array_init_string(size: i32) -> *mut Vec<*mut BString> {
 }
 
 #[no_mangle]
-pub extern "C" fn array_store_int(arr_ptr: *mut Vec<i32>, index: i32, ref_ptr: i32) {
+pub extern "C" fn array_store_int(arr_ptr: *mut Vec<i64>, index: i64, ref_ptr: i64) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     let len = index_n + 1;
@@ -203,7 +161,7 @@ pub extern "C" fn array_store_int(arr_ptr: *mut Vec<i32>, index: i32, ref_ptr: i
 }
 
 #[no_mangle]
-pub extern "C" fn array_load_int(arr_ptr: *mut Vec<i32>, index: i32) -> i32 {
+pub extern "C" fn array_load_int(arr_ptr: *mut Vec<i64>, index: i64) -> i64 {
     let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
@@ -277,7 +235,7 @@ pub extern "C" fn array_store_string(arr_ptr: *mut Vec<*mut BString>, index: i32
 
 #[no_mangle]
 pub extern "C" fn array_load_string(arr_ptr: *mut Vec<*mut BString>, index: i32) -> *mut BString {
-    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
     assert!(arr.len() > index_n);
@@ -287,7 +245,7 @@ pub extern "C" fn array_load_string(arr_ptr: *mut Vec<*mut BString>, index: i32)
 }
 
 #[no_mangle]
-pub extern "C" fn array_deinit_int(ptr: *mut Vec<i32>) {
+pub extern "C" fn array_deinit_int(ptr: *mut Vec<i64>) {
     if ptr.is_null() {
         return;
     }
@@ -343,7 +301,7 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 }
 
 #[no_mangle]
-pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member: i32) {
+pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member: i64) {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
     let bal_map = unsafe { &mut *ptr };
@@ -358,7 +316,7 @@ pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member: 
 pub extern "C" fn map_load_int(
     ptr: *mut BalMapInt,
     key: *mut BString,
-    output_val: *mut i32,
+    output_val: *mut i64,
 ) -> bool {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
@@ -396,12 +354,12 @@ pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *m
 }
 
 #[no_mangle]
-pub extern "C" fn box_bal_int(val: i32) -> *mut i32 {
+pub extern "C" fn box_bal_int(val: i64) -> *mut i64 {
     Box::into_raw(Box::new(val))
 }
 
 #[no_mangle]
-pub extern "C" fn unbox_bal_int(ptr: *mut i32) {
+pub extern "C" fn unbox_bal_int(ptr: *mut i64) {
     if ptr.is_null() {
         return;
     }

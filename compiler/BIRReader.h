@@ -73,9 +73,9 @@ class BIRReader {
     // Read bytes functions
     uint8_t readU1();
     uint8_t peekReadU1();
-    uint16_t readS2be();
-    uint32_t readS4be();
-    uint64_t readS8be();
+    int16_t readS2be();
+    int32_t readS4be();
+    int64_t readS8be();
     double readS8bef();
     constexpr bool isLittleEndian();
     static bool ignoreFunction(std::string funcName);
@@ -171,53 +171,53 @@ class ShapeCpInfo : public ConstantPoolEntry {
     ~ShapeCpInfo() override = default;
 
   private:
-    uint32_t shapeLength;
+    int32_t shapeLength;
     std::string value;
     nballerina::TypeTag typeTag;
-    uint32_t nameIndex;
-    uint32_t typeFlag;
-    uint32_t typeSpecialFlag;
-    uint32_t paramCount;
+    int32_t nameIndex;
+    int32_t typeFlag;
+    int32_t typeSpecialFlag;
+    int32_t paramCount;
     uint8_t hasRestType;
-    uint32_t returnTypeIndex;
-    uint32_t restTypeIndex;
-    std::vector<uint32_t> params;
-    uint32_t constraintTypeCpIndex;
+    int32_t returnTypeIndex;
+    int32_t restTypeIndex;
+    std::vector<int32_t> params;
+    int32_t constraintTypeCpIndex;
     uint8_t state;
-    uint32_t size;
-    uint32_t elementTypeCpIndex;
+    int32_t size;
+    int32_t elementTypeCpIndex;
 
   public:
-    uint32_t getShapeLength() { return shapeLength; }
+    int32_t getShapeLength() { return shapeLength; }
     std::string getValue() { return value; }
     nballerina::TypeTag getTypeTag() { return typeTag; }
-    uint32_t getNameIndex() { return nameIndex; }
-    uint32_t getTypeFlag() { return typeFlag; }
-    uint32_t getTypeSpecialFlag() { return typeSpecialFlag; }
-    uint32_t getParamCount() { return paramCount; }
+    int32_t getNameIndex() { return nameIndex; }
+    int32_t getTypeFlag() { return typeFlag; }
+    int32_t getTypeSpecialFlag() { return typeSpecialFlag; }
+    int32_t getParamCount() { return paramCount; }
     uint8_t getRestType() { return hasRestType; }
-    uint32_t getReturnTypeIndex() { return returnTypeIndex; }
-    uint32_t getRestTypeIndex() { return restTypeIndex; }
-    void addParam(uint32_t param) { params.push_back(param); }
-    uint32_t getParam(uint32_t index) { return params[index]; }
-    uint32_t getConstraintTypeCpIndex() { return constraintTypeCpIndex; }
+    int32_t getReturnTypeIndex() { return returnTypeIndex; }
+    int32_t getRestTypeIndex() { return restTypeIndex; }
+    void addParam(int32_t param) { params.push_back(param); }
+    int32_t getParam(int32_t index) { return params[index]; }
+    int32_t getConstraintTypeCpIndex() { return constraintTypeCpIndex; }
     uint8_t getState() { return state; }
-    uint32_t getSize() { return size; }
-    uint32_t getElementTypeCpIndex() { return elementTypeCpIndex; }
+    int32_t getSize() { return size; }
+    int32_t getElementTypeCpIndex() { return elementTypeCpIndex; }
 
-    void setShapeLength(uint32_t s) { shapeLength = s; }
+    void setShapeLength(int32_t s) { shapeLength = s; }
     void setValue(std::string v) { value = v; }
     void setTypeTag(nballerina::TypeTag t) { typeTag = t; }
-    void setNameIndex(uint32_t n) { nameIndex = n; }
-    void setTypeFlag(uint32_t t) { typeFlag = t; }
-    void setTypeSpecialFlag(uint32_t t) { typeSpecialFlag = t; }
-    void setParamCount(uint32_t p) { paramCount = p; }
+    void setNameIndex(int32_t n) { nameIndex = n; }
+    void setTypeFlag(int32_t t) { typeFlag = t; }
+    void setTypeSpecialFlag(int32_t t) { typeSpecialFlag = t; }
+    void setParamCount(int32_t p) { paramCount = p; }
     void setRestType(uint8_t r) { hasRestType = r; }
-    void setReturnTypeIndex(uint32_t r) { returnTypeIndex = r; }
-    void setRestTypeIndex(uint32_t r) { restTypeIndex = r; }
+    void setReturnTypeIndex(int32_t r) { returnTypeIndex = r; }
+    void setRestTypeIndex(int32_t r) { restTypeIndex = r; }
     void setState(uint8_t s) { state = s; }
-    void setSize(uint32_t s) { size = s; }
-    void setElementTypeCpIndex(uint32_t i) { elementTypeCpIndex = i; }
+    void setSize(int32_t s) { size = s; }
+    void setElementTypeCpIndex(int32_t i) { elementTypeCpIndex = i; }
 };
 
 class PackageCpInfo : public ConstantPoolEntry {
@@ -228,17 +228,17 @@ class PackageCpInfo : public ConstantPoolEntry {
     ~PackageCpInfo() override = default;
 
   private:
-    uint32_t orgIndex;
-    uint32_t nameIndex;
-    uint32_t versionIndex;
+    int32_t orgIndex;
+    int32_t nameIndex;
+    int32_t versionIndex;
 
   public:
-    uint32_t getOrgIndex() { return orgIndex; }
-    uint32_t getNameIndex() { return nameIndex; }
-    uint32_t getVersionIndex() { return versionIndex; }
-    void setOrgIndex(uint32_t org) { orgIndex = org; }
-    void setNameIndex(uint32_t name) { nameIndex = name; }
-    void setVersionIndex(uint32_t version) { versionIndex = version; }
+    int32_t getOrgIndex() { return orgIndex; }
+    int32_t getNameIndex() { return nameIndex; }
+    int32_t getVersionIndex() { return versionIndex; }
+    void setOrgIndex(int32_t org) { orgIndex = org; }
+    void setNameIndex(int32_t name) { nameIndex = name; }
+    void setVersionIndex(int32_t version) { versionIndex = version; }
 };
 
 class IntCpInfo : public ConstantPoolEntry {
@@ -249,11 +249,11 @@ class IntCpInfo : public ConstantPoolEntry {
     ~IntCpInfo() override = default;
 
   private:
-    uint64_t value;
+    int64_t value;
 
   public:
-    uint64_t getValue() { return value; }
-    void setValue(uint64_t v) { value = v; }
+    int64_t getValue() { return value; }
+    void setValue(int64_t v) { value = v; }
 };
 
 class BooleanCpInfo : public ConstantPoolEntry {
@@ -294,11 +294,11 @@ class ByteCpInfo : public ConstantPoolEntry {
     ~ByteCpInfo() override = default;
 
   private:
-    uint32_t value;
+    int32_t value;
 
   public:
-    uint32_t getValue() { return value; }
-    void setValue(uint32_t v) { value = v; }
+    int32_t getValue() { return value; }
+    void setValue(int32_t v) { value = v; }
 };
 
 class ConstantPoolSet {
@@ -314,13 +314,13 @@ class ConstantPoolSet {
   public:
     BIRReader &readerRef = BIRReader::reader;
     ConstantPoolEntry *getEntry(int index) { return poolEntries[index].get(); }
-    std::string getStringCp(uint32_t index);
-    uint32_t getIntCp(uint32_t index);
-    float getFloatCp(uint32_t index);
-    nballerina::Type getTypeCp(uint32_t index, bool voidToInt);
-    bool getBooleanCp(uint32_t index);
-    nballerina::TypeTag getTypeTag(uint32_t index);
-    nballerina::InvocableType getInvocableType(uint32_t index);
+    std::string getStringCp(int32_t index);
+    int64_t getIntCp(int32_t index);
+    nballerina::Type getTypeCp(int32_t index, bool voidToInt);
+    float getFloatCp(int32_t index);
+    bool getBooleanCp(int32_t index);
+    nballerina::TypeTag getTypeTag(int32_t index);
+    nballerina::InvocableType getInvocableType(int32_t index);
 };
 
 class ReadInsn {

@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     int i = 0;
@@ -10,6 +10,6 @@ public function main() {
         i = i + 2;
     }
     print_string("RESULT=");
-    printu32(i);
+    print_integer(i);
 }
 // CHECK: RESULT=6

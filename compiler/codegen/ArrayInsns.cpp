@@ -42,7 +42,7 @@ LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes = LLVMInt32Type();
+    LLVMTypeRef paramTypes = LLVMInt64Type();
     LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), &paramTypes, 1, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -73,7 +73,7 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeT
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type()};
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type()};
     LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 2, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -104,7 +104,7 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type(),
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type(),
                                 getPackageRef().getLLVMTypeOfType(rhsOpTypeTag)};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
