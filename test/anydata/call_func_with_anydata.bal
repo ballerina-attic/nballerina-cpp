@@ -4,7 +4,7 @@ public function print_string(string val) = external;
 
 public function print_boolean(boolean val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 function fooInt1(anydata x, anydata y) returns int {
     return <int>x + <int>y;
@@ -29,10 +29,10 @@ function fooString(anydata s) returns string {
 
 public function main() {
     print_string("RESULT=");
-    printu32(fooInt1(2, 3));
+    print_integer(fooInt1(2, 3));
 
     print_string("RESULT=");
-    printu32(<int>fooInt2(20, 3));
+    print_integer(<int>fooInt2(20, 3));
 
     print_string("RESULT=");
     print_boolean(fooBool(true, true));

@@ -4,12 +4,12 @@ public function print_string(string val) = external;
 
 public function print_boolean(boolean val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     anydata x = 34;
     print_string("RESULT=");
-    printu32(<int>x);
+    print_integer(<int>x);
     x = true;
     print_string("RESULT=");
     print_boolean(<boolean>x);

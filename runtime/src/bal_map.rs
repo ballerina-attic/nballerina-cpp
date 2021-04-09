@@ -33,8 +33,13 @@ pub mod map {
     }
 
     #[repr(C)]
+    pub struct SmtPtr {
+        pub str_table_offset: i64,
+        pub val: *mut c_void,
+    }
+
     pub struct BalMapAnyData {
-        map: HashMap<String, *mut c_void>,
+        map: HashMap<String, *mut SmtPtr>,
     }
 
     impl BalMapAnyData {
@@ -45,8 +50,12 @@ pub mod map {
         }
 
         // Map insert
-        pub fn insert(&mut self, key: &str, member: *mut c_void) {
+        pub fn insert(&mut self, key: &str, member: *mut SmtPtr) {
             self.map.insert(String::from(key), member);
+        }
+
+        pub fn get(&self, key: &str) -> Option<&*mut SmtPtr> {
+            self.map.get(key)
         }
 
         pub fn insert_spread_field(&mut self, expr: &BalMapAnyData) {

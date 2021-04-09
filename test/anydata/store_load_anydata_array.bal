@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     anydata[] ax1 = [];
@@ -11,9 +11,9 @@ public function main() {
     int i1 = <int>ax1[0];
     int i2 = <int>ax1[1];
     print_string("RESULT=");
-    printu32(i1);    
+    print_integer(i1);    
     print_string("RESULT=");
-    printu32(i2);   
+    print_integer(i2);   
 
     anydata[] ax2 = [];
 	ax2[0] = 234;
@@ -21,7 +21,7 @@ public function main() {
 	anydata[] axTemp = <anydata[]>x;
 	int i3 = <int>axTemp[0];
     print_string("RESULT=");
-	printu32(i3);
+	print_integer(i3);
 
     anydata[] ax3 = [];
     ax3[0] = "Test str";

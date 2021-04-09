@@ -2,8 +2,6 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
-
 string s = "";
 
 function fooAnyData() returns anydata[] {

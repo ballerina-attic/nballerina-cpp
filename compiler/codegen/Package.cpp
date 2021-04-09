@@ -260,9 +260,9 @@ LLVMValueRef Package::getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag type
 
     LLVMTypeRef memberType;
     if (Type::isSmartStructType(typeTag)) {
-        memberType = LLVMPointerType(getLLVMTypeOfTypeTag(typeTag), 0);
+        memberType = LLVMPointerType(getLLVMTypeOfType(typeTag), 0);
     } else {
-        memberType = getLLVMTypeOfTypeTag(typeTag);
+        memberType = getLLVMTypeOfType(typeTag);
     }
 
     LLVMTypeRef keyType = LLVMPointerType(LLVMInt8Type(), 0);

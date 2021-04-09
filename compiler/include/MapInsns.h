@@ -85,7 +85,7 @@ class MapLoadInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getMapLoadDeclaration(LLVMModuleRef &modRef);
+    LLVMValueRef getMapLoadDeclaration(LLVMModuleRef &modRef, LLVMTypeRef outParamType, std::string typeName);
 
   public:
     MapLoadInsn() = delete;

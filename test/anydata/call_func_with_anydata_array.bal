@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 function fooInt() returns int {
     anydata[] ax = [2];
@@ -18,7 +18,7 @@ function fooString() returns string {
 
 public function main() {
     print_string("RESULT=");
-    printu32(fooInt());
+    print_integer(fooInt());
     print_string(fooString());
 }
 // CHECK: RESULT=45

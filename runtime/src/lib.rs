@@ -21,8 +21,8 @@
 
 mod type_checker;
 
-use std::ffi::CStr;
 use std::ffi::c_void;
+use std::ffi::CStr;
 use std::io::{self, Write};
 use std::mem;
 use std::os::raw::c_char;
@@ -31,6 +31,7 @@ use std::slice;
 mod bal_map;
 pub use bal_map::map::BalMapAnyData;
 pub use bal_map::map::BalMapInt;
+pub use bal_map::map::SmtPtr;
 
 pub struct BString {
     value: &'static str,
@@ -195,7 +196,7 @@ pub extern "C" fn array_store_float(arr_ptr: *mut Vec<f32>, index: i32, ref_ptr:
 }
 
 #[no_mangle]
-pub extern "C" fn array_load_anydata(arr_ptr: *mut Vec<*mut i8>, index: i32) -> *mut i8 {
+pub extern "C" fn array_load_anydata(arr_ptr: *mut Vec<*mut c_void>, index: i32) -> *mut c_void {
     let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
@@ -206,12 +207,16 @@ pub extern "C" fn array_load_anydata(arr_ptr: *mut Vec<*mut i8>, index: i32) -> 
 }
 
 #[no_mangle]
-pub extern "C" fn array_store_anydata(arr_ptr: *mut Vec<*mut i8>, index: i32, ref_ptr: *mut i8) {
+pub extern "C" fn array_store_anydata(
+    arr_ptr: *mut Vec<*mut c_void>,
+    index: i32,
+    ref_ptr: *mut c_void,
+) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     let len = index_n + 1;
     if arr.len() < len {
-        arr.resize(len, 0 as *mut i8);
+        arr.resize(len, 0 as *mut c_void);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);
@@ -219,7 +224,7 @@ pub extern "C" fn array_store_anydata(arr_ptr: *mut Vec<*mut i8>, index: i32, re
 
 #[no_mangle]
 pub extern "C" fn array_load_float(arr_ptr: *mut Vec<f32>, index: i32) -> f32 {
-    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
     assert!(arr.len() > index_n);
@@ -242,7 +247,7 @@ pub extern "C" fn array_store_bool(arr_ptr: *mut Vec<bool>, index: i32, ref_ptr:
 
 #[no_mangle]
 pub extern "C" fn array_load_bool(arr_ptr: *mut Vec<bool>, index: i32) -> bool {
-    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
     assert!(arr.len() > index_n);
@@ -252,13 +257,15 @@ pub extern "C" fn array_load_bool(arr_ptr: *mut Vec<bool>, index: i32) -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn array_store_string(arr_ptr: *mut Vec<*mut BString>, index: i32, ref_ptr: *mut BString) {
+pub extern "C" fn array_store_string(
+    arr_ptr: *mut Vec<*mut BString>,
+    index: i32,
+    ref_ptr: *mut BString,
+) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     let len = index_n + 1;
-    let emptystr = BString {
-        value: "",
-    };
+    let emptystr = BString { value: "" };
     let emptystr_ptr = Box::into_raw(Box::new(emptystr));
     if arr.len() < len {
         arr.resize(len, emptystr_ptr as *mut BString);
@@ -375,6 +382,37 @@ pub extern "C" fn map_load_int(
 }
 
 #[no_mangle]
+pub extern "C" fn map_load_anydata(
+    ptr: *mut BalMapAnyData,
+    key: *mut BString,
+    mut output_val: *mut SmtPtr,
+) -> bool {
+    // Load BalMap from pointer
+    assert!(!ptr.is_null());
+    let bal_map = unsafe { &mut *ptr };
+
+    // Load Key C string
+    assert!(!key.is_null());
+    let key_str = unsafe { (*key).value };
+
+    // Output param
+    assert!(!output_val.is_null());
+
+    match bal_map.get(key_str) {
+        Some(val) => {
+            let smt_ptr : *mut SmtPtr = *val;
+            unsafe { (*output_val).val  = (*smt_ptr).val };
+            unsafe { (*output_val).str_table_offset  = (*smt_ptr).str_table_offset };
+            true
+        }
+        None => {
+            panic!("Invalid map key access")
+            //false,
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *mut BalMapInt) {
     // Load source BalMap from pointer
     assert!(!ptr_source.is_null());
@@ -384,8 +422,6 @@ pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *m
     let map_expr = unsafe { &mut *ptr_expr };
     // Insert from spread field expression
     map_src.insert_spread_field(map_expr);
-    // Print length to test functionality
-    println!("length={}", map_src.length());
 }
 
 #[no_mangle]
@@ -397,7 +433,7 @@ pub extern "C" fn map_new_anydata() -> *mut BalMapAnyData {
 pub extern "C" fn map_store_anydata(
     ptr: *mut BalMapAnyData,
     key: *mut BString,
-    member_ptr: *mut c_void,
+    member_ptr: *mut SmtPtr,
 ) {
     // Load BalMap from pointer
     assert!(!ptr.is_null());
@@ -410,27 +446,6 @@ pub extern "C" fn map_store_anydata(
     // Insert new field
     let key_str = unsafe { (*key).value };
     bal_map.insert(key_str, member_ptr);
-
-    // Print length to test functionality
-    println!("length={}", bal_map.length());
-}
-
-#[no_mangle]
-pub extern "C" fn map_spread_field_anydata(
-    ptr_source: *mut BalMapAnyData,
-    ptr_expr: *mut BalMapAnyData,
-) {
-    // Load source BalMap from pointer
-    assert!(!ptr_source.is_null());
-    let map_src = unsafe { &mut *ptr_source };
-    // Load expr BalMap from pointer
-    assert!(!ptr_expr.is_null());
-    let map_expr = unsafe { &mut *ptr_expr };
-    // Insert from spread field expression
-    map_src.insert_spread_field(map_expr);
-
-    // Print length to test functionality
-    println!("length={}", map_src.length());
 }
 
 #[no_mangle]
