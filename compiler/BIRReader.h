@@ -123,8 +123,146 @@ class BIRReader {
     friend class ReadMapLoadInsn;
     friend class TypeId;
     friend class TypeIdSet;
+    friend class ObjectField;
+    friend class Markdown;
+    friend class MarkdownParameter;
+    friend class ObjectAttachedFunction;
+    friend class TableFieldNameList;
+    friend class RecordField;
 };
 
+class TypeIdSet{
+  public:
+    TypeIdSet(){};
+    void read();
+    ~TypeIdSet(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t pkgIdCpIndex;
+    uint32_t typeIdNameCpIndex;
+    uint8_t isPublicId;
+
+  public:
+    uint32_t getPkgCpIndex(){return pkgIdCpIndex;}
+    uint32_t getTypeIdNameCpIndex(){return typeIdNameCpIndex;}
+    uint8_t getIsPublicId(){return isPublicId;}
+};
+class TypeId{
+  public:
+    TypeId(){};
+    void read();
+    ~TypeId(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t primaryTypeIdCount;
+    std::vector<std::unique_ptr<TypeIdSet>> primaryTypeId;
+    uint32_t secondaryTypeIdCount;
+    std::vector<std::unique_ptr<TypeIdSet>> secondaryTypeId;
+  
+  public:
+    uint32_t getPrimaryTypeIdCount(){return primaryTypeIdCount;}
+    uint32_t getSecondaryTypeIdCount(){return secondaryTypeIdCount;}
+    TypeIdSet *getPrimaryTypeId(int index){return primaryTypeId[index].get();}
+    TypeIdSet *getSecondaryTypeId(int index){return secondaryTypeId[index].get();}
+};
+
+class MarkdownParameter{
+  public:
+    MarkdownParameter(){};
+    void read();
+    ~MarkdownParameter(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t nameCpIndex;
+    uint32_t descriptionCpIndex;
+  public:
+    uint32_t getNameCpIndex(){return nameCpIndex;}
+    uint32_t getDescriptionCpIndex(){return descriptionCpIndex;}
+};
+class Markdown{
+  public:
+    Markdown(){};
+    void read();
+    ~Markdown(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t length;
+    uint8_t hasDoc;
+    // markdown content
+    uint32_t descriptionCpIndex;
+    uint32_t returnValueDescriptionCpIndex;
+    uint32_t parametersCount;
+    std::vector<std::unique_ptr<MarkdownParameter>> parameters;
+  public:
+    uint32_t getLength(){return length;}
+    uint8_t getHasDoc(){return hasDoc;}
+    // markdown content
+    uint32_t getDescriptionCpIndex(){return descriptionCpIndex;}
+    uint32_t getReturnValueDescriptionCpIndex(){return returnValueDescriptionCpIndex;}
+    uint32_t getParametersCount(){return parametersCount;}
+    MarkdownParameter *getParameter(int index){return parameters[index].get();}
+};
+
+class ObjectField{
+  public:
+    ObjectField(){};
+    void read();
+    ~ObjectField(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t nameCpIndex;
+    uint64_t flags;
+    std::unique_ptr<Markdown> doc;
+    uint32_t typeCpIndex;
+  public:
+    uint32_t getNameCpIndex(){return nameCpIndex;}
+    uint64_t getFlags(){return flags;}
+    Markdown *getDoc(){return doc.get();}
+    uint64_t getTypeCpIndex(){return typeCpIndex;}
+};
+
+
+
+// identical for RecordInitFunction
+class ObjectAttachedFunction{
+  public:
+    ObjectAttachedFunction(){};
+    void read();
+    ~ObjectAttachedFunction(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t nameCpIndex;
+    uint64_t flags;
+    uint32_t typeCpIndex;
+  public:
+    uint32_t getNameCpIndex(){return nameCpIndex;}
+    uint64_t getFlags(){return flags;}
+    uint32_t getTypeCpIndex(){return typeCpIndex;}
+};
+
+class TableFieldNameList{
+  public:
+    TableFieldNameList(){};
+    void read();
+    ~TableFieldNameList(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t size;
+    std::vector<uint32_t> fieldNameCpIndex;
+};
+
+class RecordField{
+  public:
+    RecordField(){};
+    void read();
+    ~RecordField(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t nameCpIndex;
+    uint64_t flags;
+    std::unique_ptr<Markdown> doc;
+    uint32_t typeCpIndex;
+};
 class ConstantPoolEntry {
 
   public:
@@ -191,6 +329,53 @@ class ShapeCpInfo : public ConstantPoolEntry {
     uint32_t pkgIdCpIndex;
     uint32_t errorTypeNameCpIndex;
     uint32_t detailTypeCpIndex;
+    std::unique_ptr<TypeId> typeIds;
+    uint8_t isAnyFunction;
+    uint8_t hasErrorType;
+    uint32_t errorTypeCpIndex;
+    uint32_t paramValueTypeCpIndex;
+    uint32_t paramIndex;
+    //todo : add getters
+    uint8_t isObjectType;
+    uint32_t nameCpIndex;
+    uint8_t isAbstract;
+    uint8_t isClient;
+    uint32_t objectFieldsCount;
+    std::vector<std::unique_ptr<ObjectField>> objectFields;
+    uint8_t hasGeneratedInitFunction;
+    std::unique_ptr<ObjectAttachedFunction> generatedInitFunction;
+    uint8_t hasInitFunction;
+    std::unique_ptr<ObjectAttachedFunction> initFunction;
+    uint32_t objectAttachedFunctionsCount;
+    std::vector<std::unique_ptr<ObjectAttachedFunction>> objectAttachedFunctions;
+    uint32_t typeInclusionsCount;
+    std::vector<uint32_t> typeInclusionsCpIndex;
+    uint8_t isCyclic;
+    uint8_t hasName;
+    uint32_t memberTypeCount;
+    std::vector<uint32_t> memberTypeCpIndex;
+    uint32_t originalMemberTypeCount;
+    std::vector<uint32_t> originalMemberTypeCpIndex;
+    uint8_t isEnumType;
+    uint32_t pkgCpIndex;
+    uint32_t enumName;
+    uint32_t enumMemberSize;
+    std::vector<uint32_t> enumMembers;
+    uint32_t tupleTypesCount;
+    std::vector<uint32_t> tupleTypeCpIndex;
+    uint32_t restTypeCpIndex;
+    uint32_t constituentTypesCount;
+    std::vector<uint32_t> constituentTypeCpIndex;
+    uint32_t effectiveTypeCount;
+    uint8_t hasFieldNameList;
+    std::unique_ptr<TableFieldNameList> fieldNameList;
+    uint8_t hasKeyConstraintType;
+    uint32_t keyConstraintTypeCpIndex;
+    uint8_t isSealed;
+    uint32_t resetFieldTypeCpIndex;
+    uint32_t recordFieldCount;
+    std::vector<std::unique_ptr<RecordField>> recordFields;
+    std::unique_ptr<ObjectAttachedFunction> recordInitFunction; //todo: mayhave to change this in the future
 
   public:
     int32_t getShapeLength() { return shapeLength; }
@@ -212,6 +397,12 @@ class ShapeCpInfo : public ConstantPoolEntry {
     uint32_t getPkgIdCpIndex() { return pkgIdCpIndex; }
     uint32_t getErrorTypeNameCpIndex() { return errorTypeNameCpIndex; }
     uint32_t getDetailTypeCpIndex() { return detailTypeCpIndex; }
+    TypeId *getTypeIds(){return typeIds.get();} 
+    uint8_t getIsAnyFunction(){return isAnyFunction;}
+    uint8_t getHasErrorType(){return hasErrorType;}
+    uint32_t getErrorTypeCpIndex() { return errorTypeCpIndex; }
+    uint32_t getParamValueTypeCpIndex() { return paramValueTypeCpIndex; }
+    uint32_t getParamIndex() { return paramIndex; }
 
     void setShapeLength(int32_t s) { shapeLength = s; }
     void setValue(std::string v) { value = v; }
@@ -491,39 +682,4 @@ class ReadMapLoadInsn : public ReadNonTerminatorInstruction {
     std::unique_ptr<nballerina::MapLoadInsn> readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
 };
 
-class TypeId{
-  public:
-    TypeId(){};
-    void read();
-    ~TypeId(){};
-    BIRReader &readerRef = BIRReader::reader;
-  private:
-    uint32_t primaryTypeIdCount;
-    std::vector<std::unique_ptr<TypeIdSet>> primaryTypeId;
-    uint32_t secondaryTypeIdCount;
-    std::vector<std::unique_ptr<TypeIdSet>> secondaryTypeId;
-  
-  public:
-    uint32_t getPrimaryTypeIdCount(){return primaryTypeIdCount;}
-    uint32_t getSecondaryTypeIdCount(){return secondaryTypeIdCount;}
-    TypeIdSet *getPrimaryTypeId(int index){return primaryTypeId[index].get();}
-    TypeIdSet *getSecondaryTypeId(int index){return secondaryTypeId[index].get();}
-};
-
-class TypeIdSet{
-  public:
-    TypeIdSet(){};
-    void read();
-    ~TypeIdSet(){};
-    BIRReader &readerRef = BIRReader::reader;
-  private:
-    uint32_t pkgIdCpIndex;
-    uint32_t typeIdNameCpIndex;
-    uint8_t isPublicId;
-
-  public:
-    uint32_t getPkgCpIndex(){return pkgIdCpIndex;}
-    uint32_t getTypeIdNameCpIndex(){return typeIdNameCpIndex;}
-    uint8_t getIsPublicId(){return isPublicId;}
-};
 #endif // BIRREADER_H

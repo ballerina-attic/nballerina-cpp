@@ -784,29 +784,218 @@ void ShapeCpInfo::read() {
     shapeLength = readerRef.readS4be();
     typeTag = TypeTag(readerRef.readU1());
     nameIndex = readerRef.readS4be();
-    typeFlag = readerRef.readS4be();
+    typeFlag = readerRef.readS8be();
     typeSpecialFlag = readerRef.readS4be();
 
     int32_t shapeLengthTypeInfo = shapeLength - 13;
 
     switch (typeTag) {
     case TYPE_TAG_INVOKABLE: {
-        paramCount = readerRef.readS4be();
-        for (auto i = 0; i < paramCount; i++) {
-            int32_t paramTypeCpIndex = readerRef.readS4be();
-            addParam(paramTypeCpIndex);
+        isAnyFunction = readerRef.readU1(); 
+        if(isAnyFunction){
+            paramCount = readerRef.readS4be();
+            for (unsigned int i = 0; i < paramCount; i++) {
+                uint32_t paramTypeCpIndex = readerRef.readS4be();
+                addParam(paramTypeCpIndex);
+            }
+            hasRestType = readerRef.readU1();
+            if (hasRestType) {
+                restTypeIndex = readerRef.readS4be();
+            }
+            returnTypeIndex = readerRef.readS4be();
         }
-        hasRestType = readerRef.readU1();
-        if (hasRestType) {
-            restTypeIndex = readerRef.readS4be();
-        }
-        returnTypeIndex = readerRef.readS4be();
         break;
     }
     case TYPE_TAG_MAP: {
         assert(shapeLengthTypeInfo == 4);
         constraintTypeCpIndex = readerRef.readS4be();
         break;
+    }
+    case TYPE_TAG_ERROR:{
+        pkgIdCpIndex = readerRef.readS4be();
+        errorTypeNameCpIndex = readerRef.readS4be();
+        detailTypeCpIndex = readerRef.readS4be(); 
+        typeIds = std::make_unique<TypeId>();
+        typeIds-> read();
+        break;
+    }
+    case TYPE_TAG_STREAM:{
+        constraintTypeCpIndex = readerRef.readS4be();
+        hasErrorType = readerRef.readU1();
+        if (hasErrorType)
+        {
+            errorTypeCpIndex = readerRef.readS4be();
+        }
+        break;
+    }
+    case TYPE_TAG_TYPEDESC:{
+        constraintTypeCpIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_PARAMETERIZED_TYPE: {
+        paramValueTypeCpIndex = readerRef.readS4be();
+        paramIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_FUTURE:{
+        constraintTypeCpIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_OBJECT:{
+        isObjectType = readerRef.readU1();
+        pkgIdCpIndex = readerRef.readS4be(); // this is assuming pkd_id_cp_index is an typo
+        nameCpIndex = readerRef.readS4be();
+        isAbstract = readerRef.readU1();
+        isClient = readerRef.readU1();
+        objectFieldsCount = readerRef.readS4be();
+        objectFields = std::vector<std::unique_ptr<ObjectField>>();
+        objectFields.reserve(objectFieldsCount);
+        for (int i = 0; i < objectFieldsCount; i++)
+        {
+            auto objectField = std::make_unique<ObjectField>();
+            objectField->read();
+            objectFields.push_back(std::move(objectField));
+        }
+        hasGeneratedInitFunction = readerRef.readU1();
+        if (hasGeneratedInitFunction)
+        {
+            generatedInitFunction = std::make_unique<ObjectAttachedFunction>();
+            generatedInitFunction-> read();
+        }
+        hasInitFunction = readerRef.readU1();
+        if (hasInitFunction)
+        {
+            initFunction = std::make_unique<ObjectAttachedFunction>();
+            initFunction-> read();
+        }
+        objectAttachedFunctionsCount = readerRef.readS4be();
+        objectAttachedFunctions = std::vector<std::unique_ptr<ObjectAttachedFunction>>();
+        objectAttachedFunctions.reserve(objectAttachedFunctionsCount);
+        for (int i = 0; i < objectAttachedFunctionsCount; i++)
+        {
+            auto objectAttachedFunction = std::make_unique<ObjectAttachedFunction>();
+            objectAttachedFunction->read();
+            objectAttachedFunctions.push_back(std::move(objectAttachedFunction));
+        }
+        typeInclusionsCount = readerRef.readS4be();
+        typeInclusionsCpIndex = std::vector<uint32_t>();
+        typeInclusionsCpIndex.reserve(typeInclusionsCount);
+        for (int i = 0; i < typeInclusionsCount; i++)
+        {
+            typeInclusionsCpIndex.push_back(readerRef.readS4be());
+        }
+        typeIds = std::make_unique<TypeId>();
+        typeIds->read();
+        break;
+    }
+    case TYPE_TAG_UNION:{
+        isCyclic = readerRef.readU1();
+        hasName = readerRef.readU1();
+        if (hasName)
+        {
+            pkgIdCpIndex = readerRef.readS4be();
+        }
+        memberTypeCount = readerRef.readS4be(); 
+        memberTypeCpIndex = std::vector<uint32_t>();
+        memberTypeCpIndex.reserve(memberTypeCount);
+        for (int i = 0; i < memberTypeCount; i++)
+        {
+            memberTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        originalMemberTypeCount = readerRef.readS4be(); 
+        originalMemberTypeCpIndex = std::vector<uint32_t>();
+        originalMemberTypeCpIndex.reserve(originalMemberTypeCount);
+        for (int i = 0; i < originalMemberTypeCount; i++)
+        {
+            originalMemberTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        isEnumType = readerRef.readU1();
+        if(isEnumType){
+            pkgCpIndex = readerRef.readS4be();
+            enumName = readerRef.readS4be();
+            enumMemberSize = readerRef.readS4be();
+            enumMembers = std::vector<uint32_t>();
+            enumMembers.reserve(enumMemberSize);
+            for (int i = 0; i < enumMemberSize; i++)
+            {
+                enumMembers.push_back(readerRef.readS4be());
+            }
+        }
+        break;
+    }
+    case TYPE_TAG_TUPLE:{
+        tupleTypesCount = readerRef.readS4be();
+        tupleTypeCpIndex = std::vector<uint32_t>();
+        tupleTypeCpIndex.reserve(tupleTypesCount);
+        for (int i = 0; i < tupleTypesCount; i++)
+        {
+            tupleTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        hasRestType = readerRef.readU1();
+        if(hasRestType){
+            restTypeCpIndex = readerRef.readS4be();
+        }
+        break;
+    }
+    case TYPE_TAG_INTERSECTION:{
+        constituentTypesCount = readerRef.readS4be();
+        constituentTypeCpIndex = std::vector<uint32_t>();
+        constituentTypeCpIndex.reserve(constituentTypesCount);
+        for (int i = 0; i < constituentTypesCount; i++)
+        {
+            constituentTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        effectiveTypeCount = readerRef.readS4be();
+        break; 
+    }
+    case TYPE_TAG_XML:{
+        constraintTypeCpIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_TABLE:{
+        constraintTypeCpIndex = readerRef.readS4be();
+        hasFieldNameList = readerRef.readS4be();
+        if (hasFieldNameList)
+        {
+            fieldNameList = std::make_unique<TableFieldNameList>();
+            fieldNameList->read();
+        }
+        hasKeyConstraintType = readerRef.readU1();
+        if (hasKeyConstraintType)
+        {
+            keyConstraintTypeCpIndex = readerRef.readS4be();
+        }
+        break;
+    }
+    case TYPE_TAG_RECORD:{
+        pkgIdCpIndex = readerRef.readS4be();
+        nameCpIndex = readerRef.readS4be();
+        isSealed = readerRef.readU1();
+        resetFieldTypeCpIndex = readerRef.readS4be();
+        recordFieldCount = readerRef.readS4be();
+        recordFields = std::vector<std::unique_ptr<RecordField>>(); 
+        recordFields.reserve(recordFieldCount);
+        for (int i = 0; i < recordFieldCount; i++)
+        {
+            auto recordField = std::make_unique<RecordField>();
+            recordField->read();
+            recordFields.push_back(std::move(recordField));
+        }
+        hasInitFunction = readerRef.readU1();
+        if (hasInitFunction)
+        {
+            recordInitFunction = std::make_unique<ObjectAttachedFunction>();
+            recordInitFunction->read();
+        }
+        typeInclusionsCount = readerRef.readS4be();
+        typeInclusionsCpIndex = std::vector<uint32_t>();
+        typeInclusionsCpIndex.reserve(typeInclusionsCount);
+        for (int i = 0; i < typeInclusionsCount; i++)
+        {
+            typeInclusionsCpIndex.push_back(readerRef.readS4be());
+        }
+        
+         
     }
     case TYPE_TAG_INT:
     case TYPE_TAG_BYTE:
@@ -815,29 +1004,18 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_STRING:
     case TYPE_TAG_BOOLEAN:
     case TYPE_TAG_JSON:
-    case TYPE_TAG_XML:
-    case TYPE_TAG_TABLE:
     case TYPE_TAG_NIL:
     case TYPE_TAG_ANYDATA:
-    case TYPE_TAG_RECORD:
-    case TYPE_TAG_TYPEDESC:
-    case TYPE_TAG_STREAM:
     case TYPE_TAG_ANY:
     case TYPE_TAG_ENDPOINT:
-    case TYPE_TAG_UNION:
-    case TYPE_TAG_INTERSECTION:
     case TYPE_TAG_PACKAGE:
     case TYPE_TAG_NONE:
     case TYPE_TAG_VOID:
     case TYPE_TAG_XMLNS:
     case TYPE_TAG_ANNOTATION:
     case TYPE_TAG_SEMANTIC_ERROR:
-    case TYPE_TAG_ERROR:
     case TYPE_TAG_ITERATOR:
-    case TYPE_TAG_TUPLE:
-    case TYPE_TAG_FUTURE:
     case TYPE_TAG_FINITE:
-    case TYPE_TAG_OBJECT:
     case TYPE_TAG_SERVICE:
     case TYPE_TAG_BYTE_ARRAY:
     case TYPE_TAG_FUNCTION_POINTER:
@@ -855,15 +1033,15 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_XML_COMMENT:
     case TYPE_TAG_XML_TEXT:
     case TYPE_TAG_NEVER:
-    case TYPE_TAG_NULL_SET:
-    case TYPE_TAG_PARAMETERIZED_TYPE: {
-        readerRef.is.ignore(shapeLengthTypeInfo);
+    case TYPE_TAG_NULL_SET:{
+        std::vector<char> result(shapeLengthTypeInfo);
+        readerRef.is.read(&result[0], shapeLengthTypeInfo);
         break;
     }
     case TYPE_TAG_ARRAY: {
         state = readerRef.readU1();
         size = readerRef.readS4be();
-        elementTypeCpIndex = readerRef.readS4be();
+        elementTypeCpIndex = readerRef.readS4be(); // should this not be changed?
         break;
     }
     default:
@@ -1067,4 +1245,85 @@ std::shared_ptr<nballerina::Package> BIRReader::deserialize() {
 
     // Read Module
     return readModule();
+}
+
+void TypeId::read(){
+    primaryTypeIdCount = readerRef.readS4be();
+    primaryTypeId = std::vector<std::unique_ptr<TypeIdSet>>();
+    primaryTypeId.reserve(primaryTypeIdCount);
+    for(int i=0; i< primaryTypeIdCount; i++){
+        auto typeIdSet = std::make_unique<TypeIdSet>();
+        typeIdSet->read();
+        primaryTypeId.push_back(std::move(typeIdSet));
+    }
+    secondaryTypeIdCount = readerRef.readS4be();
+    secondaryTypeId = std::vector<std::unique_ptr<TypeIdSet>>();
+    secondaryTypeId.reserve(secondaryTypeIdCount);
+    for(int i=0; i< secondaryTypeIdCount; i++){
+        auto typeIdSet = std::make_unique<TypeIdSet>();
+        typeIdSet->read();
+        secondaryTypeId.push_back(std::move(typeIdSet));
+    }
+}
+
+void TypeIdSet::read(){
+    pkgIdCpIndex = readerRef.readS4be();
+    typeIdNameCpIndex = readerRef.readS4be();
+    isPublicId = readerRef.readU1();
+}
+
+void ObjectField::read(){
+    nameCpIndex = readerRef.readS4be();
+    flags = readerRef.readS8be();
+    doc = std::make_unique<Markdown>();
+    doc->read();
+    typeCpIndex = readerRef.readS4be();
+}
+
+void Markdown::read(){
+    length = readerRef.readS4be();
+    hasDoc = readerRef.readU1();
+    if(hasDoc){
+        descriptionCpIndex = readerRef.readS4be();
+        returnValueDescriptionCpIndex = readerRef.readS4be();
+        parametersCount = readerRef.readS4be();
+        parameters = std::vector<std::unique_ptr<MarkdownParameter>>();
+        parameters.reserve(parametersCount);
+        for (int i = 0; i < parametersCount; i++)
+        {
+            auto parameter = std::make_unique<MarkdownParameter>();
+            parameter->read();
+            parameters.push_back(std::move(parameter));
+        }
+    }
+}
+
+void MarkdownParameter::read(){
+    nameCpIndex = readerRef.readS4be();
+    descriptionCpIndex = readerRef.readS4be();
+}
+
+void ObjectAttachedFunction::read(){
+    nameCpIndex = readerRef.readS4be();
+    flags = readerRef.readS8be();
+    typeCpIndex = readerRef.readS4be();
+}
+
+void TableFieldNameList::read(){
+    size = readerRef.readS4be();
+    fieldNameCpIndex = std::vector<uint32_t>();
+    fieldNameCpIndex.reserve(size);
+    for (int i = 0; i < size; i++)
+    {
+        fieldNameCpIndex.push_back(readerRef.readS4be());
+    }
+    
+}
+
+void RecordField::read(){
+    nameCpIndex = readerRef.readS4be();
+    flags = readerRef.readS8be();
+    doc = std::make_unique<Markdown>();
+    doc->read();
+    typeCpIndex = readerRef.readS4be();
 }
