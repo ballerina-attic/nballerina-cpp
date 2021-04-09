@@ -2,7 +2,7 @@ pub mod map {
     use std::collections::HashMap;
 
     pub struct BalMapInt {
-        map: HashMap<String, i32>,
+        map: HashMap<String, i64>,
     }
 
     impl BalMapInt {
@@ -12,11 +12,11 @@ pub mod map {
             }
         }
         // Map get
-        pub fn get(&self, key: &str) -> Option<&i32> {
+        pub fn get(&self, key: &str) -> Option<&i64> {
             self.map.get(key)
         }
         // Map insert
-        pub fn insert(&mut self, key: &str, member: i32) {
+        pub fn insert(&mut self, key: &str, member: i64) {
             self.map.insert(String::from(key), member);
         }
 

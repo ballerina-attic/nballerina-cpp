@@ -3,7 +3,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 map<int> marks = {};
 int value = 60;
@@ -19,12 +19,12 @@ public function main() {
     int? loadVal = marks["jon"];
     int johnsMarks = <int>loadVal;
     print_string("RESULT=");
-    printu32(johnsMarks);
+    print_integer(johnsMarks);
 
     int? loadVal2 = marks["jake"];
     int jakeMarks = <int>loadVal2;
     print_string("RESULT=");
-    printu32(jakeMarks);
+    print_integer(jakeMarks);
 }
 // CHECK: RESULT=60
 // CHECK: RESULT=80
