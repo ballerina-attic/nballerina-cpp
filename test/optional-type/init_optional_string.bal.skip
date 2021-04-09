@@ -7,5 +7,4 @@ public function main() {
     print_string("RESULT=");
     print_string(<string>str);
 }
-
 // CHECK: RESULT=Hello World!
