@@ -121,6 +121,8 @@ class BIRReader {
     friend class ReadArrayLoadInsn;
     friend class ReadMapStoreInsn;
     friend class ReadMapLoadInsn;
+    friend class TypeId;
+    friend class TypeIdSet;
 };
 
 class ConstantPoolEntry {
@@ -184,8 +186,11 @@ class ShapeCpInfo : public ConstantPoolEntry {
     std::vector<int32_t> params;
     int32_t constraintTypeCpIndex;
     uint8_t state;
-    int32_t size;
-    int32_t elementTypeCpIndex;
+    uint32_t size;
+    uint32_t elementTypeCpIndex;
+    uint32_t pkgIdCpIndex;
+    uint32_t errorTypeNameCpIndex;
+    uint32_t detailTypeCpIndex;
 
   public:
     int32_t getShapeLength() { return shapeLength; }
@@ -202,8 +207,11 @@ class ShapeCpInfo : public ConstantPoolEntry {
     int32_t getParam(int32_t index) { return params[index]; }
     int32_t getConstraintTypeCpIndex() { return constraintTypeCpIndex; }
     uint8_t getState() { return state; }
-    int32_t getSize() { return size; }
-    int32_t getElementTypeCpIndex() { return elementTypeCpIndex; }
+    uint32_t getSize() { return size; }
+    uint32_t getElementTypeCpIndex() { return elementTypeCpIndex; }
+    uint32_t getPkgIdCpIndex() { return pkgIdCpIndex; }
+    uint32_t getErrorTypeNameCpIndex() { return errorTypeNameCpIndex; }
+    uint32_t getDetailTypeCpIndex() { return detailTypeCpIndex; }
 
     void setShapeLength(int32_t s) { shapeLength = s; }
     void setValue(std::string v) { value = v; }
@@ -216,8 +224,11 @@ class ShapeCpInfo : public ConstantPoolEntry {
     void setReturnTypeIndex(int32_t r) { returnTypeIndex = r; }
     void setRestTypeIndex(int32_t r) { restTypeIndex = r; }
     void setState(uint8_t s) { state = s; }
-    void setSize(int32_t s) { size = s; }
-    void setElementTypeCpIndex(int32_t i) { elementTypeCpIndex = i; }
+    void setSize(uint32_t s) { size = s; }
+    void setElementTypeCpIndex(uint32_t i) { elementTypeCpIndex = i; }
+    void setPkgIdCpIndex(uint32_t i) { pkgIdCpIndex = i; }
+    void setErrorTypeNameCpIndex(uint32_t i) { errorTypeNameCpIndex = i; }
+    void setDetailTypeCpIndex(uint32_t i) { detailTypeCpIndex = i; }
 };
 
 class PackageCpInfo : public ConstantPoolEntry {
@@ -480,4 +491,39 @@ class ReadMapLoadInsn : public ReadNonTerminatorInstruction {
     std::unique_ptr<nballerina::MapLoadInsn> readNonTerminatorInsn(std::shared_ptr<nballerina::BasicBlock> currentBB);
 };
 
+class TypeId{
+  public:
+    TypeId(){};
+    void read();
+    ~TypeId(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t primaryTypeIdCount;
+    std::vector<std::unique_ptr<TypeIdSet>> primaryTypeId;
+    uint32_t secondaryTypeIdCount;
+    std::vector<std::unique_ptr<TypeIdSet>> secondaryTypeId;
+  
+  public:
+    uint32_t getPrimaryTypeIdCount(){return primaryTypeIdCount;}
+    uint32_t getSecondaryTypeIdCount(){return secondaryTypeIdCount;}
+    TypeIdSet *getPrimaryTypeId(int index){return primaryTypeId[index].get();}
+    TypeIdSet *getSecondaryTypeId(int index){return secondaryTypeId[index].get();}
+};
+
+class TypeIdSet{
+  public:
+    TypeIdSet(){};
+    void read();
+    ~TypeIdSet(){};
+    BIRReader &readerRef = BIRReader::reader;
+  private:
+    uint32_t pkgIdCpIndex;
+    uint32_t typeIdNameCpIndex;
+    uint8_t isPublicId;
+
+  public:
+    uint32_t getPkgCpIndex(){return pkgIdCpIndex;}
+    uint32_t getTypeIdNameCpIndex(){return typeIdNameCpIndex;}
+    uint8_t getIsPublicId(){return isPublicId;}
+};
 #endif // BIRREADER_H
