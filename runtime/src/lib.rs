@@ -25,7 +25,6 @@ use std::ffi::CStr;
 use std::io::{self, Write};
 use std::mem;
 use std::os::raw::c_char;
-use std::slice;
 
 mod bal_map;
 pub use bal_map::map::BalMapInt;
@@ -94,12 +93,6 @@ pub extern "C" fn print_integer(num64: i64) {
 #[no_mangle]
 pub extern "C" fn printf64(num64: f64) {
     println!("{}", num64);
-}
-
-// Prints 32 bit float
-#[no_mangle]
-pub extern "C" fn printf32(num32: f32) {
-    println!("{}", num32);
 }
 
 // Prints boolean
@@ -185,7 +178,7 @@ pub extern "C" fn array_store_float(arr_ptr: *mut Vec<f32>, index: i32, ref_ptr:
 
 #[no_mangle]
 pub extern "C" fn array_load_float(arr_ptr: *mut Vec<f32>, index: i32) -> f32 {
-    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
     assert!(arr.len() > index_n);
@@ -208,7 +201,7 @@ pub extern "C" fn array_store_bool(arr_ptr: *mut Vec<bool>, index: i32, ref_ptr:
 
 #[no_mangle]
 pub extern "C" fn array_load_bool(arr_ptr: *mut Vec<bool>, index: i32) -> bool {
-    let arr = unsafe { Box::from_raw(arr_ptr)};
+    let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
     assert!(arr.len() > index_n);
@@ -218,13 +211,15 @@ pub extern "C" fn array_load_bool(arr_ptr: *mut Vec<bool>, index: i32) -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn array_store_string(arr_ptr: *mut Vec<*mut BString>, index: i32, ref_ptr: *mut BString) {
+pub extern "C" fn array_store_string(
+    arr_ptr: *mut Vec<*mut BString>,
+    index: i32,
+    ref_ptr: *mut BString,
+) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     let len = index_n + 1;
-    let emptystr = BString {
-        value: "",
-    };
+    let emptystr = BString { value: "" };
     let emptystr_ptr = Box::into_raw(Box::new(emptystr));
     if arr.len() < len {
         arr.resize(len, emptystr_ptr as *mut BString);
@@ -369,12 +364,12 @@ pub extern "C" fn unbox_bal_int(ptr: *mut i64) {
 }
 
 #[no_mangle]
-pub extern "C" fn box_bal_float(val: f64) -> *mut f64 {
+pub extern "C" fn box_bal_double(val: f64) -> *mut f64 {
     Box::into_raw(Box::new(val))
 }
 
 #[no_mangle]
-pub extern "C" fn unbox_bal_float(ptr: *mut f64) {
+pub extern "C" fn unbox_bal_double(ptr: *mut f64) {
     if ptr.is_null() {
         return;
     }

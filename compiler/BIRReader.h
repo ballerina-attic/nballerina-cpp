@@ -317,7 +317,7 @@ class ConstantPoolSet {
     std::string getStringCp(int32_t index);
     int64_t getIntCp(int32_t index);
     nballerina::Type getTypeCp(int32_t index, bool voidToInt);
-    float getFloatCp(int32_t index);
+    double getFloatCp(int32_t index);
     bool getBooleanCp(int32_t index);
     nballerina::TypeTag getTypeTag(int32_t index);
     nballerina::InvocableType getInvocableType(int32_t index);
