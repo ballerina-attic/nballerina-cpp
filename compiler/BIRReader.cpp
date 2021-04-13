@@ -1229,8 +1229,13 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
         }
     }
 
-    int32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
-    int32_t functionCount = readS4be();
+    uint32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
+    for (int i = 0; i < typeDefinitionBodiesCount; i++)
+    {
+        // TODO: ignore type definition bodies
+    }
+    
+    uint32_t functionCount = readS4be();
 
     // Push all the functions in BIRpackage except __init, __start & __stop
     for (auto i = 0; i < functionCount; i++) {
@@ -1242,6 +1247,17 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
 
     int32_t annotationsSize __attribute__((unused)) = readS4be();
 
+    for (int i = 0; i < annotationsSize; i++)
+    {
+        // TODO: ignore annotations
+    }
+    
+    uint32_t serviceDeclSize __attribute__((unused)) = readS4be();
+    for (int i = 0; i < serviceDeclSize; i++)
+    {
+        // TODO: service declarations
+    }
+    
     // Assign typedecl to function param of call Insn
     // patchTypesToFuncParam();
 
