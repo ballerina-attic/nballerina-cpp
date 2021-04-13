@@ -280,10 +280,11 @@ Variable BIRReader::readLocalVar() {
     if (kind == ARG_VAR_KIND) {
         int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
     } else if (kind == LOCAL_VAR_KIND) {
-        int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
-        int32_t endBbIdCpIndex __attribute__((unused)) = readS4be();
-        int32_t startBbIdCpIndex __attribute__((unused)) = readS4be();
-        int32_t instructionOffset __attribute__((unused)) = readS4be();
+        //enclosing basic block id
+        uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
+        uint32_t endBbIdCpIndex __attribute__((unused)) = readS4be();
+        uint32_t startBbIdCpIndex __attribute__((unused)) = readS4be();
+        uint32_t instructionOffset __attribute__((unused)) = readS4be();
     }
     return Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind);
 }
@@ -533,11 +534,11 @@ std::unique_ptr<ReturnInsn> ReadReturnInsn::readTerminatorInsn(std::shared_ptr<B
 
 // Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the BIR
 void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
-    int32_t sLine = readS4be();
-    int32_t eLine = readS4be();
-    int32_t sCol = readS4be();
-    int32_t eCol = readS4be();
-    int32_t sourceFileCpIndex = readS4be();
+    uint32_t sourceFileCpIndex = readS4be();
+    uint32_t sLine = readS4be();
+    uint32_t sCol = readS4be();
+    uint32_t eLine = readS4be();
+    uint32_t eCol = readS4be();
     Location location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
 
     InstructionKind insnKind = (InstructionKind)readU1();
@@ -664,11 +665,12 @@ bool BIRReader::ignoreFunction(std::string funcName) {
 std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> package) {
 
     // Read debug info
-    int32_t sLine = readS4be();
-    int32_t eLine = readS4be();
-    int32_t sCol = readS4be();
-    int32_t eCol = readS4be();
-    int32_t sourceFileCpIndex = readS4be();
+    // position
+    uint32_t sourceFileCpIndex = readS4be();
+    uint32_t sLine = readS4be();
+    uint32_t sCol = readS4be();
+    uint32_t eLine = readS4be();
+    uint32_t eCol = readS4be();
     Location location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
 
     // TODO should not set src for every function
@@ -684,9 +686,15 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
         std::make_shared<Function>(package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
     birFunction->setLocation(location);
 
-    int64_t annotationLength __attribute__((unused)) = readS8be();
-    int32_t annotationAttachments __attribute__((unused)) = readS4be();
-    int32_t requiredParamCount = readS4be();
+    // annotation_attachments_content
+    uint64_t annotationLength __attribute__((unused)) = readS8be(); //annotation_attachments_content_length
+    uint32_t annotationAttachments __attribute__((unused)) = readS4be(); //attachments_count
+    for (int i = 0; i < annotationAttachments; i++)
+    {
+        // TODO: ignore annotation attachments
+    }
+    
+    uint32_t requiredParamCount = readS4be();
 
     // Set function param here and then fill remaining values from the default Params
     std::vector<nballerina::Operand> functionParams;
@@ -694,16 +702,27 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     for (auto i = 0; i < requiredParamCount; i++) {
         int32_t paramNameCpIndex = readS4be();
         functionParams.push_back(Operand(constantPool->getStringCp(paramNameCpIndex), ARG_VAR_KIND));
-        int32_t paramFlags __attribute__((unused)) = readS4be();
+        uint64_t paramFlags __attribute__((unused)) = readS8be();
     }
 
     uint8_t hasRestParam __attribute__((unused)) = readU1();
+    uint32_t restParamNameCpIndex __attribute__((unused));
+    if (hasRestParam)
+    {
+        restParamNameCpIndex = readS4be();
+    }
+    
     // if (!hasRestParam)
     //   birFunction->setRestParam(NULL);
 
     uint8_t hasReceiver __attribute__((unused)) = readU1();
     // if (!hasReceiver)
     //   birFunction->setReceiver(NULL);
+    if (hasReceiver)
+    {
+        // TODO: ignore receiver
+    }
+    
 
     auto taintTableLength = readS8be();
     is.ignore(taintTableLength);
@@ -711,10 +730,38 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     auto docLength = readS4be();
     is.ignore(docLength);
 
-    int64_t functionBodyLength __attribute__((unused)) = readS8be();
-    int32_t argsCount __attribute__((unused)) = readS4be();
+    uint32_t depended_global_var_length __attribute__((unused)) = readS4be();
+    uint32_t depended_global_var_cp_entry __attribute__((unused));
+    for (int i = 0; i < depended_global_var_length; i++)
+    {
+        depended_global_var_cp_entry = readS4be();
+    }
+    uint64_t scopeTableLength __attribute__((unused)) = readS8be();
+    uint32_t scopeEntryCount __attribute__((unused)) = readS4be();
+    //scope entry
+    uint32_t currentScopeIndex __attribute__((unused));
+    uint32_t instructionOffset __attribute__((unused));
+    uint8_t hasParent __attribute__((unused));
+    uint32_t parentScopeIndex __attribute__((unused));
+    for (int i = 0; i < scopeEntryCount; i++)
+    {
+        currentScopeIndex = readS4be();
+        instructionOffset = readS4be();
+        hasParent = readU1();
+        if (hasParent)
+        {
+            parentScopeIndex = readS4be();
+        }
+        
+    }
+    
+
+    uint64_t functionBodyLength __attribute__((unused)) = readS8be();
+    // function body
+    uint32_t argsCount __attribute__((unused)) = readS4be();
     uint8_t hasReturnVar = readU1();
 
+    //returnVar
     if (hasReturnVar) {
         uint8_t kind = readU1();
         int32_t typeCpIndex = readS4be();
@@ -723,8 +770,9 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
         birFunction->setReturnVar(Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind));
     }
 
-    int32_t defaultParamValue = readS4be();
-    for (auto i = 0; i < defaultParamValue; i++) {
+    uint32_t defaultParamValue = readS4be();
+    //default parameter
+    for (size_t i = 0; i < defaultParamValue; i++) {
         uint8_t kind = readU1();
         int32_t typeCpIndex = readS4be();
         birFunction->insertParam(FunctionParam(functionParams[i], constantPool->getTypeCp(typeCpIndex, false)));
@@ -740,12 +788,14 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     for (auto i = 0; i < localVarCount; i++) {
         birFunction->insertLocalVar(readLocalVar());
     }
-    // Ignore default param values
-    for (auto i = 0; i < defaultParamValue; i++) {
-        int32_t basicBlocksCount __attribute__((unused)) = readS4be();
+
+    for (size_t i = 0; i < defaultParamValue; i++) {
+        //default parameter basic blocks info
+        // TODO: ignore default paramter basic blocks info
     }
 
-    int32_t BBCount = readS4be();
+    //basic block info
+    uint32_t BBCount = readS4be();
     std::shared_ptr<BasicBlock> previousBB;
     for (auto i = 0; i < BBCount; i++) {
         auto basicBlock = readBasicBlock(birFunction);
@@ -760,8 +810,9 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // Patching the Instructions
     birFunction->patchBasicBlocks();
 
-    int32_t errorEntriesCount __attribute__((unused)) = readS4be();
-    int32_t channelsLength __attribute__((unused)) = readS4be();
+    // error table
+    uint32_t errorEntriesCount __attribute__((unused)) = readS4be();
+    uint32_t channelsLength __attribute__((unused)) = readS4be();
     return birFunction;
 }
 
