@@ -260,17 +260,13 @@ InvocableType ConstantPoolSet::getInvocableType(int32_t index) {
 Variable BIRReader::readGlobalVar() {
     uint8_t kind = readU1();
 
-    int32_t varDclNameCpIndex = readS4be();
+    uint32_t varDclNameCpIndex = readS4be(); // name_cp_index?
 
-    int32_t flags __attribute__((unused)) = readS4be();
-    int32_t length __attribute__((unused)) = readS4be();
-    uint8_t hasDoc = readU1();
-    if (hasDoc) {
-        int32_t descriptionCpIndex __attribute__((unused)) = readS4be();
-        int32_t returnValueDescriptionCpIndex __attribute__((unused)) = readS4be();
-        int32_t parameterCount __attribute__((unused)) = readS4be();
-    }
-    int32_t typeCpIndex = readS4be();
+    uint64_t flags __attribute__((unused)) = readS8be();
+    uint8_t origin __attribute__((unused)) = readU1();
+    std::unique_ptr<Markdown> doc = std::make_unique<Markdown>();
+    doc->read();
+    uint32_t typeCpIndex = readS4be();
     auto type = constantPool->getTypeCp(typeCpIndex, false);
     return Variable(std::move(type), (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
 }
@@ -1208,8 +1204,23 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
     int32_t typeDefinitionCount __attribute__((unused));
 
     importCount = readS4be();
+    for (int i = 0; i < importCount; i++)
+    {
+        // TODO: ignore imports
+    }
+    
     constCount = readS4be();
+    for (int i = 0; i < constCount; i++)
+    {
+        // TODO: ignore consts
+    }
+    
     typeDefinitionCount = readS4be();
+    for (int i = 0; i < typeDefinitionCount; i++)
+    {
+        // TODO: ignore typedefinitions
+    }
+    
 
     int32_t globalVarCount = readS4be();
     if (globalVarCount > 0) {
