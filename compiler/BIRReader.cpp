@@ -262,10 +262,13 @@ Variable BIRReader::readGlobalVar() {
 
     uint32_t varDclNameCpIndex = readS4be(); // name_cp_index?
 
-    uint64_t flags __attribute__((unused)) = readS8be();
-    uint8_t origin __attribute__((unused)) = readU1();
-    std::unique_ptr<Markdown> doc = std::make_unique<Markdown>();
-    doc->read();
+    uint64_t flags  = readS8be();
+    uint8_t origin  = readU1();
+    // Markdown
+    uint32_t docLength = readS8be();
+    std::vector<char> doc(docLength);
+    is.read(&doc[0], docLength);
+
     uint32_t typeCpIndex = readS4be();
     auto type = constantPool->getTypeCp(typeCpIndex, false);
     return Variable(std::move(type), (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
@@ -839,7 +842,7 @@ void ShapeCpInfo::read() {
     switch (typeTag) {
     case TYPE_TAG_INVOKABLE: {
         isAnyFunction = readerRef.readU1(); 
-        if(isAnyFunction){
+        if(!isAnyFunction){
             paramCount = readerRef.readS4be();
             for (unsigned int i = 0; i < paramCount; i++) {
                 uint32_t paramTypeCpIndex = readerRef.readS4be();
@@ -1177,6 +1180,7 @@ void ConstantPoolSet::read() {
             break;
         }
         default:
+            //TODO: why other tags are skipped
             break;
         }
     }
@@ -1250,9 +1254,9 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
 
     // The following three are read into unused variables so that the file
     // pointer advances to the data that we need next.
-    int32_t importCount __attribute__((unused));
-    int32_t constCount __attribute__((unused));
-    int32_t typeDefinitionCount __attribute__((unused));
+    uint32_t importCount;
+    uint32_t constCount;
+    uint32_t typeDefinitionCount;
 
     importCount = readS4be();
     for (int i = 0; i < importCount; i++)
