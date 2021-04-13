@@ -944,6 +944,7 @@ void ShapeCpInfo::read() {
         if (hasName)
         {
             pkgIdCpIndex = readerRef.readS4be();
+            nameCpIndex = readerRef.readS4be();
         }
         memberTypeCount = readerRef.readS4be(); 
         memberTypeCpIndex = std::vector<uint32_t>();
@@ -1004,7 +1005,7 @@ void ShapeCpInfo::read() {
     }
     case TYPE_TAG_TABLE:{
         constraintTypeCpIndex = readerRef.readS4be();
-        hasFieldNameList = readerRef.readS4be();
+        hasFieldNameList = readerRef.readU1();
         if (hasFieldNameList)
         {
             fieldNameList = std::make_unique<TableFieldNameList>();
@@ -1047,6 +1048,7 @@ void ShapeCpInfo::read() {
         
          
     }
+    case TYPE_TAG_NIL:
     case TYPE_TAG_INT:
     case TYPE_TAG_BYTE:
     case TYPE_TAG_FLOAT:
@@ -1054,7 +1056,6 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_STRING:
     case TYPE_TAG_BOOLEAN:
     case TYPE_TAG_JSON:
-    case TYPE_TAG_NIL:
     case TYPE_TAG_ANYDATA:
     case TYPE_TAG_ANY:
     case TYPE_TAG_ENDPOINT:
@@ -1084,8 +1085,6 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_XML_TEXT:
     case TYPE_TAG_NEVER:
     case TYPE_TAG_NULL_SET:{
-        std::vector<char> result(shapeLengthTypeInfo);
-        readerRef.is.read(&result[0], shapeLengthTypeInfo);
         break;
     }
     case TYPE_TAG_ARRAY: {
