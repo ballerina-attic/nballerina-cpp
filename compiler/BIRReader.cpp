@@ -681,9 +681,10 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
 
     int32_t nameCpIndex = readS4be();
     std::string functionName = constantPool->getStringCp(nameCpIndex);
-    int32_t workdernameCpIndex = readS4be();
-    int32_t flags = readS4be();
-    int32_t typeCpIndex = readS4be();
+    uint32_t workdernameCpIndex = readS4be();
+    uint32_t flags = readS8be();
+    uint8_t origin = readU1();
+    uint32_t typeCpIndex = readS4be();
     [[maybe_unused]] auto invocable_type = constantPool->getInvocableType(typeCpIndex);
     auto birFunction =
         std::make_shared<Function>(package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
@@ -708,7 +709,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
         uint64_t paramFlags __attribute__((unused)) = readS8be();
     }
 
-    uint8_t hasRestParam __attribute__((unused)) = readU1();
+    uint8_t hasRestParam = readU1();
     uint32_t restParamNameCpIndex __attribute__((unused));
     if (hasRestParam)
     {
@@ -718,7 +719,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // if (!hasRestParam)
     //   birFunction->setRestParam(NULL);
 
-    uint8_t hasReceiver __attribute__((unused)) = readU1();
+    uint8_t hasReceiver  = readU1();
     // if (!hasReceiver)
     //   birFunction->setReceiver(NULL);
     if (hasReceiver)
@@ -733,14 +734,14 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     auto docLength = readS4be();
     is.ignore(docLength);
 
-    uint32_t depended_global_var_length __attribute__((unused)) = readS4be();
+    uint32_t depended_global_var_length = readS4be();
     uint32_t depended_global_var_cp_entry __attribute__((unused));
     for (int i = 0; i < depended_global_var_length; i++)
     {
         depended_global_var_cp_entry = readS4be();
     }
     uint64_t scopeTableLength __attribute__((unused)) = readS8be();
-    uint32_t scopeEntryCount __attribute__((unused)) = readS4be();
+    uint32_t scopeEntryCount = readS4be();
     //scope entry
     uint32_t currentScopeIndex __attribute__((unused));
     uint32_t instructionOffset __attribute__((unused));
