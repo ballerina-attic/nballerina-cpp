@@ -265,7 +265,7 @@ Variable BIRReader::readGlobalVar() {
     uint64_t flags  = readS8be();
     uint8_t origin  = readU1();
     // Markdown
-    uint32_t docLength = readS8be();
+    uint32_t docLength = readS4be();
     std::vector<char> doc(docLength);
     is.read(&doc[0], docLength);
 
