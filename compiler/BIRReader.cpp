@@ -691,12 +691,9 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     birFunction->setLocation(location);
 
     // annotation_attachments_content
-    uint64_t annotationLength __attribute__((unused)) = readS8be(); //annotation_attachments_content_length
-    uint32_t annotationAttachments __attribute__((unused)) = readS4be(); //attachments_count
-    for (int i = 0; i < annotationAttachments; i++)
-    {
-        // TODO: ignore annotation attachments
-    }
+    uint64_t annotationLength = readS8be(); //annotation_attachments_content_length
+    std::vector<char> annotations(annotationLength);
+    is.read(&annotations[0],annotationLength);
     
     uint32_t requiredParamCount = readS4be();
 
@@ -724,7 +721,9 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     //   birFunction->setReceiver(NULL);
     if (hasReceiver)
     {
-        // TODO: ignore receiver
+        uint8_t receiverKind = readU1();
+        uint32_t receiverTypeCpIndex = readS4be();
+        uint32_t receiverNameCpIndex = readS4be();
     }
     
 
@@ -760,7 +759,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     }
     
 
-    uint64_t functionBodyLength __attribute__((unused)) = readS8be();
+    uint64_t functionBodyLength = readS8be();
     // function body
     uint32_t argsCount __attribute__((unused)) = readS4be();
     uint8_t hasReturnVar = readU1();
@@ -793,9 +792,14 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
         birFunction->insertLocalVar(readLocalVar());
     }
 
-    for (size_t i = 0; i < defaultParamValue; i++) {
+    for (int i = 0; i < defaultParamValue; i++) {
         //default parameter basic blocks info
-        // TODO: ignore default paramter basic blocks info
+        uint32_t defaultParameterBBCount = readS4be();
+        for (int i = 0; i < defaultParameterBBCount; i++)
+        {
+            auto basicBlock = readBasicBlock(birFunction);
+        }
+        
     }
 
     //basic block info
@@ -1180,7 +1184,6 @@ void ConstantPoolSet::read() {
             break;
         }
         default:
-            //TODO: why other tags are skipped
             break;
         }
     }
