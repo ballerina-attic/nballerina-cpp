@@ -1053,6 +1053,23 @@ void ShapeCpInfo::read() {
         
          
     }
+    case TYPE_TAG_FINITE:{
+        nameCpIndex = readerRef.readS4be();
+        uint64_t flags = readerRef.readS8be();
+        uint32_t valueSpaceSize = readerRef.readS4be();
+        for (int i = 0; i < valueSpaceSize; i++)
+        {
+            uint32_t fTypeCpIndex = readerRef.readS4be();
+            uint32_t valueLength = readerRef.readS4be();
+            for (int j = 0; i < valueLength; i++)
+            {
+                int8_t tmp = readerRef.readU1();
+            }
+             
+        }
+        
+        break;
+    }
     case TYPE_TAG_NIL:
     case TYPE_TAG_INT:
     case TYPE_TAG_BYTE:
@@ -1071,7 +1088,6 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_ANNOTATION:
     case TYPE_TAG_SEMANTIC_ERROR:
     case TYPE_TAG_ITERATOR:
-    case TYPE_TAG_FINITE:
     case TYPE_TAG_SERVICE:
     case TYPE_TAG_BYTE_ARRAY:
     case TYPE_TAG_FUNCTION_POINTER:
@@ -1262,21 +1278,43 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
     uint32_t typeDefinitionCount;
 
     importCount = readS4be();
-    for (int i = 0; i < importCount; i++)
-    {
-        // TODO: ignore imports
-    }
+    uint32_t importSize = importCount * 12; // package_cp_info is 12 bytes
+    vector<char> imports(importSize);
+    is.read(&imports[0], importSize);
     
     constCount = readS4be();
     for (int i = 0; i < constCount; i++)
     {
-        // TODO: ignore consts
+        uint32_t constNameCpIndex = readS4be();
+        uint64_t constFlags = readS8be();
+        uint8_t constOrigin = readU1();
+        std::vector<char> constPosition(20);
+        is.read(&constPosition[0],20);
+        uint32_t markdownLength = readS4be();
+        std::vector<char> doc(markdownLength);
+        is.read(&doc[0], markdownLength);
+        uint32_t constTypeCpIndex = readS4be();
+        uint64_t constValueLength = readS8be();
+        std::vector<char> constValue(constValueLength);
+        is.read(&constValue[0],constValueLength);
     }
     
     typeDefinitionCount = readS4be();
     for (int i = 0; i < typeDefinitionCount; i++)
     {
-        // TODO: ignore typedefinitions
+        std::vector<char> tdPosition(20); //postion is 20 bytes long
+        is.read(&tdPosition[0],20);
+        uint32_t tdNameCpIndex = readS4be();
+        uint64_t tdFlags = readS8be();
+        uint8_t tdLabel = readU1();
+        uint8_t tdOrigin = readU1();
+        uint32_t markdownLength = readS4be();
+        std::vector<char> doc(markdownLength);
+        is.read(&doc[0], markdownLength);
+        uint64_t annotationAttachmentsContentLength = readS8be();
+        std::vector<char> annotationAttachments(annotationAttachmentsContentLength);
+        is.read(&annotationAttachments[0], annotationAttachmentsContentLength);
+        uint32_t tdTypeCpIndex = readS4be();
     }
     
 
@@ -1290,7 +1328,17 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
     uint32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
     for (int i = 0; i < typeDefinitionBodiesCount; i++)
     {
-        // TODO: ignore type definition bodies
+        uint32_t attachedFunctionsCount = readS4be();
+        for (int j = 0; j < attachedFunctionsCount; j++)
+        {
+            auto function = readFunction(birPackage);
+        }
+        uint32_t referencedTypesCount = readS4be();
+        for (int j = 0; j < referencedTypesCount; j++)
+        {
+            uint32_t referencedType = readS4be();
+        }
+         
     }
     
     uint32_t functionCount = readS4be();
@@ -1302,22 +1350,6 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
             birPackage->insertFunction(curFunc);
         }
     }
-
-    int32_t annotationsSize __attribute__((unused)) = readS4be();
-
-    for (int i = 0; i < annotationsSize; i++)
-    {
-        // TODO: ignore annotations
-    }
-    
-    uint32_t serviceDeclSize __attribute__((unused)) = readS4be();
-    for (int i = 0; i < serviceDeclSize; i++)
-    {
-        // TODO: service declarations
-    }
-    
-    // Assign typedecl to function param of call Insn
-    // patchTypesToFuncParam();
 
     return birPackage;
 }
