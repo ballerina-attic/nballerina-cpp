@@ -13,11 +13,11 @@ fi
 # Skip BIR dump generation if forth input arg is set
 if [ -z "$4" ]
 then
-  ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+  bal build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
 else
   if [ ! -s $filename-bir-dump ]
   then
-    ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
+    bal build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
   fi
 fi
 
