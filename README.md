@@ -3,7 +3,7 @@ Translate Ballerina IR to LLVM IR.
 
 ## Building from source in Ubuntu 20.04
 ### Prerequisites
-* `sudo apt install build-essential llvm-11-dev cmake cargo python3-pip`
+* `sudo apt install build-essential llvm-11-dev lld-11 cmake cargo python3-pip`
 * `pip3 install lit filecheck`
 
 ### Build steps

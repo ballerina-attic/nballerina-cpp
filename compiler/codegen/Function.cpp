@@ -196,7 +196,7 @@ void Function::storeValueInSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value
     auto parent = parentPackage.lock();
     parent->addToStrTable(valueTypeName);
     int tempRandNum1 = std::rand() % 1000 + 1;
-    LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum1, 0);
+    LLVMValueRef constValue = LLVMConstInt(LLVMInt64Type(), tempRandNum1, 0);
     LLVMValueRef valueTypeStoreRef = LLVMBuildStore(llvmBuilder, constValue, inherentTypeIdx);
     parent->addStringOffsetRelocationEntry(valueTypeName.data(), valueTypeStoreRef);
 

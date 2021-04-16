@@ -69,7 +69,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
         getPackageMutableRef().addToStrTable(lhsTypeName);
         int tempRandNum = std::rand() % 1000 + 1;
-        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
+        LLVMValueRef constValue = LLVMConstInt(LLVMInt64Type(), tempRandNum, 0);
         LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, &constValue, 1, "");
         // call is_same_type rust function to check LHS and RHS type are same or not.
         LLVMValueRef addedIsSameTypeFunc = getIsSameTypeDeclaration(modRef, lhsGep, gepOfStr);
