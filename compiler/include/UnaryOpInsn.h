@@ -29,12 +29,14 @@ class Operand;
 class UnaryOpInsn : public NonTerminatorInsn {
   private:
     Operand rhsOp;
+    InstructionKind kind;
 
   public:
     UnaryOpInsn() = delete;
     UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs);
     ~UnaryOpInsn() = default;
 
+    void setInstKind(InstructionKind kind);
     void translate(LLVMModuleRef &modRef) final;
 };
 
