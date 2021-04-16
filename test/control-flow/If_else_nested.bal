@@ -2,21 +2,21 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     boolean e = false;
     boolean f = true;
     print_string("RESULT=");
     if (e) {
-        printu32(5);
+        print_integer(5);
     }
     else {
         if (f) {
-            printu32(10);
+            print_integer(10);
         }
         else {
-            printu32(4);
+            print_integer(4);
         }
     }
 }

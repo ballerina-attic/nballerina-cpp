@@ -2,15 +2,12 @@
 
 public function print_string(string val) = external;
 
-public function print_integer(int val) = external;
+public function printf32(float val) = external;
 
 public function main() {
-    int a = 58;
+    float|string u = 21.2;
+    float i = <float>u;
     print_string("RESULT=");
-    print_integer(a);
-    int b = -42;
-    print_string("RESULT=");
-    print_integer(b);
+    printf32(i);
 }
-// CHECK: RESULT=58
-// CHECK: RESULT=-42
+// CHECK: RESULT=21.2

@@ -49,6 +49,12 @@ ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
 ReadMapLoadInsn ReadMapLoadInsn::readMapLoadInsn;
 
+bool BIRReader::isLittleEndian() {
+    unsigned int val = 1;
+    char *c = (char *)&val;
+    return (int)*c != 0;
+}
+
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
     uint8_t value;
@@ -64,67 +70,96 @@ uint8_t BIRReader::peekReadU1() {
 }
 
 // Read 2 bytes from the stream
-uint16_t BIRReader::readS2be() {
-    uint16_t value;
-    uint16_t result;
+int16_t BIRReader::readS2be() {
+    int16_t value;
+    int16_t result;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
     char *p = (char *)&value;
     char tmp;
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    tmp = p[0];
-    p[0] = p[1];
-    p[1] = tmp;
-#endif
+    if (isLittleEndian()) {
+        tmp = p[0];
+        p[0] = p[1];
+        p[1] = tmp;
+    }
     result = value;
     return result;
 }
 
 // Read 4 bytes from the stream
-uint32_t BIRReader::readS4be() {
-    uint32_t value;
+int32_t BIRReader::readS4be() {
+    int32_t value;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    uint32_t result = 0;
-    result |= (value & 0x000000FF) << 24;
-    result |= (value & 0x0000FF00) << 8;
-    result |= (value & 0x00FF0000) >> 8;
-    result |= (value & 0xFF000000) >> 24;
-    value = result;
-#endif
+    if (isLittleEndian()) {
+        uint32_t result = 0;
+        result |= (value & 0x000000FF) << 24;
+        result |= (value & 0x0000FF00) << 8;
+        result |= (value & 0x00FF0000) >> 8;
+        result |= (value & 0xFF000000) >> 24;
+        value = result;
+    }
     return value;
 }
 
 // Read 8 bytes from the stream
-uint64_t BIRReader::readS8be() {
-    uint64_t value;
-    uint64_t result;
+int64_t BIRReader::readS8be() {
+    int64_t value;
+    int64_t result;
     is.read(reinterpret_cast<char *>(&value), sizeof(value));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    char *p = (char *)&value;
-    char tmp;
+    if (isLittleEndian()) {
+        char *p = (char *)&value;
+        char tmp;
 
-    tmp = p[0];
-    p[0] = p[7];
-    p[7] = tmp;
+        tmp = p[0];
+        p[0] = p[7];
+        p[7] = tmp;
 
-    tmp = p[1];
-    p[1] = p[6];
-    p[6] = tmp;
+        tmp = p[1];
+        p[1] = p[6];
+        p[6] = tmp;
 
-    tmp = p[2];
-    p[2] = p[5];
-    p[5] = tmp;
+        tmp = p[2];
+        p[2] = p[5];
+        p[5] = tmp;
 
-    tmp = p[3];
-    p[3] = p[4];
-    p[4] = tmp;
-#endif
+        tmp = p[3];
+        p[3] = p[4];
+        p[4] = tmp;
+    }
+    result = value;
+    return result;
+}
+
+// Read 8 bytes from the stream for float value
+double BIRReader::readS8bef() {
+    double value;
+    double result;
+    is.read(reinterpret_cast<char *>(&value), sizeof(value));
+    if (isLittleEndian()) {
+        char *p = (char *)&value;
+        char tmp;
+
+        tmp = p[0];
+        p[0] = p[7];
+        p[7] = tmp;
+
+        tmp = p[1];
+        p[1] = p[6];
+        p[6] = tmp;
+
+        tmp = p[2];
+        p[2] = p[5];
+        p[5] = tmp;
+
+        tmp = p[3];
+        p[3] = p[4];
+        p[4] = tmp;
+    }
     result = value;
     return result;
 }
 
 // Search string from the constant pool based on index
-std::string ConstantPoolSet::getStringCp(uint32_t index) {
+std::string ConstantPoolSet::getStringCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_STRING);
     StringCpInfo *stringCp = static_cast<StringCpInfo *>(poolEntry);
@@ -132,7 +167,7 @@ std::string ConstantPoolSet::getStringCp(uint32_t index) {
 }
 
 // Search string from the constant pool based on index
-uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
+int64_t ConstantPoolSet::getIntCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER);
     IntCpInfo *intCp = static_cast<IntCpInfo *>(poolEntry);
@@ -140,7 +175,7 @@ uint32_t ConstantPoolSet::getIntCp(uint32_t index) {
 }
 
 // Search float from the constant pool based on index
-float ConstantPoolSet::getFloatCp(uint32_t index) {
+float ConstantPoolSet::getFloatCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
     FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
@@ -148,7 +183,7 @@ float ConstantPoolSet::getFloatCp(uint32_t index) {
 }
 
 // Search boolean from the constant pool based on index
-bool ConstantPoolSet::getBooleanCp(uint32_t index) {
+bool ConstantPoolSet::getBooleanCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
     BooleanCpInfo *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
@@ -156,7 +191,7 @@ bool ConstantPoolSet::getBooleanCp(uint32_t index) {
 }
 
 // Search type from the constant pool based on index
-Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
+Type ConstantPoolSet::getTypeCp(int32_t index, bool voidToInt) {
     ConstantPoolEntry *poolEntry = getEntry(index);
 
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
@@ -194,7 +229,7 @@ Type ConstantPoolSet::getTypeCp(uint32_t index, bool voidToInt) {
 }
 
 // Get the Type tag from the constant pool based on the index passed
-TypeTag ConstantPoolSet::getTypeTag(uint32_t index) {
+TypeTag ConstantPoolSet::getTypeTag(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
@@ -202,7 +237,7 @@ TypeTag ConstantPoolSet::getTypeTag(uint32_t index) {
 }
 
 // Search type from the constant pool based on index
-InvocableType ConstantPoolSet::getInvocableType(uint32_t index) {
+InvocableType ConstantPoolSet::getInvocableType(int32_t index) {
 
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
@@ -210,7 +245,7 @@ InvocableType ConstantPoolSet::getInvocableType(uint32_t index) {
     auto paramCount = shapeCp->getParamCount();
     std::vector<Type> paramTypes;
     paramTypes.reserve(paramCount);
-    for (unsigned int i = 0; i < paramCount; i++) {
+    for (int32_t i = 0; i < paramCount; i++) {
         paramTypes.push_back(getTypeCp(shapeCp->getParam(i), false));
     }
     auto returnTypeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
@@ -225,34 +260,34 @@ InvocableType ConstantPoolSet::getInvocableType(uint32_t index) {
 Variable BIRReader::readGlobalVar() {
     uint8_t kind = readU1();
 
-    uint32_t varDclNameCpIndex = readS4be();
+    int32_t varDclNameCpIndex = readS4be();
 
-    uint32_t flags __attribute__((unused)) = readS4be();
-    uint32_t length __attribute__((unused)) = readS4be();
+    int32_t flags __attribute__((unused)) = readS4be();
+    int32_t length __attribute__((unused)) = readS4be();
     uint8_t hasDoc = readU1();
     if (hasDoc) {
-        uint32_t descriptionCpIndex __attribute__((unused)) = readS4be();
-        uint32_t returnValueDescriptionCpIndex __attribute__((unused)) = readS4be();
-        uint32_t parameterCount __attribute__((unused)) = readS4be();
+        int32_t descriptionCpIndex __attribute__((unused)) = readS4be();
+        int32_t returnValueDescriptionCpIndex __attribute__((unused)) = readS4be();
+        int32_t parameterCount __attribute__((unused)) = readS4be();
     }
-    uint32_t typeCpIndex = readS4be();
+    int32_t typeCpIndex = readS4be();
     auto type = constantPool->getTypeCp(typeCpIndex, false);
     return Variable(std::move(type), (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
 }
 
 Variable BIRReader::readLocalVar() {
     uint8_t kind = readU1();
-    uint32_t typeCpIndex = readS4be();
+    int32_t typeCpIndex = readS4be();
     auto type = constantPool->getTypeCp(typeCpIndex, false);
-    uint32_t nameCpIndex = readS4be();
+    int32_t nameCpIndex = readS4be();
 
     if (kind == ARG_VAR_KIND) {
-        uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
+        int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
     } else if (kind == LOCAL_VAR_KIND) {
-        uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
-        uint32_t endBbIdCpIndex __attribute__((unused)) = readS4be();
-        uint32_t startBbIdCpIndex __attribute__((unused)) = readS4be();
-        uint32_t instructionOffset __attribute__((unused)) = readS4be();
+        int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
+        int32_t endBbIdCpIndex __attribute__((unused)) = readS4be();
+        int32_t startBbIdCpIndex __attribute__((unused)) = readS4be();
+        int32_t instructionOffset __attribute__((unused)) = readS4be();
     }
     return Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind);
 }
@@ -265,11 +300,11 @@ Operand BIRReader::readOperand() {
 
     uint8_t scope __attribute__((unused)) = readU1();
 
-    uint32_t varDclNameCpIndex = readS4be();
+    int32_t varDclNameCpIndex = readS4be();
 
     if ((VarKind)kind == GLOBAL_VAR_KIND) {
-        uint32_t packageIndex __attribute__((unused)) = readS4be();
-        uint32_t typeCpIndex = readS4be();
+        int32_t packageIndex __attribute__((unused)) = readS4be();
+        int32_t typeCpIndex = readS4be();
         [[maybe_unused]] Type typeDecl = constantPool->getTypeCp(typeCpIndex, false);
     }
 
@@ -293,7 +328,7 @@ MapConstruct BIRReader::readMapConstructor() {
 // Read TYPEDESC Insn
 std::unique_ptr<TypeDescInsn> ReadTypeDescInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto lhsOp = readerRef.readOperand();
-    uint32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
+    int32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
     return std::make_unique<TypeDescInsn>(std::move(lhsOp), currentBB);
 }
 
@@ -310,7 +345,7 @@ std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::sha
 
     std::vector<MapConstruct> initValues;
     initValues.reserve(initValuesCount);
-    for (size_t i = 0; i < initValuesCount; i++) {
+    for (auto i = 0; i < initValuesCount; i++) {
         initValues.push_back(readerRef.readMapConstructor());
     }
     return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB, std::move(initValues));
@@ -318,7 +353,7 @@ std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::sha
 
 // Read CONST_LOAD Insn
 std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
-    uint32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
+    int32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
     auto lhsOp = readerRef.readOperand();
 
     switch (readerRef.constantPool->getTypeTag(typeCpIndex)) {
@@ -331,9 +366,9 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
     case TYPE_TAG_SIGNED32_INT:
     case TYPE_TAG_DECIMAL:
     case TYPE_TAG_BYTE: {
-        uint32_t valueCpIndex = readerRef.readS4be();
+        int32_t valueCpIndex = readerRef.readS4be();
         return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
-                                                  (int)readerRef.constantPool->getIntCp(valueCpIndex));
+                                                  (int64_t)readerRef.constantPool->getIntCp(valueCpIndex));
     }
     case TYPE_TAG_BOOLEAN: {
         uint8_t boolean_constant = readerRef.readU1();
@@ -344,13 +379,13 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
         }
     }
     case TYPE_TAG_FLOAT: {
-        uint32_t valueCpIndex = readerRef.readS4be();
+        int32_t valueCpIndex = readerRef.readS4be();
         return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
                                                   readerRef.constantPool->getFloatCp(valueCpIndex));
     }
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING: {
-        uint32_t valueCpIndex = readerRef.readS4be();
+        int32_t valueCpIndex = readerRef.readS4be();
         return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
                                                   readerRef.constantPool->getStringCp(valueCpIndex));
     }
@@ -380,8 +415,8 @@ std::unique_ptr<BinaryOpInsn> ReadBinaryInsn::readNonTerminatorInsn(std::shared_
 // Read BRANCH Insn
 std::unique_ptr<ConditionBrInsn> ReadCondBrInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto lhsOp = readerRef.readOperand();
-    uint32_t trueBbIdNameCpIndex = readerRef.readS4be();
-    uint32_t falseBbIdNameCpIndex = readerRef.readS4be();
+    int32_t trueBbIdNameCpIndex = readerRef.readS4be();
+    int32_t falseBbIdNameCpIndex = readerRef.readS4be();
 
     return std::make_unique<ConditionBrInsn>(std::move(lhsOp), currentBB,
                                              readerRef.constantPool->getStringCp(trueBbIdNameCpIndex),
@@ -399,21 +434,21 @@ std::unique_ptr<MoveInsn> ReadMoveInsn::readNonTerminatorInsn(std::shared_ptr<Ba
 // Read Function Call
 std::unique_ptr<FunctionCallInsn> ReadFuncCallInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     [[maybe_unused]] uint8_t isVirtual = readerRef.readU1();
-    uint32_t packageIndex __attribute__((unused)) = readerRef.readS4be();
-    uint32_t callNameCpIndex = readerRef.readS4be();
+    int32_t packageIndex __attribute__((unused)) = readerRef.readS4be();
+    int32_t callNameCpIndex = readerRef.readS4be();
     string funcName = readerRef.constantPool->getStringCp(callNameCpIndex);
-    uint32_t argumentsCount = readerRef.readS4be();
+    int32_t argumentsCount = readerRef.readS4be();
 
     std::vector<Operand> fnArgs;
     fnArgs.reserve(argumentsCount);
-    for (unsigned int i = 0; i < argumentsCount; i++) {
+    for (int32_t i = 0; i < argumentsCount; i++) {
         fnArgs.push_back(readerRef.readOperand());
     }
 
     uint8_t hasLhsOperand = readerRef.readU1();
     Operand lhsOp = (hasLhsOperand > 0) ? readerRef.readOperand() : Operand("", NOT_A_KIND);
 
-    uint32_t thenBbIdNameCpIndex = readerRef.readS4be();
+    auto thenBbIdNameCpIndex = readerRef.readS4be();
 
     return std::make_unique<FunctionCallInsn>(currentBB, readerRef.constantPool->getStringCp(thenBbIdNameCpIndex),
                                               lhsOp, funcName, argumentsCount, std::move(fnArgs));
@@ -424,7 +459,7 @@ std::unique_ptr<TypeCastInsn> ReadTypeCastInsn::readNonTerminatorInsn(std::share
     auto lhsOp = readerRef.readOperand();
     auto rhsOperand = readerRef.readOperand();
 
-    uint32_t typeCpIndex = readerRef.readS4be();
+    int32_t typeCpIndex = readerRef.readS4be();
     Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     [[maybe_unused]] uint8_t isCheckTypes = readerRef.readU1();
 
@@ -433,7 +468,7 @@ std::unique_ptr<TypeCastInsn> ReadTypeCastInsn::readNonTerminatorInsn(std::share
 
 // Read Type Test Insn
 std::unique_ptr<TypeTestInsn> ReadTypeTestInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
-    uint32_t typeCpIndex = readerRef.readS4be();
+    int32_t typeCpIndex = readerRef.readS4be();
     Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     auto lhsOp = readerRef.readOperand();
     [[maybe_unused]] auto rhsOperand = readerRef.readOperand();
@@ -442,14 +477,14 @@ std::unique_ptr<TypeTestInsn> ReadTypeTestInsn::readNonTerminatorInsn(std::share
 
 // Read Array Insn
 std::unique_ptr<ArrayInsn> ReadArrayInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
-    uint32_t typeCpIndex = readerRef.readS4be();
+    int32_t typeCpIndex = readerRef.readS4be();
     Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     auto lhsOp = readerRef.readOperand();
     auto sizeOperand = readerRef.readOperand();
 
     // TODO handle Array init values
     auto init_values_count = readerRef.readS4be();
-    for (size_t i = 0; i < init_values_count; i++) {
+    for (auto i = 0; i < init_values_count; i++) {
         [[maybe_unused]] auto init_value = readerRef.readOperand();
     }
     return std::make_unique<ArrayInsn>(lhsOp, currentBB, sizeOperand);
@@ -492,7 +527,7 @@ std::unique_ptr<MapLoadInsn> ReadMapLoadInsn::readNonTerminatorInsn(std::shared_
 }
 
 std::unique_ptr<GoToInsn> ReadGoToInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
-    uint32_t nameId = readerRef.readS4be();
+    auto nameId = readerRef.readS4be();
     return std::make_unique<GoToInsn>(currentBB, readerRef.constantPool->getStringCp(nameId));
 }
 
@@ -502,11 +537,11 @@ std::unique_ptr<ReturnInsn> ReadReturnInsn::readTerminatorInsn(std::shared_ptr<B
 
 // Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the BIR
 void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
-    uint32_t sLine = readS4be();
-    uint32_t eLine = readS4be();
-    uint32_t sCol = readS4be();
-    uint32_t eCol = readS4be();
-    uint32_t sourceFileCpIndex = readS4be();
+    int32_t sLine = readS4be();
+    int32_t eLine = readS4be();
+    int32_t sCol = readS4be();
+    int32_t eCol = readS4be();
+    int32_t sourceFileCpIndex = readS4be();
     Location location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
 
     InstructionKind insnKind = (InstructionKind)readU1();
@@ -604,11 +639,11 @@ void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
 
 // Read Basic Block from the BIR
 std::shared_ptr<BasicBlock> BIRReader::readBasicBlock(std::shared_ptr<Function> birFunction) {
-    uint32_t nameCpIndex = readS4be();
+    int32_t nameCpIndex = readS4be();
     auto basicBlock = std::make_shared<BasicBlock>(constantPool->getStringCp(nameCpIndex), birFunction);
 
-    uint32_t insnCount = readS4be();
-    for (size_t i = 0; i < insnCount; i++) {
+    int32_t insnCount = readS4be();
+    for (auto i = 0; i < insnCount; i++) {
         // Read an Instruction and adds it to basicBlock
         readInsn(basicBlock);
     }
@@ -631,37 +666,37 @@ bool BIRReader::ignoreFunction(std::string funcName) {
 std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> package) {
 
     // Read debug info
-    uint32_t sLine = readS4be();
-    uint32_t eLine = readS4be();
-    uint32_t sCol = readS4be();
-    uint32_t eCol = readS4be();
-    uint32_t sourceFileCpIndex = readS4be();
+    int32_t sLine = readS4be();
+    int32_t eLine = readS4be();
+    int32_t sCol = readS4be();
+    int32_t eCol = readS4be();
+    int32_t sourceFileCpIndex = readS4be();
     Location location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
 
     // TODO should not set src for every function
     package->setSrcFileName(constantPool->getStringCp(sourceFileCpIndex));
 
-    uint32_t nameCpIndex = readS4be();
+    int32_t nameCpIndex = readS4be();
     std::string functionName = constantPool->getStringCp(nameCpIndex);
-    uint32_t workdernameCpIndex = readS4be();
-    uint32_t flags = readS4be();
-    uint32_t typeCpIndex = readS4be();
+    int32_t workdernameCpIndex = readS4be();
+    int32_t flags = readS4be();
+    int32_t typeCpIndex = readS4be();
     [[maybe_unused]] auto invocable_type = constantPool->getInvocableType(typeCpIndex);
     auto birFunction =
         std::make_shared<Function>(package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
     birFunction->setLocation(location);
 
-    uint64_t annotationLength __attribute__((unused)) = readS8be();
-    uint32_t annotationAttachments __attribute__((unused)) = readS4be();
-    uint32_t requiredParamCount = readS4be();
+    int64_t annotationLength __attribute__((unused)) = readS8be();
+    int32_t annotationAttachments __attribute__((unused)) = readS4be();
+    int32_t requiredParamCount = readS4be();
 
     // Set function param here and then fill remaining values from the default Params
     std::vector<nballerina::Operand> functionParams;
     functionParams.reserve(requiredParamCount);
-    for (size_t i = 0; i < requiredParamCount; i++) {
-        uint32_t paramNameCpIndex = readS4be();
+    for (auto i = 0; i < requiredParamCount; i++) {
+        int32_t paramNameCpIndex = readS4be();
         functionParams.push_back(Operand(constantPool->getStringCp(paramNameCpIndex), ARG_VAR_KIND));
-        uint32_t paramFlags __attribute__((unused)) = readS4be();
+        int32_t paramFlags __attribute__((unused)) = readS4be();
     }
 
     uint8_t hasRestParam __attribute__((unused)) = readU1();
@@ -672,49 +707,49 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // if (!hasReceiver)
     //   birFunction->setReceiver(NULL);
 
-    uint64_t taintTableLength = readS8be();
+    auto taintTableLength = readS8be();
     is.ignore(taintTableLength);
 
-    uint32_t docLength = readS4be();
+    auto docLength = readS4be();
     is.ignore(docLength);
 
-    uint64_t functionBodyLength __attribute__((unused)) = readS8be();
-    uint32_t argsCount __attribute__((unused)) = readS4be();
+    int64_t functionBodyLength __attribute__((unused)) = readS8be();
+    int32_t argsCount __attribute__((unused)) = readS4be();
     uint8_t hasReturnVar = readU1();
 
     if (hasReturnVar) {
         uint8_t kind = readU1();
-        uint32_t typeCpIndex = readS4be();
+        int32_t typeCpIndex = readS4be();
         auto type = constantPool->getTypeCp(typeCpIndex, false);
-        uint32_t nameCpIndex = readS4be();
+        int32_t nameCpIndex = readS4be();
         birFunction->setReturnVar(Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind));
     }
 
-    uint32_t defaultParamValue = readS4be();
-    for (size_t i = 0; i < defaultParamValue; i++) {
+    int32_t defaultParamValue = readS4be();
+    for (auto i = 0; i < defaultParamValue; i++) {
         uint8_t kind = readU1();
-        uint32_t typeCpIndex = readS4be();
+        int32_t typeCpIndex = readS4be();
         birFunction->insertParam(FunctionParam(functionParams[i], constantPool->getTypeCp(typeCpIndex, false)));
 
-        uint32_t nameCpIndex __attribute__((unused)) = readS4be();
+        int32_t nameCpIndex __attribute__((unused)) = readS4be();
         if (kind == ARG_VAR_KIND) {
-            uint32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
+            int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
         }
         uint8_t hasDefaultExpr __attribute__((unused)) = readU1();
     }
 
-    uint32_t localVarCount = readS4be();
-    for (size_t i = 0; i < localVarCount; i++) {
+    int32_t localVarCount = readS4be();
+    for (auto i = 0; i < localVarCount; i++) {
         birFunction->insertLocalVar(readLocalVar());
     }
     // Ignore default param values
-    for (size_t i = 0; i < defaultParamValue; i++) {
-        uint32_t basicBlocksCount __attribute__((unused)) = readS4be();
+    for (auto i = 0; i < defaultParamValue; i++) {
+        int32_t basicBlocksCount __attribute__((unused)) = readS4be();
     }
 
-    uint32_t BBCount = readS4be();
+    int32_t BBCount = readS4be();
     std::shared_ptr<BasicBlock> previousBB;
-    for (size_t i = 0; i < BBCount; i++) {
+    for (auto i = 0; i < BBCount; i++) {
         auto basicBlock = readBasicBlock(birFunction);
         birFunction->insertBasicBlock(basicBlock);
         // Create links between the basic blocks
@@ -727,15 +762,15 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // Patching the Instructions
     birFunction->patchBasicBlocks();
 
-    uint32_t errorEntriesCount __attribute__((unused)) = readS4be();
-    uint32_t channelsLength __attribute__((unused)) = readS4be();
+    int32_t errorEntriesCount __attribute__((unused)) = readS4be();
+    int32_t channelsLength __attribute__((unused)) = readS4be();
     return birFunction;
 }
 
 StringCpInfo::StringCpInfo() { setTag(TAG_ENUM_CP_ENTRY_STRING); }
 
 void StringCpInfo::read() {
-    uint32_t stringLength = readerRef.readS4be();
+    auto stringLength = readerRef.readS4be();
     std::unique_ptr<char[]> result(new char[stringLength]);
     readerRef.is.read(result.get(), stringLength);
     value = std::string(result.get(), stringLength);
@@ -750,13 +785,13 @@ void ShapeCpInfo::read() {
     typeFlag = readerRef.readS4be();
     typeSpecialFlag = readerRef.readS4be();
 
-    uint32_t shapeLengthTypeInfo = shapeLength - 13;
+    int32_t shapeLengthTypeInfo = shapeLength - 13;
 
     switch (typeTag) {
     case TYPE_TAG_INVOKABLE: {
         paramCount = readerRef.readS4be();
-        for (unsigned int i = 0; i < paramCount; i++) {
-            uint32_t paramTypeCpIndex = readerRef.readS4be();
+        for (auto i = 0; i < paramCount; i++) {
+            int32_t paramTypeCpIndex = readerRef.readS4be();
             addParam(paramTypeCpIndex);
         }
         hasRestType = readerRef.readU1();
@@ -859,7 +894,7 @@ void BooleanCpInfo::read() { value = readerRef.readU1(); }
 
 FloatCpInfo::FloatCpInfo() { setTag(TAG_ENUM_CP_ENTRY_FLOAT); }
 
-void FloatCpInfo::read() { value = readerRef.readS8be(); }
+void FloatCpInfo::read() { value = readerRef.readS8bef(); }
 
 ByteCpInfo::ByteCpInfo() { setTag(TAG_ENUM_CP_ENTRY_BYTE); }
 
@@ -869,7 +904,7 @@ void ConstantPoolSet::read() {
     int constantPoolEntries = readerRef.readS4be();
     poolEntries = std::vector<std::unique_ptr<ConstantPoolEntry>>();
     poolEntries.reserve(constantPoolEntries);
-    for (int i = 0; i < constantPoolEntries; i++) {
+    for (auto i = 0; i < constantPoolEntries; i++) {
         ConstantPoolEntry::tagEnum tag = static_cast<ConstantPoolEntry::tagEnum>(readerRef.readU1());
         switch (tag) {
         case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_PACKAGE: {
@@ -962,7 +997,7 @@ void BIRReader::patchTypesToFuncParam() {
 */
 
 std::shared_ptr<nballerina::Package> BIRReader::readModule() {
-    uint32_t idCpIndex = readS4be();
+    int32_t idCpIndex = readS4be();
     ConstantPoolEntry *poolEntry = constantPool->getEntry(idCpIndex);
     auto birPackage = std::make_shared<Package>();
 
@@ -988,33 +1023,33 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
 
     // The following three are read into unused variables so that the file
     // pointer advances to the data that we need next.
-    uint32_t importCount __attribute__((unused));
-    uint32_t constCount __attribute__((unused));
-    uint32_t typeDefinitionCount __attribute__((unused));
+    int32_t importCount __attribute__((unused));
+    int32_t constCount __attribute__((unused));
+    int32_t typeDefinitionCount __attribute__((unused));
 
     importCount = readS4be();
     constCount = readS4be();
     typeDefinitionCount = readS4be();
 
-    uint32_t globalVarCount = readS4be();
+    int32_t globalVarCount = readS4be();
     if (globalVarCount > 0) {
-        for (unsigned int i = 0; i < globalVarCount; i++) {
+        for (auto i = 0; i < globalVarCount; i++) {
             birPackage->insertGlobalVar(readGlobalVar());
         }
     }
 
-    uint32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
-    uint32_t functionCount = readS4be();
+    int32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
+    int32_t functionCount = readS4be();
 
     // Push all the functions in BIRpackage except __init, __start & __stop
-    for (unsigned int i = 0; i < functionCount; i++) {
+    for (auto i = 0; i < functionCount; i++) {
         auto curFunc = readFunction(birPackage);
         if (!ignoreFunction(curFunc->getName())) {
             birPackage->insertFunction(curFunc);
         }
     }
 
-    uint32_t annotationsSize __attribute__((unused)) = readS4be();
+    int32_t annotationsSize __attribute__((unused)) = readS4be();
 
     // Assign typedecl to function param of call Insn
     // patchTypesToFuncParam();

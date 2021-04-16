@@ -42,7 +42,7 @@ LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes = LLVMInt32Type();
+    LLVMTypeRef paramTypes = LLVMInt64Type();
     LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), &paramTypes, 1, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -68,12 +68,12 @@ ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> curre
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
     const auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(lhsOpTypeTag);
     const auto &lhsType = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand()).getType();
-    LLVMTypeRef funcRetType = LLVMPointerType(getPackageRef().getLLVMTypeOfType(lhsType), 0);
+    LLVMTypeRef funcRetType = getPackageRef().getLLVMTypeOfType(lhsType);
     LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type()};
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type()};
     LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 2, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -90,8 +90,7 @@ void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
     LLVMValueRef sizeOpValueRef[] = {LLVMBuildLoad(builder, rhsOpRef, ""), funcObj.createTempVariable(keyOp)};
     LLVMValueRef valueInArrayPointer = LLVMBuildCall(builder, ArrayLoadFunc, sizeOpValueRef, 2, "");
-    LLVMValueRef ArrayLoadVal = LLVMBuildLoad(builder, valueInArrayPointer, "");
-    LLVMBuildStore(builder, ArrayLoadVal, lhsOpRef);
+    LLVMBuildStore(builder, valueInArrayPointer, lhsOpRef);
 }
 
 // Array Store Instruction
@@ -105,8 +104,8 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type(),
-                                LLVMTypeOf(getFunctionRef().getLLVMLocalVar(rhsOp.getName()))};
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type(),
+                                getPackageRef().getLLVMTypeOfType(rhsOpTypeTag)};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -121,7 +120,7 @@ void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
 
     LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
     LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(builder, lhsOpRef, ""), funcObj.createTempVariable(keyOp),
-                                    funcObj.getLLVMLocalOrGlobalVar(rhsOp)};
+                                    funcObj.createTempVariable(rhsOp)};
     LLVMBuildCall(builder, ArrayLoadFunc, argOpValueRef, 3, "");
 }
 

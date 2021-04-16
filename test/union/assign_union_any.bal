@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     any var1 = 42;
@@ -10,6 +10,6 @@ public function main() {
     int|string var2 = 7;
     int result2 = <int>var2;
     print_string("RESULT=");
-    printu32(result1 + result2);
+    print_integer(result1 + result2);
 }
 // CHECK: RESULT=49

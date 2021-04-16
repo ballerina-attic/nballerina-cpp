@@ -68,6 +68,7 @@ class Package : public Translatable {
     const Function &getFunction(const std::string &name) const;
     LLVMValueRef getGlobalLLVMVar(const std::string &globVar) const;
     LLVMTypeRef getLLVMTypeOfType(const Type &type) const;
+    LLVMTypeRef getLLVMTypeOfType(TypeTag typeTag) const;
     LLVMValueRef getFunctionRef(const std::string &arrayName) const;
     LLVMValueRef getGlobalNilVar() const;
     LLVMValueRef getStringBuilderTableGlobalPointer();
