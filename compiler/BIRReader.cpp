@@ -653,7 +653,7 @@ std::shared_ptr<BasicBlock> BIRReader::readBasicBlock(std::shared_ptr<Function> 
 }
 
 bool BIRReader::ignoreFunction(std::string funcName) {
-    std::array<std::string, 3> ignoreNames{"..<init>", "..<start>", "..<stop>"};
+    std::array<std::string, 3> ignoreNames{".<init>", ".<start>", ".<stop>"};
     bool ignoreFunction = false;
     for (const auto &name : ignoreNames) {
         if (funcName.rfind(name, 0) == 0) {
