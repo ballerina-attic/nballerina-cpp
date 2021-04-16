@@ -16,31 +16,17 @@
  * under the License.
  */
 
-#ifndef __TYPECASTINSN__H__
-#define __TYPECASTINSN__H__
+#ifndef __TYPEUTILS__H__
+#define __TYPEUTILS__H__
 
-#include "NonTerminatorInsn.h"
 #include "Types.h"
 
 namespace nballerina {
 
-// Forward Declare
-class Type;
-class Operand;
-
-class TypeCastInsn : public NonTerminatorInsn {
-  private:
-    Operand rhsOp;
-    LLVMValueRef getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-    LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-
+class TypeUtils {
   public:
-    TypeCastInsn() = delete;
-    TypeCastInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp);
-    ~TypeCastInsn() = default;
-    void translate(LLVMModuleRef &modRef) final;
+    static void checkMapSupport(TypeTag typeTag);
 };
-
 } // namespace nballerina
 
-#endif //!__TYPECASTINSN__H__
+#endif //!__TYPEUTILS__H__

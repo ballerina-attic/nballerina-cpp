@@ -21,6 +21,7 @@
 #include "MapInsns.h"
 #include "Operand.h"
 #include "Package.h"
+#include "TypeUtils.h"
 #include "Types.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
@@ -60,13 +61,11 @@ void StructureInsn::translate(LLVMModuleRef &modRef) {
 
 void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
 
-    // Only handle Int type
-    if (lhsVar.getType().getMemberTypeTag() != TYPE_TAG_INT) {
-        llvm_unreachable("Only int type maps are currently supported");
-    }
+    TypeTag memTypeTag = lhsVar.getType().getMemberTypeTag();
+    TypeUtils::checkMapSupport(memTypeTag);
 
     // Codegen for map<int> type store
-    LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapIntStoreDeclaration(modRef);
+    LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapStoreDeclaration(modRef, memTypeTag);
     LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
     const auto &funcObj = getFunctionRef();
     LLVMBuilderRef builder = funcObj.getLLVMBuilder();
@@ -81,9 +80,14 @@ void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modR
         }
         // For Key_Value_Kind
         const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
+        LLVMValueRef mapValue;
+        if (Type::isSmartStructType(memTypeTag)) {
+            mapValue = funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue());
+        } else {
+            mapValue = funcObj.createTempVariable(keyVal.getValue());
+        }
         MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
-                                      funcObj.createTempVariable(keyVal.getKey()),
-                                      funcObj.createTempVariable(keyVal.getValue()));
+                                      funcObj.createTempVariable(keyVal.getKey()), mapValue);
     }
 }
 
@@ -97,27 +101,26 @@ void StructureInsn::mapCreateTranslate(const Variable &lhsVar, LLVMModuleRef &mo
     // Get member type
     TypeTag memberTypeTag = mapType.getMemberTypeTag();
     // Only handle Int type
-    if (memberTypeTag != TYPE_TAG_INT) {
-        llvm_unreachable("Only int type maps are currently supported");
-    }
+    TypeUtils::checkMapSupport(memberTypeTag);
 
     // Codegen for Map of Int type
-    LLVMValueRef newMapIntFunc = getNewMapIntDeclaration(modRef);
+    LLVMValueRef newMapIntFunc = getNewMapDeclaration(modRef, Type::getNameOfType(memberTypeTag));
     LLVMValueRef newMapIntRef = LLVMBuildCall(builder, newMapIntFunc, nullptr, 0, "");
     LLVMBuildStore(builder, newMapIntRef, lhsOpRef);
 }
 
 // Declaration for new map<int> function
-LLVMValueRef StructureInsn::getNewMapIntDeclaration(LLVMModuleRef &modRef) {
+LLVMValueRef StructureInsn::getNewMapDeclaration(LLVMModuleRef &modRef, std::string typeName) {
 
-    LLVMValueRef newMapIntFunc = getPackageRef().getFunctionRef("map_new_int");
+    std::string funcName = "map_new_" + typeName;
+    LLVMValueRef newMapIntFunc = getPackageRef().getFunctionRef(funcName);
     if (newMapIntFunc != nullptr) {
         return newMapIntFunc;
     }
     LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
-    newMapIntFunc = LLVMAddFunction(modRef, "map_new_int", funcType);
-    getPackageMutableRef().addFunctionRef("map_new_int", newMapIntFunc);
+    newMapIntFunc = LLVMAddFunction(modRef, funcName.c_str(), funcType);
+    getPackageMutableRef().addFunctionRef(funcName, newMapIntFunc);
     return newMapIntFunc;
 }
 
