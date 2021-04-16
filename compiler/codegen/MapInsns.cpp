@@ -67,7 +67,7 @@ void MapLoadInsn::translate(LLVMModuleRef &modRef) {
     auto builder = funcObj.getLLVMBuilder();
     
     LLVMValueRef lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef outParam = LLVMBuildAlloca(builder, LLVMInt32Type(), "_out_param");
+    LLVMValueRef outParam = LLVMBuildAlloca(builder, LLVMInt64Type(), "_out_param");
     LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp), outParam};
     
     [[maybe_unused]] LLVMValueRef retVal = LLVMBuildCall(builder, getMapLoadDeclaration(modRef), params, 3, "");
@@ -88,7 +88,7 @@ LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef) {
     }
     LLVMTypeRef funcRetType = LLVMInt8Type();
     LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0),
-                                LLVMPointerType(LLVMInt32Type(), 0)};
+                                LLVMPointerType(LLVMInt64Type(), 0)};
     LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 3, 0);
     mapLoadFunc = LLVMAddFunction(modRef, funcName, funcType);
     getPackageMutableRef().addFunctionRef(funcName, mapLoadFunc);

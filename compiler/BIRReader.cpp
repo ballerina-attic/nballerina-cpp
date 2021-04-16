@@ -49,7 +49,7 @@ ReadArrayLoadInsn ReadArrayLoadInsn::readArrayLoadInsn;
 ReadMapStoreInsn ReadMapStoreInsn::readMapStoreInsn;
 ReadMapLoadInsn ReadMapLoadInsn::readMapLoadInsn;
 
-constexpr bool BIRReader::isLittleEndian() {
+bool BIRReader::isLittleEndian() {
     unsigned int val = 1;
     char *c = (char *)&val;
     return (int)*c != 0;
