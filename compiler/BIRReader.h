@@ -376,6 +376,7 @@ class ShapeCpInfo : public ConstantPoolEntry {
     uint32_t recordFieldCount;
     std::vector<std::unique_ptr<RecordField>> recordFields;
     std::unique_ptr<ObjectAttachedFunction> recordInitFunction; //todo: mayhave to change this in the future
+    uint32_t pkdIdCpIndex;
 
   public:
     int32_t getShapeLength() { return shapeLength; }

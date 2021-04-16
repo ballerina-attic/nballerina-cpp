@@ -898,7 +898,7 @@ void ShapeCpInfo::read() {
     }
     case TYPE_TAG_OBJECT:{
         isObjectType = readerRef.readU1();
-        pkgIdCpIndex = readerRef.readS4be(); // this is assuming pkd_id_cp_index is an typo
+        pkdIdCpIndex = readerRef.readS4be(); 
         nameCpIndex = readerRef.readS4be();
         isAbstract = readerRef.readU1();
         isClient = readerRef.readU1();
@@ -948,7 +948,7 @@ void ShapeCpInfo::read() {
         hasName = readerRef.readU1();
         if (hasName)
         {
-            pkgIdCpIndex = readerRef.readS4be();
+            pkdIdCpIndex = readerRef.readS4be();
             nameCpIndex = readerRef.readS4be();
         }
         memberTypeCount = readerRef.readS4be(); 
@@ -1024,7 +1024,7 @@ void ShapeCpInfo::read() {
         break;
     }
     case TYPE_TAG_RECORD:{
-        pkgIdCpIndex = readerRef.readS4be();
+        pkdIdCpIndex = readerRef.readS4be();
         nameCpIndex = readerRef.readS4be();
         isSealed = readerRef.readU1();
         resetFieldTypeCpIndex = readerRef.readS4be();
