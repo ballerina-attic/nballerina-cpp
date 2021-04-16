@@ -34,26 +34,25 @@ FunctionCallInsn::FunctionCallInsn(std::weak_ptr<BasicBlock> currentBB, std::str
     kind = INSTRUCTION_KIND_CALL;
 }
 
-void FunctionCallInsn::translate(LLVMModuleRef &) {
+void FunctionCallInsn::translate(LLVMModuleRef &modRef) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
+    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
     std::unique_ptr<LLVMValueRef[]> ParamRefs(new LLVMValueRef[argCount]);
 
-    const auto &function = getPackageRef().getFunction(functionName);
     for (int i = 0; i < argCount; i++) {
         auto op = argsList[i];
-        LLVMValueRef opRef = funcObj.createTempVariable(op);
+        LLVMValueRef opRef = llvm::wrap(funcObj.createTempVariable(op, *llvm::unwrap(modRef)));
         ParamRefs[i] = opRef;
     }
 
-    LLVMValueRef lhsRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef namedFuncRef = function.getLLVMFunctionValue();
+    LLVMValueRef lhsRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), *llvm::unwrap(modRef)));
+    LLVMValueRef namedFuncRef = llvm::wrap(llvm::unwrap(modRef)->getFunction(functionName));
     LLVMValueRef callResult = LLVMBuildCall(builder, namedFuncRef, ParamRefs.get(), argCount, "call");
     LLVMBuildStore(builder, callResult, lhsRef);
 
     // creating branch to next basic block.
     if (getNextBB().getLLVMBBRef() != nullptr) {
-        LLVMBuildBr(builder, getNextBB().getLLVMBBRef());
+        LLVMBuildBr(builder, llvm::wrap(getNextBB().getLLVMBBRef()));
     }
 }
 

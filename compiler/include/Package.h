@@ -21,9 +21,7 @@
 
 #include "Function.h"
 #include "Variable.h"
-#include "interfaces/Translatable.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Module.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include <map>
 #include <string>
@@ -34,7 +32,7 @@ namespace nballerina {
 // Forward Declaration
 class Type;
 
-class Package : public Translatable {
+class Package {
   private:
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
@@ -43,15 +41,15 @@ class Package : public Translatable {
     std::string version;
     std::string sourceFileName;
     std::map<std::string, Variable> globalVars;
-    std::map<std::string, LLVMValueRef> globalVarRefs;
     std::map<std::string, std::shared_ptr<Function>> functionLookUp;
+
     llvm::StructType *boxType;
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
-    std::map<std::string, std::vector<LLVMValueRef>> structElementStoreInst;
-    std::map<std::string, LLVMValueRef> functionRefs;
-    std::vector<std::unique_ptr<llvm::GlobalVariable>> globalStringValues;
-    void applyStringOffsetRelocations(LLVMModuleRef &modRef);
-    LLVMValueRef strBuilderGlobalPtr;
+    std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
+    void applyStringOffsetRelocations(llvm::Module &module);
+    llvm::GlobalVariable *strBuilderGlobal;
+    llvm::GlobalVariable *strTablePtr;
+    llvm::GlobalVariable *nillGlobal;
 
   public:
     Package() = default;
@@ -66,15 +64,12 @@ class Package : public Translatable {
     const std::string &getSrcFileName() const;
     const std::string &getPackageName() const;
     const Function &getFunction(const std::string &name) const;
-    LLVMValueRef getGlobalLLVMVar(const std::string &globVar) const;
-    LLVMTypeRef getLLVMTypeOfType(const Type &type) const;
-    LLVMTypeRef getLLVMTypeOfType(TypeTag typeTag) const;
-    LLVMValueRef getFunctionRef(const std::string &arrayName) const;
-    LLVMValueRef getGlobalNilVar() const;
-    LLVMValueRef getStringBuilderTableGlobalPointer();
     const Variable &getGlobalVariable(const std::string &name) const;
-    LLVMValueRef getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag typeTag);
-    LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
+    llvm::Type *getLLVMTypeOfType(const Type &type, llvm::Module &module) const;
+    llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module) const;
+    const llvm::Value *getGlobalNilVar() const;
+    const llvm::Value *getStringBuilderTableGlobalPointer() const;
+    llvm::FunctionCallee getMapStoreDeclaration(llvm::Module &module, TypeTag typeTag) const;
 
     void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
@@ -83,10 +78,9 @@ class Package : public Translatable {
     void setSrcFileName(std::string srcFileName);
     void insertGlobalVar(const Variable &var);
     void insertFunction(const std::shared_ptr<Function> &function);
-    void addFunctionRef(const std::string &arrayName, LLVMValueRef functionRef);
-    void addStringOffsetRelocationEntry(const std::string &eleType, LLVMValueRef storeInsn);
+    void addStringOffsetRelocationEntry(const std::string &eleType, llvm::Value *storeInsn);
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module);
 };
 
 } // namespace nballerina

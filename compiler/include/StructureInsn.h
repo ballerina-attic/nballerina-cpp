@@ -35,6 +35,7 @@ class StructureInsn : public NonTerminatorInsn {
     void mapCreateTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
     void mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
     LLVMValueRef getNewMapDeclaration(LLVMModuleRef &modRef, std::string typeName);
+    LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
 
   public:
     StructureInsn() = delete;

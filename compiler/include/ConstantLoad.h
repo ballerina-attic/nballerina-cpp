@@ -33,7 +33,6 @@ class ConstantLoadInsn : public NonTerminatorInsn {
     TypeTag typeTag;
     LLVMValueRef getNewString(LLVMModuleRef &modRef);
     std::variant<int64_t, float, bool, std::string> value;
-    std::unique_ptr<llvm::GlobalVariable> globalStringValue;
 
   public:
     ConstantLoadInsn() = delete;

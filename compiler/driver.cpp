@@ -18,10 +18,11 @@
 
 #include "BIRReader.h"
 #include "Package.h"
-#include <fstream>
+#include "llvm-c/Core.h"
 #include <iostream>
-#include <llvm-c/Core.h>
 #include <llvm/ADT/Triple.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
 #include <memory>
 #include <string>
 
@@ -67,10 +68,10 @@ int main(int argc, char **argv) {
 
     std::shared_ptr<nballerina::Package> birPackage = BIRReader::reader.deserialize();
 
-    char *message;
-    bool dumpLlvm = true; // temp value
     string moduleName = birPackage->getOrgName() + birPackage->getPackageName() + birPackage->getVersion();
-    LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
+    // auto mContext = std::make_shared<llvm::LLVMContext>();
+    auto mContext = llvm::unwrap(LLVMGetGlobalContext());
+    auto mod = llvm::Module(moduleName, *mContext);
     const char *tripleStr = LLVM_DEFAULT_TARGET_TRIPLE;
 
     // MacOS specific code. This is needed, since the default Triple will have the
@@ -86,14 +87,19 @@ int main(int argc, char **argv) {
         }
     }
 
-    LLVMSetSourceFileName(mod, birPackage->getSrcFileName().c_str(), birPackage->getSrcFileName().length());
-    LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
-    LLVMSetTarget(mod, tripleStr);
+    mod.setSourceFileName(birPackage->getSrcFileName());
+    mod.setDataLayout("e-m:e-i64:64-f80:128-n8:16:32:64-S128");
+    mod.setTargetTriple(tripleStr);
+
+    // Codegen
     birPackage->translate(mod);
 
-    if (dumpLlvm) {
-        if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &message)) {
-            std::cerr << message;
-        }
+    // Write LLVM IR to file
+    std::error_code EC;
+    auto outStream = llvm::raw_fd_ostream(outFileName, EC);
+    if (EC) {
+        std::cerr << EC.message();
+        return -1;
     }
+    mod.print(outStream, nullptr);
 }

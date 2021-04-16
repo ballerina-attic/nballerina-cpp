@@ -28,12 +28,12 @@ namespace nballerina {
 MoveInsn::MoveInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhsOp) {}
 
-void MoveInsn::translate(LLVMModuleRef &) {
+void MoveInsn::translate(LLVMModuleRef &modRef) {
 
     const auto &funcRef = getFunctionRef();
-    LLVMBuilderRef builder = funcRef.getLLVMBuilder();
-    LLVMValueRef lhsRef = funcRef.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef rhsVarOpRef = funcRef.createTempVariable(rhsOp);
+    LLVMBuilderRef builder = llvm::wrap(funcRef.getLLVMBuilder());
+    LLVMValueRef lhsRef = llvm::wrap(funcRef.getLLVMLocalOrGlobalVar(getLhsOperand(), *llvm::unwrap(modRef)));
+    LLVMValueRef rhsVarOpRef = llvm::wrap(funcRef.createTempVariable(rhsOp, *llvm::unwrap(modRef)));
     LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
 }
 

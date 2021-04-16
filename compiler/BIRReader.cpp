@@ -685,7 +685,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     int32_t typeCpIndex = readS4be();
     [[maybe_unused]] auto invocable_type = constantPool->getInvocableType(typeCpIndex);
     auto birFunction =
-        std::make_shared<Function>(package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
+        std::make_shared<Function>(*package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
     birFunction->setLocation(location);
 
     int64_t annotationLength __attribute__((unused)) = readS8be();

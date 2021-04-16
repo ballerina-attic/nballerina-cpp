@@ -20,7 +20,7 @@
 #define __BASICBLOCK__H__
 
 #include "interfaces/Debuggable.h"
-#include "interfaces/Translatable.h"
+#include "llvm/IR/Module.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -32,14 +32,14 @@ class Function;
 class TerminatorInsn;
 class NonTerminatorInsn;
 
-class BasicBlock : public Debuggable, public Translatable {
+class BasicBlock : public Debuggable {
   private:
     std::string id;
     std::weak_ptr<Function> parentFunction;
     std::unique_ptr<TerminatorInsn> terminator;
     std::weak_ptr<BasicBlock> nextBB;
     std::vector<std::unique_ptr<NonTerminatorInsn>> instructions;
-    LLVMBasicBlockRef bbRefObj;
+    llvm::BasicBlock *bbRefObj;
 
   public:
     BasicBlock() = delete;
@@ -54,14 +54,14 @@ class BasicBlock : public Debuggable, public Translatable {
     TerminatorInsn *getTerminatorInsnPtr() const;
     Function &getFunctionMutableRef() const;
     const Function &getParentFunctionRef() const;
-    LLVMBasicBlockRef getLLVMBBRef() const;
+    llvm::BasicBlock *getLLVMBBRef() const;
 
     void setNextBB(std::weak_ptr<BasicBlock> bb);
     void setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn);
     void addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn);
-    void setLLVMBBRef(LLVMBasicBlockRef bbRef);
+    void setLLVMBBRef(llvm::BasicBlock *bbRef);
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module);
 };
 
 } // namespace nballerina

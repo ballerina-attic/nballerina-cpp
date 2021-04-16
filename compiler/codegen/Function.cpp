@@ -20,24 +20,16 @@
 #include "BasicBlock.h"
 #include "ConditionBrInsn.h"
 #include "FunctionParam.h"
-#include "InvocableType.h"
 #include "Operand.h"
 #include "Package.h"
 #include "TerminatorInsn.h"
 #include "Types.h"
-#include "llvm-c/Core.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
-
-using namespace llvm;
 
 namespace nballerina {
 
-Function::Function(std::weak_ptr<Package> parentPackage, std::string name, std::string workerName, unsigned int flags)
-    : parentPackage(std::move(parentPackage)), name(std::move(name)), workerName(std::move(workerName)), flags(flags),
-      llvmBuilder(nullptr), llvmFunction(nullptr) {}
+Function::Function(Package &parentPackage, std::string name, std::string workerName, unsigned int flags)
+    : parentPackage(parentPackage), name(std::move(name)), workerName(std::move(workerName)), flags(flags),
+      llvmBuilder(nullptr) {}
 
 // Search basic block based on the basic block ID
 std::weak_ptr<BasicBlock> Function::FindBasicBlock(const std::string &id) {
@@ -50,10 +42,11 @@ const std::string &Function::getName() const { return name; }
 const std::vector<FunctionParam> &Function::getParams() const { return requiredParams; }
 const std::optional<RestParam> &Function::getRestParam() const { return restParam; }
 const std::optional<Variable> &Function::getReturnVar() const { return returnVar; }
-LLVMBuilderRef Function::getLLVMBuilder() const { return llvmBuilder; }
-LLVMValueRef Function::getLLVMFunctionValue() const { return llvmFunction; }
 
-LLVMValueRef Function::getLLVMValueForBranchComparison(const std::string &lhsName) const {
+// IRBuilder should be in function? or pass to translate
+const llvm::IRBuilder<> *Function::getLLVMBuilder() const { return llvmBuilder; }
+
+llvm::Value *Function::getLLVMValueForBranchComparison(const std::string &lhsName) const {
     const auto &branch = branchComparisonList.find(lhsName);
     if (branch == branchComparisonList.end()) {
         return nullptr;
@@ -61,18 +54,12 @@ LLVMValueRef Function::getLLVMValueForBranchComparison(const std::string &lhsNam
     return branch->second;
 }
 
-LLVMValueRef Function::getLLVMLocalVar(const std::string &varName) const {
+llvm::AllocaInst *Function::getLLVMLocalVar(const std::string &varName) const {
     const auto &varIt = localVarRefs.find(varName);
     if (varIt == localVarRefs.end()) {
         return nullptr;
     }
     return varIt->second;
-}
-
-LLVMValueRef Function::createTempVariable(const Operand &operand) const {
-    LLVMValueRef locVRef = getLLVMLocalOrGlobalVar(operand);
-    std::string tempName = operand.getName() + "_temp";
-    return LLVMBuildLoad(llvmBuilder, locVRef, tempName.c_str());
 }
 
 static bool isParamter(const Variable &locVar) {
@@ -84,13 +71,12 @@ static bool isParamter(const Variable &locVar) {
     }
 }
 
-LLVMTypeRef Function::getLLVMTypeOfReturnVal() const {
-
+llvm::Type *Function::getLLVMTypeOfReturnVal(llvm::Module &module) const {
     if (isMainFunction()) {
-        return LLVMVoidType();
+        return llvm::Type::getVoidTy(module.getContext());
     }
-    assert(!parentPackage.expired());
-    return parentPackage.lock()->getLLVMTypeOfType(returnVar->getType());
+    assert(returnVar.has_value());
+    return parentPackage.getLLVMTypeOfType(returnVar->getType(), module);
 }
 
 void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
@@ -105,10 +91,14 @@ void Function::insertBasicBlock(const std::shared_ptr<BasicBlock> &bb) {
     }
     basicBlocksMap.insert(std::pair<std::string, std::shared_ptr<BasicBlock>>(bb->getId(), bb));
 }
-void Function::setLLVMBuilder(LLVMBuilderRef b) { llvmBuilder = b; }
-void Function::setLLVMFunctionValue(LLVMValueRef newFuncRef) { llvmFunction = newFuncRef; }
-void Function::insertBranchComparisonValue(const std::string &name, LLVMValueRef compRef) {
-    branchComparisonList.insert(std::pair<std::string, LLVMValueRef>(name, compRef));
+void Function::setLLVMBuilder(llvm::IRBuilder<> *b) { llvmBuilder = b; }
+void Function::insertBranchComparisonValue(const std::string &name, llvm::Value *compRef) {
+    branchComparisonList.insert(std::pair<std::string, llvm::Value *>(name, compRef));
+}
+
+llvm::Value *Function::createTempVariable(const Operand &operand, llvm::Module &module) const {
+    auto *variable = getLLVMLocalOrGlobalVar(operand, module);
+    return llvmBuilder->CreateLoad(variable, operand.getName() + "_temp");
 }
 
 const Variable &Function::getLocalVariable(const std::string &opName) const {
@@ -119,29 +109,24 @@ const Variable &Function::getLocalVariable(const std::string &opName) const {
 
 const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
-        assert(!parentPackage.expired());
-        return parentPackage.lock()->getGlobalVariable(op.getName());
+        return parentPackage.getGlobalVariable(op.getName());
     }
     return getLocalVariable(op.getName());
 }
 
-LLVMValueRef Function::getLLVMLocalOrGlobalVar(const Operand &op) const {
+llvm::Value *Function::getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
-        assert(!parentPackage.expired());
-        assert(parentPackage.lock()->getGlobalLLVMVar(op.getName()));
-        return parentPackage.lock()->getGlobalLLVMVar(op.getName());
+        auto *variable = module.getGlobalVariable(op.getName(), false);
+        assert(variable != nullptr);
+        return variable;
     }
     return getLLVMLocalVar(op.getName());
 }
 
-const Package &Function::getPackageRef() const {
-    assert(!parentPackage.expired());
-    return *parentPackage.lock();
-}
-Package &Function::getPackageMutableRef() const {
-    assert(!parentPackage.expired());
-    return *parentPackage.lock();
-}
+const Package &Function::getPackageRef() const { return parentPackage; }
+
+// TODO mutable reference shouldn't be required
+Package &Function::getPackageMutableRef() const { return parentPackage; }
 
 size_t Function::getNumParams() const { return requiredParams.size(); }
 
@@ -184,31 +169,28 @@ void Function::patchBasicBlocks() {
     }
 }
 
-void Function::storeValueInSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
-                                       LLVMValueRef smartStruct) {
+// package function?
+void Function::storeValueInSmartStruct(llvm::Module &module, llvm::Value *value, const Type &valueType,
+                                       llvm::Value *smartStruct) {
 
     // struct first element original type
-    LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(llvmBuilder, smartStruct, 0, "inherentTypeName");
-
-    // package function?
-    std::string_view valueTypeName = Type::typeStringMangleName(valueType);
-    assert(!parentPackage.expired());
-    auto parent = parentPackage.lock();
-    parent->addToStrTable(valueTypeName);
+    auto *inherentTypeIdx = llvmBuilder->CreateStructGEP(smartStruct, 0, "inherentTypeName");
+    auto valueTypeName = Type::typeStringMangleName(valueType);
+    parentPackage.addToStrTable(valueTypeName);
     int tempRandNum1 = std::rand() % 1000 + 1;
-    LLVMValueRef constValue = LLVMConstInt(LLVMInt64Type(), tempRandNum1, 0);
-    LLVMValueRef valueTypeStoreRef = LLVMBuildStore(llvmBuilder, constValue, inherentTypeIdx);
-    parent->addStringOffsetRelocationEntry(valueTypeName.data(), valueTypeStoreRef);
+    auto *constValue = llvmBuilder->getInt64(tempRandNum1);
+    auto *storeInsn = llvmBuilder->CreateStore(constValue, inherentTypeIdx);
+    parentPackage.addStringOffsetRelocationEntry(valueTypeName.data(), storeInsn);
 
     // struct second element void pointer data.
-    LLVMValueRef valuePtr = LLVMBuildStructGEP(llvmBuilder, smartStruct, 1, "data");
+    auto *valueIndx = llvmBuilder->CreateStructGEP(smartStruct, 1, "data");
     if (isBoxValueSupport(valueType.getTypeTag())) {
-        auto valueTemp = LLVMBuildLoad(llvmBuilder, value, "_temp");
-        LLVMValueRef boxValFunc = generateBoxValueFunc(modRef, LLVMTypeOf(valueTemp), valueType.getTypeTag());
-        value = LLVMBuildCall(llvmBuilder, boxValFunc, &valueTemp, 1, "call");
+        auto *valueTemp = llvmBuilder->CreateLoad(value, "_temp");
+        auto boxValFunc = generateBoxValueFunc(module, valueTemp->getType(), valueType.getTypeTag());
+        value = llvmBuilder->CreateCall(boxValFunc, llvm::ArrayRef<llvm::Value *>({valueTemp}), "call");
     }
-    LLVMValueRef bitCastRes = LLVMBuildBitCast(llvmBuilder, value, LLVMPointerType(LLVMInt8Type(), 0), "");
-    LLVMBuildStore(llvmBuilder, bitCastRes, valuePtr);
+    auto *bitCastRes = llvmBuilder->CreateBitCast(value, llvmBuilder->getInt8PtrTy(), "");
+    llvmBuilder->CreateStore(bitCastRes, valueIndx);
 }
 
 bool Function::isBoxValueSupport(TypeTag typeTag) {
@@ -222,89 +204,70 @@ bool Function::isBoxValueSupport(TypeTag typeTag) {
     }
 }
 
-LLVMValueRef Function::generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag) {
-    std::string functionName = "box_bal_";
-    functionName += Type::getNameOfType(typeTag);
-    assert(!parentPackage.expired());
-    auto parent = parentPackage.lock();
-    LLVMValueRef boxValFuncRef = parent->getFunctionRef(functionName);
-    if (boxValFuncRef != nullptr) {
-        return boxValFuncRef;
-    }
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(paramTypeRef, 0), &paramTypeRef, 1, 0);
-    boxValFuncRef = LLVMAddFunction(modRef, functionName.c_str(), funcType);
-    parent->addFunctionRef(functionName, boxValFuncRef);
-    return boxValFuncRef;
+llvm::FunctionCallee Function::generateBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag) {
+    const std::string functionName = "box_bal_" + Type::getNameOfType(typeTag);
+    auto *funcType =
+        llvm::FunctionType::get(llvm::PointerType::get(paramType, 0), llvm::ArrayRef<llvm::Type *>({paramType}), false);
+    return module.getOrInsertFunction(functionName, funcType);
 }
 
-void Function::translate(LLVMModuleRef &modRef) {
+void Function::translate(llvm::Module &module) {
 
-    LLVMBasicBlockRef BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");
-    LLVMPositionBuilderAtEnd(llvmBuilder, BbRef);
-    assert(!parentPackage.expired());
+    auto *llvmFunction = module.getFunction(name);
+    auto *BbRef = llvm::BasicBlock::Create(module.getContext(), "entry", llvmFunction);
+    llvmBuilder->SetInsertPoint(BbRef);
+
     // iterate through all local vars.
-    int paramIndex = 0;
+    size_t paramIndex = 0;
     for (auto const &it : localVars) {
         const auto &locVar = it.second;
-        LLVMTypeRef varType = parentPackage.lock()->getLLVMTypeOfType(locVar.getType());
-        LLVMValueRef localVarRef = LLVMBuildAlloca(llvmBuilder, varType, (locVar.getName()).c_str());
+        auto *varType = parentPackage.getLLVMTypeOfType(locVar.getType(), module);
+        auto *localVarRef = llvmBuilder->CreateAlloca(varType, nullptr, locVar.getName());
         localVarRefs.insert({locVar.getName(), localVarRef});
+
         if (isParamter(locVar)) {
-            LLVMValueRef parmRef = LLVMGetParam(llvmFunction, paramIndex);
-            std::string paramName = requiredParams[paramIndex].getName();
-            LLVMSetValueName2(parmRef, paramName.c_str(), paramName.length());
-            if (parmRef != nullptr) {
-                LLVMBuildStore(llvmBuilder, parmRef, localVarRef);
-            }
+            llvm::Argument *parmRef = &(llvmFunction->arg_begin()[paramIndex]);
+            auto paramName = requiredParams[paramIndex].getName();
+            parmRef->setName(paramName);
+            llvmBuilder->CreateStore(parmRef, localVarRef);
             paramIndex++;
         }
     }
 
     // iterate through with each basic block in the function and create them
     for (auto &bb : basicBlocksMap) {
-        LLVMBasicBlockRef bbRef = LLVMAppendBasicBlock(llvmFunction, bb.second->getId().c_str());
-        bb.second->setLLVMBBRef(bbRef);
+        bb.second->setLLVMBBRef(llvm::BasicBlock::Create(module.getContext(), bb.second->getId(), llvmFunction));
     }
 
     // creating branch to next basic block.
     if (auto firstBB = firstBlock.lock()) {
-        if (firstBB->getLLVMBBRef() != nullptr) {
-            LLVMBuildBr(llvmBuilder, firstBB->getLLVMBBRef());
-        }
+        llvmBuilder->CreateBr(firstBB->getLLVMBBRef());
     }
 
     // Now translate the basic blocks (essentially add the instructions in them)
     for (auto &bb : basicBlocksMap) {
-        LLVMPositionBuilderAtEnd(llvmBuilder, bb.second->getLLVMBBRef());
-        bb.second->translate(modRef);
+        llvmBuilder->SetInsertPoint(bb.second->getLLVMBBRef());
+        bb.second->translate(module);
     }
-    splitBBIfPossible(modRef);
+    splitBBIfPossible(module);
 }
 
-LLVMValueRef Function::generateAbortInsn(LLVMModuleRef &modRef) {
-    const char *abortFuncName = "abort";
-    assert(!parentPackage.expired());
-    auto parent = parentPackage.lock();
-    LLVMValueRef abortFuncRef = parent->getFunctionRef(abortFuncName);
-    if (abortFuncRef != nullptr) {
-        return abortFuncRef;
-    }
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), nullptr, 0, 0);
-    abortFuncRef = LLVMAddFunction(modRef, abortFuncName, funcType);
-    parent->addFunctionRef(abortFuncName, abortFuncRef);
-    return abortFuncRef;
+llvm::FunctionCallee Function::generateAbortInsn(llvm::Module &module) {
+    const std::string abortFuncName = "abort";
+    auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()), false);
+    return module.getOrInsertFunction(abortFuncName, funcType);
 }
 
 // Splitting Basicblock after 'is_same_type()' function call and
 // based on is_same_type() function result, crating branch condition using
 // splitBB Basicblock (ifBB) and abortBB(elseBB).
 // In IfBB we are doing casing and from ElseBB Aborting.
-void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
-    auto *llvmFunc = unwrap<llvm::Function>(llvmFunction);
+void Function::splitBBIfPossible(llvm::Module &module) {
     const char *isSameTypeChar = "is_same_type";
-    for (auto &bBlock : *llvmFunc) {
+    auto *llvmFunction = module.getFunction(name);
+    for (auto &bBlock : *llvmFunction) {
         for (llvm::BasicBlock::iterator I = bBlock.begin(); I != bBlock.end(); ++I) {
-            auto *callInst = dyn_cast<llvm::CallInst>(&*I);
+            auto *callInst = llvm::dyn_cast<llvm::CallInst>(&*I);
             if (callInst == nullptr) {
                 continue;
             }
@@ -324,10 +287,10 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             // into BB0(split original BB).
             lastInsn.removeFromParent();
             // Creating abortBB (elseBB).
-            llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(*unwrap(LLVMGetGlobalContext()), "abortBB");
+            llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "abortBB");
 
             // Creating Branch condition using if and else BB's.
-            llvm::Instruction *compInsnRef = unwrap(llvmBuilder)->CreateCondBr(compInsn, splitBB, elseBB);
+            llvm::Instruction *compInsnRef = llvmBuilder->CreateCondBr(compInsn, splitBB, elseBB);
 
             // branch to abortBB instruction is generating in last(e.g bb2 BB)
             // basicblock. here, moving from bb2 to bb0.split basicblock.
@@ -339,16 +302,20 @@ void Function::splitBBIfPossible(LLVMModuleRef &modRef) {
             assert(SI != splitBB->begin());
             auto &newBBLastInsn = *--SI;
             llvm::BasicBlock *elseBBSucc = newBBLastInsn.getSuccessor(0);
+
             // creating branch to else basicblock.
-            llvm::Instruction *brInsn = unwrap(llvmBuilder)->CreateBr(elseBBSucc);
+            llvm::Instruction *brInsn = llvmBuilder->CreateBr(elseBBSucc);
             brInsn->removeFromParent();
+
             // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
-            LLVMValueRef abortInsn = generateAbortInsn(modRef);
-            LLVMValueRef abortFuncCallInsn = LLVMBuildCall(llvmBuilder, abortInsn, nullptr, 0, "");
-            LLVMInstructionRemoveFromParent(abortFuncCallInsn);
+            auto abortFunc = generateAbortInsn(module);
+            auto abortFuncCallInsn = llvmBuilder->CreateCall(abortFunc);
+            abortFuncCallInsn->removeFromParent();
+
             // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).
-            elseBB->getInstList().push_back(unwrap<llvm::Instruction>(abortFuncCallInsn));
+            elseBB->getInstList().push_back(abortFuncCallInsn);
             elseBB->getInstList().push_back(brInsn);
+
             // Inserting elseLLVMBB (abort BB) after splitBB (bb0.split)
             // basicblock.
             splitBB->getParent()->getBasicBlockList().insertAfter(splitBB->getIterator(), elseBB);

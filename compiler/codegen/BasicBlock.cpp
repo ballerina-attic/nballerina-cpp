@@ -39,14 +39,15 @@ const Function &BasicBlock::getParentFunctionRef() const {
     return *parentFunction.lock();
 }
 
-LLVMBasicBlockRef BasicBlock::getLLVMBBRef() const { return bbRefObj; }
+llvm::BasicBlock *BasicBlock::getLLVMBBRef() const { return bbRefObj; }
 
 void BasicBlock::setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn) { terminator = std::move(insn); }
 void BasicBlock::setNextBB(std::weak_ptr<BasicBlock> bb) { nextBB = std::move(bb); }
-void BasicBlock::setLLVMBBRef(LLVMBasicBlockRef bbRef) { bbRefObj = bbRef; }
+void BasicBlock::setLLVMBBRef(llvm::BasicBlock *bbRef) { bbRefObj = bbRef; }
 void BasicBlock::addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn) { instructions.push_back(std::move(insn)); }
 
-void BasicBlock::translate(LLVMModuleRef &modRef) {
+void BasicBlock::translate(llvm::Module &module) {
+    auto modRef = llvm::wrap(&module);
     for (const auto &instruction : instructions) {
         instruction->translate(modRef);
     }

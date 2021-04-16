@@ -30,14 +30,14 @@ UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB
 
 void UnaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
 
-void UnaryOpInsn::translate(LLVMModuleRef &) {
+void UnaryOpInsn::translate(LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
+    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
     const auto &lhsOp = getLhsOperand();
     std::string lhsTmpName = lhsOp.getName() + "_temp";
-    LLVMValueRef lhsRef = funcObj.getLLVMLocalOrGlobalVar(lhsOp);
-    LLVMValueRef rhsOpref = funcObj.createTempVariable(rhsOp);
+    LLVMValueRef lhsRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(lhsOp, *llvm::unwrap(modRef)));
+    LLVMValueRef rhsOpref = llvm::wrap(funcObj.createTempVariable(rhsOp, *llvm::unwrap(modRef)));
 
     switch (kind) {
     case INSTRUCTION_KIND_UNARY_NOT: {

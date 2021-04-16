@@ -34,9 +34,9 @@ TypeCastInsn::TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> current
 
 void TypeCastInsn::translate(LLVMModuleRef &modRef) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
-    LLVMValueRef rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
-    LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
+    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
+    LLVMValueRef rhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, *llvm::unwrap(modRef)));
+    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), *llvm::unwrap(modRef)));
     LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
 
     const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
@@ -50,7 +50,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
 
     if (Type::isSmartStructType(rhsTypeTag)) {
         if (Type::isSmartStructType(lhsTypeTag)) {
-            LLVMValueRef rhsVarOpRef = funcObj.createTempVariable(rhsOp);
+            LLVMValueRef rhsVarOpRef = llvm::wrap(funcObj.createTempVariable(rhsOp, *llvm::unwrap(modRef)));
             LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
             return;
         }
@@ -61,13 +61,13 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
 
         LLVMValueRef data = LLVMBuildStructGEP(builder, rhsOpRef, 1, "data");
         LLVMValueRef dataLoad = LLVMBuildLoad(builder, data, "");
-        LLVMValueRef strTblPtr = getPackageMutableRef().getStringBuilderTableGlobalPointer();
+        LLVMValueRef strTblPtr = llvm::wrap(getPackageRef().getStringBuilderTableGlobalPointer());
         LLVMValueRef strTblLoad = LLVMBuildLoad(builder, strTblPtr, "");
         LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(builder, strTblLoad, &sExt, 1, "");
 
         // get the mangled name of the lhs type and store it to string builder table.
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
-        getPackageMutableRef().addToStrTable(lhsTypeName);
+        getPackageMutableRef().addToStrTable(lhsTypeName);  // TODO : get rid of this mutable reference
         int tempRandNum = std::rand() % 1000 + 1;
         LLVMValueRef constValue = LLVMConstInt(LLVMInt64Type(), tempRandNum, 0);
         LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, &constValue, 1, "");
@@ -77,29 +77,30 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef sameTypeResult = LLVMBuildCall(builder, addedIsSameTypeFunc, paramRefs, 2, "call");
         // creating branch condition using is_same_type() function result.
         [[maybe_unused]] LLVMValueRef brCondition = LLVMBuildIsNotNull(builder, sameTypeResult, "");
-        getPackageMutableRef().addStringOffsetRelocationEntry(lhsTypeName.data(), lhsGep);
+        getPackageMutableRef().addStringOffsetRelocationEntry(lhsTypeName.data(), llvm::unwrap(lhsGep));
 
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, getLhsOperand().getName().c_str());
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
     } else if (Type::isSmartStructType(lhsTypeTag)) {
-        getFunctionMutableRef().storeValueInSmartStruct(modRef, rhsOpRef, rhsType, lhsOpRef);
+        getFunctionMutableRef().storeValueInSmartStruct(*llvm::unwrap(modRef), llvm::unwrap(rhsOpRef), rhsType,
+                                                        llvm::unwrap(lhsOpRef));
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
     }
 }
 
 LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef) {
-    const char *isSameTypeChar = "is_same_type";
-    LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(isSameTypeChar);
-    if (addedFuncRef != nullptr) {
-        return addedFuncRef;
+    const std::string isSameTypeChar = "is_same_type";
+    auto *module = llvm::unwrap(modRef);
+    auto *functionRef = module->getFunction(isSameTypeChar);
+    if (functionRef != nullptr) {
+        return llvm::wrap(functionRef);
     }
+
     LLVMTypeRef paramTypes[] = {LLVMTypeOf(lhsRef), LLVMTypeOf(rhsRef)};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMInt8Type(), paramTypes, 2, 0);
-    addedFuncRef = LLVMAddFunction(modRef, isSameTypeChar, funcType);
-    getPackageMutableRef().addFunctionRef(isSameTypeChar, addedFuncRef);
-    return addedFuncRef;
+    return LLVMAddFunction(modRef, isSameTypeChar.c_str(), funcType);
 }
 
 } // namespace nballerina

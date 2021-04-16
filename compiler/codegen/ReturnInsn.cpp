@@ -35,15 +35,15 @@ ReturnInsn::ReturnInsn(std::weak_ptr<BasicBlock> currentBB)
 void ReturnInsn::translate(LLVMModuleRef &) {
 
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
+    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
 
     if (funcObj.isMainFunction()) {
         LLVMBuildRetVoid(builder);
         return;
     }
     assert(funcObj.getReturnVar().has_value());
-    LLVMValueRef retValueRef =
-        LLVMBuildLoad(builder, funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
+    LLVMValueRef retValueRef = LLVMBuildLoad(
+        builder, llvm::wrap(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName())), "return_val_temp");
     LLVMBuildRet(builder, retValueRef);
 }
 

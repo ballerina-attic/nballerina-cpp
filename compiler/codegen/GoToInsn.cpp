@@ -30,9 +30,9 @@ GoToInsn::GoToInsn(std::weak_ptr<BasicBlock> currentBB, std::string thenBBID)
 }
 
 void GoToInsn::translate(LLVMModuleRef &) {
-    LLVMBuilderRef builder = getFunctionRef().getLLVMBuilder();
+    LLVMBuilderRef builder = llvm::wrap(getFunctionRef().getLLVMBuilder());
     assert(getNextBB().getLLVMBBRef() != nullptr);
-    LLVMBuildBr(builder, getNextBB().getLLVMBBRef());
+    LLVMBuildBr(builder, llvm::wrap(getNextBB().getLLVMBBRef()));
 }
 
 } // namespace nballerina
