@@ -364,7 +364,7 @@ pub extern "C" fn unbox_bal_int(ptr: *mut i64) {
 }
 
 #[no_mangle]
-pub extern "C" fn box_bal_double(val: f64) -> *mut f64 {
+pub extern "C" fn box_bal_float(val: f64) -> *mut f64 {
     Box::into_raw(Box::new(val))
 }
 
