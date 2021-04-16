@@ -84,7 +84,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
     case TYPE_TAG_UNION:
         return wrap(boxType.get());
     default:
-        return LLVMInt32Type();
+        return LLVMInt64Type();
     }
 }
 
@@ -113,7 +113,7 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // creating struct smart pointer to store any type variables data.
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
-    LLVMTypeRef structElementTypes[] = {LLVMInt32Type(), LLVMPointerType(LLVMInt8Type(), 0)};
+    LLVMTypeRef structElementTypes[] = {LLVMInt64Type(), LLVMPointerType(LLVMInt8Type(), 0)};
     LLVMStructSetBody(structGen, structElementTypes, 2, 0);
     boxType = std::unique_ptr<llvm::StructType>(llvm::unwrap<llvm::StructType>(structGen));
 
@@ -212,7 +212,7 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
     for (const auto &element : structElementStoreInst) {
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
-        LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
+        LLVMValueRef tempVal = LLVMConstInt(LLVMInt64Type(), finalOrigOffset, 0);
         for (const auto &insn : element.second) {
             auto *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(llvm::unwrap(insn));
             LLVMValueRef constOperand = (GEPInst != nullptr) ? LLVMGetOperand(insn, 1) : LLVMGetOperand(insn, 0);
