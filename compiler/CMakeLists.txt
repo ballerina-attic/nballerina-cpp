@@ -5,7 +5,7 @@ include(Misc.cmake)
 set_debug_booleans()
 
 # Find and loacd LLVM components
-find_package(LLVM 11.1 REQUIRED CONFIG)
+find_package(LLVM 11 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 add_definitions(${LLVM_DEFINITIONS})
 
