@@ -16,31 +16,20 @@
  * under the License.
  */
 
-#ifndef __TYPECASTINSN__H__
-#define __TYPECASTINSN__H__
-
-#include "NonTerminatorInsn.h"
-#include "Types.h"
+#include "TypeUtils.h"
+#include "llvm/Support/ErrorHandling.h"
 
 namespace nballerina {
 
-// Forward Declare
-class Type;
-class Operand;
-
-class TypeCastInsn : public NonTerminatorInsn {
-  private:
-    Operand rhsOp;
-    LLVMValueRef getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-    LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-
-  public:
-    TypeCastInsn() = delete;
-    TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp);
-    ~TypeCastInsn() = default;
-    void translate(LLVMModuleRef &modRef) final;
-};
+void TypeUtils::checkMapSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_ANYDATA:
+        return;
+    default:
+        std::string msg = "Map of " + Type::getNameOfType(typeTag) + " is not currently supported";
+        llvm_unreachable(msg.c_str());
+    }
+}
 
 } // namespace nballerina
-
-#endif //!__TYPECASTINSN__H__

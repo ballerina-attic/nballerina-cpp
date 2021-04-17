@@ -20,6 +20,7 @@
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
+#include "TypeUtils.h"
 #include "Types.h"
 #include "Variable.h"
 #include "llvm-c/Core.h"
@@ -40,14 +41,17 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
 
     // Only handle Int type
-    if (memberTypeTag != TYPE_TAG_INT) {
-        llvm_unreachable("Only int type maps are currently supported");
-    }
+    TypeUtils::checkMapSupport(memberTypeTag);
 
+    LLVMValueRef mapValue;
+    if (Type::isSmartStructType(memberTypeTag)) {
+        mapValue = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
+    } else {
+        mapValue = funcObj.createTempVariable(rhsOp);
+    }
     // Codegen for map<int> type store
-    codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapIntStoreDeclaration(modRef),
-                    funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp),
-                    funcObj.createTempVariable(rhsOp));
+    codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapStoreDeclaration(modRef, memberTypeTag),
+                    funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp), mapValue);
 }
 
 // Generic map store static function
@@ -65,32 +69,41 @@ void MapLoadInsn::translate(LLVMModuleRef &modRef) {
 
     const auto &funcObj = getFunctionRef();
     auto builder = funcObj.getLLVMBuilder();
-    
-    LLVMValueRef lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef outParam = LLVMBuildAlloca(builder, LLVMInt64Type(), "_out_param");
-    LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp), outParam};
-    
-    [[maybe_unused]] LLVMValueRef retVal = LLVMBuildCall(builder, getMapLoadDeclaration(modRef), params, 3, "");
+    TypeTag memTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getMemberTypeTag();
+    LLVMTypeRef outParamType = getPackageRef().getLLVMTypeOfType(memTypeTag);
 
-    // TODO check retVal and branch 
+    LLVMValueRef lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
+    LLVMValueRef outParam = LLVMBuildAlloca(builder, outParamType, "_out_param");
+    LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp), outParam};
+
+    [[maybe_unused]] LLVMValueRef retVal = LLVMBuildCall(
+        builder, getMapLoadDeclaration(modRef, LLVMPointerType(outParamType, 0), Type::getNameOfType(memTypeTag)),
+        params, 3, "");
+
+    // TODO check retVal and branch
     // if retVal is true
-    getFunctionMutableRef().storeValueInSmartStruct(modRef, outParam, Type(TYPE_TAG_INT, ""), lhs);
+    if (Type::isSmartStructType(memTypeTag)) {
+        LLVMValueRef outParamTemp = LLVMBuildLoad(builder, outParam, "");
+        LLVMBuildStore(builder, outParamTemp, lhs);
+    } else {
+        getFunctionMutableRef().storeValueInSmartStruct(modRef, outParam, Type(memTypeTag, ""), lhs);
+    }
     // else
-    // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL, ""), lhs);
+    // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
+    // ""), lhs);
 }
 
-LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef) {
-
-    const char *funcName = "map_load_int";
+LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef, LLVMTypeRef outParamType, std::string typeName) {
+    std::string funcName = "map_load_" + typeName;
+    const char *externalFunctionName = funcName.c_str();
     LLVMValueRef mapLoadFunc = getPackageRef().getFunctionRef(funcName);
     if (mapLoadFunc != nullptr) {
         return mapLoadFunc;
     }
     LLVMTypeRef funcRetType = LLVMInt8Type();
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0),
-                                LLVMPointerType(LLVMInt64Type(), 0)};
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0), outParamType};
     LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 3, 0);
-    mapLoadFunc = LLVMAddFunction(modRef, funcName, funcType);
+    mapLoadFunc = LLVMAddFunction(modRef, externalFunctionName, funcType);
     getPackageMutableRef().addFunctionRef(funcName, mapLoadFunc);
     return mapLoadFunc;
 }
