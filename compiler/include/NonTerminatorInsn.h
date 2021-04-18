@@ -33,7 +33,7 @@ class NonTerminatorInsn : public AbstractInstruction, public Translatable {
     NonTerminatorInsn(const Operand &lOp, BasicBlock &currentBB) : AbstractInstruction(lOp, currentBB) {}
     virtual ~NonTerminatorInsn() = default;
 
-    virtual void translate(llvm::Module &module, llvm::IRBuilder<> &builder) override {}
+    virtual void translate(llvm::Module &, llvm::IRBuilder<> &) override {}
 };
 
 } // namespace nballerina

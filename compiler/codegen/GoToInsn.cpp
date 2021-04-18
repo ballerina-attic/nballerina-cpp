@@ -18,9 +18,6 @@
 
 #include "GoToInsn.h"
 #include "BasicBlock.h"
-#include "Function.h"
-#include "Operand.h"
-#include "llvm-c/Core.h"
 
 namespace nballerina {
 
@@ -31,7 +28,7 @@ GoToInsn::GoToInsn(BasicBlock &currentBB, std::string thenBBID)
 
 void GoToInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
     assert(getNextBB().getLLVMBBRef() != nullptr);
-    LLVMBuildBr(llvm::wrap(&builder), llvm::wrap(getNextBB().getLLVMBBRef()));
+    builder.CreateBr(getNextBB().getLLVMBBRef());
 }
 
 } // namespace nballerina

@@ -19,13 +19,8 @@
 #include "ReturnInsn.h"
 #include "Function.h"
 #include "Operand.h"
-#include "Package.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
-
-using namespace std;
-using namespace llvm;
 
 namespace nballerina {
 
@@ -35,14 +30,13 @@ void ReturnInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
 
     const auto &funcObj = getFunctionRef();
     if (funcObj.isMainFunction()) {
-        LLVMBuildRetVoid(llvm::wrap(&builder));
+        builder.CreateRetVoid();
         return;
     }
     assert(funcObj.getReturnVar().has_value());
-    LLVMValueRef retValueRef =
-        LLVMBuildLoad(llvm::wrap(&builder), llvm::wrap(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName())),
-                      "return_val_temp");
-    LLVMBuildRet(llvm::wrap(&builder), retValueRef);
+    auto *retValueRef =
+        builder.CreateLoad(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
+    builder.CreateRet(retValueRef);
 }
 
 } // namespace nballerina

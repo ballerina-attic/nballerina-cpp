@@ -22,7 +22,6 @@
 #include "Package.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
 #include <string>
 
 using namespace std;
@@ -33,113 +32,91 @@ namespace nballerina {
 ArrayInsn::ArrayInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &sizeOp)
     : NonTerminatorInsn(lhs, currentBB), sizeOp(sizeOp) {}
 
-LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
+llvm::FunctionCallee ArrayInsn::getArrayInitDeclaration(llvm::Module &module) {
     const auto &lhsVar = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand());
-    const auto &arrayType = lhsVar.getType();
-    TypeTag memberTypeTag = arrayType.getMemberTypeTag();
+    TypeTag memberTypeTag = lhsVar.getType().getMemberTypeTag();
     const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
-
-    auto *module = llvm::unwrap(modRef);
-    auto *functionRef = module->getFunction(arrayTypeFuncName);
-    if (functionRef != nullptr) {
-        return llvm::wrap(functionRef);
-    }
-
-    LLVMTypeRef paramTypes = LLVMInt64Type();
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), &paramTypes, 1, 0);
-    return LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
+    auto *funcType =
+        llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(module.getContext())}), false);
+    return module.getOrInsertFunction(arrayTypeFuncName, funcType);
 }
 
 void ArrayInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    auto modRef = llvm::wrap(&module);
-    LLVMValueRef sizeOpValueRef = llvm::wrap(funcObj.createTempVariable(sizeOp, module, builder));
-    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
-    LLVMValueRef arrayInitFunc = getArrayInitDeclaration(modRef);
-    LLVMValueRef newArrayRef = LLVMBuildCall(llvm::wrap(&builder), arrayInitFunc, &sizeOpValueRef, 1, "");
-
-    LLVMBuildStore(llvm::wrap(&builder), newArrayRef, lhsOpRef);
+    auto *sizeOpValueRef = funcObj.createTempVariable(sizeOp, module, builder);
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto arrayInitFunc = getArrayInitDeclaration(module);
+    auto *newArrayRef = builder.CreateCall(arrayInitFunc, llvm::ArrayRef<llvm::Value *>({sizeOpValueRef}));
+    builder.CreateStore(newArrayRef, lhsOpRef);
 }
 
 // Array Load Instruction
 ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
     : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
 
-LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
-    auto *module = llvm::unwrap(modRef);
+llvm::FunctionCallee ArrayLoadInsn::getArrayLoadDeclaration(llvm::Module &module, TypeTag lhsOpTypeTag) {
     const auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(lhsOpTypeTag);
     const auto &lhsType = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand()).getType();
 
     llvm::Type *funcRetType = Type::isSmartStructType(lhsType.getTypeTag())
-                                  ? llvm::PointerType::get(getPackageRef().getLLVMTypeOfType(lhsType, *module), 0)
-                                  : getPackageRef().getLLVMTypeOfType(lhsType, *module);
-
-    auto *functionRef = module->getFunction(arrayTypeFuncName);
-    if (functionRef != nullptr) {
-        return llvm::wrap(functionRef);
-    }
-
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type()};
-    LLVMTypeRef funcType = LLVMFunctionType(llvm::wrap(funcRetType), paramTypes, 2, 0);
-    return LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
+                                  ? llvm::PointerType::get(getPackageRef().getLLVMTypeOfType(lhsType, module), 0)
+                                  : getPackageRef().getLLVMTypeOfType(lhsType, module);
+    auto *funcType =
+        llvm::FunctionType::get(funcRetType,
+                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
+                                                              llvm::Type::getInt64Ty(module.getContext())}),
+                                false);
+    return module.getOrInsertFunction(arrayTypeFuncName, funcType);
 }
 
 void ArrayLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
     const auto &lhsOpTypeTag = funcObj.getLocalOrGlobalVariable(getLhsOperand()).getType().getTypeTag();
-    auto modRef = llvm::wrap(&module);
-    LLVMValueRef ArrayLoadFunc = getArrayLoadDeclaration(modRef, lhsOpTypeTag);
+    auto ArrayLoadFunc = getArrayLoadDeclaration(module, lhsOpTypeTag);
 
-    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
-    LLVMValueRef rhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, module));
-    LLVMValueRef sizeOpValueRef[] = {LLVMBuildLoad(llvm::wrap(&builder), rhsOpRef, ""),
-                                     llvm::wrap(funcObj.createTempVariable(keyOp, module, builder))};
-    LLVMValueRef valueInArrayPointer = LLVMBuildCall(llvm::wrap(&builder), ArrayLoadFunc, sizeOpValueRef, 2, "");
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *rhsOpTempRef = funcObj.createTempVariable(rhsOp, module, builder);
+    auto *keyOpTempRef = funcObj.createTempVariable(keyOp, module, builder);
+    auto *valueInArrayPointer =
+        builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({rhsOpTempRef, keyOpTempRef}));
+
     if (!Type::isSmartStructType(lhsOpTypeTag)) {
-        LLVMBuildStore(llvm::wrap(&builder), valueInArrayPointer, lhsOpRef);
+        builder.CreateStore(valueInArrayPointer, lhsOpRef);
         return;
     }
-    LLVMValueRef smtPtrArrElement = LLVMBuildLoad(llvm::wrap(&builder), valueInArrayPointer, "");
-    LLVMBuildStore(llvm::wrap(&builder), smtPtrArrElement, lhsOpRef);
+    auto *smtPtrArrElement = builder.CreateLoad(valueInArrayPointer);
+    builder.CreateStore(smtPtrArrElement, lhsOpRef);
 }
 
 // Array Store Instruction
 ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
     : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
-LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag) {
+llvm::FunctionCallee ArrayStoreInsn::getArrayStoreDeclaration(llvm::Module &module, TypeTag rhsOpTypeTag) {
     const auto arrayTypeFuncName = "array_store_" + Type::getNameOfType(rhsOpTypeTag);
-    auto *module = llvm::unwrap(modRef);
-    auto *functionRef = module->getFunction(arrayTypeFuncName);
-    if (functionRef != nullptr) {
-        return llvm::wrap(functionRef);
-    }
-
     llvm::Type *memType = Type::isSmartStructType(rhsOpTypeTag)
-                              ? llvm::PointerType::get(getPackageRef().getLLVMTypeOfType(rhsOpTypeTag, *module), 0)
-                              : getPackageRef().getLLVMTypeOfType(rhsOpTypeTag, *module);
-
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type(), llvm::wrap(memType)};
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
-    return LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
+                              ? llvm::PointerType::get(getPackageRef().getLLVMTypeOfType(rhsOpTypeTag, module), 0)
+                              : getPackageRef().getLLVMTypeOfType(rhsOpTypeTag, module);
+    auto *funcType =
+        llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
+                                                              llvm::Type::getInt64Ty(module.getContext()), memType}),
+                                false);
+    return module.getOrInsertFunction(arrayTypeFuncName, funcType);
 }
 
 void ArrayStoreInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
     const auto &rhsOpTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getTypeTag();
-    auto modRef = llvm::wrap(&module);
-    LLVMValueRef ArrayLoadFunc = getArrayStoreDeclaration(modRef, rhsOpTypeTag);
+    auto ArrayLoadFunc = getArrayStoreDeclaration(module, rhsOpTypeTag);
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *memVal = Type::isSmartStructType(rhsOpTypeTag) ? funcObj.getLLVMLocalOrGlobalVar(rhsOp, module)
+                                                         : funcObj.createTempVariable(rhsOp, module, builder);
+    auto *lhsOpTempRef = builder.CreateLoad(lhsOpRef);
+    auto *keyOpTempRef = funcObj.createTempVariable(keyOp, module, builder);
 
-    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
-    LLVMValueRef memVal;
-    if (Type::isSmartStructType(rhsOpTypeTag)) {
-        memVal = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, module));
-    } else {
-        memVal = llvm::wrap(funcObj.createTempVariable(rhsOp, module, builder));
-    }
-    LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(llvm::wrap(&builder), lhsOpRef, ""),
-                                    llvm::wrap(funcObj.createTempVariable(keyOp, module, builder)), memVal};
-    LLVMBuildCall(llvm::wrap(&builder), ArrayLoadFunc, argOpValueRef, 3, "");
+    builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({lhsOpTempRef, keyOpTempRef, memVal}));
 }
 
 } // namespace nballerina

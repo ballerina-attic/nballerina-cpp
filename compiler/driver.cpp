@@ -18,12 +18,10 @@
 
 #include "BIRReader.h"
 #include "Package.h"
-#include "llvm-c/Core.h"
 #include <iostream>
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
-#include <memory>
 #include <string>
 
 using namespace std;
@@ -69,9 +67,8 @@ int main(int argc, char **argv) {
     std::shared_ptr<nballerina::Package> birPackage = BIRReader::reader.deserialize();
 
     string moduleName = birPackage->getOrgName() + birPackage->getPackageName() + birPackage->getVersion();
-    // auto mContext = std::make_shared<llvm::LLVMContext>();
-    auto mContext = llvm::unwrap(LLVMGetGlobalContext());
-    auto mod = llvm::Module(moduleName, *mContext);
+    auto mContext = llvm::LLVMContext();
+    auto mod = llvm::Module(moduleName, mContext);
     const char *tripleStr = LLVM_DEFAULT_TARGET_TRIPLE;
 
     // MacOS specific code. This is needed, since the default Triple will have the

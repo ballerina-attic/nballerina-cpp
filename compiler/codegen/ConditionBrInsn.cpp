@@ -22,9 +22,6 @@
 #include "Operand.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
-
-using namespace std;
 
 namespace nballerina {
 
@@ -41,19 +38,15 @@ void ConditionBrInsn::setElseBB(std::weak_ptr<BasicBlock> bb) { elseBB = std::mo
 void ConditionBrInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcRef = getFunctionRef();
-    string lhsName = getLhsOperand().getName();
-
-    LLVMValueRef brCondition = llvm::wrap(funcRef.getLLVMValueForBranchComparison(lhsName));
+    std::string lhsName = getLhsOperand().getName();
+    auto *brCondition = funcRef.getLLVMValueForBranchComparison(lhsName);
     if (brCondition == nullptr) {
-        brCondition = LLVMBuildIsNotNull(llvm::wrap(&builder),
-                                         llvm::wrap(funcRef.createTempVariable(getLhsOperand(), module, builder)),
-                                         lhsName.c_str());
+        auto *lhsTemp = funcRef.createTempVariable(getLhsOperand(), module, builder);
+        brCondition = builder.CreateIsNotNull(lhsTemp, lhsName);
     }
-
     assert(!ifThenBB.expired());
     assert(!elseBB.expired());
-    LLVMBuildCondBr(llvm::wrap(&builder), brCondition, llvm::wrap(ifThenBB.lock()->getLLVMBBRef()),
-                    llvm::wrap(elseBB.lock()->getLLVMBBRef()));
+    builder.CreateCondBr(brCondition, ifThenBB.lock()->getLLVMBBRef(), elseBB.lock()->getLLVMBBRef());
 }
 
 } // namespace nballerina

@@ -21,7 +21,6 @@
 #include "Operand.h"
 #include "Package.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
 
 namespace nballerina {
 
@@ -31,9 +30,9 @@ MoveInsn::MoveInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs
 void MoveInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcRef = getFunctionRef();
-    LLVMValueRef lhsRef = llvm::wrap(funcRef.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
-    LLVMValueRef rhsVarOpRef = llvm::wrap(funcRef.createTempVariable(rhsOp, module, builder));
-    LLVMBuildStore(llvm::wrap(&builder), rhsVarOpRef, lhsRef);
+    auto *lhsRef = funcRef.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *rhsVarOpRef = funcRef.createTempVariable(rhsOp, module, builder);
+    builder.CreateStore(rhsVarOpRef, lhsRef);
 }
 
 } // namespace nballerina

@@ -21,6 +21,7 @@
 
 #include "Function.h"
 #include "Variable.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include <map>
@@ -46,7 +47,7 @@ class Package {
     llvm::StructType *boxType;
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
     std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
-    void applyStringOffsetRelocations(llvm::Module &module);
+    void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
     llvm::GlobalVariable *strBuilderGlobal;
     llvm::GlobalVariable *strTablePtr;
     llvm::GlobalVariable *nillGlobal;
@@ -67,8 +68,8 @@ class Package {
     const Variable &getGlobalVariable(const std::string &name) const;
     llvm::Type *getLLVMTypeOfType(const Type &type, llvm::Module &module) const;
     llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module) const;
-    const llvm::Value *getGlobalNilVar() const;
-    const llvm::Value *getStringBuilderTableGlobalPointer() const;
+    llvm::Value *getGlobalNilVar() const;
+    llvm::Value *getStringBuilderTableGlobalPointer() const;
     llvm::FunctionCallee getMapStoreDeclaration(llvm::Module &module, TypeTag typeTag) const;
 
     void addToStrTable(std::string_view name);

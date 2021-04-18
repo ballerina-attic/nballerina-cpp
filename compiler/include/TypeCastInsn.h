@@ -29,8 +29,8 @@ class Operand;
 class TypeCastInsn : public NonTerminatorInsn {
   private:
     Operand rhsOp;
-    LLVMValueRef getIsSameTypeDeclaration(llvm::Module &module, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
-    LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
+    static llvm::FunctionCallee getIsSameTypeDeclaration(llvm::Module &module, llvm::Value *lhsRef,
+                                                         llvm::Value *rhsRef);
 
   public:
     TypeCastInsn() = delete;

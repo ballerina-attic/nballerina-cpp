@@ -27,7 +27,7 @@ namespace nballerina {
 class ArrayInsn : public NonTerminatorInsn {
   private:
     Operand sizeOp;
-    LLVMValueRef getArrayInitDeclaration(LLVMModuleRef &modRef);
+    llvm::FunctionCallee getArrayInitDeclaration(llvm::Module &module);
 
   public:
     ArrayInsn() = delete;
@@ -40,7 +40,7 @@ class ArrayLoadInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag);
+    llvm::FunctionCallee getArrayLoadDeclaration(llvm::Module &module, TypeTag lhsOpTypeTag);
 
   public:
     ArrayLoadInsn() = delete;
@@ -53,7 +53,7 @@ class ArrayStoreInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag);
+    llvm::FunctionCallee getArrayStoreDeclaration(llvm::Module &module, TypeTag rhsOpTypeTag);
 
   public:
     ArrayStoreInsn() = delete;

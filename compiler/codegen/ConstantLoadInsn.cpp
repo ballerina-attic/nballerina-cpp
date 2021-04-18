@@ -21,11 +21,8 @@
 #include "Operand.h"
 #include "Package.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
 
 namespace nballerina {
 
@@ -56,68 +53,58 @@ llvm::FunctionCallee ConstantLoadInsn::getNewString(llvm::Module &module) {
 }
 
 void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-    LLVMValueRef constRef = nullptr;
     const auto &lhsOp = getLhsOperand();
     const auto &funcRef = getFunctionRef();
-    LLVMValueRef lhsRef = llvm::wrap(funcRef.getLLVMLocalOrGlobalVar(lhsOp, module));
+    auto *lhsRef = funcRef.getLLVMLocalOrGlobalVar(lhsOp, module);
 
     assert(funcRef.getLocalOrGlobalVariable(lhsOp).getType().getTypeTag() == typeTag);
-
+    llvm::Value *constRef = nullptr;
     switch (typeTag) {
     case TYPE_TAG_INT: {
-        constRef = LLVMConstInt(LLVMInt64Type(), std::get<int64_t>(value), 0);
+        constRef = builder.getInt64(std::get<int64_t>(value));
         break;
     }
     case TYPE_TAG_FLOAT: {
-        constRef = LLVMConstReal(LLVMFloatType(), std::get<float>(value));
+        constRef = llvm::ConstantFP::get(module.getContext(), llvm::APFloat(std::get<float>(value)));
         break;
     }
     case TYPE_TAG_BOOLEAN: {
         if (std::get<bool>(value)) {
-            constRef = LLVMConstInt(LLVMInt8Type(), 1, 0);
+            constRef = builder.getInt8(1);
         } else {
-            constRef = LLVMConstInt(LLVMInt8Type(), 0, 0);
+            constRef = builder.getInt8(0);
         }
         break;
     }
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
         std::string stringValue = std::get<std::string>(value);
-        llvm::Constant *C = llvm::ConstantDataArray::getString(
-            module.getContext(), llvm::StringRef(stringValue.c_str(), stringValue.length()));
-        auto *globalStringValue =
-            new llvm::GlobalVariable(module, C->getType(), false, llvm::GlobalValue::PrivateLinkage, C, ".str");
+        llvm::Constant *llvmConst = llvm::ConstantDataArray::getString(module.getContext(), stringValue);
+        auto *globalStringValue = new llvm::GlobalVariable(module, llvmConst->getType(), false,
+                                                           llvm::GlobalValue::PrivateLinkage, llvmConst, ".str");
         globalStringValue->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
         globalStringValue->setAlignment(llvm::Align(1));
-
-        LLVMValueRef paramTypes[] = {llvm::wrap(builder.getInt64(0)), llvm::wrap(builder.getInt64(0))};
-        LLVMValueRef valueRef =
-            LLVMBuildInBoundsGEP(llvm::wrap(&builder), wrap(globalStringValue), paramTypes, 2, "simple");
-        LLVMValueRef addedStringRef = llvm::wrap(getNewString(module).getCallee());
-
-        LLVMValueRef sizeOpValueRef[] = {valueRef, LLVMConstInt(LLVMInt64Type(), stringValue.length(), 0)};
-        constRef = LLVMBuildCall(llvm::wrap(&builder), addedStringRef, sizeOpValueRef, 2, "");
+        auto *valueRef = builder.CreateInBoundsGEP(
+            globalStringValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}), "simple");
+        auto addedStringRef = getNewString(module);
+        constRef = builder.CreateCall(
+            addedStringRef, llvm::ArrayRef<llvm::Value *>({valueRef, builder.getInt64(stringValue.length())}));
         break;
     }
     case TYPE_TAG_NIL: {
         const auto &lhsOpName = lhsOp.getName();
-        // check for the main function and () is assigned to 0%
-        assert(funcRef.getReturnVar().has_value());
         if (funcRef.isMainFunction() && (lhsOpName == funcRef.getReturnVar()->getName())) {
             return;
         }
-        const auto *constTempRef = getPackageRef().getGlobalNilVar();
-        std::string tempName = lhsOpName + "_temp";
-        constRef = LLVMBuildLoad(llvm::wrap(&builder), llvm::wrap(constTempRef), tempName.c_str());
+        auto *nillRef = getPackageRef().getGlobalNilVar();
+        constRef = builder.CreateLoad(nillRef, lhsOpName + "_temp");
         break;
     }
     default:
         llvm_unreachable("Unknown Type");
     }
 
-    if ((constRef != nullptr) && (lhsRef != nullptr)) {
-        LLVMBuildStore(llvm::wrap(&builder), constRef, lhsRef);
-    }
+    builder.CreateStore(constRef, lhsRef);
 }
 
 } // namespace nballerina

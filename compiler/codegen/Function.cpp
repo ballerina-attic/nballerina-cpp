@@ -305,7 +305,7 @@ void Function::splitBBIfPossible(llvm::Module &module, llvm::IRBuilder<> &builde
 
             // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
             auto abortFunc = generateAbortInsn(module);
-            auto abortFuncCallInsn = builder.CreateCall(abortFunc);
+            auto *abortFuncCallInsn = builder.CreateCall(abortFunc);
             abortFuncCallInsn->removeFromParent();
 
             // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).

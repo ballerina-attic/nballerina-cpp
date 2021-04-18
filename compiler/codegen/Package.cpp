@@ -24,13 +24,13 @@
 
 namespace nballerina {
 
-const llvm::Value *Package::getGlobalNilVar() const { return nillGlobal; }
+llvm::Value *Package::getGlobalNilVar() const { return nillGlobal; }
 
 const std::string &Package::getOrgName() const { return org; }
 const std::string &Package::getPackageName() const { return name; }
 const std::string &Package::getVersion() const { return version; }
 const std::string &Package::getSrcFileName() const { return sourceFileName; }
-const llvm::Value *Package::getStringBuilderTableGlobalPointer() const { return strBuilderGlobal; }
+llvm::Value *Package::getStringBuilderTableGlobalPointer() const { return strBuilderGlobal; }
 
 void Package::addToStrTable(std::string_view name) {
     if (!strBuilder->contains(name.data())) {
@@ -121,7 +121,7 @@ void Package::translate(llvm::Module &module) {
             paramTypes.push_back(getLLVMTypeOfType(funcParam.getType(), module));
         }
 
-        bool isVarArg = function.second->getRestParam() ? true : false;
+        bool isVarArg = static_cast<bool>(function.second->getRestParam());
         auto *funcType = llvm::FunctionType::get(function.second->getLLVMTypeOfReturnVal(module), paramTypes, isVarArg);
 
         llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, function.second->getName(), module);
@@ -132,12 +132,12 @@ void Package::translate(llvm::Module &module) {
         if (function.second->isExternalFunction()) {
             continue;
         }
-        function.second->translate(module,builder);
+        function.second->translate(module, builder);
     }
 
     // This Api will finalize the string table builder if table size is not zero
     if (strBuilder->getSize() != 0) {
-        applyStringOffsetRelocations(module);
+        applyStringOffsetRelocations(module, builder);
         // here, storing String builder table address into global char pointer.
         // like below example.
         // char arr[100] = { 'a' };
@@ -153,7 +153,7 @@ void Package::addStringOffsetRelocationEntry(const std::string &eleType, llvm::V
 
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
-void Package::applyStringOffsetRelocations(llvm::Module &module) {
+void Package::applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     // finalizing the string builder table.
     strBuilder->finalize();
@@ -177,11 +177,11 @@ void Package::applyStringOffsetRelocations(llvm::Module &module) {
 
     for (const auto &element : structElementStoreInst) {
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
-        auto *tempVal = llvm::ConstantInt::get(module.getContext(), llvm::APInt(64, finalOrigOffset, false));
+        auto *tempVal = builder.getInt64(finalOrigOffset);
         for (const auto &insn : element.second) {
             auto *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(insn);
-            auto *userVal = llvm::dyn_cast<llvm::User>(insn);
-            llvm::Value *val = (GEPInst != nullptr) ? userVal->getOperand(1) : userVal->getOperand(0);
+            llvm::Value *val =
+                (GEPInst != nullptr) ? GEPInst->getOperand(1) : llvm::dyn_cast<llvm::User>(insn)->getOperand(0);
             val->replaceAllUsesWith(tempVal);
         }
     }

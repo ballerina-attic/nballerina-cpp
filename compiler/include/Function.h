@@ -59,10 +59,10 @@ class Function : public Debuggable {
     std::map<std::string, llvm::Value *> branchComparisonList;
     std::map<std::string, llvm::AllocaInst *> localVarRefs;
     std::weak_ptr<BasicBlock> FindBasicBlock(const std::string &id);
-    llvm::FunctionCallee generateAbortInsn(llvm::Module &module);
+    static llvm::FunctionCallee generateAbortInsn(llvm::Module &module);
     void splitBBIfPossible(llvm::Module &module, llvm::IRBuilder<> &builder);
     static bool isBoxValueSupport(TypeTag typeTag);
-    llvm::FunctionCallee generateBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
+    static llvm::FunctionCallee generateBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
 
   public:
     Function() = delete;
@@ -96,8 +96,8 @@ class Function : public Debuggable {
     void insertLocalVar(const Variable &var);
     void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
     void insertBranchComparisonValue(const std::string &lhsName, llvm::Value *compRef);
-    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
-                                 llvm::Value *smartStruct);
+    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                 const Type &valueType, llvm::Value *smartStruct);
 
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder);
 };

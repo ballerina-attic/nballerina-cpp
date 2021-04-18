@@ -20,7 +20,6 @@
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
-#include <llvm-c/Core.h>
 #include <string>
 
 namespace nballerina {
@@ -32,77 +31,72 @@ void BinaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
 void BinaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     auto &funcObj = getFunctionMutableRef();
-    std::string lhsName = getLhsOperand().getName();
-    std::string lhstmpName = lhsName + "_temp";
-    LLVMValueRef lhsRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
-    LLVMValueRef rhsOp1ref = llvm::wrap(funcObj.createTempVariable(rhsOp1, module, builder));
-    LLVMValueRef rhsOp2ref = llvm::wrap(funcObj.createTempVariable(rhsOp2, module, builder));
+    const std::string lhsName = getLhsOperand().getName();
+    const std::string lhstmpName = lhsName + "_temp";
+    auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *rhsOp1ref = funcObj.createTempVariable(rhsOp1, module, builder);
+    auto *rhsOp2ref = funcObj.createTempVariable(rhsOp2, module, builder);
 
     switch (kind) {
     case INSTRUCTION_KIND_BINARY_ADD: {
-        LLVMValueRef ifReturn = LLVMBuildAdd(llvm::wrap(&builder), rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        LLVMBuildStore(llvm::wrap(&builder), ifReturn, lhsRef);
+        auto *ifReturn = builder.CreateAdd(rhsOp1ref, rhsOp2ref, lhstmpName);
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_SUB: {
-        LLVMValueRef ifReturn = LLVMBuildSub(llvm::wrap(&builder), rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        LLVMBuildStore(llvm::wrap(&builder), ifReturn, lhsRef);
+        auto *ifReturn = builder.CreateSub(rhsOp1ref, rhsOp2ref, lhstmpName);
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_MUL: {
-        LLVMValueRef ifReturn = LLVMBuildMul(llvm::wrap(&builder), rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        LLVMBuildStore(llvm::wrap(&builder), ifReturn, lhsRef);
+        auto *ifReturn = builder.CreateMul(rhsOp1ref, rhsOp2ref, lhstmpName);
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_DIV: {
-        LLVMValueRef ifReturn = LLVMBuildUDiv(llvm::wrap(&builder), rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        LLVMBuildStore(llvm::wrap(&builder), ifReturn, lhsRef);
+        auto *ifReturn = builder.CreateUDiv(rhsOp1ref, rhsOp2ref, lhstmpName);
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_MOD: {
-        LLVMValueRef ifReturn = LLVMBuildURem(llvm::wrap(&builder), rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        LLVMBuildStore(llvm::wrap(&builder), ifReturn, lhsRef);
+        auto *ifReturn = builder.CreateURem(rhsOp1ref, rhsOp2ref, lhstmpName);
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_THAN: {
-        LLVMValueRef ifReturn =
-            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntUGT, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
+        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, rhsOp1ref, rhsOp2ref, lhstmpName);
+        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
+
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_EQUAL: {
-        LLVMValueRef ifReturn =
-            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntUGE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
+        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_THAN: {
-        LLVMValueRef ifReturn =
-            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntULT, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
+        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, rhsOp1ref, rhsOp2ref, lhstmpName);
+        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_EQUAL: {
-        LLVMValueRef ifReturn =
-            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntULE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
+        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
         break;
     }
     case INSTRUCTION_KIND_BINARY_EQUAL: {
-        LLVMValueRef ifReturn =
-            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntEQ, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
+        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, rhsOp1ref, rhsOp2ref, lhstmpName);
+        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
         break;
     }
     case INSTRUCTION_KIND_BINARY_NOT_EQUAL: {
-        LLVMValueRef ifReturn =
-            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntNE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
+        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
         break;
     }
     case INSTRUCTION_KIND_BINARY_BITWISE_XOR: {
-        LLVMValueRef ifReturn = LLVMBuildXor(llvm::wrap(&builder), rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
-        LLVMBuildStore(llvm::wrap(&builder), ifReturn, lhsRef);
+        auto *ifReturn = builder.CreateXor(rhsOp1ref, rhsOp2ref, lhstmpName);
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     default:

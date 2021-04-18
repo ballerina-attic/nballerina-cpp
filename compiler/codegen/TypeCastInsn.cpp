@@ -22,10 +22,6 @@
 #include "Package.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
-#include "llvm/IR/Constants.h"
-
-using namespace llvm;
 
 namespace nballerina {
 
@@ -34,9 +30,9 @@ TypeCastInsn::TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Oper
 
 void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMValueRef rhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, module));
-    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
-    LLVMTypeRef lhsTypeRef = LLVMTypeOf(lhsOpRef);
+    auto *rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(rhsOp, module);
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *lhsTypeRef = lhsOpRef->getType();
 
     const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
     const auto &rhsVar = funcObj.getLocalOrGlobalVariable(rhsOp);
@@ -45,62 +41,53 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &rhsType = rhsVar.getType();
     auto rhsTypeTag = rhsType.getTypeTag();
 
-    const char *inherentTypeName = "inherentTypeName";
-
     if (Type::isSmartStructType(rhsTypeTag)) {
         if (Type::isSmartStructType(lhsTypeTag)) {
-            LLVMValueRef rhsVarOpRef = llvm::wrap(funcObj.createTempVariable(rhsOp, module, builder));
-            LLVMBuildStore(llvm::wrap(&builder), rhsVarOpRef, lhsOpRef);
+            auto *rhsVarOpRef = funcObj.createTempVariable(rhsOp, module, builder);
+            builder.CreateStore(rhsVarOpRef, lhsOpRef);
             return;
         }
         // GEP of last type of smart pointer(original type of any variable(smart pointer))
-        LLVMValueRef inherentTypeIdx = LLVMBuildStructGEP(llvm::wrap(&builder), rhsOpRef, 0, inherentTypeName);
-        LLVMValueRef inherentTypeLoad = LLVMBuildLoad(llvm::wrap(&builder), inherentTypeIdx, "");
-        LLVMValueRef sExt = LLVMBuildSExt(llvm::wrap(&builder), inherentTypeLoad, LLVMInt64Type(), "");
+        auto *inherentTypeIdx = builder.CreateStructGEP(rhsOpRef, 0, "inherentTypeName");
+        auto *inherentTypeLoad = builder.CreateLoad(inherentTypeIdx);
+        auto *sExt = builder.CreateSExt(inherentTypeLoad, builder.getInt64Ty());
 
-        LLVMValueRef data = LLVMBuildStructGEP(llvm::wrap(&builder), rhsOpRef, 1, "data");
-        LLVMValueRef dataLoad = LLVMBuildLoad(llvm::wrap(&builder), data, "");
-        LLVMValueRef strTblPtr = llvm::wrap(getPackageRef().getStringBuilderTableGlobalPointer());
-        LLVMValueRef strTblLoad = LLVMBuildLoad(llvm::wrap(&builder), strTblPtr, "");
-        LLVMValueRef gepOfStr = LLVMBuildInBoundsGEP(llvm::wrap(&builder), strTblLoad, &sExt, 1, "");
+        auto *data = builder.CreateStructGEP(rhsOpRef, 1, "data");
+        auto *dataLoad = builder.CreateLoad(data);
+
+        auto *strTblPtr = getPackageRef().getStringBuilderTableGlobalPointer();
+        auto *strTblLoad = builder.CreateLoad(strTblPtr);
+        auto *gepOfStr = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({sExt}));
 
         // get the mangled name of the lhs type and store it to string builder table.
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
         getPackageMutableRef().addToStrTable(lhsTypeName); // TODO : get rid of this mutable reference
         int tempRandNum = std::rand() % 1000 + 1;
-        LLVMValueRef constValue = LLVMConstInt(LLVMInt64Type(), tempRandNum, 0);
-        LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(llvm::wrap(&builder), strTblLoad, &constValue, 1, "");
+        auto *constValue = builder.getInt64(tempRandNum);
+        auto *lhsGep = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({constValue}));
         // call is_same_type rust function to check LHS and RHS type are same or not.
-        LLVMValueRef addedIsSameTypeFunc = getIsSameTypeDeclaration(module, lhsGep, gepOfStr);
-        LLVMValueRef paramRefs[] = {lhsGep, gepOfStr};
-        LLVMValueRef sameTypeResult = LLVMBuildCall(llvm::wrap(&builder), addedIsSameTypeFunc, paramRefs, 2, "call");
+        auto isSameTypeFunc = getIsSameTypeDeclaration(module, lhsGep, gepOfStr);
+        auto *sameTypeResult = builder.CreateCall(isSameTypeFunc, llvm::ArrayRef<llvm::Value *>({lhsGep, gepOfStr}));
         // creating branch condition using is_same_type() function result.
-        [[maybe_unused]] LLVMValueRef brCondition = LLVMBuildIsNotNull(llvm::wrap(&builder), sameTypeResult, "");
-        getPackageMutableRef().addStringOffsetRelocationEntry(lhsTypeName.data(), llvm::unwrap(lhsGep));
+        builder.CreateIsNotNull(sameTypeResult);
+        getPackageMutableRef().addStringOffsetRelocationEntry(lhsTypeName.data(), lhsGep);
 
-        LLVMValueRef castResult =
-            LLVMBuildBitCast(llvm::wrap(&builder), dataLoad, lhsTypeRef, getLhsOperand().getName().c_str());
-        LLVMValueRef castLoad = LLVMBuildLoad(llvm::wrap(&builder), castResult, "");
-        LLVMBuildStore(llvm::wrap(&builder), castLoad, lhsOpRef);
+        auto *castResult = builder.CreateBitCast(dataLoad, lhsTypeRef, getLhsOperand().getName());
+        auto *castLoad = builder.CreateLoad(castResult);
+        builder.CreateStore(castLoad, lhsOpRef);
     } else if (Type::isSmartStructType(lhsTypeTag)) {
-        getFunctionMutableRef().storeValueInSmartStruct(module, builder, llvm::unwrap(rhsOpRef), rhsType,
-                                                        llvm::unwrap(lhsOpRef));
+        getFunctionMutableRef().storeValueInSmartStruct(module, builder, rhsOpRef, rhsType, lhsOpRef);
     } else {
-        LLVMBuildBitCast(llvm::wrap(&builder), rhsOpRef, lhsTypeRef, "data_cast");
+        builder.CreateBitCast(rhsOpRef, lhsTypeRef, "data_cast");
     }
 }
 
-LLVMValueRef TypeCastInsn::getIsSameTypeDeclaration(llvm::Module &module, LLVMValueRef lhsRef, LLVMValueRef rhsRef) {
-    const std::string isSameTypeChar = "is_same_type";
-    auto *functionRef = module.getFunction(isSameTypeChar);
-    if (functionRef != nullptr) {
-        return llvm::wrap(functionRef);
-    }
-
-    LLVMTypeRef paramTypes[] = {LLVMTypeOf(lhsRef), LLVMTypeOf(rhsRef)};
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMInt8Type(), paramTypes, 2, 0);
-    auto modRef = llvm::wrap(&module);
-    return LLVMAddFunction(modRef, isSameTypeChar.c_str(), funcType);
+llvm::FunctionCallee TypeCastInsn::getIsSameTypeDeclaration(llvm::Module &module, llvm::Value *lhsRef,
+                                                            llvm::Value *rhsRef) {
+    auto *funcType =
+        llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({lhsRef->getType(), rhsRef->getType()}), false);
+    return module.getOrInsertFunction("is_same_type", funcType);
 }
 
 } // namespace nballerina
