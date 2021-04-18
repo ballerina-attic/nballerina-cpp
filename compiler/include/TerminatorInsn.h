@@ -40,8 +40,7 @@ class TerminatorInsn : public AbstractInstruction, public Translatable {
 
   public:
     TerminatorInsn() = delete;
-    TerminatorInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string thenBBID,
-                   bool patchRequired = false);
+    TerminatorInsn(const Operand &lhs, BasicBlock &currentBB, std::string thenBBID, bool patchRequired = false);
     virtual ~TerminatorInsn() = default;
 
     const std::string &getNextBBID() const;

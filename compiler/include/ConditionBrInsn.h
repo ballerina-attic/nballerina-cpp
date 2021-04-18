@@ -20,6 +20,7 @@
 #define __CONDITIONBRINSN__H__
 
 #include "TerminatorInsn.h"
+#include <memory>
 
 namespace nballerina {
 
@@ -32,7 +33,7 @@ class ConditionBrInsn : public TerminatorInsn {
 
   public:
     ConditionBrInsn() = delete;
-    ConditionBrInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string ifBBID, std::string elseBBID);
+    ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID);
     ~ConditionBrInsn() = default;
 
     const std::string &getIfThenBBID() const;

@@ -21,7 +21,6 @@
 
 #include "Operand.h"
 #include "interfaces/Debuggable.h"
-#include <memory>
 
 namespace nballerina {
 
@@ -75,7 +74,7 @@ enum InstructionKind {
 class AbstractInstruction : public Debuggable {
   private:
     Operand lhsOp;
-    std::weak_ptr<BasicBlock> parentBB;
+    BasicBlock &parentBB;
 
   protected:
     const Operand &getLhsOperand() const;
@@ -86,7 +85,7 @@ class AbstractInstruction : public Debuggable {
 
   public:
     AbstractInstruction() = delete;
-    AbstractInstruction(const Operand &lOp, std::weak_ptr<BasicBlock> parentBB);
+    AbstractInstruction(const Operand &lOp, BasicBlock &parentBB);
     virtual ~AbstractInstruction() = default;
 };
 

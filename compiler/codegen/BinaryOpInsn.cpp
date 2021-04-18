@@ -23,20 +23,17 @@
 #include <llvm-c/Core.h>
 #include <string>
 
-using namespace std;
-
 namespace nballerina {
-BinaryOpInsn::BinaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp1,
-                           const Operand &rhsOp2)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp1(rhsOp1), rhsOp2(rhsOp2), kind{} {}
+BinaryOpInsn::BinaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp1, const Operand &rhsOp2)
+    : NonTerminatorInsn(lhs, currentBB), rhsOp1(rhsOp1), rhsOp2(rhsOp2), kind{} {}
 
 void BinaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
 
 void BinaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     auto &funcObj = getFunctionMutableRef();
-    string lhsName = getLhsOperand().getName();
-    string lhstmpName = lhsName + "_temp";
+    std::string lhsName = getLhsOperand().getName();
+    std::string lhstmpName = lhsName + "_temp";
     LLVMValueRef lhsRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
     LLVMValueRef rhsOp1ref = llvm::wrap(funcObj.createTempVariable(rhsOp1, module, builder));
     LLVMValueRef rhsOp2ref = llvm::wrap(funcObj.createTempVariable(rhsOp2, module, builder));
@@ -68,32 +65,38 @@ void BinaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_THAN: {
-        LLVMValueRef ifReturn = LLVMBuildICmp(llvm::wrap(&builder), LLVMIntUGT, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
+        LLVMValueRef ifReturn =
+            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntUGT, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
         funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_EQUAL: {
-        LLVMValueRef ifReturn = LLVMBuildICmp(llvm::wrap(&builder), LLVMIntUGE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
+        LLVMValueRef ifReturn =
+            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntUGE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
         funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_THAN: {
-        LLVMValueRef ifReturn = LLVMBuildICmp(llvm::wrap(&builder), LLVMIntULT, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
+        LLVMValueRef ifReturn =
+            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntULT, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
         funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_EQUAL: {
-        LLVMValueRef ifReturn = LLVMBuildICmp(llvm::wrap(&builder), LLVMIntULE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
+        LLVMValueRef ifReturn =
+            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntULE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
         funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
         break;
     }
     case INSTRUCTION_KIND_BINARY_EQUAL: {
-        LLVMValueRef ifReturn = LLVMBuildICmp(llvm::wrap(&builder), LLVMIntEQ, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
+        LLVMValueRef ifReturn =
+            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntEQ, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
         funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
         break;
     }
     case INSTRUCTION_KIND_BINARY_NOT_EQUAL: {
-        LLVMValueRef ifReturn = LLVMBuildICmp(llvm::wrap(&builder), LLVMIntNE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
+        LLVMValueRef ifReturn =
+            LLVMBuildICmp(llvm::wrap(&builder), LLVMIntNE, rhsOp1ref, rhsOp2ref, lhstmpName.c_str());
         funcObj.insertBranchComparisonValue(lhsName, llvm::unwrap(ifReturn));
         break;
     }

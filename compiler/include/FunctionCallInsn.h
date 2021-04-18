@@ -34,8 +34,8 @@ class FunctionCallInsn : public TerminatorInsn {
 
   public:
     FunctionCallInsn() = delete;
-    FunctionCallInsn(std::weak_ptr<BasicBlock> currentBB, std::string thenBBID, const Operand &lhs,
-                     std::string functionName, int argCount, std::vector<Operand> argsList);
+    FunctionCallInsn(BasicBlock &currentBB, std::string thenBBID, const Operand &lhs, std::string functionName,
+                     int argCount, std::vector<Operand> argsList);
     ~FunctionCallInsn() = default;
 
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;

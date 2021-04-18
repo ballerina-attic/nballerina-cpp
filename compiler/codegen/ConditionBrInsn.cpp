@@ -28,9 +28,8 @@ using namespace std;
 
 namespace nballerina {
 
-ConditionBrInsn::ConditionBrInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string ifBBID,
-                                 std::string elseBBID)
-    : TerminatorInsn(lhs, std::move(currentBB), "", true), ifBBID(std::move(ifBBID)), elseBBID(std::move(elseBBID)) {
+ConditionBrInsn::ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID)
+    : TerminatorInsn(lhs, currentBB, "", true), ifBBID(std::move(ifBBID)), elseBBID(std::move(elseBBID)) {
     kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
 }
 

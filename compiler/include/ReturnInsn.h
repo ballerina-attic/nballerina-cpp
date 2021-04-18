@@ -28,7 +28,7 @@ class BasicBlock;
 
 class ReturnInsn : public TerminatorInsn {
   public:
-    ReturnInsn(std::weak_ptr<BasicBlock> currentBB);
+    ReturnInsn(BasicBlock &currentBB);
     ~ReturnInsn() = default;
 
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;

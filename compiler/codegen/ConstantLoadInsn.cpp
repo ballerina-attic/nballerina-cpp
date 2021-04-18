@@ -30,20 +30,20 @@
 namespace nballerina {
 
 // With Nil Type setting only Type Tag because value will be zero with NIL Type.
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_NIL) {}
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB)
+    : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_NIL) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, int64_t intVal)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_INT), value(intVal) {}
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal)
+    : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_INT), value(intVal) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, float floatVal)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_FLOAT), value(floatVal) {}
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, float floatVal)
+    : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_FLOAT), value(floatVal) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, bool boolVal)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal)
+    : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string str)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str)
+    : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
 
 llvm::FunctionCallee ConstantLoadInsn::getNewString(llvm::Module &module) {
     const std::string newString = "new_string";

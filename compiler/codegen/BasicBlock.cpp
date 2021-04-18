@@ -23,21 +23,15 @@
 
 namespace nballerina {
 
-BasicBlock::BasicBlock(std::string pid, std::weak_ptr<Function> parentFunc)
-    : id(std::move(pid)), parentFunction(std::move(parentFunc)), terminator(nullptr), bbRefObj(nullptr) {}
+BasicBlock::BasicBlock(std::string pid, Function &parentFunc)
+    : id(std::move(pid)), parentFunction(parentFunc), terminator(nullptr), bbRefObj(nullptr) {}
 
 const std::string &BasicBlock::getId() const { return id; }
 TerminatorInsn *BasicBlock::getTerminatorInsnPtr() const { return terminator.get(); }
 
-Function &BasicBlock::getFunctionMutableRef() const {
-    assert(!parentFunction.expired());
-    return *parentFunction.lock();
-}
+Function &BasicBlock::getFunctionMutableRef() const { return parentFunction; }
 
-const Function &BasicBlock::getParentFunctionRef() const {
-    assert(!parentFunction.expired());
-    return *parentFunction.lock();
-}
+const Function &BasicBlock::getParentFunctionRef() const { return parentFunction; }
 
 llvm::BasicBlock *BasicBlock::getLLVMBBRef() const { return bbRefObj; }
 

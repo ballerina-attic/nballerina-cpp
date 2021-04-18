@@ -34,11 +34,11 @@ class ConstantLoadInsn : public NonTerminatorInsn {
 
   public:
     ConstantLoadInsn() = delete;
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, int64_t intVal);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, float floatVal);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, bool boolVal);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string str);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, float floatVal);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB);
     ~ConstantLoadInsn() = default;
 
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;

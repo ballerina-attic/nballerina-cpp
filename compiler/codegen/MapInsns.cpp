@@ -31,9 +31,8 @@ namespace nballerina {
 
 // new Map Instruction and Codegen logic are in the llvmStructure.cpp
 
-MapStoreInsn::MapStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
-                           const Operand &rOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
+MapStoreInsn::MapStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
 void MapStoreInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
@@ -63,9 +62,8 @@ void MapStoreInsn::codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStore
     LLVMBuildCall(builder, mapStoreFunc, argOpValueRef, 3, "");
 }
 
-MapLoadInsn::MapLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
-                         const Operand &rOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
+MapLoadInsn::MapLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
 void MapLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 

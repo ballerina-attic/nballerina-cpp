@@ -27,9 +27,9 @@ using namespace std;
 
 namespace nballerina {
 
-FunctionCallInsn::FunctionCallInsn(std::weak_ptr<BasicBlock> currentBB, std::string thenBBID, const Operand &lhs,
+FunctionCallInsn::FunctionCallInsn(BasicBlock &currentBB, std::string thenBBID, const Operand &lhs,
                                    std::string functionName, int argCount, std::vector<Operand> argsList)
-    : TerminatorInsn(lhs, std::move(currentBB), std::move(thenBBID), true), functionName(std::move(functionName)),
+    : TerminatorInsn(lhs, currentBB, std::move(thenBBID), true), functionName(std::move(functionName)),
       argCount(argCount), argsList(std::move(argsList)) {
     kind = INSTRUCTION_KIND_CALL;
 }

@@ -29,8 +29,8 @@ using namespace llvm;
 
 namespace nballerina {
 
-TypeCastInsn::TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhsOp) {}
+TypeCastInsn::TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
+    : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
 
 void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();

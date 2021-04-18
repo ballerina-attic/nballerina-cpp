@@ -24,8 +24,8 @@
 
 namespace nballerina {
 
-GoToInsn::GoToInsn(std::weak_ptr<BasicBlock> currentBB, std::string thenBBID)
-    : TerminatorInsn(Operand("", NOT_A_KIND), std::move(currentBB), std::move(thenBBID), true) {
+GoToInsn::GoToInsn(BasicBlock &currentBB, std::string thenBBID)
+    : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, std::move(thenBBID), true) {
     kind = INSTRUCTION_KIND_GOTO;
 }
 

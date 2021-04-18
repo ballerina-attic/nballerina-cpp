@@ -21,8 +21,7 @@
 
 namespace nballerina {
 
-TerminatorInsn::TerminatorInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string thenBBID,
-                               bool patchRequired)
+TerminatorInsn::TerminatorInsn(const Operand &lhs, BasicBlock &currentBB, std::string thenBBID, bool patchRequired)
     : AbstractInstruction(lhs, currentBB), thenBBID(std::move(thenBBID)), patchRequired(patchRequired),
       kind(INSTRUCTION_NOT_AN_INSTRUCTION) {}
 

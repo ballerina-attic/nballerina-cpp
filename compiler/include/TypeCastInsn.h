@@ -34,7 +34,7 @@ class TypeCastInsn : public NonTerminatorInsn {
 
   public:
     TypeCastInsn() = delete;
-    TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp);
+    TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp);
     ~TypeCastInsn() = default;
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };

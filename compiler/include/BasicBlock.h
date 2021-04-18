@@ -36,7 +36,7 @@ class NonTerminatorInsn;
 class BasicBlock : public Debuggable {
   private:
     std::string id;
-    std::weak_ptr<Function> parentFunction;
+    Function &parentFunction;
     std::unique_ptr<TerminatorInsn> terminator;
     std::weak_ptr<BasicBlock> nextBB;
     std::vector<std::unique_ptr<NonTerminatorInsn>> instructions;
@@ -44,7 +44,7 @@ class BasicBlock : public Debuggable {
 
   public:
     BasicBlock() = delete;
-    BasicBlock(std::string id, std::weak_ptr<Function> parentFunc);
+    BasicBlock(std::string id, Function &parentFunc);
     BasicBlock(const BasicBlock &) = delete;
     BasicBlock(BasicBlock &&obj) noexcept = delete;
     BasicBlock &operator=(const BasicBlock &obj) = delete;

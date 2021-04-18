@@ -33,7 +33,7 @@ class UnaryOpInsn : public NonTerminatorInsn {
 
   public:
     UnaryOpInsn() = delete;
-    UnaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhs);
+    UnaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs);
     ~UnaryOpInsn() = default;
 
     void setInstKind(InstructionKind kind);

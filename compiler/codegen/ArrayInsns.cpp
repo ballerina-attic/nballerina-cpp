@@ -30,8 +30,8 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &sizeOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), sizeOp(sizeOp) {}
+ArrayInsn::ArrayInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &sizeOp)
+    : NonTerminatorInsn(lhs, currentBB), sizeOp(sizeOp) {}
 
 LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
     const auto &lhsVar = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand());
@@ -62,9 +62,8 @@ void ArrayInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 }
 
 // Array Load Instruction
-ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
-                             const Operand &ROp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(ROp) {}
+ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
     auto *module = llvm::unwrap(modRef);
@@ -105,9 +104,8 @@ void ArrayLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) 
 }
 
 // Array Store Instruction
-ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
-                               const Operand &rOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
+ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
 LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag) {
     const auto arrayTypeFuncName = "array_store_" + Type::getNameOfType(rhsOpTypeTag);
