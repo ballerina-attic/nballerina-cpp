@@ -50,15 +50,15 @@ LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
     return LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
 }
 
-void ArrayInsn::translate(LLVMModuleRef &modRef) {
+void ArrayInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
-    LLVMValueRef sizeOpValueRef = llvm::wrap(funcObj.createTempVariable(sizeOp, *llvm::unwrap(modRef)));
-    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), *llvm::unwrap(modRef)));
+    auto modRef = llvm::wrap(&module);
+    LLVMValueRef sizeOpValueRef = llvm::wrap(funcObj.createTempVariable(sizeOp, module, builder));
+    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
     LLVMValueRef arrayInitFunc = getArrayInitDeclaration(modRef);
-    LLVMValueRef newArrayRef = LLVMBuildCall(builder, arrayInitFunc, &sizeOpValueRef, 1, "");
+    LLVMValueRef newArrayRef = LLVMBuildCall(llvm::wrap(&builder), arrayInitFunc, &sizeOpValueRef, 1, "");
 
-    LLVMBuildStore(builder, newArrayRef, lhsOpRef);
+    LLVMBuildStore(llvm::wrap(&builder), newArrayRef, lhsOpRef);
 }
 
 // Array Load Instruction
@@ -85,23 +85,23 @@ LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeT
     return LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
 }
 
-void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
+void ArrayLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
     const auto &lhsOpTypeTag = funcObj.getLocalOrGlobalVariable(getLhsOperand()).getType().getTypeTag();
+    auto modRef = llvm::wrap(&module);
     LLVMValueRef ArrayLoadFunc = getArrayLoadDeclaration(modRef, lhsOpTypeTag);
 
-    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), *llvm::unwrap(modRef)));
-    LLVMValueRef rhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, *llvm::unwrap(modRef)));
-    LLVMValueRef sizeOpValueRef[] = {LLVMBuildLoad(builder, rhsOpRef, ""),
-                                     llvm::wrap(funcObj.createTempVariable(keyOp, *llvm::unwrap(modRef)))};
-    LLVMValueRef valueInArrayPointer = LLVMBuildCall(builder, ArrayLoadFunc, sizeOpValueRef, 2, "");
+    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
+    LLVMValueRef rhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, module));
+    LLVMValueRef sizeOpValueRef[] = {LLVMBuildLoad(llvm::wrap(&builder), rhsOpRef, ""),
+                                     llvm::wrap(funcObj.createTempVariable(keyOp, module, builder))};
+    LLVMValueRef valueInArrayPointer = LLVMBuildCall(llvm::wrap(&builder), ArrayLoadFunc, sizeOpValueRef, 2, "");
     if (!Type::isSmartStructType(lhsOpTypeTag)) {
-        LLVMBuildStore(builder, valueInArrayPointer, lhsOpRef);
+        LLVMBuildStore(llvm::wrap(&builder), valueInArrayPointer, lhsOpRef);
         return;
     }
-    LLVMValueRef smtPtrArrElement = LLVMBuildLoad(builder, valueInArrayPointer, "");
-    LLVMBuildStore(builder, smtPtrArrElement, lhsOpRef);
+    LLVMValueRef smtPtrArrElement = LLVMBuildLoad(llvm::wrap(&builder), valueInArrayPointer, "");
+    LLVMBuildStore(llvm::wrap(&builder), smtPtrArrElement, lhsOpRef);
 }
 
 // Array Store Instruction
@@ -126,22 +126,22 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
     return LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
 }
 
-void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
+void ArrayStoreInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
     const auto &rhsOpTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getTypeTag();
+    auto modRef = llvm::wrap(&module);
     LLVMValueRef ArrayLoadFunc = getArrayStoreDeclaration(modRef, rhsOpTypeTag);
 
-    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), *llvm::unwrap(modRef)));
+    LLVMValueRef lhsOpRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
     LLVMValueRef memVal;
     if (Type::isSmartStructType(rhsOpTypeTag)) {
-        memVal = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, *llvm::unwrap(modRef)));
+        memVal = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, module));
     } else {
-        memVal = llvm::wrap(funcObj.createTempVariable(rhsOp, *llvm::unwrap(modRef)));
+        memVal = llvm::wrap(funcObj.createTempVariable(rhsOp, module, builder));
     }
-    LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(builder, lhsOpRef, ""),
-                                    llvm::wrap(funcObj.createTempVariable(keyOp, *llvm::unwrap(modRef))), memVal};
-    LLVMBuildCall(builder, ArrayLoadFunc, argOpValueRef, 3, "");
+    LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(llvm::wrap(&builder), lhsOpRef, ""),
+                                    llvm::wrap(funcObj.createTempVariable(keyOp, module, builder)), memVal};
+    LLVMBuildCall(llvm::wrap(&builder), ArrayLoadFunc, argOpValueRef, 3, "");
 }
 
 } // namespace nballerina

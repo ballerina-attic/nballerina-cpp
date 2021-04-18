@@ -39,21 +39,21 @@ const std::string &ConditionBrInsn::getElseBBID() const { return elseBBID; }
 void ConditionBrInsn::setIfThenBB(std::weak_ptr<BasicBlock> bb) { ifThenBB = std::move(bb); }
 void ConditionBrInsn::setElseBB(std::weak_ptr<BasicBlock> bb) { elseBB = std::move(bb); }
 
-void ConditionBrInsn::translate(LLVMModuleRef &modRef) {
+void ConditionBrInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcRef = getFunctionRef();
-    LLVMBuilderRef builder = llvm::wrap(funcRef.getLLVMBuilder());
     string lhsName = getLhsOperand().getName();
 
     LLVMValueRef brCondition = llvm::wrap(funcRef.getLLVMValueForBranchComparison(lhsName));
     if (brCondition == nullptr) {
-        brCondition = LLVMBuildIsNotNull(
-            builder, llvm::wrap(funcRef.createTempVariable(getLhsOperand(), *llvm::unwrap(modRef))), lhsName.c_str());
+        brCondition = LLVMBuildIsNotNull(llvm::wrap(&builder),
+                                         llvm::wrap(funcRef.createTempVariable(getLhsOperand(), module, builder)),
+                                         lhsName.c_str());
     }
 
     assert(!ifThenBB.expired());
     assert(!elseBB.expired());
-    LLVMBuildCondBr(builder, brCondition, llvm::wrap(ifThenBB.lock()->getLLVMBBRef()),
+    LLVMBuildCondBr(llvm::wrap(&builder), brCondition, llvm::wrap(ifThenBB.lock()->getLLVMBBRef()),
                     llvm::wrap(elseBB.lock()->getLLVMBBRef()));
 }
 

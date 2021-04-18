@@ -37,7 +37,7 @@ class UnaryOpInsn : public NonTerminatorInsn {
     ~UnaryOpInsn() = default;
 
     void setInstKind(InstructionKind kind);
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

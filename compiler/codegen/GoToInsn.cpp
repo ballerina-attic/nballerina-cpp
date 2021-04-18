@@ -29,10 +29,9 @@ GoToInsn::GoToInsn(std::weak_ptr<BasicBlock> currentBB, std::string thenBBID)
     kind = INSTRUCTION_KIND_GOTO;
 }
 
-void GoToInsn::translate(LLVMModuleRef &) {
-    LLVMBuilderRef builder = llvm::wrap(getFunctionRef().getLLVMBuilder());
+void GoToInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
     assert(getNextBB().getLLVMBBRef() != nullptr);
-    LLVMBuildBr(builder, llvm::wrap(getNextBB().getLLVMBBRef()));
+    LLVMBuildBr(llvm::wrap(&builder), llvm::wrap(getNextBB().getLLVMBBRef()));
 }
 
 } // namespace nballerina

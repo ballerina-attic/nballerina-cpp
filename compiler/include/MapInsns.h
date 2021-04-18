@@ -76,7 +76,7 @@ class MapStoreInsn : public NonTerminatorInsn {
     MapStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
     ~MapStoreInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
     static void codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStoreFunc, LLVMValueRef map, LLVMValueRef key,
                                 LLVMValueRef value);
 };
@@ -92,7 +92,7 @@ class MapLoadInsn : public NonTerminatorInsn {
     MapLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
     ~MapLoadInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 } // namespace nballerina
 

@@ -112,9 +112,8 @@ void Package::translate(llvm::Module &module) {
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.
-    auto builder = std::make_shared<llvm::IRBuilder<>>(context);
+    auto builder = llvm::IRBuilder<>(context);
     for (const auto &function : functionLookUp) {
-        function.second->setLLVMBuilder(builder.get());
         auto numParams = function.second->getNumParams();
         std::vector<llvm::Type *> paramTypes;
         paramTypes.reserve(numParams);
@@ -133,7 +132,7 @@ void Package::translate(llvm::Module &module) {
         if (function.second->isExternalFunction()) {
             continue;
         }
-        function.second->translate(module);
+        function.second->translate(module,builder);
     }
 
     // This Api will finalize the string table builder if table size is not zero
@@ -143,7 +142,7 @@ void Package::translate(llvm::Module &module) {
         // like below example.
         // char arr[100] = { 'a' };
         // char *ptr = arr;
-        auto *bitCastRes = builder->CreateBitCast(strTablePtr, charPtrType, "");
+        auto *bitCastRes = builder.CreateBitCast(strTablePtr, charPtrType, "");
         strBuilderGlobal->setInitializer(llvm::dyn_cast<llvm::Constant>(bitCastRes));
     }
 }

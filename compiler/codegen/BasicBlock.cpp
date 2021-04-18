@@ -46,13 +46,12 @@ void BasicBlock::setNextBB(std::weak_ptr<BasicBlock> bb) { nextBB = std::move(bb
 void BasicBlock::setLLVMBBRef(llvm::BasicBlock *bbRef) { bbRefObj = bbRef; }
 void BasicBlock::addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn) { instructions.push_back(std::move(insn)); }
 
-void BasicBlock::translate(llvm::Module &module) {
-    auto modRef = llvm::wrap(&module);
+void BasicBlock::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     for (const auto &instruction : instructions) {
-        instruction->translate(modRef);
+        instruction->translate(module, builder);
     }
     if (terminator != nullptr) {
-        terminator->translate(modRef);
+        terminator->translate(module, builder);
     }
 }
 

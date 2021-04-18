@@ -20,25 +20,23 @@
 #define __TYPECASTINSN__H__
 
 #include "NonTerminatorInsn.h"
-#include "Types.h"
 
 namespace nballerina {
 
 // Forward Declare
-class Type;
 class Operand;
 
 class TypeCastInsn : public NonTerminatorInsn {
   private:
     Operand rhsOp;
-    LLVMValueRef getIsSameTypeDeclaration(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
+    LLVMValueRef getIsSameTypeDeclaration(llvm::Module &module, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
     LLVMValueRef isSameType(LLVMModuleRef &modRef, LLVMValueRef lhsRef, LLVMValueRef rhsRef);
 
   public:
     TypeCastInsn() = delete;
     TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp);
     ~TypeCastInsn() = default;
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

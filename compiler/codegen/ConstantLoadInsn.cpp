@@ -23,6 +23,7 @@
 #include "Variable.h"
 #include "llvm-c/Core.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 
@@ -44,26 +45,21 @@ ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock>
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string str)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
 
-LLVMValueRef ConstantLoadInsn::getNewString(LLVMModuleRef &modRef) {
+llvm::FunctionCallee ConstantLoadInsn::getNewString(llvm::Module &module) {
     const std::string newString = "new_string";
-
-    auto *module = llvm::unwrap(modRef);
-    auto *functionRef = module->getFunction(newString);
-    if (functionRef != nullptr) {
-        return llvm::wrap(functionRef);
-    }
-
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type()};
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), paramTypes, 2, 0);
-    return LLVMAddFunction(modRef, newString.c_str(), funcType);
+    auto *funcType =
+        llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
+                                                              llvm::Type::getInt64Ty(module.getContext())}),
+                                false);
+    return module.getOrInsertFunction(newString, funcType);
 }
 
-void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
+void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     LLVMValueRef constRef = nullptr;
     const auto &lhsOp = getLhsOperand();
     const auto &funcRef = getFunctionRef();
-    LLVMBuilderRef builder = llvm::wrap(funcRef.getLLVMBuilder());
-    LLVMValueRef lhsRef = llvm::wrap(funcRef.getLLVMLocalOrGlobalVar(lhsOp, *llvm::unwrap(modRef)));
+    LLVMValueRef lhsRef = llvm::wrap(funcRef.getLLVMLocalOrGlobalVar(lhsOp, module));
 
     assert(funcRef.getLocalOrGlobalVariable(lhsOp).getType().getTypeTag() == typeTag);
 
@@ -88,19 +84,19 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     case TYPE_TAG_CHAR_STRING: {
         std::string stringValue = std::get<std::string>(value);
         llvm::Constant *C = llvm::ConstantDataArray::getString(
-            llvm::unwrap(modRef)->getContext(), llvm::StringRef(stringValue.c_str(), stringValue.length()));
-        auto *globalStringValue = new llvm::GlobalVariable(*llvm::unwrap(modRef), C->getType(), false,
-                                                           llvm::GlobalValue::PrivateLinkage, C, ".str");
+            module.getContext(), llvm::StringRef(stringValue.c_str(), stringValue.length()));
+        auto *globalStringValue =
+            new llvm::GlobalVariable(module, C->getType(), false, llvm::GlobalValue::PrivateLinkage, C, ".str");
         globalStringValue->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
         globalStringValue->setAlignment(llvm::Align(1));
 
-        LLVMValueRef paramTypes[] = {llvm::wrap(llvm::unwrap(builder)->getInt64(0)),
-                                     llvm::wrap(llvm::unwrap(builder)->getInt64(0))};
-        LLVMValueRef valueRef = LLVMBuildInBoundsGEP(builder, wrap(globalStringValue), paramTypes, 2, "simple");
-        LLVMValueRef addedStringRef = getNewString(modRef);
+        LLVMValueRef paramTypes[] = {llvm::wrap(builder.getInt64(0)), llvm::wrap(builder.getInt64(0))};
+        LLVMValueRef valueRef =
+            LLVMBuildInBoundsGEP(llvm::wrap(&builder), wrap(globalStringValue), paramTypes, 2, "simple");
+        LLVMValueRef addedStringRef = llvm::wrap(getNewString(module).getCallee());
 
         LLVMValueRef sizeOpValueRef[] = {valueRef, LLVMConstInt(LLVMInt64Type(), stringValue.length(), 0)};
-        constRef = LLVMBuildCall(builder, addedStringRef, sizeOpValueRef, 2, "");
+        constRef = LLVMBuildCall(llvm::wrap(&builder), addedStringRef, sizeOpValueRef, 2, "");
         break;
     }
     case TYPE_TAG_NIL: {
@@ -112,7 +108,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         }
         const auto *constTempRef = getPackageRef().getGlobalNilVar();
         std::string tempName = lhsOpName + "_temp";
-        constRef = LLVMBuildLoad(builder, llvm::wrap(constTempRef), tempName.c_str());
+        constRef = LLVMBuildLoad(llvm::wrap(&builder), llvm::wrap(constTempRef), tempName.c_str());
         break;
     }
     default:
@@ -120,7 +116,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
     }
 
     if ((constRef != nullptr) && (lhsRef != nullptr)) {
-        LLVMBuildStore(builder, constRef, lhsRef);
+        LLVMBuildStore(llvm::wrap(&builder), constRef, lhsRef);
     }
 }
 

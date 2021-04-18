@@ -32,7 +32,7 @@ class MoveInsn : public NonTerminatorInsn {
     MoveInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp);
     ~MoveInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

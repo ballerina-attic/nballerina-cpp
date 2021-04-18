@@ -38,7 +38,7 @@ class FunctionCallInsn : public TerminatorInsn {
                      std::string functionName, int argCount, std::vector<Operand> argsList);
     ~FunctionCallInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

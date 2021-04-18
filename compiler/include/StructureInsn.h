@@ -32,19 +32,18 @@ class MapConstruct;
 class StructureInsn : public NonTerminatorInsn {
   private:
     std::vector<MapConstruct> initValues;
-    void mapCreateTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
-    void mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef);
+    void mapCreateTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder);
+    void mapInitTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder);
     LLVMValueRef getNewMapDeclaration(LLVMModuleRef &modRef, std::string typeName);
     LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
 
   public:
     StructureInsn() = delete;
     StructureInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB);
-    StructureInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB,
-                  std::vector<MapConstruct> initValues);
+    StructureInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::vector<MapConstruct> initValues);
     ~StructureInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

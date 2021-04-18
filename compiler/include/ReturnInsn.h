@@ -31,7 +31,7 @@ class ReturnInsn : public TerminatorInsn {
     ReturnInsn(std::weak_ptr<BasicBlock> currentBB);
     ~ReturnInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

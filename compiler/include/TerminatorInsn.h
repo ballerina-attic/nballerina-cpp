@@ -21,6 +21,7 @@
 
 #include "interfaces/AbstractInstruction.h"
 #include "interfaces/Translatable.h"
+#include <string>
 
 namespace nballerina {
 
@@ -51,7 +52,7 @@ class TerminatorInsn : public AbstractInstruction, public Translatable {
     void setPatched();
     void setNextBB(std::weak_ptr<BasicBlock> bb);
 
-    virtual void translate(LLVMModuleRef &modRef) override;
+    virtual void translate(llvm::Module &module, llvm::IRBuilder<> &builder) override;
 };
 
 } // namespace nballerina

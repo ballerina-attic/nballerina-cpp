@@ -33,7 +33,7 @@ class ArrayInsn : public NonTerminatorInsn {
     ArrayInsn() = delete;
     ArrayInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &sizeOp);
     ~ArrayInsn() = default;
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 class ArrayLoadInsn : public NonTerminatorInsn {
@@ -46,7 +46,7 @@ class ArrayLoadInsn : public NonTerminatorInsn {
     ArrayLoadInsn() = delete;
     ArrayLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
     ~ArrayLoadInsn() = default;
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 class ArrayStoreInsn : public NonTerminatorInsn {
@@ -60,7 +60,7 @@ class ArrayStoreInsn : public NonTerminatorInsn {
     ArrayStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
     ~ArrayStoreInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 } // namespace nballerina
 

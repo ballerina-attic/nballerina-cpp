@@ -21,17 +21,15 @@
 
 #include "NonTerminatorInsn.h"
 #include "Types.h"
-#include "llvm/IR/GlobalVariable.h"
 #include <string>
 #include <variant>
 
 namespace nballerina {
 
-// TODO Convert to template class
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
-    LLVMValueRef getNewString(LLVMModuleRef &modRef);
+    llvm::FunctionCallee getNewString(llvm::Module &module);
     std::variant<int64_t, float, bool, std::string> value;
 
   public:
@@ -43,7 +41,7 @@ class ConstantLoadInsn : public NonTerminatorInsn {
     ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB);
     ~ConstantLoadInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

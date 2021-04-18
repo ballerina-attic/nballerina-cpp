@@ -35,7 +35,7 @@ MapStoreInsn::MapStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> current
                            const Operand &rOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
 
-void MapStoreInsn::translate(LLVMModuleRef &modRef) {
+void MapStoreInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
     const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
@@ -45,16 +45,15 @@ void MapStoreInsn::translate(LLVMModuleRef &modRef) {
 
     LLVMValueRef mapValue;
     if (Type::isSmartStructType(memberTypeTag)) {
-        mapValue = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, *llvm::unwrap(modRef)));
+        mapValue = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(rhsOp, module));
     } else {
-        mapValue = llvm::wrap(funcObj.createTempVariable(rhsOp, *llvm::unwrap(modRef)));
+        mapValue = llvm::wrap(funcObj.createTempVariable(rhsOp, module, builder));
     }
-    auto *module = llvm::unwrap(modRef);
     // Codegen for map<int> type store
-    codeGenMapStore(llvm::wrap(funcObj.getLLVMBuilder()),
-                    llvm::wrap(getPackageRef().getMapStoreDeclaration(*module, memberTypeTag).getCallee()),
-                    llvm::wrap(funcObj.createTempVariable(getLhsOperand(), *module)),
-                    llvm::wrap(funcObj.createTempVariable(keyOp, *module)), mapValue);
+    codeGenMapStore(llvm::wrap(&builder),
+                    llvm::wrap(getPackageRef().getMapStoreDeclaration(module, memberTypeTag).getCallee()),
+                    llvm::wrap(funcObj.createTempVariable(getLhsOperand(), module, builder)),
+                    llvm::wrap(funcObj.createTempVariable(keyOp, module, builder)), mapValue);
 }
 
 // Generic map store static function
@@ -68,20 +67,20 @@ MapLoadInsn::MapLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB
                          const Operand &rOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
 
-void MapLoadInsn::translate(LLVMModuleRef &modRef) {
+void MapLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcObj = getFunctionRef();
-    auto builder = llvm::wrap(funcObj.getLLVMBuilder());
     TypeTag memTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getMemberTypeTag();
-    auto *outParamType = getPackageRef().getLLVMTypeOfType(memTypeTag, *llvm::unwrap(modRef));
+    auto *outParamType = getPackageRef().getLLVMTypeOfType(memTypeTag, module);
 
-    LLVMValueRef lhs = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), *llvm::unwrap(modRef)));
-    LLVMValueRef outParam = LLVMBuildAlloca(builder, llvm::wrap(outParamType), "_out_param");
-    LLVMValueRef params[] = {llvm::wrap(funcObj.createTempVariable(rhsOp, *llvm::unwrap(modRef))),
-                             llvm::wrap(funcObj.createTempVariable(keyOp, *llvm::unwrap(modRef))), outParam};
+    LLVMValueRef lhs = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module));
+    LLVMValueRef outParam = LLVMBuildAlloca(llvm::wrap(&builder), llvm::wrap(outParamType), "_out_param");
+    LLVMValueRef params[] = {llvm::wrap(funcObj.createTempVariable(rhsOp, module, builder)),
+                             llvm::wrap(funcObj.createTempVariable(keyOp, module, builder)), outParam};
 
+    auto modRef = llvm::wrap(&module);
     [[maybe_unused]] LLVMValueRef retVal =
-        LLVMBuildCall(builder,
+        LLVMBuildCall(llvm::wrap(&builder),
                       getMapLoadDeclaration(modRef, llvm::wrap(llvm::PointerType::get(outParamType, 0)),
                                             Type::getNameOfType(memTypeTag)),
                       params, 3, "");
@@ -89,11 +88,11 @@ void MapLoadInsn::translate(LLVMModuleRef &modRef) {
     // TODO check retVal and branch
     // if retVal is true
     if (Type::isSmartStructType(memTypeTag)) {
-        LLVMValueRef outParamTemp = LLVMBuildLoad(builder, outParam, "");
-        LLVMBuildStore(builder, outParamTemp, lhs);
+        LLVMValueRef outParamTemp = LLVMBuildLoad(llvm::wrap(&builder), outParam, "");
+        LLVMBuildStore(llvm::wrap(&builder), outParamTemp, lhs);
     } else {
-        getFunctionMutableRef().storeValueInSmartStruct(*llvm::unwrap(modRef), llvm::unwrap(outParam),
-                                                        Type(memTypeTag, ""), llvm::unwrap(lhs));
+        getFunctionMutableRef().storeValueInSmartStruct(module, builder, llvm::unwrap(outParam), Type(memTypeTag, ""),
+                                                        llvm::unwrap(lhs));
     }
     // else
     // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,

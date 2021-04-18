@@ -32,19 +32,18 @@ namespace nballerina {
 ReturnInsn::ReturnInsn(std::weak_ptr<BasicBlock> currentBB)
     : TerminatorInsn(Operand("", NOT_A_KIND), std::move(currentBB), "") {}
 
-void ReturnInsn::translate(LLVMModuleRef &) {
+void ReturnInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
 
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
-
     if (funcObj.isMainFunction()) {
-        LLVMBuildRetVoid(builder);
+        LLVMBuildRetVoid(llvm::wrap(&builder));
         return;
     }
     assert(funcObj.getReturnVar().has_value());
-    LLVMValueRef retValueRef = LLVMBuildLoad(
-        builder, llvm::wrap(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName())), "return_val_temp");
-    LLVMBuildRet(builder, retValueRef);
+    LLVMValueRef retValueRef =
+        LLVMBuildLoad(llvm::wrap(&builder), llvm::wrap(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName())),
+                      "return_val_temp");
+    LLVMBuildRet(llvm::wrap(&builder), retValueRef);
 }
 
 } // namespace nballerina

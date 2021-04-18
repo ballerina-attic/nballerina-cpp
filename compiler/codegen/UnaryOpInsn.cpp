@@ -30,24 +30,23 @@ UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB
 
 void UnaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
 
-void UnaryOpInsn::translate(LLVMModuleRef &modRef) {
+void UnaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = llvm::wrap(funcObj.getLLVMBuilder());
     const auto &lhsOp = getLhsOperand();
     std::string lhsTmpName = lhsOp.getName() + "_temp";
-    LLVMValueRef lhsRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(lhsOp, *llvm::unwrap(modRef)));
-    LLVMValueRef rhsOpref = llvm::wrap(funcObj.createTempVariable(rhsOp, *llvm::unwrap(modRef)));
+    LLVMValueRef lhsRef = llvm::wrap(funcObj.getLLVMLocalOrGlobalVar(lhsOp, module));
+    LLVMValueRef rhsOpref = llvm::wrap(funcObj.createTempVariable(rhsOp, module, builder));
 
     switch (kind) {
     case INSTRUCTION_KIND_UNARY_NOT: {
-        LLVMValueRef retVal = LLVMBuildNot(builder, rhsOpref, lhsTmpName.c_str());
-        LLVMBuildStore(builder, retVal, lhsRef);
+        LLVMValueRef retVal = LLVMBuildNot(llvm::wrap(&builder), rhsOpref, lhsTmpName.c_str());
+        LLVMBuildStore(llvm::wrap(&builder), retVal, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_UNARY_NEG: {
-        LLVMValueRef retVal = LLVMBuildNeg(builder, rhsOpref, lhsTmpName.c_str());
-        LLVMBuildStore(builder, retVal, lhsRef);
+        LLVMValueRef retVal = LLVMBuildNeg(llvm::wrap(&builder), rhsOpref, lhsTmpName.c_str());
+        LLVMBuildStore(llvm::wrap(&builder), retVal, lhsRef);
         break;
     }
     default:

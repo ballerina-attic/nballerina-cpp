@@ -56,12 +56,11 @@ class Function : public Debuggable {
     std::map<std::string, Variable> localVars;
     std::map<std::string, std::shared_ptr<BasicBlock>> basicBlocksMap;
     std::vector<FunctionParam> requiredParams;
-    llvm::IRBuilder<> *llvmBuilder;
     std::map<std::string, llvm::Value *> branchComparisonList;
     std::map<std::string, llvm::AllocaInst *> localVarRefs;
     std::weak_ptr<BasicBlock> FindBasicBlock(const std::string &id);
     llvm::FunctionCallee generateAbortInsn(llvm::Module &module);
-    void splitBBIfPossible(llvm::Module &module);
+    void splitBBIfPossible(llvm::Module &module, llvm::IRBuilder<> &builder);
     static bool isBoxValueSupport(TypeTag typeTag);
     llvm::FunctionCallee generateBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
 
@@ -80,7 +79,6 @@ class Function : public Debuggable {
     const std::optional<Variable> &getReturnVar() const;
     Package &getPackageMutableRef() const;
     const Package &getPackageRef() const;
-    const llvm::IRBuilder<> *getLLVMBuilder() const;
     llvm::Value *getLLVMValueForBranchComparison(const std::string &lhsName) const;
     llvm::AllocaInst *getLLVMLocalVar(const std::string &varName) const;
     llvm::Value *getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const;
@@ -90,19 +88,18 @@ class Function : public Debuggable {
     bool isMainFunction() const;
     bool isExternalFunction() const;
     const std::vector<FunctionParam> &getParams() const;
-    llvm::Value *createTempVariable(const Operand &op, llvm::Module &module) const;
 
+    llvm::Value *createTempVariable(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
     void patchBasicBlocks();
     void insertParam(const FunctionParam &param);
     void setReturnVar(const Variable &var);
     void insertLocalVar(const Variable &var);
     void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
     void insertBranchComparisonValue(const std::string &lhsName, llvm::Value *compRef);
-    void setLLVMBuilder(llvm::IRBuilder<> *b);
-    void storeValueInSmartStruct(llvm::Module &module, llvm::Value *value, const Type &valueType,
+    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
                                  llvm::Value *smartStruct);
 
-    void translate(llvm::Module &module);
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder);
 };
 } // namespace nballerina
 
