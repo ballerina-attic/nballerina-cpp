@@ -1398,26 +1398,12 @@ void ObjectField::read(){
 }
 
 void Markdown::read(){
-    length = readerRef.readS4be();
-    hasDoc = readerRef.readU1();
-    if(hasDoc){
-        descriptionCpIndex = readerRef.readS4be();
-        returnValueDescriptionCpIndex = readerRef.readS4be();
-        parametersCount = readerRef.readS4be();
-        parameters = std::vector<std::unique_ptr<MarkdownParameter>>();
-        parameters.reserve(parametersCount);
-        for (int i = 0; i < parametersCount; i++)
-        {
-            auto parameter = std::make_unique<MarkdownParameter>();
-            parameter->read();
-            parameters.push_back(std::move(parameter));
-        }
+    uint32_t length = readerRef.readS4be();
+    uint32_t body;
+    for (int i = 0; i < length; i++)
+    {
+        body = readerRef.readS4be();
     }
-}
-
-void MarkdownParameter::read(){
-    nameCpIndex = readerRef.readS4be();
-    descriptionCpIndex = readerRef.readS4be();
 }
 
 void ObjectAttachedFunction::read(){

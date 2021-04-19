@@ -125,7 +125,6 @@ class BIRReader {
     friend class TypeIdSet;
     friend class ObjectField;
     friend class Markdown;
-    friend class MarkdownParameter;
     friend class ObjectAttachedFunction;
     friend class TableFieldNameList;
     friend class RecordField;
@@ -166,41 +165,12 @@ class TypeId{
     TypeIdSet *getSecondaryTypeId(int index){return secondaryTypeId[index].get();}
 };
 
-class MarkdownParameter{
-  public:
-    MarkdownParameter(){};
-    void read();
-    ~MarkdownParameter(){};
-    BIRReader &readerRef = BIRReader::reader;
-  private:
-    uint32_t nameCpIndex;
-    uint32_t descriptionCpIndex;
-  public:
-    uint32_t getNameCpIndex(){return nameCpIndex;}
-    uint32_t getDescriptionCpIndex(){return descriptionCpIndex;}
-};
 class Markdown{
   public:
     Markdown(){};
     void read();
     ~Markdown(){};
     BIRReader &readerRef = BIRReader::reader;
-  private:
-    uint32_t length;
-    uint8_t hasDoc;
-    // markdown content
-    uint32_t descriptionCpIndex;
-    uint32_t returnValueDescriptionCpIndex;
-    uint32_t parametersCount;
-    std::vector<std::unique_ptr<MarkdownParameter>> parameters;
-  public:
-    uint32_t getLength(){return length;}
-    uint8_t getHasDoc(){return hasDoc;}
-    // markdown content
-    uint32_t getDescriptionCpIndex(){return descriptionCpIndex;}
-    uint32_t getReturnValueDescriptionCpIndex(){return returnValueDescriptionCpIndex;}
-    uint32_t getParametersCount(){return parametersCount;}
-    MarkdownParameter *getParameter(int index){return parameters[index].get();}
 };
 
 class ObjectField{
