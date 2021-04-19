@@ -58,15 +58,19 @@ endif()
 target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_OPTIONS}>")
 target_compile_options(nballerinacc PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_OPTIONS}>")
 
+# List of options
+option(ENABLE_SANITIZER "Enable sanitizers" ON)
+option(ENABLE_ANALYSE "Enable static analysis" ON)
+option(ENABLE_COVERAGE "Enable code coverage" OFF)
 
 if(DEBUG_MODE)
     # Enable Static analysis for debug builds
-    if(CLANG_TIDY_EXE AND NOT(SKIP_ANALYSE)) 
+    if(CLANG_TIDY_EXE AND ENABLE_ANALYSE) 
         message(STATUS "Enabling clang-tidy checks") 
         set_target_properties(nballerinacc PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}" )
     endif()
     # Enable sanitizers for debug builds
-    if(NOT SKIP_SANITIZER)
+    if(ENABLE_SANITIZER)
         add_sanitizers()
     endif()
     # Enable code coverage flags
