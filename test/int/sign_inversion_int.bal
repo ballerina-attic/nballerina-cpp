@@ -9,6 +9,11 @@ public function main() {
     int g = -a;
     print_string("RESULT=");
     print_integer(g);
+    int b = -23;
+    int h = -b;
+    print_string("RESULT=");
+    print_integer(h);
 }
 
 // CHECK: RESULT=-10
+// CHECK: RESULT=23

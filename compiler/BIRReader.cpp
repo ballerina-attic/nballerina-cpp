@@ -593,7 +593,9 @@ void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
     }
     case INSTRUCTION_KIND_UNARY_NEG:
     case INSTRUCTION_KIND_UNARY_NOT: {
-        basicBlock->addNonTermInsn(ReadUnaryInsn::readUnaryInsn.readNonTerminatorInsn(basicBlock));
+        auto unaryOpInsn = ReadUnaryInsn::readUnaryInsn.readNonTerminatorInsn(basicBlock);
+        unaryOpInsn->setInstKind(insnKind);
+        basicBlock->addNonTermInsn(std::move(unaryOpInsn));
         break;
     }
     case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
