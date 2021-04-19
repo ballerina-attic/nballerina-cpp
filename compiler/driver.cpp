@@ -31,6 +31,15 @@ using namespace nballerina;
 
 BIRReader BIRReader::reader;
 
+std::string remove_extension(const std::string& path) {
+
+    size_t pos = path.find_last_of("\\/.");
+    if (pos != std::string::npos && path[pos] == '.'){
+        return path.substr(0, pos);
+    }
+    return path;
+}
+
 int main(int argc, char **argv) {
     string inFileName = "";
     string outFileName = "";
@@ -55,12 +64,7 @@ int main(int argc, char **argv) {
     }
     // if output file name is empty from command line options.
     if (outFileName == "") {
-        for (unsigned int i = 0; i < inFileName.length(); i++) {
-            char tmpstr = inFileName[i];
-            if (tmpstr == '.')
-                break;
-            outFileName = outFileName + inFileName[i];
-        }
+        outFileName=remove_extension(inFileName);
         outFileName = outFileName + ".ll";
     }
 
