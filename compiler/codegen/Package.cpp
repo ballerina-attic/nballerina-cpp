@@ -71,7 +71,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
     case TYPE_TAG_INT:
         return LLVMInt64Type();
     case TYPE_TAG_FLOAT:
-        return LLVMFloatType();
+        return LLVMDoubleType();
     case TYPE_TAG_BOOLEAN:
         return LLVMInt8Type();
     case TYPE_TAG_CHAR_STRING:

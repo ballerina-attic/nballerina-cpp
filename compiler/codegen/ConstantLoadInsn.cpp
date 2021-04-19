@@ -35,8 +35,8 @@ ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock>
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, int64_t intVal)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_INT), value(intVal) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, float floatVal)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_FLOAT), value(floatVal) {}
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, double doubleVal)
+    : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_FLOAT), value(doubleVal) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, bool boolVal)
     : NonTerminatorInsn(lhs, std::move(currentBB)), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
@@ -72,7 +72,7 @@ void ConstantLoadInsn::translate(LLVMModuleRef &modRef) {
         break;
     }
     case TYPE_TAG_FLOAT: {
-        constRef = LLVMConstReal(LLVMFloatType(), std::get<float>(value));
+        constRef = LLVMConstReal(LLVMDoubleType(), std::get<double>(value));
         break;
     }
     case TYPE_TAG_BOOLEAN: {

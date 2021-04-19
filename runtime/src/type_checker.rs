@@ -109,7 +109,7 @@ pub fn type_size(type_string: &str) -> i32 {
  * M - Map
  * */
 #[no_mangle]
-pub extern "C" fn same_type(source: &str, destination: &str) -> bool {
+pub fn same_type(source: &str, destination: &str) -> bool {
     //If type strings are same
     if source == destination {
         return true;
@@ -224,19 +224,6 @@ fn src_type_string_equal_to_dest() {
 fn map_test() {
     let src = CString::new("__MX0599999").unwrap();
     let dest = CString::new("__MF0599999").unwrap();
-    assert_eq!(
-        is_same_type(
-            src.as_ptr() as *const c_char,
-            dest.as_ptr() as *const c_char
-        ),
-        false
-    );
-}
-
-#[test]
-fn without_underscore_test() {
-    let src = CString::new("MX0599999").unwrap();
-    let dest = CString::new("MF0599999").unwrap();
     assert_eq!(
         is_same_type(
             src.as_ptr() as *const c_char,
