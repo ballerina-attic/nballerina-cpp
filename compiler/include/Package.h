@@ -21,8 +21,7 @@
 
 #include "Function.h"
 #include "Variable.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
+#include "interfaces/Translatable.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include <map>
 #include <string>
@@ -33,7 +32,7 @@ namespace nballerina {
 // Forward Declaration
 class Type;
 
-class Package {
+class Package : public Translatable {
   private:
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
@@ -43,14 +42,11 @@ class Package {
     std::string sourceFileName;
     std::map<std::string, Variable> globalVars;
     std::map<std::string, std::shared_ptr<Function>> functionLookUp;
-
-    llvm::StructType *boxType;
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
     std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
-    void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
     llvm::GlobalVariable *strBuilderGlobal;
     llvm::GlobalVariable *strTablePtr;
-    llvm::GlobalVariable *nillGlobal;
+    void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
 
   public:
     Package() = default;
@@ -60,18 +56,11 @@ class Package {
     Package &operator=(const Package &obj) = delete;
     Package &operator=(Package &&obj) noexcept = delete;
 
-    const std::string &getOrgName() const;
-    const std::string &getVersion() const;
-    const std::string &getSrcFileName() const;
-    const std::string &getPackageName() const;
+    std::string getModuleName() const;
     const Function &getFunction(const std::string &name) const;
     const Variable &getGlobalVariable(const std::string &name) const;
-    llvm::Type *getLLVMTypeOfType(const Type &type, llvm::Module &module) const;
-    llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module) const;
-    llvm::Value *getGlobalNilVar() const;
-    llvm::Value *getStringBuilderTableGlobalPointer() const;
-    llvm::FunctionCallee getMapStoreDeclaration(llvm::Module &module, TypeTag typeTag) const;
 
+    llvm::Value *getStringBuilderTableGlobalPointer() const;
     void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
     void setPackageName(std::string pkgName);
@@ -80,8 +69,10 @@ class Package {
     void insertGlobalVar(const Variable &var);
     void insertFunction(const std::shared_ptr<Function> &function);
     void addStringOffsetRelocationEntry(const std::string &eleType, llvm::Value *storeInsn);
+    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                 const Type &valueType, llvm::Value *smartStruct);
 
-    void translate(llvm::Module &module);
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

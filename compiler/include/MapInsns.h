@@ -77,16 +77,12 @@ class MapStoreInsn : public NonTerminatorInsn {
     ~MapStoreInsn() = default;
 
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
-    static void codeGenMapStore(llvm::IRBuilder<> &builder, llvm::FunctionCallee mapStoreFunc, llvm::Value *map,
-                                llvm::Value *key, llvm::Value *value);
 };
 
 class MapLoadInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    static llvm::FunctionCallee getMapLoadDeclaration(llvm::Module &module, llvm::Type *outParamType,
-                                                      const std::string &typeName);
 
   public:
     MapLoadInsn() = delete;

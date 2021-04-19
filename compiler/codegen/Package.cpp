@@ -17,6 +17,7 @@
  */
 
 #include "Package.h"
+#include "CodeGenUtils.h"
 #include "Function.h"
 #include "FunctionParam.h"
 #include "Operand.h"
@@ -24,12 +25,7 @@
 
 namespace nballerina {
 
-llvm::Value *Package::getGlobalNilVar() const { return nillGlobal; }
-
-const std::string &Package::getOrgName() const { return org; }
-const std::string &Package::getPackageName() const { return name; }
-const std::string &Package::getVersion() const { return version; }
-const std::string &Package::getSrcFileName() const { return sourceFileName; }
+std::string Package::getModuleName() const { return org + name + version; }
 llvm::Value *Package::getStringBuilderTableGlobalPointer() const { return strBuilderGlobal; }
 
 void Package::addToStrTable(std::string_view name) {
@@ -49,38 +45,11 @@ void Package::insertFunction(const std::shared_ptr<Function> &function) {
 
 const Function &Package::getFunction(const std::string &name) const { return *functionLookUp.at(name); }
 
-llvm::Type *Package::getLLVMTypeOfType(const Type &type, llvm::Module &module) const {
-    return getLLVMTypeOfType(type.getTypeTag(), module);
-}
+void Package::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-llvm::Type *Package::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module) const {
-    auto &context = module.getContext();
-    switch (typeTag) {
-    case TYPE_TAG_INT:
-        return llvm::Type::getInt64Ty(context);
-    case TYPE_TAG_FLOAT:
-        return llvm::Type::getFloatTy(context);
-    case TYPE_TAG_BOOLEAN:
-        return llvm::Type::getInt8Ty(context);
-    case TYPE_TAG_CHAR_STRING:
-    case TYPE_TAG_STRING:
-    case TYPE_TAG_MAP:
-    case TYPE_TAG_ARRAY:
-    case TYPE_TAG_NIL:
-        return llvm::Type::getInt8PtrTy(context);
-    case TYPE_TAG_ANY:
-    case TYPE_TAG_UNION:
-    case TYPE_TAG_ANYDATA:
-        return boxType;
-    default:
-        return llvm::Type::getInt64Ty(context);
-    }
-}
+    module.setSourceFileName(sourceFileName);
 
-void Package::translate(llvm::Module &module) {
-
-    auto &context = module.getContext();
-    llvm::Type *charPtrType = llvm::Type::getInt8PtrTy(context);
+    llvm::Type *charPtrType = builder.getInt8PtrTy();
     llvm::Constant *nullValue = llvm::Constant::getNullValue(charPtrType);
 
     // String Table initialization
@@ -91,19 +60,10 @@ void Package::translate(llvm::Module &module) {
                                                 nullValue, STRING_TABLE_NAME, nullptr);
     strBuilderGlobal->setAlignment(llvm::Align(4));
 
-    // create global var for nil value
-    nillGlobal = new llvm::GlobalVariable(module, charPtrType, false, llvm::GlobalValue::InternalLinkage, nullValue,
-                                          BAL_NIL_VALUE, nullptr);
-
-    // creating struct smart pointer to store any type variables data.
-    boxType = llvm::StructType::create(
-        context, llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
-        "struct.smtPtr");
-
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {
         auto const &globVar = it.second;
-        auto *varTyperef = getLLVMTypeOfType(globVar.getType(), module);
+        auto *varTyperef = CodeGenUtils::getLLVMTypeOfType(globVar.getType(), module);
         llvm::Constant *initValue = llvm::Constant::getNullValue(varTyperef);
         auto *gVar = new llvm::GlobalVariable(module, varTyperef, false, llvm::GlobalValue::ExternalLinkage, initValue,
                                               globVar.getName(), nullptr);
@@ -112,13 +72,12 @@ void Package::translate(llvm::Module &module) {
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.
-    auto builder = llvm::IRBuilder<>(context);
     for (const auto &function : functionLookUp) {
         auto numParams = function.second->getNumParams();
         std::vector<llvm::Type *> paramTypes;
         paramTypes.reserve(numParams);
         for (const auto &funcParam : function.second->getParams()) {
-            paramTypes.push_back(getLLVMTypeOfType(funcParam.getType(), module));
+            paramTypes.push_back(CodeGenUtils::getLLVMTypeOfType(funcParam.getType(), module));
         }
 
         bool isVarArg = static_cast<bool>(function.second->getRestParam());
@@ -180,9 +139,16 @@ void Package::applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder
         auto *tempVal = builder.getInt64(finalOrigOffset);
         for (const auto &insn : element.second) {
             auto *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(insn);
-            llvm::Value *val =
-                (GEPInst != nullptr) ? GEPInst->getOperand(1) : llvm::dyn_cast<llvm::User>(insn)->getOperand(0);
-            val->replaceAllUsesWith(tempVal);
+            if (GEPInst != nullptr) {
+                GEPInst->getOperand(1)->replaceAllUsesWith(tempVal);
+                continue;
+            }
+            auto *temp = llvm::dyn_cast<llvm::User>(insn);
+            if (temp != nullptr) {
+                temp->getOperand(0)->replaceAllUsesWith(tempVal);
+            } else {
+                llvm_unreachable("");
+            }
         }
     }
 
@@ -205,17 +171,27 @@ void Package::insertGlobalVar(const Variable &var) {
     globalVars.insert(std::pair<std::string, Variable>(var.getName(), var));
 }
 
-// Declaration for map<int> type store function
-llvm::FunctionCallee Package::getMapStoreDeclaration(llvm::Module &module, TypeTag typeTag) const {
-    const std::string funcName = "map_store_" + Type::getNameOfType(typeTag);
-    llvm::Type *memberType = Type::isSmartStructType(typeTag)
-                                 ? llvm::PointerType::get(getLLVMTypeOfType(typeTag, module), 0)
-                                 : getLLVMTypeOfType(typeTag, module);
-    auto *keyType = getLLVMTypeOfType(TYPE_TAG_STRING, module);
-    auto *mapType = getLLVMTypeOfType(TYPE_TAG_MAP, module);
-    auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
-                                             llvm::ArrayRef<llvm::Type *>({mapType, keyType, memberType}), false);
-    return module.getOrInsertFunction(funcName, funcType);
+void Package::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                      const Type &valueType, llvm::Value *smartStruct) {
+
+    // struct first element original type
+    auto *inherentTypeIdx = builder.CreateStructGEP(smartStruct, 0, "inherentTypeName");
+    auto valueTypeName = Type::typeStringMangleName(valueType);
+    addToStrTable(valueTypeName);
+    int tempRandNum1 = std::rand() % 1000 + 1;
+    auto *constValue = builder.getInt64(tempRandNum1);
+    auto *storeInsn = builder.CreateStore(constValue, inherentTypeIdx);
+    addStringOffsetRelocationEntry(valueTypeName.data(), storeInsn);
+
+    // struct second element void pointer data.
+    auto *valueIndx = builder.CreateStructGEP(smartStruct, 1, "data");
+    if (Type::isBoxValueSupport(valueType.getTypeTag())) {
+        auto *valueTemp = builder.CreateLoad(value, "_temp");
+        auto boxValFunc = CodeGenUtils::getBoxValueFunc(module, valueTemp->getType(), valueType.getTypeTag());
+        value = builder.CreateCall(boxValFunc, llvm::ArrayRef<llvm::Value *>({valueTemp}), "call");
+    }
+    auto *bitCastRes = builder.CreateBitCast(value, builder.getInt8PtrTy(), "");
+    builder.CreateStore(bitCastRes, valueIndx);
 }
 
 } // namespace nballerina

@@ -16,6 +16,7 @@
  * under the License.
  */
 
+#include "CodeGenUtils.h"
 #include "ConstantLoad.h"
 #include "Function.h"
 #include "Operand.h"
@@ -41,16 +42,6 @@ ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bo
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str)
     : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
-
-llvm::FunctionCallee ConstantLoadInsn::getNewString(llvm::Module &module) {
-    const std::string newString = "new_string";
-    auto *funcType =
-        llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
-                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
-                                                              llvm::Type::getInt64Ty(module.getContext())}),
-                                false);
-    return module.getOrInsertFunction(newString, funcType);
-}
 
 void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &lhsOp = getLhsOperand();
@@ -86,7 +77,7 @@ void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builde
         globalStringValue->setAlignment(llvm::Align(1));
         auto *valueRef = builder.CreateInBoundsGEP(
             globalStringValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}), "simple");
-        auto addedStringRef = getNewString(module);
+        auto addedStringRef = CodeGenUtils::getStringInitFunc(module);
         constRef = builder.CreateCall(
             addedStringRef, llvm::ArrayRef<llvm::Value *>({valueRef, builder.getInt64(stringValue.length())}));
         break;
@@ -96,8 +87,7 @@ void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builde
         if (funcRef.isMainFunction() && (lhsOpName == funcRef.getReturnVar()->getName())) {
             return;
         }
-        auto *nillRef = getPackageRef().getGlobalNilVar();
-        constRef = builder.CreateLoad(nillRef, lhsOpName + "_temp");
+        constRef = builder.CreateLoad(CodeGenUtils::getGlobalNilVar(module), lhsOpName + "_temp");
         break;
     }
     default:

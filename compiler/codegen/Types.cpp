@@ -111,4 +111,15 @@ bool Type::isSmartStructType(TypeTag typeTag) {
     }
 }
 
+bool Type::isBoxValueSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_BOOLEAN:
+        return true;
+    default:
+        return false;
+    }
+}
+
 } // namespace nballerina

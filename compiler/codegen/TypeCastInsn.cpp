@@ -17,6 +17,7 @@
  */
 
 #include "TypeCastInsn.h"
+#include "CodeGenUtils.h"
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
@@ -50,14 +51,13 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         // GEP of last type of smart pointer(original type of any variable(smart pointer))
         auto *inherentTypeIdx = builder.CreateStructGEP(rhsOpRef, 0, "inherentTypeName");
         auto *inherentTypeLoad = builder.CreateLoad(inherentTypeIdx);
-        auto *sExt = builder.CreateSExt(inherentTypeLoad, builder.getInt64Ty());
 
         auto *data = builder.CreateStructGEP(rhsOpRef, 1, "data");
         auto *dataLoad = builder.CreateLoad(data);
 
         auto *strTblPtr = getPackageRef().getStringBuilderTableGlobalPointer();
         auto *strTblLoad = builder.CreateLoad(strTblPtr);
-        auto *gepOfStr = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({sExt}));
+        auto *gepOfStr = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({inherentTypeLoad}));
 
         // get the mangled name of the lhs type and store it to string builder table.
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
@@ -66,7 +66,7 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         auto *constValue = builder.getInt64(tempRandNum);
         auto *lhsGep = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({constValue}));
         // call is_same_type rust function to check LHS and RHS type are same or not.
-        auto isSameTypeFunc = getIsSameTypeDeclaration(module, lhsGep, gepOfStr);
+        auto isSameTypeFunc = CodeGenUtils::getIsSameTypeFunc(module, lhsGep, gepOfStr);
         auto *sameTypeResult = builder.CreateCall(isSameTypeFunc, llvm::ArrayRef<llvm::Value *>({lhsGep, gepOfStr}));
         // creating branch condition using is_same_type() function result.
         builder.CreateIsNotNull(sameTypeResult);
@@ -76,18 +76,10 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         auto *castLoad = builder.CreateLoad(castResult);
         builder.CreateStore(castLoad, lhsOpRef);
     } else if (Type::isSmartStructType(lhsTypeTag)) {
-        getFunctionMutableRef().storeValueInSmartStruct(module, builder, rhsOpRef, rhsType, lhsOpRef);
+        getPackageMutableRef().storeValueInSmartStruct(module, builder, rhsOpRef, rhsType, lhsOpRef);
     } else {
         builder.CreateBitCast(rhsOpRef, lhsTypeRef, "data_cast");
     }
-}
-
-llvm::FunctionCallee TypeCastInsn::getIsSameTypeDeclaration(llvm::Module &module, llvm::Value *lhsRef,
-                                                            llvm::Value *rhsRef) {
-    auto *funcType =
-        llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
-                                llvm::ArrayRef<llvm::Type *>({lhsRef->getType(), rhsRef->getType()}), false);
-    return module.getOrInsertFunction("is_same_type", funcType);
 }
 
 } // namespace nballerina

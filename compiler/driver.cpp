@@ -17,11 +17,9 @@
  */
 
 #include "BIRReader.h"
+#include "CodeGenerator.h"
 #include "Package.h"
 #include <iostream>
-#include <llvm/ADT/Triple.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
 #include <string>
 
 using namespace std;
@@ -66,37 +64,6 @@ int main(int argc, char **argv) {
 
     std::shared_ptr<nballerina::Package> birPackage = BIRReader::reader.deserialize();
 
-    string moduleName = birPackage->getOrgName() + birPackage->getPackageName() + birPackage->getVersion();
-    auto mContext = llvm::LLVMContext();
-    auto mod = llvm::Module(moduleName, mContext);
-    const char *tripleStr = LLVM_DEFAULT_TARGET_TRIPLE;
-
-    // MacOS specific code. This is needed, since the default Triple will have the
-    // OS as darwin, but the clang will expect the os as macosx
-    llvm::Triple triple(LLVM_DEFAULT_TARGET_TRIPLE);
-    char modifiedTriple[200];
-    if (triple.isMacOSX()) {
-        unsigned major, minor, micro;
-        if (triple.getMacOSXVersion(major, minor, micro)) {
-            triple.setOS(llvm::Triple::OSType::MacOSX);
-            sprintf(modifiedTriple, "%s%i.%i.%i", triple.getTriple().c_str(), major, minor, micro);
-            tripleStr = modifiedTriple;
-        }
-    }
-
-    mod.setSourceFileName(birPackage->getSrcFileName());
-    mod.setDataLayout("e-m:e-i64:64-f80:128-n8:16:32:64-S128");
-    mod.setTargetTriple(tripleStr);
-
     // Codegen
-    birPackage->translate(mod);
-
-    // Write LLVM IR to file
-    std::error_code EC;
-    auto outStream = llvm::raw_fd_ostream(outFileName, EC);
-    if (EC) {
-        std::cerr << EC.message();
-        return -1;
-    }
-    mod.print(outStream, nullptr);
+    return CodeGenerator::generateLLVMIR(birPackage.get(), outFileName, birPackage->getModuleName());
 }

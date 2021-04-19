@@ -20,8 +20,7 @@
 #define __BASICBLOCK__H__
 
 #include "interfaces/Debuggable.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
+#include "interfaces/Translatable.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,7 +32,7 @@ class Function;
 class TerminatorInsn;
 class NonTerminatorInsn;
 
-class BasicBlock : public Debuggable {
+class BasicBlock : public Debuggable, public Translatable {
   private:
     std::string id;
     Function &parentFunction;
@@ -62,7 +61,7 @@ class BasicBlock : public Debuggable {
     void addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn);
     void setLLVMBBRef(llvm::BasicBlock *bbRef);
 
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder);
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

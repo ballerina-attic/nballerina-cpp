@@ -18,6 +18,7 @@
 
 #include "Function.h"
 #include "BasicBlock.h"
+#include "CodeGenUtils.h"
 #include "ConditionBrInsn.h"
 #include "FunctionParam.h"
 #include "Operand.h"
@@ -72,7 +73,7 @@ llvm::Type *Function::getLLVMTypeOfReturnVal(llvm::Module &module) const {
         return llvm::Type::getVoidTy(module.getContext());
     }
     assert(returnVar.has_value());
-    return parentPackage.getLLVMTypeOfType(returnVar->getType(), module);
+    return CodeGenUtils::getLLVMTypeOfType(returnVar->getType(), module);
 }
 
 void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
@@ -165,48 +166,6 @@ void Function::patchBasicBlocks() {
     }
 }
 
-// package function?
-void Function::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
-                                       const Type &valueType, llvm::Value *smartStruct) {
-
-    // struct first element original type
-    auto *inherentTypeIdx = builder.CreateStructGEP(smartStruct, 0, "inherentTypeName");
-    auto valueTypeName = Type::typeStringMangleName(valueType);
-    parentPackage.addToStrTable(valueTypeName);
-    int tempRandNum1 = std::rand() % 1000 + 1;
-    auto *constValue = builder.getInt64(tempRandNum1);
-    auto *storeInsn = builder.CreateStore(constValue, inherentTypeIdx);
-    parentPackage.addStringOffsetRelocationEntry(valueTypeName.data(), storeInsn);
-
-    // struct second element void pointer data.
-    auto *valueIndx = builder.CreateStructGEP(smartStruct, 1, "data");
-    if (isBoxValueSupport(valueType.getTypeTag())) {
-        auto *valueTemp = builder.CreateLoad(value, "_temp");
-        auto boxValFunc = generateBoxValueFunc(module, valueTemp->getType(), valueType.getTypeTag());
-        value = builder.CreateCall(boxValFunc, llvm::ArrayRef<llvm::Value *>({valueTemp}), "call");
-    }
-    auto *bitCastRes = builder.CreateBitCast(value, builder.getInt8PtrTy(), "");
-    builder.CreateStore(bitCastRes, valueIndx);
-}
-
-bool Function::isBoxValueSupport(TypeTag typeTag) {
-    switch (typeTag) {
-    case TYPE_TAG_INT:
-    case TYPE_TAG_FLOAT:
-    case TYPE_TAG_BOOLEAN:
-        return true;
-    default:
-        return false;
-    }
-}
-
-llvm::FunctionCallee Function::generateBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag) {
-    const std::string functionName = "box_bal_" + Type::getNameOfType(typeTag);
-    auto *funcType =
-        llvm::FunctionType::get(llvm::PointerType::get(paramType, 0), llvm::ArrayRef<llvm::Type *>({paramType}), false);
-    return module.getOrInsertFunction(functionName, funcType);
-}
-
 void Function::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     auto *llvmFunction = module.getFunction(name);
@@ -217,7 +176,7 @@ void Function::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     size_t paramIndex = 0;
     for (auto const &it : localVars) {
         const auto &locVar = it.second;
-        auto *varType = parentPackage.getLLVMTypeOfType(locVar.getType(), module);
+        auto *varType = CodeGenUtils::getLLVMTypeOfType(locVar.getType(), module);
         auto *localVarRef = builder.CreateAlloca(varType, nullptr, locVar.getName());
         localVarRefs.insert({locVar.getName(), localVarRef});
 
@@ -245,78 +204,8 @@ void Function::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         builder.SetInsertPoint(bb.second->getLLVMBBRef());
         bb.second->translate(module, builder);
     }
-    splitBBIfPossible(module, builder);
+    CodeGenUtils::injectAbortCall(module, builder, name);
 }
 
-llvm::FunctionCallee Function::generateAbortInsn(llvm::Module &module) {
-    const std::string abortFuncName = "abort";
-    auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()), false);
-    return module.getOrInsertFunction(abortFuncName, funcType);
-}
 
-// Splitting Basicblock after 'is_same_type()' function call and
-// based on is_same_type() function result, crating branch condition using
-// splitBB Basicblock (ifBB) and abortBB(elseBB).
-// In IfBB we are doing casing and from ElseBB Aborting.
-void Function::splitBBIfPossible(llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const char *isSameTypeChar = "is_same_type";
-    auto *llvmFunction = module.getFunction(name);
-    for (auto &bBlock : *llvmFunction) {
-        for (llvm::BasicBlock::iterator I = bBlock.begin(); I != bBlock.end(); ++I) {
-            auto *callInst = llvm::dyn_cast<llvm::CallInst>(&*I);
-            if (callInst == nullptr) {
-                continue;
-            }
-            size_t totalOperands = callInst->getNumOperands();
-            const char *insnName = callInst->getOperand(totalOperands - 1)->getName().data();
-            if (strcmp(insnName, isSameTypeChar) != 0) {
-                continue;
-            }
-            std::advance(I, 1);
-            llvm::Instruction *compInsn = &*I;
-            // Splitting BasicBlock.
-            llvm::BasicBlock *splitBB = bBlock.splitBasicBlock(++I, bBlock.getName() + ".split");
-            llvm::BasicBlock::iterator ILoc = bBlock.end();
-            llvm::Instruction &lastInsn = *--ILoc;
-            // branch intruction to the split BB is creating in BB2 (last BB)
-            // basicblock, removing from BB2 and insert this branch instruction
-            // into BB0(split original BB).
-            lastInsn.eraseFromParent();
-            // Creating abortBB (elseBB).
-            llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "abortBB");
-
-            // Creating Branch condition using if and else BB's.
-            llvm::Instruction *compInsnRef = builder.CreateCondBr(compInsn, splitBB, elseBB);
-
-            // branch to abortBB instruction is generating in last(e.g bb2 BB)
-            // basicblock. here, moving from bb2 to bb0.split basicblock.
-            compInsnRef->removeFromParent();
-            bBlock.getInstList().push_back(compInsnRef);
-
-            // get the last instruction from splitBB.
-            llvm::BasicBlock::iterator SI = splitBB->end();
-            assert(SI != splitBB->begin());
-            auto &newBBLastInsn = *--SI;
-            llvm::BasicBlock *elseBBSucc = newBBLastInsn.getSuccessor(0);
-
-            // creating branch to else basicblock.
-            llvm::Instruction *brInsn = builder.CreateBr(elseBBSucc);
-            brInsn->removeFromParent();
-
-            // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
-            auto abortFunc = generateAbortInsn(module);
-            auto *abortFuncCallInsn = builder.CreateCall(abortFunc);
-            abortFuncCallInsn->removeFromParent();
-
-            // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).
-            elseBB->getInstList().push_back(abortFuncCallInsn);
-            elseBB->getInstList().push_back(brInsn);
-
-            // Inserting elseLLVMBB (abort BB) after splitBB (bb0.split)
-            // basicblock.
-            splitBB->getParent()->getBasicBlockList().insertAfter(splitBB->getIterator(), elseBB);
-            break;
-        }
-    }
-}
 } // namespace nballerina

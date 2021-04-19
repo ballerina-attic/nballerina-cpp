@@ -29,7 +29,6 @@ namespace nballerina {
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
-    static llvm::FunctionCallee getNewString(llvm::Module &module);
     std::variant<int64_t, float, bool, std::string> value;
 
   public:

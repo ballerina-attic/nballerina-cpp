@@ -34,8 +34,6 @@ class StructureInsn : public NonTerminatorInsn {
     std::vector<MapConstruct> initValues;
     void mapCreateTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder);
     void mapInitTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder);
-    static llvm::FunctionCallee getNewMapDeclaration(llvm::Module &module, const std::string &typeName);
-    static llvm::FunctionCallee getMapSpreadFieldDeclaration(llvm::Module &module);
 
   public:
     StructureInsn() = delete;
