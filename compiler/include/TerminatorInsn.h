@@ -30,7 +30,8 @@ class Operand;
 
 class TerminatorInsn : public AbstractInstruction, public Translatable {
   private:
-    std::shared_ptr<BasicBlock> thenBB;
+    std::weak_ptr<BasicBlock> thenBB;
+    std::string thenBBID;
     bool patchRequired = false;
 
   protected:
@@ -38,16 +39,17 @@ class TerminatorInsn : public AbstractInstruction, public Translatable {
 
   public:
     TerminatorInsn() = delete;
-    TerminatorInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::shared_ptr<BasicBlock> then,
+    TerminatorInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string thenBBID,
                    bool patchRequired = false);
     virtual ~TerminatorInsn() = default;
 
-    BasicBlock *getNextBB() const;
+    const std::string &getNextBBID() const;
+    const BasicBlock &getNextBB() const;
     bool isPatched() const;
     InstructionKind getInstKind() const;
 
     void setPatched();
-    void setNextBB(std::shared_ptr<BasicBlock> bb);
+    void setNextBB(std::weak_ptr<BasicBlock> bb);
 
     virtual void translate(LLVMModuleRef &modRef) override;
 };

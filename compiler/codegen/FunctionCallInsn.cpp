@@ -27,11 +27,10 @@ using namespace std;
 
 namespace nballerina {
 
-FunctionCallInsn::FunctionCallInsn(std::string funcName, int argNumber, std::shared_ptr<BasicBlock> nextBB,
-                                   const Operand &lhs, std::vector<Operand> fnArgs,
-                                   std::shared_ptr<BasicBlock> currentBB)
-    : TerminatorInsn(lhs, std::move(currentBB), std::move(nextBB), true), functionName(std::move(funcName)), argCount(argNumber),
-      argsList(std::move(fnArgs)) {
+FunctionCallInsn::FunctionCallInsn(std::weak_ptr<BasicBlock> currentBB, std::string thenBBID, const Operand &lhs,
+                                   std::string functionName, int argCount, std::vector<Operand> argsList)
+    : TerminatorInsn(lhs, std::move(currentBB), std::move(thenBBID), true), functionName(std::move(functionName)),
+      argCount(argCount), argsList(std::move(argsList)) {
     kind = INSTRUCTION_KIND_CALL;
 }
 
@@ -53,8 +52,8 @@ void FunctionCallInsn::translate(LLVMModuleRef &) {
     LLVMBuildStore(builder, callResult, lhsRef);
 
     // creating branch to next basic block.
-    if (getNextBB() != nullptr) {
-        LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
+    if (getNextBB().getLLVMBBRef() != nullptr) {
+        LLVMBuildBr(builder, getNextBB().getLLVMBBRef());
     }
 }
 

@@ -25,8 +25,10 @@
 
 namespace nballerina {
 
-UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs)
+UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhs)
     : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhs) {}
+
+void UnaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
 
 void UnaryOpInsn::translate(LLVMModuleRef &) {
 
@@ -36,8 +38,21 @@ void UnaryOpInsn::translate(LLVMModuleRef &) {
     std::string lhsTmpName = lhsOp.getName() + "_temp";
     LLVMValueRef lhsRef = funcObj.getLLVMLocalOrGlobalVar(lhsOp);
     LLVMValueRef rhsOpref = funcObj.createTempVariable(rhsOp);
-    LLVMValueRef ifReturn = LLVMBuildNot(builder, rhsOpref, lhsTmpName.c_str());
-    LLVMBuildStore(builder, ifReturn, lhsRef);
+
+    switch (kind) {
+    case INSTRUCTION_KIND_UNARY_NOT: {
+        LLVMValueRef retVal = LLVMBuildNot(builder, rhsOpref, lhsTmpName.c_str());
+        LLVMBuildStore(builder, retVal, lhsRef);
+        break;
+    }
+    case INSTRUCTION_KIND_UNARY_NEG: {
+        LLVMValueRef retVal = LLVMBuildNeg(builder, rhsOpref, lhsTmpName.c_str());
+        LLVMBuildStore(builder, retVal, lhsRef);
+        break;
+    }
+    default:
+        llvm_unreachable("");
+    }
 }
 
 } // namespace nballerina

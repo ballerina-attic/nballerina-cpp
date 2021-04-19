@@ -16,26 +16,20 @@
  * under the License.
  */
 
-#ifndef __TYPETESTINSN__H__
-#define __TYPETESTINSN__H__
-
-#include "NonTerminatorInsn.h"
+#include "TypeUtils.h"
+#include "llvm/Support/ErrorHandling.h"
 
 namespace nballerina {
 
-// Forward Declare
-class Type;
-class Operand;
-
-class TypeTestInsn : public NonTerminatorInsn {
-
-  public:
-    TypeTestInsn() = delete;
-    TypeTestInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB)
-        : NonTerminatorInsn(lhs, std::move(currentBB)) {}
-    ~TypeTestInsn() = default;
-};
+void TypeUtils::checkMapSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_ANYDATA:
+        return;
+    default:
+        std::string msg = "Map of " + Type::getNameOfType(typeTag) + " is not currently supported";
+        llvm_unreachable(msg.c_str());
+    }
+}
 
 } // namespace nballerina
-
-#endif //!__TYPETESTINSN__H__

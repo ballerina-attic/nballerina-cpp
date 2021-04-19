@@ -45,7 +45,7 @@ class Package : public Translatable {
     std::map<std::string, Variable> globalVars;
     std::map<std::string, LLVMValueRef> globalVarRefs;
     std::map<std::string, std::shared_ptr<Function>> functionLookUp;
-    std::unique_ptr<llvm::StructType> boxType;
+    llvm::StructType *boxType;
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
     std::map<std::string, std::vector<LLVMValueRef>> structElementStoreInst;
     std::map<std::string, LLVMValueRef> functionRefs;
@@ -55,7 +55,7 @@ class Package : public Translatable {
 
   public:
     Package() = default;
-    ~Package() = default;
+    virtual ~Package() = default;
     Package(const Package &) = delete;
     Package(Package &&obj) noexcept = delete;
     Package &operator=(const Package &obj) = delete;
@@ -73,7 +73,7 @@ class Package : public Translatable {
     LLVMValueRef getGlobalNilVar() const;
     LLVMValueRef getStringBuilderTableGlobalPointer();
     const Variable &getGlobalVariable(const std::string &name) const;
-    LLVMValueRef getMapIntStoreDeclaration(LLVMModuleRef &modRef);
+    LLVMValueRef getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag typeTag);
     LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
 
     void addToStrTable(std::string_view name);

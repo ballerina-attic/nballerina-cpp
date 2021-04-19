@@ -82,9 +82,10 @@ LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
         return LLVMPointerType(LLVMInt8Type(), 0);
     case TYPE_TAG_ANY:
     case TYPE_TAG_UNION:
-        return wrap(boxType.get());
+    case TYPE_TAG_ANYDATA:
+        return wrap(boxType);
     default:
-        return LLVMInt32Type();
+        return LLVMInt64Type();
     }
 }
 
@@ -113,9 +114,9 @@ void Package::translate(LLVMModuleRef &modRef) {
 
     // creating struct smart pointer to store any type variables data.
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
-    LLVMTypeRef structElementTypes[] = {LLVMInt32Type(), LLVMPointerType(LLVMInt8Type(), 0)};
+    LLVMTypeRef structElementTypes[] = {LLVMInt64Type(), LLVMPointerType(LLVMInt8Type(), 0)};
     LLVMStructSetBody(structGen, structElementTypes, 2, 0);
-    boxType = std::unique_ptr<llvm::StructType>(llvm::unwrap<llvm::StructType>(structGen));
+    boxType = llvm::unwrap<llvm::StructType>(structGen);
 
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {
@@ -212,7 +213,7 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
     for (const auto &element : structElementStoreInst) {
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
-        LLVMValueRef tempVal = LLVMConstInt(LLVMInt32Type(), finalOrigOffset, 0);
+        LLVMValueRef tempVal = LLVMConstInt(LLVMInt64Type(), finalOrigOffset, 0);
         for (const auto &insn : element.second) {
             auto *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(llvm::unwrap(insn));
             LLVMValueRef constOperand = (GEPInst != nullptr) ? LLVMGetOperand(insn, 1) : LLVMGetOperand(insn, 0);
@@ -248,14 +249,22 @@ void Package::insertGlobalVar(const Variable &var) {
 }
 
 // Declaration for map<int> type store function
-LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
-    const auto *externalFunctionName = "map_store_int";
+LLVMValueRef Package::getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag typeTag) {
+    std::string funcName = "map_store_" + Type::getNameOfType(typeTag);
+    const char *externalFunctionName = funcName.c_str();
 
     LLVMValueRef mapStoreFunc = getFunctionRef(externalFunctionName);
     if (mapStoreFunc != nullptr) {
         return mapStoreFunc;
     }
-    LLVMTypeRef memberType = LLVMInt64Type();
+
+    LLVMTypeRef memberType;
+    if (Type::isSmartStructType(typeTag)) {
+        memberType = LLVMPointerType(getLLVMTypeOfType(typeTag), 0);
+    } else {
+        memberType = getLLVMTypeOfType(typeTag);
+    }
+
     LLVMTypeRef keyType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef mapType = LLVMPointerType(LLVMInt8Type(), 0);
     LLVMTypeRef paramTypes[] = {mapType, keyType, memberType};
@@ -266,7 +275,8 @@ LLVMValueRef Package::getMapIntStoreDeclaration(LLVMModuleRef &modRef) {
 }
 
 LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef) {
-    const auto *externalFunctionName = "map_spread_field_init";
+    std::string funcName = "map_spread_field_init";
+    const auto *externalFunctionName = funcName.c_str();
 
     LLVMValueRef func = getFunctionRef(externalFunctionName);
     if (func != nullptr) {

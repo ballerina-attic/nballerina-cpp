@@ -21,13 +21,16 @@
 
 mod type_checker;
 
+use std::ffi::c_void;
 use std::ffi::CStr;
 use std::io::{self, Write};
 use std::mem;
 use std::os::raw::c_char;
 
 mod bal_map;
+pub use bal_map::map::BalMapAnyData;
 pub use bal_map::map::BalMapInt;
+pub use bal_map::map::SmtPtr;
 
 pub struct BString {
     value: &'static str,
@@ -142,6 +145,15 @@ pub extern "C" fn array_init_string(size: i64) -> *mut Vec<*mut BString> {
 }
 
 #[no_mangle]
+pub extern "C" fn array_init_anydata(size: i32) -> *mut Vec<*mut c_void> {
+    let size_t = if size > 0 { size } else { 8 };
+    let size_t = size_t as usize;
+    let vec: Box<Vec<*mut c_void>> = Box::new(Vec::with_capacity(size_t));
+    let vec_pointer = Box::into_raw(vec);
+    return vec_pointer;
+}
+
+#[no_mangle]
 pub extern "C" fn array_store_int(arr_ptr: *mut Vec<i64>, index: i64, ref_ptr: i64) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
@@ -171,6 +183,33 @@ pub extern "C" fn array_store_float(arr_ptr: *mut Vec<f64>, index: i64, ref_ptr:
     let len = index_n + 1;
     if arr.len() < len {
         arr.resize(len, 0.0);
+    }
+    arr[index_n] = ref_ptr;
+    mem::forget(arr);
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_anydata(arr_ptr: *mut Vec<*mut c_void>, index: i32) -> *mut c_void {
+    let arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    // check the out of bounds.
+    assert!(arr.len() > index_n);
+    let return_val = arr[index_n];
+    mem::forget(arr);
+    return return_val;
+}
+
+#[no_mangle]
+pub extern "C" fn array_store_anydata(
+    arr_ptr: *mut Vec<*mut c_void>,
+    index: i32,
+    ref_ptr: *mut c_void,
+) {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    let index_n = index as usize;
+    let len = index_n + 1;
+    if arr.len() < len {
+        arr.resize(len, 0 as *mut c_void);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);
@@ -298,7 +337,6 @@ pub extern "C" fn map_deint_int(ptr: *mut BalMapInt) {
 #[no_mangle]
 pub extern "C" fn map_store_int(ptr: *mut BalMapInt, key: *mut BString, member: i64) {
     // Load BalMap from pointer
-    assert!(!ptr.is_null());
     let bal_map = unsafe { &mut *ptr };
     // Load Key C string
     assert!(!key.is_null());
@@ -337,6 +375,37 @@ pub extern "C" fn map_load_int(
 }
 
 #[no_mangle]
+pub extern "C" fn map_load_anydata(
+    ptr: *mut BalMapAnyData,
+    key: *mut BString,
+    mut output_val: *mut SmtPtr,
+) -> bool {
+    // Load BalMap from pointer
+    assert!(!ptr.is_null());
+    let bal_map = unsafe { &mut *ptr };
+
+    // Load Key C string
+    assert!(!key.is_null());
+    let key_str = unsafe { (*key).value };
+
+    // Output param
+    assert!(!output_val.is_null());
+
+    match bal_map.get(key_str) {
+        Some(val) => {
+            let smt_ptr : *mut SmtPtr = *val;
+            unsafe { (*output_val).val  = (*smt_ptr).val };
+            unsafe { (*output_val).str_table_offset  = (*smt_ptr).str_table_offset };
+            true
+        }
+        None => {
+            panic!("Invalid map key access")
+            //false,
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *mut BalMapInt) {
     // Load source BalMap from pointer
     assert!(!ptr_source.is_null());
@@ -346,6 +415,30 @@ pub extern "C" fn map_spread_field_init(ptr_source: *mut BalMapInt, ptr_expr: *m
     let map_expr = unsafe { &mut *ptr_expr };
     // Insert from spread field expression
     map_src.insert_spread_field(map_expr);
+}
+
+#[no_mangle]
+pub extern "C" fn map_new_anydata() -> *mut BalMapAnyData {
+    Box::into_raw(Box::new(BalMapAnyData::new()))
+}
+
+#[no_mangle]
+pub extern "C" fn map_store_anydata(
+    ptr: *mut BalMapAnyData,
+    key: *mut BString,
+    member_ptr: *mut SmtPtr,
+) {
+    // Load BalMap from pointer
+    assert!(!ptr.is_null());
+    let bal_map = unsafe { &mut *ptr };
+    // Load Key C string
+    assert!(!key.is_null());
+
+    // Load member value
+    assert!(!member_ptr.is_null());
+    // Insert new field
+    let key_str = unsafe { (*key).value };
+    bal_map.insert(key_str, member_ptr);
 }
 
 #[no_mangle]

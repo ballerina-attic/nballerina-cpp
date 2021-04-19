@@ -32,7 +32,7 @@ set_target_properties( nballerinacc
 )
 
 # We want to build nballerinacc after the Runtime
-add_dependencies(nballerinacc BallerinaRT)
+add_dependencies(nballerinacc libballerina_rt)
 
 # Find and like LLVM static libs
 llvm_map_components_to_libnames(llvm_libs codegen)

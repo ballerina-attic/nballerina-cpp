@@ -16,26 +16,17 @@
  * under the License.
  */
 
-#ifndef __TYPETESTINSN__H__
-#define __TYPETESTINSN__H__
+#ifndef __TYPEUTILS__H__
+#define __TYPEUTILS__H__
 
-#include "NonTerminatorInsn.h"
+#include "Types.h"
 
 namespace nballerina {
 
-// Forward Declare
-class Type;
-class Operand;
-
-class TypeTestInsn : public NonTerminatorInsn {
-
+class TypeUtils {
   public:
-    TypeTestInsn() = delete;
-    TypeTestInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB)
-        : NonTerminatorInsn(lhs, std::move(currentBB)) {}
-    ~TypeTestInsn() = default;
+    static void checkMapSupport(TypeTag typeTag);
 };
-
 } // namespace nballerina
 
-#endif //!__TYPETESTINSN__H__
+#endif //!__TYPEUTILS__H__
