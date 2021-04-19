@@ -262,8 +262,8 @@ Variable BIRReader::readGlobalVar() {
 
     uint32_t varDclNameCpIndex = readS4be(); // name_cp_index?
 
-    uint64_t flags  = readS8be();
-    uint8_t origin  = readU1();
+    uint64_t flags __attribute__((unused)) = readS8be();
+    uint8_t origin __attribute__((unused)) = readU1();
     // Markdown
     uint32_t docLength = readS4be();
     std::vector<char> doc(docLength);
@@ -683,7 +683,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     std::string functionName = constantPool->getStringCp(nameCpIndex);
     uint32_t workdernameCpIndex = readS4be();
     uint32_t flags = readS8be();
-    uint8_t origin = readU1();
+    uint8_t origin __attribute__((unused))= readU1();
     uint32_t typeCpIndex = readS4be();
     [[maybe_unused]] auto invocable_type = constantPool->getInvocableType(typeCpIndex);
     auto birFunction =
@@ -700,7 +700,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // Set function param here and then fill remaining values from the default Params
     std::vector<nballerina::Operand> functionParams;
     functionParams.reserve(requiredParamCount);
-    for (auto i = 0; i < requiredParamCount; i++) {
+    for (uint32_t i = 0; i < requiredParamCount; i++) {
         int32_t paramNameCpIndex = readS4be();
         functionParams.push_back(Operand(constantPool->getStringCp(paramNameCpIndex), ARG_VAR_KIND));
         uint64_t paramFlags __attribute__((unused)) = readS8be();
@@ -716,14 +716,14 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // if (!hasRestParam)
     //   birFunction->setRestParam(NULL);
 
-    uint8_t hasReceiver  = readU1();
+    uint8_t hasReceiver  __attribute__((unused)) = readU1();
     // if (!hasReceiver)
     //   birFunction->setReceiver(NULL);
     if (hasReceiver)
     {
-        uint8_t receiverKind = readU1();
-        uint32_t receiverTypeCpIndex = readS4be();
-        uint32_t receiverNameCpIndex = readS4be();
+        uint8_t receiverKind __attribute__((unused))= readU1();
+        uint32_t receiverTypeCpIndex __attribute__((unused))= readS4be();
+        uint32_t receiverNameCpIndex __attribute__((unused))= readS4be();
     }
     
 
@@ -735,7 +735,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
 
     uint32_t depended_global_var_length = readS4be();
     uint32_t depended_global_var_cp_entry __attribute__((unused));
-    for (int i = 0; i < depended_global_var_length; i++)
+    for (uint32_t i = 0; i < depended_global_var_length; i++)
     {
         depended_global_var_cp_entry = readS4be();
     }
@@ -746,7 +746,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     uint32_t instructionOffset __attribute__((unused));
     uint8_t hasParent __attribute__((unused));
     uint32_t parentScopeIndex __attribute__((unused));
-    for (int i = 0; i < scopeEntryCount; i++)
+    for (uint32_t i = 0; i < scopeEntryCount; i++)
     {
         currentScopeIndex = readS4be();
         instructionOffset = readS4be();
@@ -759,7 +759,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     }
     
 
-    uint64_t functionBodyLength = readS8be();
+    uint64_t functionBodyLength __attribute__((unused))= readS8be();
     // function body
     uint32_t argsCount __attribute__((unused)) = readS4be();
     uint8_t hasReturnVar = readU1();
@@ -792,10 +792,10 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
         birFunction->insertLocalVar(readLocalVar());
     }
 
-    for (int i = 0; i < defaultParamValue; i++) {
+    for (uint32_t i = 0; i < defaultParamValue; i++) {
         //default parameter basic blocks info
         uint32_t defaultParameterBBCount = readS4be();
-        for (int i = 0; i < defaultParameterBBCount; i++)
+        for (uint32_t i = 0; i < defaultParameterBBCount; i++)
         {
             auto basicBlock = readBasicBlock(birFunction);
         }
@@ -805,7 +805,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     //basic block info
     uint32_t BBCount = readS4be();
     std::shared_ptr<BasicBlock> previousBB;
-    for (auto i = 0; i < BBCount; i++) {
+    for (uint32_t i = 0; i < BBCount; i++) {
         auto basicBlock = readBasicBlock(birFunction);
         birFunction->insertBasicBlock(basicBlock);
         // Create links between the basic blocks
@@ -842,14 +842,12 @@ void ShapeCpInfo::read() {
     typeFlag = readerRef.readS8be();
     typeSpecialFlag = readerRef.readS4be();
 
-    int32_t shapeLengthTypeInfo = shapeLength - 13;
-
     switch (typeTag) {
     case TYPE_TAG_INVOKABLE: {
         isAnyFunction = readerRef.readU1(); 
         if(!isAnyFunction){
             paramCount = readerRef.readS4be();
-            for (unsigned int i = 0; i < paramCount; i++) {
+            for (int i = 0; i < paramCount; i++) {
                 uint32_t paramTypeCpIndex = readerRef.readS4be();
                 addParam(paramTypeCpIndex);
             }
@@ -905,7 +903,7 @@ void ShapeCpInfo::read() {
         objectFieldsCount = readerRef.readS4be();
         objectFields = std::vector<std::unique_ptr<ObjectField>>();
         objectFields.reserve(objectFieldsCount);
-        for (int i = 0; i < objectFieldsCount; i++)
+        for (uint32_t i = 0; i < objectFieldsCount; i++)
         {
             auto objectField = std::make_unique<ObjectField>();
             objectField->read();
@@ -926,7 +924,7 @@ void ShapeCpInfo::read() {
         objectAttachedFunctionsCount = readerRef.readS4be();
         objectAttachedFunctions = std::vector<std::unique_ptr<ObjectAttachedFunction>>();
         objectAttachedFunctions.reserve(objectAttachedFunctionsCount);
-        for (int i = 0; i < objectAttachedFunctionsCount; i++)
+        for (uint32_t i = 0; i < objectAttachedFunctionsCount; i++)
         {
             auto objectAttachedFunction = std::make_unique<ObjectAttachedFunction>();
             objectAttachedFunction->read();
@@ -935,7 +933,7 @@ void ShapeCpInfo::read() {
         typeInclusionsCount = readerRef.readS4be();
         typeInclusionsCpIndex = std::vector<uint32_t>();
         typeInclusionsCpIndex.reserve(typeInclusionsCount);
-        for (int i = 0; i < typeInclusionsCount; i++)
+        for (uint32_t i = 0; i < typeInclusionsCount; i++)
         {
             typeInclusionsCpIndex.push_back(readerRef.readS4be());
         }
@@ -954,14 +952,14 @@ void ShapeCpInfo::read() {
         memberTypeCount = readerRef.readS4be(); 
         memberTypeCpIndex = std::vector<uint32_t>();
         memberTypeCpIndex.reserve(memberTypeCount);
-        for (int i = 0; i < memberTypeCount; i++)
+        for (uint32_t i = 0; i < memberTypeCount; i++)
         {
             memberTypeCpIndex.push_back(readerRef.readS4be());
         }
         originalMemberTypeCount = readerRef.readS4be(); 
         originalMemberTypeCpIndex = std::vector<uint32_t>();
         originalMemberTypeCpIndex.reserve(originalMemberTypeCount);
-        for (int i = 0; i < originalMemberTypeCount; i++)
+        for (uint32_t i = 0; i < originalMemberTypeCount; i++)
         {
             originalMemberTypeCpIndex.push_back(readerRef.readS4be());
         }
@@ -972,7 +970,7 @@ void ShapeCpInfo::read() {
             enumMemberSize = readerRef.readS4be();
             enumMembers = std::vector<uint32_t>();
             enumMembers.reserve(enumMemberSize);
-            for (int i = 0; i < enumMemberSize; i++)
+            for (uint32_t i = 0; i < enumMemberSize; i++)
             {
                 enumMembers.push_back(readerRef.readS4be());
             }
@@ -983,7 +981,7 @@ void ShapeCpInfo::read() {
         tupleTypesCount = readerRef.readS4be();
         tupleTypeCpIndex = std::vector<uint32_t>();
         tupleTypeCpIndex.reserve(tupleTypesCount);
-        for (int i = 0; i < tupleTypesCount; i++)
+        for (uint32_t i = 0; i < tupleTypesCount; i++)
         {
             tupleTypeCpIndex.push_back(readerRef.readS4be());
         }
@@ -997,7 +995,7 @@ void ShapeCpInfo::read() {
         constituentTypesCount = readerRef.readS4be();
         constituentTypeCpIndex = std::vector<uint32_t>();
         constituentTypeCpIndex.reserve(constituentTypesCount);
-        for (int i = 0; i < constituentTypesCount; i++)
+        for (uint32_t i = 0; i < constituentTypesCount; i++)
         {
             constituentTypeCpIndex.push_back(readerRef.readS4be());
         }
@@ -1031,7 +1029,7 @@ void ShapeCpInfo::read() {
         recordFieldCount = readerRef.readS4be();
         recordFields = std::vector<std::unique_ptr<RecordField>>(); 
         recordFields.reserve(recordFieldCount);
-        for (int i = 0; i < recordFieldCount; i++)
+        for (uint32_t i = 0; i < recordFieldCount; i++)
         {
             auto recordField = std::make_unique<RecordField>();
             recordField->read();
@@ -1046,7 +1044,7 @@ void ShapeCpInfo::read() {
         typeInclusionsCount = readerRef.readS4be();
         typeInclusionsCpIndex = std::vector<uint32_t>();
         typeInclusionsCpIndex.reserve(typeInclusionsCount);
-        for (int i = 0; i < typeInclusionsCount; i++)
+        for (uint32_t i = 0; i < typeInclusionsCount; i++)
         {
             typeInclusionsCpIndex.push_back(readerRef.readS4be());
         }
@@ -1055,15 +1053,15 @@ void ShapeCpInfo::read() {
     }
     case TYPE_TAG_FINITE:{
         nameCpIndex = readerRef.readS4be();
-        uint64_t flags = readerRef.readS8be();
+        uint64_t flags __attribute__((unused))= readerRef.readS8be();
         uint32_t valueSpaceSize = readerRef.readS4be();
-        for (int i = 0; i < valueSpaceSize; i++)
+        for (uint32_t i = 0; i < valueSpaceSize; i++)
         {
-            uint32_t fTypeCpIndex = readerRef.readS4be();
+            uint32_t fTypeCpIndex __attribute__((unused))= readerRef.readS4be();
             uint32_t valueLength = readerRef.readS4be();
-            for (int j = 0; i < valueLength; i++)
+            for (uint32_t j = 0; j < valueLength; i++)
             {
-                int8_t tmp = readerRef.readU1();
+                int8_t tmp __attribute__((unused)) = readerRef.readU1();
             }
              
         }
@@ -1283,38 +1281,38 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
     is.read(&imports[0], importSize);
     
     constCount = readS4be();
-    for (int i = 0; i < constCount; i++)
+    for (uint32_t i = 0; i < constCount; i++)
     {
-        uint32_t constNameCpIndex = readS4be();
-        uint64_t constFlags = readS8be();
-        uint8_t constOrigin = readU1();
+        uint32_t constNameCpIndex __attribute__((unused)) = readS4be();
+        uint64_t constFlags __attribute__((unused)) = readS8be();
+        uint8_t constOrigin __attribute__((unused)) = readU1();
         std::vector<char> constPosition(20);
         is.read(&constPosition[0],20);
         uint32_t markdownLength = readS4be();
         std::vector<char> doc(markdownLength);
         is.read(&doc[0], markdownLength);
-        uint32_t constTypeCpIndex = readS4be();
+        uint32_t constTypeCpIndex __attribute__((unused)) = readS4be();
         uint64_t constValueLength = readS8be();
         std::vector<char> constValue(constValueLength);
         is.read(&constValue[0],constValueLength);
     }
     
     typeDefinitionCount = readS4be();
-    for (int i = 0; i < typeDefinitionCount; i++)
+    for (uint32_t i = 0; i < typeDefinitionCount; i++)
     {
         std::vector<char> tdPosition(20); //postion is 20 bytes long
         is.read(&tdPosition[0],20);
-        uint32_t tdNameCpIndex = readS4be();
-        uint64_t tdFlags = readS8be();
-        uint8_t tdLabel = readU1();
-        uint8_t tdOrigin = readU1();
+        uint32_t tdNameCpIndex __attribute__((unused))= readS4be();
+        uint64_t tdFlags __attribute__((unused)) = readS8be();
+        uint8_t tdLabel __attribute__((unused)) = readU1();
+        uint8_t tdOrigin __attribute__((unused)) = readU1();
         uint32_t markdownLength = readS4be();
         std::vector<char> doc(markdownLength);
         is.read(&doc[0], markdownLength);
         uint64_t annotationAttachmentsContentLength = readS8be();
         std::vector<char> annotationAttachments(annotationAttachmentsContentLength);
         is.read(&annotationAttachments[0], annotationAttachmentsContentLength);
-        uint32_t tdTypeCpIndex = readS4be();
+        uint32_t tdTypeCpIndex __attribute__((unused)) = readS4be();
     }
     
 
@@ -1326,17 +1324,17 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
     }
 
     uint32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
-    for (int i = 0; i < typeDefinitionBodiesCount; i++)
+    for (uint32_t i = 0; i < typeDefinitionBodiesCount; i++)
     {
         uint32_t attachedFunctionsCount = readS4be();
-        for (int j = 0; j < attachedFunctionsCount; j++)
+        for (uint32_t j = 0; j < attachedFunctionsCount; j++)
         {
             auto function = readFunction(birPackage);
         }
         uint32_t referencedTypesCount = readS4be();
-        for (int j = 0; j < referencedTypesCount; j++)
+        for (uint32_t j = 0; j < referencedTypesCount; j++)
         {
-            uint32_t referencedType = readS4be();
+            uint32_t referencedType __attribute__((unused)) = readS4be();
         }
          
     }
@@ -1344,7 +1342,7 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
     uint32_t functionCount = readS4be();
 
     // Push all the functions in BIRpackage except __init, __start & __stop
-    for (auto i = 0; i < functionCount; i++) {
+    for (uint32_t i = 0; i < functionCount; i++) {
         auto curFunc = readFunction(birPackage);
         if (!ignoreFunction(curFunc->getName())) {
             birPackage->insertFunction(curFunc);
@@ -1368,7 +1366,7 @@ void TypeId::read(){
     primaryTypeIdCount = readerRef.readS4be();
     primaryTypeId = std::vector<std::unique_ptr<TypeIdSet>>();
     primaryTypeId.reserve(primaryTypeIdCount);
-    for(int i=0; i< primaryTypeIdCount; i++){
+    for(uint32_t i=0; i< primaryTypeIdCount; i++){
         auto typeIdSet = std::make_unique<TypeIdSet>();
         typeIdSet->read();
         primaryTypeId.push_back(std::move(typeIdSet));
@@ -1376,7 +1374,7 @@ void TypeId::read(){
     secondaryTypeIdCount = readerRef.readS4be();
     secondaryTypeId = std::vector<std::unique_ptr<TypeIdSet>>();
     secondaryTypeId.reserve(secondaryTypeIdCount);
-    for(int i=0; i< secondaryTypeIdCount; i++){
+    for(uint32_t i=0; i< secondaryTypeIdCount; i++){
         auto typeIdSet = std::make_unique<TypeIdSet>();
         typeIdSet->read();
         secondaryTypeId.push_back(std::move(typeIdSet));
@@ -1399,8 +1397,8 @@ void ObjectField::read(){
 
 void Markdown::read(){
     uint32_t length = readerRef.readS4be();
-    uint32_t body;
-    for (int i = 0; i < length; i++)
+    uint32_t body __attribute__((unused)) ;
+    for (uint32_t i = 0; i < length; i++)
     {
         body = readerRef.readS4be();
     }
@@ -1416,7 +1414,7 @@ void TableFieldNameList::read(){
     size = readerRef.readS4be();
     fieldNameCpIndex = std::vector<uint32_t>();
     fieldNameCpIndex.reserve(size);
-    for (int i = 0; i < size; i++)
+    for (uint32_t i = 0; i < size; i++)
     {
         fieldNameCpIndex.push_back(readerRef.readS4be());
     }

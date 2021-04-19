@@ -305,7 +305,6 @@ class ShapeCpInfo : public ConstantPoolEntry {
     uint32_t errorTypeCpIndex;
     uint32_t paramValueTypeCpIndex;
     uint32_t paramIndex;
-    //todo : add getters
     uint8_t isObjectType;
     uint32_t nameCpIndex;
     uint8_t isAbstract;
@@ -345,7 +344,7 @@ class ShapeCpInfo : public ConstantPoolEntry {
     uint32_t resetFieldTypeCpIndex;
     uint32_t recordFieldCount;
     std::vector<std::unique_ptr<RecordField>> recordFields;
-    std::unique_ptr<ObjectAttachedFunction> recordInitFunction; //todo: mayhave to change this in the future
+    std::unique_ptr<ObjectAttachedFunction> recordInitFunction; 
     uint32_t pkdIdCpIndex;
 
   public:
