@@ -35,16 +35,14 @@ using namespace llvm;
 
 namespace nballerina {
 
-Function::Function(std::shared_ptr<Package> parentPackage, std::string name, std::string workerName, unsigned int flags)
+Function::Function(std::weak_ptr<Package> parentPackage, std::string name, std::string workerName, unsigned int flags)
     : parentPackage(std::move(parentPackage)), name(std::move(name)), workerName(std::move(workerName)), flags(flags),
       llvmBuilder(nullptr), llvmFunction(nullptr) {}
 
 // Search basic block based on the basic block ID
-std::shared_ptr<BasicBlock> Function::FindBasicBlock(const std::string &id) {
+std::weak_ptr<BasicBlock> Function::FindBasicBlock(const std::string &id) {
     const auto &bb = basicBlocksMap.find(id);
-    if (bb == basicBlocksMap.end()) {
-        return nullptr;
-    }
+    assert(bb != basicBlocksMap.end());
     return bb->second;
 }
 
@@ -91,7 +89,8 @@ LLVMTypeRef Function::getLLVMTypeOfReturnVal() const {
     if (isMainFunction()) {
         return LLVMVoidType();
     }
-    return parentPackage->getLLVMTypeOfType(returnVar->getType());
+    assert(!parentPackage.expired());
+    return parentPackage.lock()->getLLVMTypeOfType(returnVar->getType());
 }
 
 void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
@@ -100,8 +99,9 @@ void Function::insertLocalVar(const Variable &var) {
 }
 void Function::setReturnVar(const Variable &var) { returnVar = var; }
 void Function::insertBasicBlock(const std::shared_ptr<BasicBlock> &bb) {
-    if (!firstBlock) {
+    if (isBBMapEmpty) {
         firstBlock = bb;
+        isBBMapEmpty = false;
     }
     basicBlocksMap.insert(std::pair<std::string, std::shared_ptr<BasicBlock>>(bb->getId(), bb));
 }
@@ -119,21 +119,29 @@ const Variable &Function::getLocalVariable(const std::string &opName) const {
 
 const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
-        return parentPackage->getGlobalVariable(op.getName());
+        assert(!parentPackage.expired());
+        return parentPackage.lock()->getGlobalVariable(op.getName());
     }
     return getLocalVariable(op.getName());
 }
 
 LLVMValueRef Function::getLLVMLocalOrGlobalVar(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
-        assert(parentPackage->getGlobalLLVMVar(op.getName()));
-        return parentPackage->getGlobalLLVMVar(op.getName());
+        assert(!parentPackage.expired());
+        assert(parentPackage.lock()->getGlobalLLVMVar(op.getName()));
+        return parentPackage.lock()->getGlobalLLVMVar(op.getName());
     }
     return getLLVMLocalVar(op.getName());
 }
 
-const Package &Function::getPackageRef() const { return *parentPackage; }
-Package &Function::getPackageMutableRef() const { return *parentPackage; }
+const Package &Function::getPackageRef() const {
+    assert(!parentPackage.expired());
+    return *parentPackage.lock();
+}
+Package &Function::getPackageMutableRef() const {
+    assert(!parentPackage.expired());
+    return *parentPackage.lock();
+}
 
 size_t Function::getNumParams() const { return requiredParams.size(); }
 
@@ -151,23 +159,21 @@ void Function::patchBasicBlocks() {
         switch (terminator->getInstKind()) {
         case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
             auto *instruction = static_cast<ConditionBrInsn *>(terminator);
-            auto trueBB = FindBasicBlock(instruction->getIfThenBB().getId());
-            auto falseBB = FindBasicBlock(instruction->getElseBB().getId());
+            auto trueBB = FindBasicBlock(instruction->getIfThenBBID());
+            auto falseBB = FindBasicBlock(instruction->getElseBBID());
             instruction->setIfThenBB(trueBB);
             instruction->setElseBB(falseBB);
             instruction->setPatched();
             break;
         }
         case INSTRUCTION_KIND_GOTO: {
-            assert(terminator->getNextBB());
-            auto destBB = FindBasicBlock(terminator->getNextBB()->getId());
+            auto destBB = FindBasicBlock(terminator->getNextBBID());
             terminator->setNextBB(destBB);
             terminator->setPatched();
             break;
         }
         case INSTRUCTION_KIND_CALL: {
-            assert(terminator->getNextBB());
-            auto destBB = FindBasicBlock(terminator->getNextBB()->getId());
+            auto destBB = FindBasicBlock(terminator->getNextBBID());
             terminator->setNextBB(destBB);
             break;
         }
@@ -186,11 +192,13 @@ void Function::storeValueInSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value
 
     // package function?
     std::string_view valueTypeName = Type::typeStringMangleName(valueType);
-    parentPackage->addToStrTable(valueTypeName);
+    assert(!parentPackage.expired());
+    auto parent = parentPackage.lock();
+    parent->addToStrTable(valueTypeName);
     int tempRandNum1 = std::rand() % 1000 + 1;
     LLVMValueRef constValue = LLVMConstInt(LLVMInt64Type(), tempRandNum1, 0);
     LLVMValueRef valueTypeStoreRef = LLVMBuildStore(llvmBuilder, constValue, inherentTypeIdx);
-    parentPackage->addStringOffsetRelocationEntry(valueTypeName.data(), valueTypeStoreRef);
+    parent->addStringOffsetRelocationEntry(valueTypeName.data(), valueTypeStoreRef);
 
     // struct second element void pointer data.
     LLVMValueRef valuePtr = LLVMBuildStructGEP(llvmBuilder, smartStruct, 1, "data");
@@ -217,13 +225,15 @@ bool Function::isBoxValueSupport(TypeTag typeTag) {
 LLVMValueRef Function::generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag) {
     std::string functionName = "box_bal_";
     functionName += Type::getNameOfType(typeTag);
-    LLVMValueRef boxValFuncRef = parentPackage->getFunctionRef(functionName);
+    assert(!parentPackage.expired());
+    auto parent = parentPackage.lock();
+    LLVMValueRef boxValFuncRef = parent->getFunctionRef(functionName);
     if (boxValFuncRef != nullptr) {
         return boxValFuncRef;
     }
     LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(paramTypeRef, 0), &paramTypeRef, 1, 0);
     boxValFuncRef = LLVMAddFunction(modRef, functionName.c_str(), funcType);
-    parentPackage->addFunctionRef(functionName, boxValFuncRef);
+    parent->addFunctionRef(functionName, boxValFuncRef);
     return boxValFuncRef;
 }
 
@@ -231,12 +241,12 @@ void Function::translate(LLVMModuleRef &modRef) {
 
     LLVMBasicBlockRef BbRef = LLVMAppendBasicBlock(llvmFunction, "entry");
     LLVMPositionBuilderAtEnd(llvmBuilder, BbRef);
-
+    assert(!parentPackage.expired());
     // iterate through all local vars.
     int paramIndex = 0;
     for (auto const &it : localVars) {
         const auto &locVar = it.second;
-        LLVMTypeRef varType = parentPackage->getLLVMTypeOfType(locVar.getType());
+        LLVMTypeRef varType = parentPackage.lock()->getLLVMTypeOfType(locVar.getType());
         LLVMValueRef localVarRef = LLVMBuildAlloca(llvmBuilder, varType, (locVar.getName()).c_str());
         localVarRefs.insert({locVar.getName(), localVarRef});
         if (isParamter(locVar)) {
@@ -257,8 +267,10 @@ void Function::translate(LLVMModuleRef &modRef) {
     }
 
     // creating branch to next basic block.
-    if (firstBlock && (firstBlock->getLLVMBBRef() != nullptr)) {
-        LLVMBuildBr(llvmBuilder, firstBlock->getLLVMBBRef());
+    if (auto firstBB = firstBlock.lock()) {
+        if (firstBB->getLLVMBBRef() != nullptr) {
+            LLVMBuildBr(llvmBuilder, firstBB->getLLVMBBRef());
+        }
     }
 
     // Now translate the basic blocks (essentially add the instructions in them)
@@ -271,13 +283,15 @@ void Function::translate(LLVMModuleRef &modRef) {
 
 LLVMValueRef Function::generateAbortInsn(LLVMModuleRef &modRef) {
     const char *abortFuncName = "abort";
-    LLVMValueRef abortFuncRef = parentPackage->getFunctionRef(abortFuncName);
+    assert(!parentPackage.expired());
+    auto parent = parentPackage.lock();
+    LLVMValueRef abortFuncRef = parent->getFunctionRef(abortFuncName);
     if (abortFuncRef != nullptr) {
         return abortFuncRef;
     }
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), nullptr, 0, 0);
     abortFuncRef = LLVMAddFunction(modRef, abortFuncName, funcType);
-    parentPackage->addFunctionRef(abortFuncName, abortFuncRef);
+    parent->addFunctionRef(abortFuncName, abortFuncRef);
     return abortFuncRef;
 }
 

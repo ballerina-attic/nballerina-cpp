@@ -83,7 +83,7 @@ LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
     case TYPE_TAG_ANY:
     case TYPE_TAG_UNION:
     case TYPE_TAG_ANYDATA:
-        return wrap(boxType.get());
+        return wrap(boxType);
     default:
         return LLVMInt64Type();
     }
@@ -116,7 +116,7 @@ void Package::translate(LLVMModuleRef &modRef) {
     LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
     LLVMTypeRef structElementTypes[] = {LLVMInt64Type(), LLVMPointerType(LLVMInt8Type(), 0)};
     LLVMStructSetBody(structGen, structElementTypes, 2, 0);
-    boxType = std::unique_ptr<llvm::StructType>(llvm::unwrap<llvm::StructType>(structGen));
+    boxType = llvm::unwrap<llvm::StructType>(structGen);
 
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {

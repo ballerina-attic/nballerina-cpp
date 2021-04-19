@@ -21,16 +21,20 @@
 
 namespace nballerina {
 
-TerminatorInsn::TerminatorInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                               std::shared_ptr<BasicBlock> then, bool patchRequired)
-    : AbstractInstruction(lhs, std::move(currentBB)), thenBB(std::move(then)), patchRequired(patchRequired),
+TerminatorInsn::TerminatorInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string thenBBID,
+                               bool patchRequired)
+    : AbstractInstruction(lhs, currentBB), thenBBID(std::move(thenBBID)), patchRequired(patchRequired),
       kind(INSTRUCTION_NOT_AN_INSTRUCTION) {}
 
-BasicBlock *TerminatorInsn::getNextBB() const { return thenBB.get(); }
+const std::string &TerminatorInsn::getNextBBID() const { return thenBBID; }
+const BasicBlock &TerminatorInsn::getNextBB() const {
+    assert(!thenBB.expired());
+    return *thenBB.lock();
+}
 bool TerminatorInsn::isPatched() const { return patchRequired; }
 InstructionKind TerminatorInsn::getInstKind() const { return kind; }
 void TerminatorInsn::setPatched() { patchRequired = false; }
-void TerminatorInsn::setNextBB(std::shared_ptr<BasicBlock> bb) { thenBB = std::move(bb); }
+void TerminatorInsn::setNextBB(std::weak_ptr<BasicBlock> bb) { thenBB = std::move(bb); }
 
 void TerminatorInsn::translate(LLVMModuleRef &) {}
 

@@ -105,7 +105,6 @@ class Type {
     virtual ~Type() = default;
 
     TypeTag getTypeTag() const;
-    const std::string &getName() const;
     static std::string getNameOfType(TypeTag typeTag);
     TypeTag getMemberTypeTag() const;
     static std::string_view typeStringMangleName(const Type &type);

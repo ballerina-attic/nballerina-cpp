@@ -44,7 +44,7 @@ class Function : public Debuggable, public Translatable {
     inline static const std::string MAIN_FUNCTION_NAME = "main";
     static constexpr unsigned int PUBLIC = 1;
     static constexpr unsigned int NATIVE = PUBLIC << 1;
-    std::shared_ptr<Package> parentPackage;
+    std::weak_ptr<Package> parentPackage;
     std::string name;
     std::string workerName;
     unsigned int flags;
@@ -52,13 +52,14 @@ class Function : public Debuggable, public Translatable {
     std::optional<RestParam> restParam;
     LLVMBuilderRef llvmBuilder;
     LLVMValueRef llvmFunction;
-    std::shared_ptr<BasicBlock> firstBlock;
+    bool isBBMapEmpty = true;
+    std::weak_ptr<BasicBlock> firstBlock;
     std::map<std::string, Variable> localVars;
     std::map<std::string, std::shared_ptr<BasicBlock>> basicBlocksMap;
     std::map<std::string, LLVMValueRef> branchComparisonList;
     std::map<std::string, LLVMValueRef> localVarRefs;
     std::vector<FunctionParam> requiredParams;
-    std::shared_ptr<BasicBlock> FindBasicBlock(const std::string &id);
+    std::weak_ptr<BasicBlock> FindBasicBlock(const std::string &id);
     LLVMValueRef generateAbortInsn(LLVMModuleRef &modRef);
     void splitBBIfPossible(LLVMModuleRef &modRef);
     static bool isBoxValueSupport(TypeTag typeTag);
@@ -66,7 +67,7 @@ class Function : public Debuggable, public Translatable {
 
   public:
     Function() = delete;
-    Function(std::shared_ptr<Package> parentPackage, std::string name, std::string workerName, unsigned int flags);
+    Function(std::weak_ptr<Package> parentPackage, std::string name, std::string workerName, unsigned int flags);
     Function(const Function &) = delete;
     Function(Function &&obj) noexcept = delete;
     Function &operator=(const Function &obj) = delete;

@@ -29,7 +29,6 @@ Type::Type(TypeTag type, std::string namep, ArrayType arrayType)
 Type::Type(TypeTag type, std::string namep, MapType mapType) : type(type), name(std::move(namep)), typeInfo(mapType) {}
 
 TypeTag Type::getTypeTag() const { return type; }
-const std::string &Type::getName() const { return name; }
 
 TypeTag Type::getMemberTypeTag() const {
     if (type == TYPE_TAG_ARRAY) {

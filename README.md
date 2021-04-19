@@ -159,7 +159,7 @@ The valid additional flags are listed below:
 * `-DCMAKE_CXX_COMPILER=<compiler name>` : Override default compiler e.g. `-DCMAKE_CXX_COMPILER=clang++-11`, `-DCMAKE_CXX_COMPILER=g++`
 * `-DENABLE_COVERAGE=ON` : Enable code coverage
   * Valid only for debug builds
-  * Launch code coverage test via `cmake --build ./build/ -t nballerinacc_coverage`
+  * Launch code coverage test via `cd build; cmake --build . -t nballerinacc_coverage`
   * `-UENABLE_COVERAGE` To unset it
 * `-DSKIP_BIR_GEN=ON` : Skip the execution of `ballerina build --dump-file` for check target, if dump files already exists. Set this to speed up LIT test execution.
   * `-USKIP_BIR_GEN` To unset it

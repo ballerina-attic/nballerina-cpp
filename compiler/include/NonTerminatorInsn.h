@@ -31,7 +31,7 @@ class Operand;
 class NonTerminatorInsn : public AbstractInstruction, public Translatable {
   public:
     NonTerminatorInsn() = delete;
-    NonTerminatorInsn(const Operand &lOp, std::shared_ptr<BasicBlock> currentBB)
+    NonTerminatorInsn(const Operand &lOp, std::weak_ptr<BasicBlock> currentBB)
         : AbstractInstruction(lOp, std::move(currentBB)) {}
     virtual ~NonTerminatorInsn() = default;
 

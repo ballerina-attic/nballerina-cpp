@@ -25,7 +25,7 @@
 
 namespace nballerina {
 
-UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs)
+UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhs)
     : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhs) {}
 
 void UnaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }

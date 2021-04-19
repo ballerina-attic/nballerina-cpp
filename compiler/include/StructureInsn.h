@@ -38,8 +38,8 @@ class StructureInsn : public NonTerminatorInsn {
 
   public:
     StructureInsn() = delete;
-    StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB);
-    StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
+    StructureInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB);
+    StructureInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB,
                   std::vector<MapConstruct> initValues);
     ~StructureInsn() = default;
 

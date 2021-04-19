@@ -35,15 +35,15 @@ class NonTerminatorInsn;
 class BasicBlock : public Debuggable, public Translatable {
   private:
     std::string id;
-    std::shared_ptr<Function> parentFunction;
+    std::weak_ptr<Function> parentFunction;
     std::unique_ptr<TerminatorInsn> terminator;
-    std::shared_ptr<BasicBlock> nextBB;
+    std::weak_ptr<BasicBlock> nextBB;
     std::vector<std::unique_ptr<NonTerminatorInsn>> instructions;
     LLVMBasicBlockRef bbRefObj;
 
   public:
     BasicBlock() = delete;
-    BasicBlock(std::string id, std::shared_ptr<Function> parentFunc);
+    BasicBlock(std::string id, std::weak_ptr<Function> parentFunc);
     BasicBlock(const BasicBlock &) = delete;
     BasicBlock(BasicBlock &&obj) noexcept = delete;
     BasicBlock &operator=(const BasicBlock &obj) = delete;
@@ -52,11 +52,11 @@ class BasicBlock : public Debuggable, public Translatable {
 
     const std::string &getId() const;
     TerminatorInsn *getTerminatorInsnPtr() const;
-    std::shared_ptr<Function> getFunctionSharedObj() const;
+    Function &getFunctionMutableRef() const;
     const Function &getParentFunctionRef() const;
     LLVMBasicBlockRef getLLVMBBRef() const;
 
-    void setNextBB(std::shared_ptr<BasicBlock> bb);
+    void setNextBB(std::weak_ptr<BasicBlock> bb);
     void setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn);
     void addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn);
     void setLLVMBBRef(LLVMBasicBlockRef bbRef);

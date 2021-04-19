@@ -31,11 +31,11 @@ using namespace llvm;
 
 namespace nballerina {
 
-StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
+StructureInsn::StructureInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB,
                              std::vector<MapConstruct> initValues)
     : NonTerminatorInsn(lhs, std::move(currentBB)), initValues(std::move(initValues)) {}
 
-StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
+StructureInsn::StructureInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB)
     : NonTerminatorInsn(lhs, std::move(currentBB)) {}
 
 void StructureInsn::translate(LLVMModuleRef &modRef) {
