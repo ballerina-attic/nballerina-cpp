@@ -281,7 +281,7 @@ void Function::splitBBIfPossible(llvm::Module &module, llvm::IRBuilder<> &builde
             // branch intruction to the split BB is creating in BB2 (last BB)
             // basicblock, removing from BB2 and insert this branch instruction
             // into BB0(split original BB).
-            lastInsn.removeFromParent();
+            lastInsn.eraseFromParent();
             // Creating abortBB (elseBB).
             llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "abortBB");
 
