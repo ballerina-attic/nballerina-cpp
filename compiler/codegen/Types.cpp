@@ -29,7 +29,6 @@ Type::Type(TypeTag type, std::string namep, ArrayType arrayType)
 Type::Type(TypeTag type, std::string namep, MapType mapType) : type(type), name(std::move(namep)), typeInfo(mapType) {}
 
 TypeTag Type::getTypeTag() const { return type; }
-const std::string &Type::getName() const { return name; }
 
 TypeTag Type::getMemberTypeTag() const {
     if (type == TYPE_TAG_ARRAY) {
@@ -55,6 +54,8 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "any";
     case TYPE_TAG_UNION:
         return "union";
+    case TYPE_TAG_ANYDATA:
+        return "anydata";
     default:
         assert(false);
         return "";
@@ -96,6 +97,17 @@ std::string_view Type::typeStringMangleName(const Type &type) {
     }
     default:
         return "";
+    }
+}
+
+bool Type::isSmartStructType(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_ANY:
+    case TYPE_TAG_UNION:
+    case TYPE_TAG_ANYDATA:
+        return true;
+    default:
+        return false;
     }
 }
 

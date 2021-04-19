@@ -26,7 +26,7 @@
 using namespace std;
 
 namespace nballerina {
-BinaryOpInsn::BinaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp1,
+BinaryOpInsn::BinaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp1,
                            const Operand &rhsOp2)
     : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp1(rhsOp1), rhsOp2(rhsOp2), kind{} {}
 

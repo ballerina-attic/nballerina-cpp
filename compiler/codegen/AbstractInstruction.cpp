@@ -22,15 +22,29 @@
 
 namespace nballerina {
 
-AbstractInstruction::AbstractInstruction(const Operand &lOp, std::shared_ptr<BasicBlock> parentBB)
+AbstractInstruction::AbstractInstruction(const Operand &lOp, std::weak_ptr<BasicBlock> parentBB)
     : lhsOp(lOp), parentBB(std::move(parentBB)) {}
 
 const Operand &AbstractInstruction::getLhsOperand() const { return lhsOp; }
-const Function &AbstractInstruction::getFunctionRef() const { return parentBB->getParentFunctionRef(); }
-const Package &AbstractInstruction::getPackageRef() const { return parentBB->getParentFunctionRef().getPackageRef(); }
-Function &AbstractInstruction::getFunctionMutableRef() const { return *parentBB->getFunctionSharedObj(); }
+
+const Function &AbstractInstruction::getFunctionRef() const {
+    assert(!parentBB.expired());
+    return parentBB.lock()->getParentFunctionRef();
+}
+
+const Package &AbstractInstruction::getPackageRef() const {
+    assert(!parentBB.expired());
+    return parentBB.lock()->getParentFunctionRef().getPackageRef();
+}
+
+Function &AbstractInstruction::getFunctionMutableRef() const {
+    assert(!parentBB.expired());
+    return parentBB.lock()->getFunctionMutableRef();
+}
+
 Package &AbstractInstruction::getPackageMutableRef() const {
-    return parentBB->getFunctionSharedObj()->getPackageMutableRef();
+    assert(!parentBB.expired());
+    return parentBB.lock()->getFunctionMutableRef().getPackageMutableRef();
 }
 
 } // namespace nballerina

@@ -29,8 +29,8 @@ using namespace llvm;
 
 namespace nballerina {
 
-ReturnInsn::ReturnInsn(std::shared_ptr<BasicBlock> currentBB)
-    : TerminatorInsn(Operand("", NOT_A_KIND), std::move(currentBB), nullptr) {}
+ReturnInsn::ReturnInsn(std::weak_ptr<BasicBlock> currentBB)
+    : TerminatorInsn(Operand("", NOT_A_KIND), std::move(currentBB), "") {}
 
 void ReturnInsn::translate(LLVMModuleRef &) {
 

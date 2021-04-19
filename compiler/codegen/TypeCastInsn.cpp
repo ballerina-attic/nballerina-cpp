@@ -29,7 +29,7 @@ using namespace llvm;
 
 namespace nballerina {
 
-TypeCastInsn::TypeCastInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp)
+TypeCastInsn::TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhsOp) {}
 
 void TypeCastInsn::translate(LLVMModuleRef &modRef) {
@@ -48,8 +48,8 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
 
     const char *inherentTypeName = "inherentTypeName";
 
-    if (rhsTypeTag == TYPE_TAG_ANY || rhsTypeTag == TYPE_TAG_UNION) {
-        if (lhsTypeTag == TYPE_TAG_UNION || lhsTypeTag == TYPE_TAG_ANY) {
+    if (Type::isSmartStructType(rhsTypeTag)) {
+        if (Type::isSmartStructType(lhsTypeTag)) {
             LLVMValueRef rhsVarOpRef = funcObj.createTempVariable(rhsOp);
             LLVMBuildStore(builder, rhsVarOpRef, lhsOpRef);
             return;
@@ -69,7 +69,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
         getPackageMutableRef().addToStrTable(lhsTypeName);
         int tempRandNum = std::rand() % 1000 + 1;
-        LLVMValueRef constValue = LLVMConstInt(LLVMInt32Type(), tempRandNum, 0);
+        LLVMValueRef constValue = LLVMConstInt(LLVMInt64Type(), tempRandNum, 0);
         LLVMValueRef lhsGep = LLVMBuildInBoundsGEP(builder, strTblLoad, &constValue, 1, "");
         // call is_same_type rust function to check LHS and RHS type are same or not.
         LLVMValueRef addedIsSameTypeFunc = getIsSameTypeDeclaration(modRef, lhsGep, gepOfStr);
@@ -82,8 +82,7 @@ void TypeCastInsn::translate(LLVMModuleRef &modRef) {
         LLVMValueRef castResult = LLVMBuildBitCast(builder, dataLoad, lhsTypeRef, getLhsOperand().getName().c_str());
         LLVMValueRef castLoad = LLVMBuildLoad(builder, castResult, "");
         LLVMBuildStore(builder, castLoad, lhsOpRef);
-
-    } else if (lhsTypeTag == TYPE_TAG_ANY || lhsTypeTag == TYPE_TAG_UNION) {
+    } else if (Type::isSmartStructType(lhsTypeTag)) {
         getFunctionMutableRef().storeValueInSmartStruct(modRef, rhsOpRef, rhsType, lhsOpRef);
     } else {
         LLVMBuildBitCast(builder, rhsOpRef, lhsTypeRef, "data_cast");
