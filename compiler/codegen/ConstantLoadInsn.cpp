@@ -34,8 +34,8 @@ ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB)
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal)
     : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_INT), value(intVal) {}
 
-ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, float floatVal)
-    : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_FLOAT), value(floatVal) {}
+ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, double doubleVal)
+    : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_FLOAT), value(doubleVal) {}
 
 ConstantLoadInsn::ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal)
     : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
@@ -56,7 +56,7 @@ void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builde
         break;
     }
     case TYPE_TAG_FLOAT: {
-        constRef = llvm::ConstantFP::get(module.getContext(), llvm::APFloat(std::get<float>(value)));
+        constRef = llvm::ConstantFP::get(module.getContext(), llvm::APFloat(std::get<double>(value)));
         break;
     }
     case TYPE_TAG_BOOLEAN: {

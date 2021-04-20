@@ -29,12 +29,12 @@ namespace nballerina {
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
-    std::variant<int64_t, float, bool, std::string> value;
+    std::variant<int64_t, double, bool, std::string> value;
 
   public:
     ConstantLoadInsn() = delete;
     ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal);
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, float floatVal);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, double doubleVal);
     ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal);
     ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str);
     ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB);

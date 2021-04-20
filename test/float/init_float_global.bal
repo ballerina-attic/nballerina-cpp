@@ -2,14 +2,19 @@
 
 public function print_string(string val) = external;
 
-public function printf32(float val) = external;
+public function printf64(float val) = external;
 
-float val = 7.7;
+float a = 7.7;
+float b = -7.7;
 
 public function main() {
-    val = 7.7;    // TODO remove ressaignment when global init is fixed
+    a = 7.7;    // TODO remove ressaignment when global init is fixed
+    b = -7.7;
     print_string("RESULT=");
-    printf32(val);
+    printf64(a);
+    print_string("RESULT=");
+    printf64(b);
 }
 
 // CHECK: RESULT=7.7
+// CHECK: RESULT=-7.7

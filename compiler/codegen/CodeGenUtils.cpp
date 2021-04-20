@@ -41,7 +41,7 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_INT:
         return llvm::Type::getInt64Ty(context);
     case TYPE_TAG_FLOAT:
-        return llvm::Type::getFloatTy(context);
+        return llvm::Type::getDoubleTy(context);
     case TYPE_TAG_BOOLEAN:
         return llvm::Type::getInt8Ty(context);
     case TYPE_TAG_CHAR_STRING:
