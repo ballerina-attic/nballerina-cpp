@@ -20,10 +20,12 @@
 #define __TYPECASTINSN__H__
 
 #include "NonTerminatorInsn.h"
+#include "Types.h"
 
 namespace nballerina {
 
 // Forward Declare
+class Type;
 class Operand;
 
 class TypeCastInsn : public NonTerminatorInsn {
@@ -34,7 +36,7 @@ class TypeCastInsn : public NonTerminatorInsn {
 
   public:
     TypeCastInsn() = delete;
-    TypeCastInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhsOp);
+    TypeCastInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp);
     ~TypeCastInsn() = default;
     void translate(LLVMModuleRef &modRef) final;
 };

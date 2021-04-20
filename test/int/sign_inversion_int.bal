@@ -2,13 +2,18 @@
 
 public function print_string(string val) = external;
 
-public function print32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     int a = 10;
     int g = -a;
     print_string("RESULT=");
-    print32(g);
+    print_integer(g);
+    int b = -23;
+    int h = -b;
+    print_string("RESULT=");
+    print_integer(h);
 }
 
 // CHECK: RESULT=-10
+// CHECK: RESULT=23

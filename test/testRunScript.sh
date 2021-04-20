@@ -21,8 +21,6 @@ else
   fi
 fi
 
-
-
 #Ignoring Ballerina compiler errors due to the use of undefined external functions for print routines
 #if [ -s ./err.log ]
 #then
@@ -39,7 +37,7 @@ then
   exit 1
 fi
 
-clang -O0 -o $filename.out $filename-bir-dump.ll -L../../../runtime/target/release/ -lballerina_rt 2>clang_err.log
+clang-11 --target=x86_64-unknown-linux-gnu -c -O3 -flto=thin -Wno-override-module -o $filename.o $filename-bir-dump.ll 2>clang_err.log
 
 if [ -s ./clang_err.log ]
 then
@@ -48,8 +46,14 @@ then
   exit 1
 fi
 
-export LD_LIBRARY_PATH=../../../runtime/target/release
+clang-11 -flto=thin -fuse-ld=lld-11 -L../../runtime/release/ -lballerina_rt -lpthread -ldl -o $filename.out -O3 $filename.o 2>lld_err.log
+if [ -s ./lld_err.log ]
+then
+  echo "Linker error/warning. Error msg: "
+  cat ./lld_err.log
+  exit 1
+fi
 
 ./$filename.out
 
-rm $filename-bir-dump.ll $filename.out
+rm $filename-bir-dump.ll $filename.out $filename.o

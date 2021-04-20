@@ -2,7 +2,7 @@
 
 public function print_string(string val) = external;
 
-public function printu32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     int[] i = [3];
@@ -14,12 +14,12 @@ public function main() {
     int? loadVal = marks2["jon"];
     int johnsMarks = <int>loadVal;
     print_string("RESULT=");
-    printu32(johnsMarks);
+    print_integer(johnsMarks);
 
     int? loadVal2 = marks2["sam"];
     int samMarks = <int>loadVal2;
     print_string("RESULT=");
-    printu32(samMarks);
+    print_integer(samMarks);
 }
 // CHECK: RESULT=60
 // CHECK: RESULT=50

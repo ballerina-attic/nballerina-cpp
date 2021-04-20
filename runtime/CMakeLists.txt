@@ -1,23 +1,25 @@
-# Add Rust Runtime
-include(ExternalProject)
-set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/runtime)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CARGO_CMD cargo build --verbose)
+    set(TARGET_DIR "release")
+else ()
+    set(CARGO_CMD cargo build --release --verbose)
+    set(TARGET_DIR "release")
+endif ()
+
+# Flags to enable C++/Rust LTO
+set(RUST_FLAGS "-Clinker-plugin-lto" "-Clinker=clang-11" "-Clink-arg=-fuse-ld=lld-11")
 
 # Add cargo build instructions for Rust based runtime
-ExternalProject_Add(
-    BallerinaRT
-    DOWNLOAD_COMMAND ""
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND cargo build --release
-    BINARY_DIR "${CMAKE_SOURCE_DIR}/runtime"
-    INSTALL_COMMAND ""
-    LOG_BUILD ON
-    BUILD_ALWAYS TRUE)
+add_custom_target(libballerina_rt
+  COMMENT "Generate static runtime lib"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR} RUSTFLAGS="${RUST_FLAGS}" ${CARGO_CMD})
 
 # Add seperate (optional) target to generate header file for runtime lib using cbindgen
 add_custom_target(runtime_header
   COMMENT "Generate C header file for runtime lib"
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/runtime"
   COMMAND cbindgen --config cbindgen.toml --crate BallerinaRT --output include/ballerina_rt.h
-  DEPENDS BallerinaRT)
+  DEPENDS libballerina_rt)
 
-add_dependencies(runtime_header BallerinaRT)
+add_dependencies(runtime_header libballerina_rt)

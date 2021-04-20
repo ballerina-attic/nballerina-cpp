@@ -30,7 +30,7 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp)
+ArrayInsn::ArrayInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &sizeOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), sizeOp(sizeOp) {}
 
 LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
@@ -42,7 +42,7 @@ LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes = LLVMInt32Type();
+    LLVMTypeRef paramTypes = LLVMInt64Type();
     LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), &paramTypes, 1, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -61,19 +61,24 @@ void ArrayInsn::translate(LLVMModuleRef &modRef) {
 }
 
 // Array Load Instruction
-ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
+ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
                              const Operand &ROp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(ROp) {}
 
 LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
     const auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(lhsOpTypeTag);
     const auto &lhsType = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand()).getType();
-    LLVMTypeRef funcRetType = getPackageRef().getLLVMTypeOfType(lhsType);
+    LLVMTypeRef funcRetType;
+    if (Type::isSmartStructType(lhsType.getTypeTag())) {
+        funcRetType = LLVMPointerType(getPackageRef().getLLVMTypeOfType(lhsType), 0);
+    } else {
+        funcRetType = getPackageRef().getLLVMTypeOfType(lhsType);
+    }
     LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type()};
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type()};
     LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 2, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -90,11 +95,16 @@ void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
     LLVMValueRef sizeOpValueRef[] = {LLVMBuildLoad(builder, rhsOpRef, ""), funcObj.createTempVariable(keyOp)};
     LLVMValueRef valueInArrayPointer = LLVMBuildCall(builder, ArrayLoadFunc, sizeOpValueRef, 2, "");
-    LLVMBuildStore(builder, valueInArrayPointer, lhsOpRef);
+    if (!Type::isSmartStructType(lhsOpTypeTag)) {
+        LLVMBuildStore(builder, valueInArrayPointer, lhsOpRef);
+        return;
+    }
+    LLVMValueRef smtPtrArrElement = LLVMBuildLoad(builder, valueInArrayPointer, "");
+    LLVMBuildStore(builder, smtPtrArrElement, lhsOpRef);
 }
 
 // Array Store Instruction
-ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
+ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &KOp,
                                const Operand &rOp)
     : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
 
@@ -104,8 +114,13 @@ LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, Typ
     if (addedFuncRef != nullptr) {
         return addedFuncRef;
     }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt32Type(),
-                                getPackageRef().getLLVMTypeOfType(rhsOpTypeTag)};
+    LLVMTypeRef memType;
+    if (Type::isSmartStructType(rhsOpTypeTag)) {
+        memType = LLVMPointerType(getPackageRef().getLLVMTypeOfType(rhsOpTypeTag), 0);
+    } else {
+        memType = getPackageRef().getLLVMTypeOfType(rhsOpTypeTag);
+    }
+    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0),  LLVMInt64Type(), memType};
     LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
     addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
     getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
@@ -119,8 +134,13 @@ void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
     LLVMValueRef ArrayLoadFunc = getArrayStoreDeclaration(modRef, rhsOpTypeTag);
 
     LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(builder, lhsOpRef, ""), funcObj.createTempVariable(keyOp),
-                                    funcObj.createTempVariable(rhsOp)};
+    LLVMValueRef memVal;
+    if (Type::isSmartStructType(rhsOpTypeTag)) {
+        memVal = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
+    } else {
+        memVal = funcObj.createTempVariable(rhsOp);
+    }
+    LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(builder, lhsOpRef, ""), funcObj.createTempVariable(keyOp), memVal};
     LLVMBuildCall(builder, ArrayLoadFunc, argOpValueRef, 3, "");
 }
 

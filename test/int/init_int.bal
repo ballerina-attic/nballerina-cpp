@@ -2,15 +2,15 @@
 
 public function print_string(string val) = external;
 
-public function print32(int val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
     int a = 58;
     print_string("RESULT=");
-    print32(a);
+    print_integer(a);
     int b = -42;
     print_string("RESULT=");
-    print32(b);
+    print_integer(b);
 }
 // CHECK: RESULT=58
 // CHECK: RESULT=-42

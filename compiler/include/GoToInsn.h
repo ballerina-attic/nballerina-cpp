@@ -26,7 +26,7 @@ namespace nballerina {
 class GoToInsn : public TerminatorInsn {
   public:
     GoToInsn() = delete;
-    GoToInsn(std::shared_ptr<BasicBlock> nextBB, std::shared_ptr<BasicBlock> currentBB);
+    GoToInsn(std::weak_ptr<BasicBlock> currentBB, std::string thenBBID);
     ~GoToInsn() = default;
 
     void translate(LLVMModuleRef &modRef) final;
