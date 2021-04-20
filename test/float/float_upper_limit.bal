@@ -4,15 +4,11 @@ public function print_string(string val) = external;
 
 public function printf64(float val) = external;
 
-public function bar(float a, float b) returns float
-{
-    return b;
-}
-
 public function main() {
-    float c = bar(7.5, 10.5);
     print_string("RESULT=");
-    printf64(c);
+    //Passing value greater than upper limit of float i.e. 3.402823466 E + 39
+    float f = 3.402823465999999976608952504680408952584;
+    printf64(f);
 }
 
-// CHECK: RESULT=10.5
+// CHECK: RESULT=3.402823466
