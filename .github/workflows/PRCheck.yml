@@ -41,7 +41,7 @@ jobs:
         run: |
           curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-alpha8-20210419-135100-df7a4e3f/jballerina-tools-2.0.0-alpha8-20210419-135100-df7a4e3f.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-alpha8-20210419-135100-df7a4e3f.zip
           unzip -q jballerina-tools-2.0.0-alpha8-20210419-135100-df7a4e3f.zip
-          cd jballerina-tools-2.0.0-alpha8-20210419-135100-df7a4e3f.zip/bin
+          cd jballerina-tools-2.0.0-alpha8-20210419-135100-df7a4e3f/bin
           echo $(pwd) >> $GITHUB_PATH
         working-directory: ./build
 
