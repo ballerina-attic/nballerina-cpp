@@ -39,7 +39,7 @@ jobs:
       
       - name: Setup Ballerina pack
         run: |
-          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-alpha4/jballerina-tools-2.0.0-alpha4.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-alpha4.zip
+          curl -L  https://maven.pkg.github.com/ballerina-platform/ballerina-lang/org/ballerinalang/jballerina-tools/2.0.0-alpha8-20210419-135100-df7a4e3f/jballerina-tools-2.0.0-alpha8-20210419-135100-df7a4e3f.zip -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" -o jballerina-tools-2.0.0-alpha4.zip
           unzip -q jballerina-tools-2.0.0-alpha4.zip
           cd jballerina-tools-2.0.0-alpha4/bin
           echo $(pwd) >> $GITHUB_PATH
