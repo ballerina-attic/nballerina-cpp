@@ -13,7 +13,7 @@ jobs:
       - name: Install utils
         run: | 
           sudo apt update
-          sudo apt install -y llvm-11-dev cargo python3-pip
+          sudo apt install -y build-essential llvm-11-dev lld-11 cmake cargo python3-pip
           cargo install cbindgen
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           pip3 install lit filecheck
