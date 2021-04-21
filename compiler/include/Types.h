@@ -105,10 +105,11 @@ class Type {
     virtual ~Type() = default;
 
     TypeTag getTypeTag() const;
-    static std::string getNameOfType(TypeTag typeTag);
     TypeTag getMemberTypeTag() const;
+    static std::string getNameOfType(TypeTag typeTag);
     static std::string_view typeStringMangleName(const Type &type);
     static bool isSmartStructType(TypeTag typeTag);
+    static bool isBoxValueSupport(TypeTag typeTag);
 };
 
 } // namespace nballerina

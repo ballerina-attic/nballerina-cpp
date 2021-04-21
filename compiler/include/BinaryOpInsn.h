@@ -35,12 +35,11 @@ class BinaryOpInsn : public NonTerminatorInsn {
 
   public:
     BinaryOpInsn() = delete;
-    BinaryOpInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp1,
-                 const Operand &rhsOp2);
+    BinaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp1, const Operand &rhsOp2);
     ~BinaryOpInsn() = default;
 
     void setInstKind(InstructionKind kind);
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina
