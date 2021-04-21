@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     }
     // if output file name is empty from command line options.
     if (outFileName == "") {
-        outFileName=remove_extension(inFileName);
+        outFileName=removeExtension(inFileName);
         outFileName = outFileName + ".ll";
     }
 
