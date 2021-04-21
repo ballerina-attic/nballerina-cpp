@@ -31,7 +31,7 @@ using namespace nballerina;
 
 BIRReader BIRReader::reader;
 
-std::string remove_extension(const std::string& path) {
+std::string removeExtension(const std::string& path) {
 
     size_t pos = path.find_last_of("\\/.");
     if (pos != std::string::npos && path[pos] == '.'){
