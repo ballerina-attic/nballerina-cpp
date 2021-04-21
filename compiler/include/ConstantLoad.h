@@ -21,30 +21,26 @@
 
 #include "NonTerminatorInsn.h"
 #include "Types.h"
-#include "llvm/IR/GlobalVariable.h"
 #include <string>
 #include <variant>
 
 namespace nballerina {
 
-// TODO Convert to template class
 class ConstantLoadInsn : public NonTerminatorInsn {
   private:
     TypeTag typeTag;
-    LLVMValueRef getNewString(LLVMModuleRef &modRef);
     std::variant<int64_t, double, bool, std::string> value;
-    std::unique_ptr<llvm::GlobalVariable> globalStringValue;
 
   public:
     ConstantLoadInsn() = delete;
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, int64_t intVal);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, double doubleVal);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, bool boolVal);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, std::string str);
-    ConstantLoadInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, double doubleVal);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB);
     ~ConstantLoadInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

@@ -21,20 +21,18 @@
 #include "Operand.h"
 #include "Package.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
 
 namespace nballerina {
 
-MoveInsn::MoveInsn(const Operand &lhs, std::weak_ptr<BasicBlock> currentBB, const Operand &rhsOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhsOp) {}
+MoveInsn::MoveInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
+    : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
 
-void MoveInsn::translate(LLVMModuleRef &) {
+void MoveInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcRef = getFunctionRef();
-    LLVMBuilderRef builder = funcRef.getLLVMBuilder();
-    LLVMValueRef lhsRef = funcRef.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef rhsVarOpRef = funcRef.createTempVariable(rhsOp);
-    LLVMBuildStore(builder, rhsVarOpRef, lhsRef);
+    auto *lhsRef = funcRef.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *rhsVarOpRef = funcRef.createTempVariable(rhsOp, module, builder);
+    builder.CreateStore(rhsVarOpRef, lhsRef);
 }
 
 } // namespace nballerina

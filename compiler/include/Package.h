@@ -22,8 +22,6 @@
 #include "Function.h"
 #include "Variable.h"
 #include "interfaces/Translatable.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/GlobalVariable.h"
 #include "llvm/MC/StringTableBuilder.h"
 #include <map>
 #include <string>
@@ -43,15 +41,12 @@ class Package : public Translatable {
     std::string version;
     std::string sourceFileName;
     std::map<std::string, Variable> globalVars;
-    std::map<std::string, LLVMValueRef> globalVarRefs;
     std::map<std::string, std::shared_ptr<Function>> functionLookUp;
-    llvm::StructType *boxType;
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
-    std::map<std::string, std::vector<LLVMValueRef>> structElementStoreInst;
-    std::map<std::string, LLVMValueRef> functionRefs;
-    std::vector<std::unique_ptr<llvm::GlobalVariable>> globalStringValues;
-    void applyStringOffsetRelocations(LLVMModuleRef &modRef);
-    LLVMValueRef strBuilderGlobalPtr;
+    std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
+    llvm::GlobalVariable *strBuilderGlobal;
+    llvm::GlobalVariable *strTablePtr;
+    void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
 
   public:
     Package() = default;
@@ -61,21 +56,11 @@ class Package : public Translatable {
     Package &operator=(const Package &obj) = delete;
     Package &operator=(Package &&obj) noexcept = delete;
 
-    const std::string &getOrgName() const;
-    const std::string &getVersion() const;
-    const std::string &getSrcFileName() const;
-    const std::string &getPackageName() const;
+    std::string getModuleName() const;
     const Function &getFunction(const std::string &name) const;
-    LLVMValueRef getGlobalLLVMVar(const std::string &globVar) const;
-    LLVMTypeRef getLLVMTypeOfType(const Type &type) const;
-    LLVMTypeRef getLLVMTypeOfType(TypeTag typeTag) const;
-    LLVMValueRef getFunctionRef(const std::string &arrayName) const;
-    LLVMValueRef getGlobalNilVar() const;
-    LLVMValueRef getStringBuilderTableGlobalPointer();
     const Variable &getGlobalVariable(const std::string &name) const;
-    LLVMValueRef getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag typeTag);
-    LLVMValueRef getMapSpreadFieldDeclaration(LLVMModuleRef &modRef);
 
+    llvm::Value *getStringBuilderTableGlobalPointer() const;
     void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
     void setPackageName(std::string pkgName);
@@ -83,10 +68,11 @@ class Package : public Translatable {
     void setSrcFileName(std::string srcFileName);
     void insertGlobalVar(const Variable &var);
     void insertFunction(const std::shared_ptr<Function> &function);
-    void addFunctionRef(const std::string &arrayName, LLVMValueRef functionRef);
-    void addStringOffsetRelocationEntry(const std::string &eleType, LLVMValueRef storeInsn);
+    void addStringOffsetRelocationEntry(const std::string &eleType, llvm::Value *storeInsn);
+    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                 const Type &valueType, llvm::Value *smartStruct);
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

@@ -44,30 +44,24 @@ class Function : public Debuggable, public Translatable {
     inline static const std::string MAIN_FUNCTION_NAME = "main";
     static constexpr unsigned int PUBLIC = 1;
     static constexpr unsigned int NATIVE = PUBLIC << 1;
-    std::weak_ptr<Package> parentPackage;
+    Package &parentPackage;
     std::string name;
     std::string workerName;
     unsigned int flags;
     std::optional<Variable> returnVar;
     std::optional<RestParam> restParam;
-    LLVMBuilderRef llvmBuilder;
-    LLVMValueRef llvmFunction;
     bool isBBMapEmpty = true;
     std::weak_ptr<BasicBlock> firstBlock;
     std::map<std::string, Variable> localVars;
     std::map<std::string, std::shared_ptr<BasicBlock>> basicBlocksMap;
-    std::map<std::string, LLVMValueRef> branchComparisonList;
-    std::map<std::string, LLVMValueRef> localVarRefs;
     std::vector<FunctionParam> requiredParams;
     std::weak_ptr<BasicBlock> FindBasicBlock(const std::string &id);
-    LLVMValueRef generateAbortInsn(LLVMModuleRef &modRef);
-    void splitBBIfPossible(LLVMModuleRef &modRef);
-    static bool isBoxValueSupport(TypeTag typeTag);
-    LLVMValueRef generateBoxValueFunc(LLVMModuleRef &modRef, LLVMTypeRef paramTypeRef, TypeTag typeTag);
+    std::map<std::string, llvm::Value *> branchComparisonList;
+    std::map<std::string, llvm::AllocaInst *> localVarRefs;
 
   public:
     Function() = delete;
-    Function(std::weak_ptr<Package> parentPackage, std::string name, std::string workerName, unsigned int flags);
+    Function(Package &parentPackage, std::string name, std::string workerName, unsigned int flags);
     Function(const Function &) = delete;
     Function(Function &&obj) noexcept = delete;
     Function &operator=(const Function &obj) = delete;
@@ -80,31 +74,26 @@ class Function : public Debuggable, public Translatable {
     const std::optional<Variable> &getReturnVar() const;
     Package &getPackageMutableRef() const;
     const Package &getPackageRef() const;
-    LLVMBuilderRef getLLVMBuilder() const;
-    LLVMValueRef getLLVMFunctionValue() const;
-    LLVMValueRef getLLVMValueForBranchComparison(const std::string &lhsName) const;
-    LLVMValueRef getLLVMLocalVar(const std::string &varName) const;
-    LLVMValueRef getLLVMLocalOrGlobalVar(const Operand &op) const;
     const Variable &getLocalVariable(const std::string &opName) const;
     const Variable &getLocalOrGlobalVariable(const Operand &op) const;
-    LLVMTypeRef getLLVMTypeOfReturnVal() const;
+    llvm::Type *getLLVMTypeOfReturnVal(llvm::Module &module) const;
     bool isMainFunction() const;
     bool isExternalFunction() const;
     const std::vector<FunctionParam> &getParams() const;
-    LLVMValueRef createTempVariable(const Operand &op) const;
+
+    llvm::Value *getLLVMValueForBranchComparison(const std::string &lhsName) const;
+    llvm::AllocaInst *getLLVMLocalVar(const std::string &varName) const;
+    llvm::Value *getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const;
+    llvm::Value *createTempVariable(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
 
     void patchBasicBlocks();
     void insertParam(const FunctionParam &param);
     void setReturnVar(const Variable &var);
     void insertLocalVar(const Variable &var);
     void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
-    void insertBranchComparisonValue(const std::string &lhsName, LLVMValueRef compRef);
-    void setLLVMBuilder(LLVMBuilderRef builder);
-    void setLLVMFunctionValue(LLVMValueRef funcRef);
-    void storeValueInSmartStruct(LLVMModuleRef &modRef, LLVMValueRef value, const Type &valueType,
-                                 LLVMValueRef smartStruct);
+    void insertBranchComparisonValue(const std::string &lhsName, llvm::Value *compRef);
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 } // namespace nballerina
 

@@ -23,5 +23,7 @@ config.substitutions.append(('%java_path',config.java_path))
 
 config.substitutions.append(('%skip_bir_gen',config.skip_bir_gen))
 
+config.substitutions.append(('%target_variant',config.target_variant.lower())) 
+
 config.substitutions.append(('%testRunScript',
     os.path.join(config.test_source_root, run_script)))
