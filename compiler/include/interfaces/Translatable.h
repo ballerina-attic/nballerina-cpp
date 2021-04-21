@@ -19,13 +19,14 @@
 #ifndef __TRANSLATABLE__H__
 #define __TRANSLATABLE__H__
 
-#include <llvm/IR/Type.h>
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Module.h"
 
 namespace nballerina {
 
 class Translatable {
   public:
-    virtual void translate(LLVMModuleRef &modRef) = 0;
+    virtual void translate(llvm::Module &module, llvm::IRBuilder<> &builder) = 0;
 };
 
 } // namespace nballerina

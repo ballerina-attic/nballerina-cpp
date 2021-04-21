@@ -8,7 +8,8 @@ if(NOT CLANG_TIDY_EXE)
     message(STATUS "clang-tidy not found.") 
 else() 
     message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}") 
-    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "--use-color=1" "-checks=*,-fuchsia-*,-google-*,-llvmlibc-*,\
+    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "--use-color=1" "-checks=*,-fuchsia-*,-google-*, \
         -modernize-use-trailing-return-type, -hicpp-named-parameter, -readability-named-parameter, \
-        -cppcoreguidelines-pro-bounds-array-to-pointer-decay, -hicpp-no-array-decay")
+        -cppcoreguidelines-pro-bounds-array-to-pointer-decay, -hicpp-no-array-decay, \
+        -llvmlibc-callee-namespace, -llvmlibc-implementation-in-namespace, -llvmlibc-restrict-system-libc-headers")
 endif()
