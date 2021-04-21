@@ -27,4 +27,3 @@ public function main() {
 // CHECK: RESULT=true
 // CHECK: RESULT=true
 // CHECK: RESULT=false
-
