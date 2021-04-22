@@ -36,67 +36,134 @@ void BinaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
     auto *rhsOp1ref = funcObj.createTempVariable(rhsOp1, module, builder);
     auto *rhsOp2ref = funcObj.createTempVariable(rhsOp2, module, builder);
+    TypeTag rhsType = funcObj.getLocalOrGlobalVariable(rhsOp1).getType().getTypeTag();
+    auto *binaryOpResult = (llvm::Value *)nullptr;
 
     switch (kind) {
     case INSTRUCTION_KIND_BINARY_ADD: {
-        auto *ifReturn = builder.CreateAdd(rhsOp1ref, rhsOp2ref, lhstmpName);
-        builder.CreateStore(ifReturn, lhsRef);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateAdd(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFAdd(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_SUB: {
-        auto *ifReturn = builder.CreateSub(rhsOp1ref, rhsOp2ref, lhstmpName);
-        builder.CreateStore(ifReturn, lhsRef);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateSub(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFSub(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_MUL: {
-        auto *ifReturn = builder.CreateMul(rhsOp1ref, rhsOp2ref, lhstmpName);
-        builder.CreateStore(ifReturn, lhsRef);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateMul(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFMul(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_DIV: {
-        auto *ifReturn = builder.CreateUDiv(rhsOp1ref, rhsOp2ref, lhstmpName);
-        builder.CreateStore(ifReturn, lhsRef);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateUDiv(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFDiv(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_MOD: {
-        auto *ifReturn = builder.CreateURem(rhsOp1ref, rhsOp2ref, lhstmpName);
-        builder.CreateStore(ifReturn, lhsRef);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateURem(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFRem(rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_THAN: {
-        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, rhsOp1ref, rhsOp2ref, lhstmpName);
-        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
-
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_EQUAL: {
-        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, rhsOp1ref, rhsOp2ref, lhstmpName);
-        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_THAN: {
-        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, rhsOp1ref, rhsOp2ref, lhstmpName);
-        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_EQUAL: {
-        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, rhsOp1ref, rhsOp2ref, lhstmpName);
-        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_EQUAL: {
-        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, rhsOp1ref, rhsOp2ref, lhstmpName);
-        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
+        if (rhsType == nballerina::TYPE_TAG_INT || rhsType == nballerina::TYPE_TAG_NIL) {
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_NOT_EQUAL: {
-        auto *ifReturn = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, rhsOp1ref, rhsOp2ref, lhstmpName);
-        funcObj.insertBranchComparisonValue(lhsName, ifReturn);
+        if (rhsType == nballerina::TYPE_TAG_INT) {
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, rhsOp1ref, rhsOp2ref, lhstmpName);
+        } else {
+            llvm_unreachable("");
+        }
+        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_BITWISE_XOR: {
-        auto *ifReturn = builder.CreateXor(rhsOp1ref, rhsOp2ref, lhstmpName);
-        builder.CreateStore(ifReturn, lhsRef);
+        binaryOpResult = builder.CreateXor(rhsOp1ref, rhsOp2ref, lhstmpName);
+        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     default:
