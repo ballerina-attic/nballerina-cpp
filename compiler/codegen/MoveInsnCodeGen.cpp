@@ -16,27 +16,21 @@
  * under the License.
  */
 
-#include "ReturnInsn.h"
 #include "Function.h"
+#include "MoveInsn.h"
+#include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
-#include "Types.h"
+#include "Package.h"
 #include "Variable.h"
 
 namespace nballerina {
 
-ReturnInsn::ReturnInsn(BasicBlock &currentBB) : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, "") {}
+void NonTerminatorInsnCodeGen::visit(class MoveInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-void ReturnInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
-
-    const auto &funcObj = getFunctionRef();
-    if (funcObj.isMainFunction()) {
-        builder.CreateRetVoid();
-        return;
-    }
-    assert(funcObj.getReturnVar().has_value());
-    auto *retValueRef =
-        builder.CreateLoad(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
-    builder.CreateRet(retValueRef);
+    const auto &funcRef = obj.getFunctionRef();
+    auto *lhsRef = funcRef.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *rhsVarOpRef = funcRef.createTempVariable(obj.rhsOp, module, builder);
+    builder.CreateStore(rhsVarOpRef, lhsRef);
 }
 
 } // namespace nballerina

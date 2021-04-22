@@ -23,13 +23,16 @@
 
 namespace nballerina {
 
-class GoToInsn : public TerminatorInsn {
+class GoToInsn : public TerminatorInsn, public TranslatableNew<GoToInsn> {
   public:
     GoToInsn() = delete;
-    GoToInsn(BasicBlock &currentBB, std::string thenBBID);
+    GoToInsn(BasicBlock &currentBB, std::string thenBBID)
+        : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, std::move(thenBBID)) {
+        kind = INSTRUCTION_KIND_GOTO;
+    }
     ~GoToInsn() = default;
 
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class TerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

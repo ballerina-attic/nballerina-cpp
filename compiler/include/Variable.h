@@ -37,6 +37,14 @@ class Variable : public AbstractVariable {
     virtual ~Variable() = default;
 
     const Type &getType() const { return type; }
+    bool isParamter() const {
+        switch (getKind()) {
+        case ARG_VAR_KIND:
+            return true;
+        default:
+            return false;
+        }
+    }
 };
 
 } // namespace nballerina

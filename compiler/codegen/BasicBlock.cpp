@@ -24,7 +24,7 @@
 namespace nballerina {
 
 BasicBlock::BasicBlock(std::string pid, Function &parentFunc)
-    : id(std::move(pid)), parentFunction(parentFunc), terminator(nullptr), bbRefObj(nullptr) {}
+    : id(std::move(pid)), parentFunction(parentFunc), terminator(nullptr) {}
 
 const std::string &BasicBlock::getId() const { return id; }
 TerminatorInsn *BasicBlock::getTerminatorInsnPtr() const { return terminator.get(); }
@@ -33,20 +33,8 @@ Function &BasicBlock::getFunctionMutableRef() const { return parentFunction; }
 
 const Function &BasicBlock::getParentFunctionRef() const { return parentFunction; }
 
-llvm::BasicBlock *BasicBlock::getLLVMBBRef() const { return bbRefObj; }
-
 void BasicBlock::setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn) { terminator = std::move(insn); }
 void BasicBlock::setNextBB(std::weak_ptr<BasicBlock> bb) { nextBB = std::move(bb); }
-void BasicBlock::setLLVMBBRef(llvm::BasicBlock *bbRef) { bbRefObj = bbRef; }
 void BasicBlock::addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn) { instructions.push_back(std::move(insn)); }
-
-void BasicBlock::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-    for (const auto &instruction : instructions) {
-        instruction->translate(module, builder);
-    }
-    if (terminator != nullptr) {
-        terminator->translate(module, builder);
-    }
-}
 
 } // namespace nballerina

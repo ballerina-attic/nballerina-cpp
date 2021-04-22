@@ -26,15 +26,16 @@ namespace nballerina {
 // Forward Declare
 class Operand;
 
-class TypeCastInsn : public NonTerminatorInsn {
+class TypeCastInsn : public NonTerminatorInsn, public TranslatableNew<TypeCastInsn> {
   private:
     Operand rhsOp;
 
   public:
     TypeCastInsn() = delete;
-    TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp);
+    TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
+        : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
     ~TypeCastInsn() = default;
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

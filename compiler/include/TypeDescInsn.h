@@ -23,10 +23,11 @@
 
 namespace nballerina {
 
-class TypeDescInsn : public NonTerminatorInsn {
+class TypeDescInsn : public NonTerminatorInsn, public TranslatableNew<TypeDescInsn> {
   public:
     TypeDescInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB){};
     ~TypeDescInsn() = default;
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

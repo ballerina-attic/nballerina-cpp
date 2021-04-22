@@ -18,23 +18,19 @@
 
 #include "UnaryOpInsn.h"
 #include "Function.h"
+#include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
 #include "Package.h"
 
 namespace nballerina {
 
-UnaryOpInsn::UnaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs)
-    : NonTerminatorInsn(lhs, currentBB), rhsOp(rhs) {}
-
-void UnaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
-
-void UnaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = getFunctionRef();
-    const auto &lhsOp = getLhsOperand();
+void NonTerminatorInsnCodeGen::visit(class UnaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+    const auto &funcObj = obj.getFunctionRef();
+    const auto &lhsOp = obj.getLhsOperand();
     auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(lhsOp, module);
-    auto *rhsOpref = funcObj.createTempVariable(rhsOp, module, builder);
+    auto *rhsOpref = funcObj.createTempVariable(obj.rhsOp, module, builder);
 
-    switch (kind) {
+    switch (obj.kind) {
     case INSTRUCTION_KIND_UNARY_NOT: {
         auto *ifReturn = builder.CreateNot(rhsOpref, lhsOp.getName() + "_temp");
         builder.CreateStore(ifReturn, lhsRef);

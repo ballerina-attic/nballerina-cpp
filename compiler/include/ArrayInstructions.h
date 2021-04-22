@@ -24,40 +24,42 @@
 
 namespace nballerina {
 
-class ArrayInsn : public NonTerminatorInsn {
+class ArrayInsn : public NonTerminatorInsn, public TranslatableNew<ArrayInsn> {
   private:
     Operand sizeOp;
 
   public:
     ArrayInsn() = delete;
-    ArrayInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &sizeOp);
+    ArrayInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &sizeOp)
+        : NonTerminatorInsn(lhs, currentBB), sizeOp(sizeOp) {}
     ~ArrayInsn() = default;
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 
-class ArrayLoadInsn : public NonTerminatorInsn {
+class ArrayLoadInsn : public NonTerminatorInsn, public TranslatableNew<ArrayLoadInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;
 
   public:
     ArrayLoadInsn() = delete;
-    ArrayLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp);
+    ArrayLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
+        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
     ~ArrayLoadInsn() = default;
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 
-class ArrayStoreInsn : public NonTerminatorInsn {
+class ArrayStoreInsn : public NonTerminatorInsn, public TranslatableNew<ArrayStoreInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;
 
   public:
     ArrayStoreInsn() = delete;
-    ArrayStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp);
+    ArrayStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
+        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
     ~ArrayStoreInsn() = default;
-
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 } // namespace nballerina
 

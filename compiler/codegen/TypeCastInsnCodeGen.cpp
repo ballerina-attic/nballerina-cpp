@@ -16,27 +16,25 @@
  * under the License.
  */
 
-#include "TypeCastInsn.h"
 #include "CodeGenUtils.h"
 #include "Function.h"
+#include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
 #include "Package.h"
+#include "TypeCastInsn.h"
 #include "Types.h"
 #include "Variable.h"
 
 namespace nballerina {
 
-TypeCastInsn::TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
-    : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
-
-void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = getFunctionRef();
-    auto *rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(rhsOp, module);
-    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+    const auto &funcObj = obj.getFunctionRef();
+    auto *rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(obj.rhsOp, module);
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
     auto *lhsTypeRef = lhsOpRef->getType();
 
-    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
-    const auto &rhsVar = funcObj.getLocalOrGlobalVariable(rhsOp);
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(obj.getLhsOperand());
+    const auto &rhsVar = funcObj.getLocalOrGlobalVariable(obj.rhsOp);
     const auto &lhsType = lhsVar.getType();
     auto lhsTypeTag = lhsType.getTypeTag();
     const auto &rhsType = rhsVar.getType();
@@ -44,7 +42,7 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     if (Type::isSmartStructType(rhsTypeTag)) {
         if (Type::isSmartStructType(lhsTypeTag)) {
-            auto *rhsVarOpRef = funcObj.createTempVariable(rhsOp, module, builder);
+            auto *rhsVarOpRef = funcObj.createTempVariable(obj.rhsOp, module, builder);
             builder.CreateStore(rhsVarOpRef, lhsOpRef);
             return;
         }
@@ -55,13 +53,13 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         auto *data = builder.CreateStructGEP(rhsOpRef, 1, "data");
         auto *dataLoad = builder.CreateLoad(data);
 
-        auto *strTblPtr = getPackageRef().getStringBuilderTableGlobalPointer();
+        auto *strTblPtr = obj.getPackageRef().getStringBuilderTableGlobalPointer();
         auto *strTblLoad = builder.CreateLoad(strTblPtr);
         auto *gepOfStr = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({inherentTypeLoad}));
 
         // get the mangled name of the lhs type and store it to string builder table.
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
-        getPackageMutableRef().addToStrTable(lhsTypeName); // TODO : get rid of this mutable reference
+        obj.getPackageMutableRef().addToStrTable(lhsTypeName); // TODO : get rid of this mutable reference
         int tempRandNum = std::rand() % 1000 + 1;
         auto *constValue = builder.getInt64(tempRandNum);
         auto *lhsGep = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({constValue}));
@@ -70,13 +68,13 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         auto *sameTypeResult = builder.CreateCall(isSameTypeFunc, llvm::ArrayRef<llvm::Value *>({lhsGep, gepOfStr}));
         // creating branch condition using is_same_type() function result.
         builder.CreateIsNotNull(sameTypeResult);
-        getPackageMutableRef().addStringOffsetRelocationEntry(lhsTypeName.data(), lhsGep);
+        obj.getPackageMutableRef().addStringOffsetRelocationEntry(lhsTypeName.data(), lhsGep);
 
-        auto *castResult = builder.CreateBitCast(dataLoad, lhsTypeRef, getLhsOperand().getName());
+        auto *castResult = builder.CreateBitCast(dataLoad, lhsTypeRef, obj.getLhsOperand().getName());
         auto *castLoad = builder.CreateLoad(castResult);
         builder.CreateStore(castLoad, lhsOpRef);
     } else if (Type::isSmartStructType(lhsTypeTag)) {
-        getPackageMutableRef().storeValueInSmartStruct(module, builder, rhsOpRef, rhsType, lhsOpRef);
+        obj.getPackageMutableRef().storeValueInSmartStruct(module, builder, rhsOpRef, rhsType, lhsOpRef);
     } else if (lhsTypeTag == TYPE_TAG_INT && rhsTypeTag == TYPE_TAG_FLOAT) {
         auto *rhsLoad = builder.CreateLoad(rhsOpRef);
         auto *lhsLoad = builder.CreateLoad(lhsOpRef);

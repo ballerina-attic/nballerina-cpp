@@ -18,28 +18,25 @@
 
 #include "BinaryOpInsn.h"
 #include "Function.h"
+#include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
 #include "Package.h"
 #include <string>
 
 namespace nballerina {
-BinaryOpInsn::BinaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp1, const Operand &rhsOp2)
-    : NonTerminatorInsn(lhs, currentBB), rhsOp1(rhsOp1), rhsOp2(rhsOp2), kind{} {}
 
-void BinaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
+void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-void BinaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-
-    auto &funcObj = getFunctionMutableRef();
-    const std::string lhsName = getLhsOperand().getName();
+    auto &funcObj = obj.getFunctionMutableRef();
+    const std::string lhsName = obj.getLhsOperand().getName();
     const std::string lhstmpName = lhsName + "_temp";
-    auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
-    auto *rhsOp1ref = funcObj.createTempVariable(rhsOp1, module, builder);
-    auto *rhsOp2ref = funcObj.createTempVariable(rhsOp2, module, builder);
-    TypeTag rhsType = funcObj.getLocalOrGlobalVariable(rhsOp1).getType().getTypeTag();
+    auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *rhsOp1ref = funcObj.createTempVariable(obj.rhsOp1, module, builder);
+    auto *rhsOp2ref = funcObj.createTempVariable(obj.rhsOp2, module, builder);
+    TypeTag rhsType = funcObj.getLocalOrGlobalVariable(obj.rhsOp1).getType().getTypeTag();
     llvm::Value *binaryOpResult = nullptr;
 
-    switch (kind) {
+    switch (obj.kind) {
     case INSTRUCTION_KIND_BINARY_ADD: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
             binaryOpResult = builder.CreateAdd(rhsOp1ref, rhsOp2ref, lhstmpName);

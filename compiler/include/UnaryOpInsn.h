@@ -26,18 +26,18 @@ namespace nballerina {
 // Forward Declare
 class Operand;
 
-class UnaryOpInsn : public NonTerminatorInsn {
+class UnaryOpInsn : public NonTerminatorInsn, public TranslatableNew<UnaryOpInsn> {
   private:
     Operand rhsOp;
     InstructionKind kind;
 
   public:
     UnaryOpInsn() = delete;
-    UnaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs);
+    UnaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs)
+        : NonTerminatorInsn(lhs, currentBB), rhsOp(rhs) {}
     ~UnaryOpInsn() = default;
-
-    void setInstKind(InstructionKind kind);
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    void setInstKind(InstructionKind kind) { this->kind = kind; }
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

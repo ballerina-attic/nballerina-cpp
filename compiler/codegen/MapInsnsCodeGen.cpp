@@ -19,45 +19,38 @@
 #include "MapInsns.h"
 #include "CodeGenUtils.h"
 #include "Function.h"
+#include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
 #include "Package.h"
 #include "TypeUtils.h"
 #include "Types.h"
 #include "Variable.h"
 
-using namespace std;
-
 namespace nballerina {
 
-// new Map Instruction and Codegen logic are in the llvmStructure.cpp
-
-MapStoreInsn::MapStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
-    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
-
-void MapStoreInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = getFunctionRef();
-    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
+void NonTerminatorInsnCodeGen::visit(MapStoreInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+    const auto &funcObj = obj.getFunctionRef();
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(obj.getLhsOperand());
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
     TypeUtils::checkMapSupport(memberTypeTag);
-    llvm::Value *mapValue = Type::isSmartStructType(memberTypeTag) ? funcObj.getLLVMLocalOrGlobalVar(rhsOp, module)
-                                                                   : funcObj.createTempVariable(rhsOp, module, builder);
-    builder.CreateCall(CodeGenUtils::getMapStoreFunc(module, memberTypeTag),
-                       llvm::ArrayRef<llvm::Value *>({funcObj.createTempVariable(getLhsOperand(), module, builder),
-                                                      funcObj.createTempVariable(keyOp, module, builder), mapValue}));
+    llvm::Value *mapValue = Type::isSmartStructType(memberTypeTag)
+                                ? funcObj.getLLVMLocalOrGlobalVar(obj.rhsOp, module)
+                                : funcObj.createTempVariable(obj.rhsOp, module, builder);
+    builder.CreateCall(
+        CodeGenUtils::getMapStoreFunc(module, memberTypeTag),
+        llvm::ArrayRef<llvm::Value *>({funcObj.createTempVariable(obj.getLhsOperand(), module, builder),
+                                       funcObj.createTempVariable(obj.keyOp, module, builder), mapValue}));
 }
 
-MapLoadInsn::MapLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
-    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
-
-void MapLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = getFunctionRef();
-    TypeTag memTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getMemberTypeTag();
+void NonTerminatorInsnCodeGen::visit(MapLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+    const auto &funcObj = obj.getFunctionRef();
+    TypeTag memTypeTag = funcObj.getLocalOrGlobalVariable(obj.rhsOp).getType().getMemberTypeTag();
     auto *outParamType = CodeGenUtils::getLLVMTypeOfType(memTypeTag, module);
 
-    auto *lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *lhs = funcObj.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
     auto *outParam = builder.CreateAlloca(outParamType);
-    auto *rhsTemp = funcObj.createTempVariable(rhsOp, module, builder);
-    auto *keyTemp = funcObj.createTempVariable(keyOp, module, builder);
+    auto *rhsTemp = funcObj.createTempVariable(obj.rhsOp, module, builder);
+    auto *keyTemp = funcObj.createTempVariable(obj.keyOp, module, builder);
     auto mapLoadFunction = CodeGenUtils::getMapLoadFunc(module, memTypeTag);
 
     [[maybe_unused]] auto *retVal =
@@ -68,7 +61,7 @@ void MapLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         auto *outParamTemp = builder.CreateLoad(outParam);
         builder.CreateStore(outParamTemp, lhs);
     } else {
-        getPackageMutableRef().storeValueInSmartStruct(module, builder, outParam, Type(memTypeTag, ""), lhs);
+        obj.getPackageMutableRef().storeValueInSmartStruct(module, builder, outParam, Type(memTypeTag, ""), lhs);
     }
     // else
     // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,

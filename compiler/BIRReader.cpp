@@ -798,9 +798,6 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
         previousBB = basicBlock;
     }
 
-    // Patching the Instructions
-    birFunction->patchBasicBlocks();
-
     // error table
     [[maybe_unused]] int32_t errorEntriesCount = readS4be();
     [[maybe_unused]] int32_t channelsLength = readS4be();

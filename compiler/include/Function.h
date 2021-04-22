@@ -39,7 +39,7 @@ class InvocableType;
 class Type;
 class Package;
 
-class Function : public Debuggable, public Translatable {
+class Function : public Debuggable {
   private:
     inline static const std::string MAIN_FUNCTION_NAME = "main";
     static constexpr unsigned int PUBLIC = 1;
@@ -51,11 +51,9 @@ class Function : public Debuggable, public Translatable {
     std::optional<Variable> returnVar;
     std::optional<RestParam> restParam;
     bool isBBMapEmpty = true;
-    std::weak_ptr<BasicBlock> firstBlock;
     std::map<std::string, Variable> localVars;
-    std::map<std::string, std::shared_ptr<BasicBlock>> basicBlocksMap;
+    std::vector<std::shared_ptr<BasicBlock>> basicBlocks;
     std::vector<FunctionParam> requiredParams;
-    std::weak_ptr<BasicBlock> FindBasicBlock(const std::string &id);
     std::map<std::string, llvm::Value *> branchComparisonList;
     std::map<std::string, llvm::AllocaInst *> localVarRefs;
 
@@ -86,14 +84,13 @@ class Function : public Debuggable, public Translatable {
     llvm::Value *getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const;
     llvm::Value *createTempVariable(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
 
-    void patchBasicBlocks();
     void insertParam(const FunctionParam &param);
     void setReturnVar(const Variable &var);
     void insertLocalVar(const Variable &var);
     void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
     void insertBranchComparisonValue(const std::string &lhsName, llvm::Value *compRef);
 
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class FunctionCodeGen;
 };
 } // namespace nballerina
 

@@ -69,5 +69,5 @@ int main(int argc, char **argv) {
     std::shared_ptr<nballerina::Package> birPackage = BIRReader::reader.deserialize();
 
     // Codegen
-    return CodeGenerator::generateLLVMIR(birPackage.get(), outFileName, birPackage->getModuleName());
+    return CodeGenerator::generateLLVMIR(*birPackage.get(), outFileName, birPackage->getModuleName());
 }

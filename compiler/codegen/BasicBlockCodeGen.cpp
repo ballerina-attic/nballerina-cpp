@@ -16,25 +16,26 @@
  * under the License.
  */
 
-#ifndef __MOVEINSN__H__
-#define __MOVEINSN__H__
-
+#include "BasicBlockCodeGen.h"
+#include "BasicBlock.h"
 #include "NonTerminatorInsn.h"
+#include "NonTerminatorInsnCodeGen.h"
+#include "TerminatorInsn.h"
+#include "TerminatorInsnCodeGen.h"
 
 namespace nballerina {
 
-class MoveInsn : public NonTerminatorInsn, public TranslatableNew<MoveInsn> {
-  private:
-    Operand rhsOp;
+BasicBlockCodeGen::BasicBlockCodeGen(FunctionCodeGen &parentGenerator) : parentGenerator(parentGenerator) {}
 
-  public:
-    MoveInsn() = delete;
-    MoveInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
-        : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
-    ~MoveInsn() = default;
-    friend class NonTerminatorInsnCodeGen;
-};
+void BasicBlockCodeGen::visit(BasicBlock &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
+    for (const auto &instruction : obj.instructions) {
+        NonTerminatorInsnCodeGen generator(parentGenerator);
+        instruction->accept(generator, module, builder);
+    }
+    if (obj.terminator != nullptr) {
+        TerminatorInsnCodeGen generator(parentGenerator);
+        obj.terminator->accept(generator, module, builder);
+    }
+}
 } // namespace nballerina
-
-#endif //!__MOVEINSN__H__
