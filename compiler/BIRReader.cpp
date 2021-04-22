@@ -175,7 +175,7 @@ int64_t ConstantPoolSet::getIntCp(int32_t index) {
 }
 
 // Search float from the constant pool based on index
-float ConstantPoolSet::getFloatCp(int32_t index) {
+double ConstantPoolSet::getFloatCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
     FloatCpInfo *floatCp = static_cast<FloatCpInfo *>(poolEntry);
@@ -242,8 +242,10 @@ InvocableType ConstantPoolSet::getInvocableType(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     ShapeCpInfo *shapeCp = static_cast<ShapeCpInfo *>(poolEntry);
+    auto paramCount = shapeCp->getParamCount();
     std::vector<Type> paramTypes;
-    for (auto i = 0; i < shapeCp->getParamCount(); i++) {
+    paramTypes.reserve(paramCount);
+    for (int32_t i = 0; i < paramCount; i++) {
         paramTypes.push_back(getTypeCp(shapeCp->getParam(i), false));
     }
     auto returnTypeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
@@ -327,7 +329,7 @@ MapConstruct BIRReader::readMapConstructor() {
 std::unique_ptr<TypeDescInsn> ReadTypeDescInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto lhsOp = readerRef.readOperand();
     int32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
-    return std::make_unique<TypeDescInsn>(std::move(lhsOp), currentBB);
+    return std::make_unique<TypeDescInsn>(std::move(lhsOp), *currentBB);
 }
 
 // Read STRUCTURE Insn
@@ -338,7 +340,7 @@ std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::sha
     auto initValuesCount = readerRef.readS4be();
 
     if (initValuesCount == 0) {
-        return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB);
+        return std::make_unique<StructureInsn>(std::move(lhsOp), *currentBB);
     }
 
     std::vector<MapConstruct> initValues;
@@ -346,7 +348,7 @@ std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::sha
     for (auto i = 0; i < initValuesCount; i++) {
         initValues.push_back(readerRef.readMapConstructor());
     }
-    return std::make_unique<StructureInsn>(std::move(lhsOp), currentBB, std::move(initValues));
+    return std::make_unique<StructureInsn>(std::move(lhsOp), *currentBB, std::move(initValues));
 }
 
 // Read CONST_LOAD Insn
@@ -365,30 +367,30 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
     case TYPE_TAG_DECIMAL:
     case TYPE_TAG_BYTE: {
         int32_t valueCpIndex = readerRef.readS4be();
-        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
+        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), *currentBB,
                                                   (int64_t)readerRef.constantPool->getIntCp(valueCpIndex));
     }
     case TYPE_TAG_BOOLEAN: {
         uint8_t boolean_constant = readerRef.readU1();
         if (boolean_constant == 0) {
-            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, false);
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), *currentBB, false);
         } else {
-            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, true);
+            return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), *currentBB, true);
         }
     }
     case TYPE_TAG_FLOAT: {
         int32_t valueCpIndex = readerRef.readS4be();
-        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
+        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), *currentBB,
                                                   readerRef.constantPool->getFloatCp(valueCpIndex));
     }
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING: {
         int32_t valueCpIndex = readerRef.readS4be();
-        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB,
+        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), *currentBB,
                                                   readerRef.constantPool->getStringCp(valueCpIndex));
     }
     case TYPE_TAG_NIL:
-        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB);
+        return std::make_unique<ConstantLoadInsn>(std::move(lhsOp), *currentBB);
     default:
         // add an error msg
         abort();
@@ -399,7 +401,7 @@ std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::
 std::unique_ptr<UnaryOpInsn> ReadUnaryInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto rhsOp = readerRef.readOperand();
     auto lhsOp = readerRef.readOperand();
-    return std::make_unique<UnaryOpInsn>(std::move(lhsOp), currentBB, rhsOp);
+    return std::make_unique<UnaryOpInsn>(std::move(lhsOp), *currentBB, rhsOp);
 }
 
 // Read Binary Operand
@@ -407,7 +409,7 @@ std::unique_ptr<BinaryOpInsn> ReadBinaryInsn::readNonTerminatorInsn(std::shared_
     auto rhsOp1 = readerRef.readOperand();
     auto rhsOp2 = readerRef.readOperand();
     auto lhsOp = readerRef.readOperand();
-    return std::make_unique<BinaryOpInsn>(std::move(lhsOp), currentBB, rhsOp1, rhsOp2);
+    return std::make_unique<BinaryOpInsn>(std::move(lhsOp), *currentBB, rhsOp1, rhsOp2);
 }
 
 // Read BRANCH Insn
@@ -416,13 +418,9 @@ std::unique_ptr<ConditionBrInsn> ReadCondBrInsn::readTerminatorInsn(std::shared_
     int32_t trueBbIdNameCpIndex = readerRef.readS4be();
     int32_t falseBbIdNameCpIndex = readerRef.readS4be();
 
-    auto trueDummybasicBlock = std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(trueBbIdNameCpIndex),
-                                                            currentBB->getFunctionSharedObj());
-
-    auto falseDummybasicBlock = std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(falseBbIdNameCpIndex),
-                                                             currentBB->getFunctionSharedObj());
-
-    return std::make_unique<ConditionBrInsn>(std::move(lhsOp), currentBB, trueDummybasicBlock, falseDummybasicBlock);
+    return std::make_unique<ConditionBrInsn>(std::move(lhsOp), *currentBB,
+                                             readerRef.constantPool->getStringCp(trueBbIdNameCpIndex),
+                                             readerRef.constantPool->getStringCp(falseBbIdNameCpIndex));
 }
 
 // Read MOV Insn
@@ -430,7 +428,7 @@ std::unique_ptr<MoveInsn> ReadMoveInsn::readNonTerminatorInsn(std::shared_ptr<Ba
     auto rhsOp = readerRef.readOperand();
     auto lhsOp = readerRef.readOperand();
 
-    return std::make_unique<MoveInsn>(std::move(lhsOp), currentBB, rhsOp);
+    return std::make_unique<MoveInsn>(std::move(lhsOp), *currentBB, rhsOp);
 }
 
 // Read Function Call
@@ -442,19 +440,18 @@ std::unique_ptr<FunctionCallInsn> ReadFuncCallInsn::readTerminatorInsn(std::shar
     int32_t argumentsCount = readerRef.readS4be();
 
     std::vector<Operand> fnArgs;
-    for (auto i = 0; i < argumentsCount; i++) {
+    fnArgs.reserve(argumentsCount);
+    for (int32_t i = 0; i < argumentsCount; i++) {
         fnArgs.push_back(readerRef.readOperand());
     }
 
     uint8_t hasLhsOperand = readerRef.readU1();
     Operand lhsOp = (hasLhsOperand > 0) ? readerRef.readOperand() : Operand("", NOT_A_KIND);
 
-    int32_t thenBbIdNameCpIndex = readerRef.readS4be();
-    auto dummybasicBlock = std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(thenBbIdNameCpIndex),
-                                                        currentBB->getFunctionSharedObj());
+    auto thenBbIdNameCpIndex = readerRef.readS4be();
 
-    return std::make_unique<FunctionCallInsn>(funcName, argumentsCount, dummybasicBlock, lhsOp, std::move(fnArgs),
-                                              currentBB);
+    return std::make_unique<FunctionCallInsn>(*currentBB, readerRef.constantPool->getStringCp(thenBbIdNameCpIndex),
+                                              lhsOp, funcName, argumentsCount, std::move(fnArgs));
 }
 
 // Read TypeCast Insn
@@ -466,7 +463,7 @@ std::unique_ptr<TypeCastInsn> ReadTypeCastInsn::readNonTerminatorInsn(std::share
     Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     [[maybe_unused]] uint8_t isCheckTypes = readerRef.readU1();
 
-    return std::make_unique<TypeCastInsn>(std::move(lhsOp), currentBB, rhsOperand);
+    return std::make_unique<TypeCastInsn>(std::move(lhsOp), *currentBB, rhsOperand);
 }
 
 // Read Type Test Insn
@@ -475,7 +472,7 @@ std::unique_ptr<TypeTestInsn> ReadTypeTestInsn::readNonTerminatorInsn(std::share
     Type typeDecl = readerRef.constantPool->getTypeCp(typeCpIndex, false);
     auto lhsOp = readerRef.readOperand();
     [[maybe_unused]] auto rhsOperand = readerRef.readOperand();
-    return std::make_unique<TypeTestInsn>(lhsOp, currentBB);
+    return std::make_unique<TypeTestInsn>(lhsOp, *currentBB);
 }
 
 // Read Array Insn
@@ -490,7 +487,7 @@ std::unique_ptr<ArrayInsn> ReadArrayInsn::readNonTerminatorInsn(std::shared_ptr<
     for (auto i = 0; i < init_values_count; i++) {
         [[maybe_unused]] auto init_value = readerRef.readOperand();
     }
-    return std::make_unique<ArrayInsn>(lhsOp, currentBB, sizeOperand);
+    return std::make_unique<ArrayInsn>(lhsOp, *currentBB, sizeOperand);
 }
 
 // Read Array Store Insn
@@ -498,7 +495,7 @@ std::unique_ptr<ArrayStoreInsn> ReadArrayStoreInsn::readNonTerminatorInsn(std::s
     auto lhsOp = readerRef.readOperand();
     auto keyOperand = readerRef.readOperand();
     auto rhsOperand = readerRef.readOperand();
-    return std::make_unique<ArrayStoreInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
+    return std::make_unique<ArrayStoreInsn>(lhsOp, *currentBB, keyOperand, rhsOperand);
 }
 
 // Read Array Load Insn
@@ -508,7 +505,7 @@ std::unique_ptr<ArrayLoadInsn> ReadArrayLoadInsn::readNonTerminatorInsn(std::sha
     auto lhsOp = readerRef.readOperand();
     auto keyOperand = readerRef.readOperand();
     auto rhsOperand = readerRef.readOperand();
-    return std::make_unique<ArrayLoadInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
+    return std::make_unique<ArrayLoadInsn>(lhsOp, *currentBB, keyOperand, rhsOperand);
 }
 
 // Read Map Store Insn
@@ -516,7 +513,7 @@ std::unique_ptr<MapStoreInsn> ReadMapStoreInsn::readNonTerminatorInsn(std::share
     auto lhsOp = readerRef.readOperand();
     auto keyOperand = readerRef.readOperand();
     auto rhsOperand = readerRef.readOperand();
-    return std::make_unique<MapStoreInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
+    return std::make_unique<MapStoreInsn>(lhsOp, *currentBB, keyOperand, rhsOperand);
 }
 
 // Read Map Load Insn
@@ -526,18 +523,16 @@ std::unique_ptr<MapLoadInsn> ReadMapLoadInsn::readNonTerminatorInsn(std::shared_
     auto lhsOp = readerRef.readOperand();
     auto keyOperand = readerRef.readOperand();
     auto rhsOperand = readerRef.readOperand();
-    return std::make_unique<MapLoadInsn>(lhsOp, currentBB, keyOperand, rhsOperand);
+    return std::make_unique<MapLoadInsn>(lhsOp, *currentBB, keyOperand, rhsOperand);
 }
 
 std::unique_ptr<GoToInsn> ReadGoToInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
-    int32_t nameId = readerRef.readS4be();
-    auto dummybasicBlock =
-        std::make_shared<BasicBlock>(readerRef.constantPool->getStringCp(nameId), currentBB->getFunctionSharedObj());
-    return std::make_unique<GoToInsn>(dummybasicBlock, currentBB);
+    auto nameId = readerRef.readS4be();
+    return std::make_unique<GoToInsn>(*currentBB, readerRef.constantPool->getStringCp(nameId));
 }
 
 std::unique_ptr<ReturnInsn> ReadReturnInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
-    return std::make_unique<ReturnInsn>(currentBB);
+    return std::make_unique<ReturnInsn>(*currentBB);
 }
 
 // Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the BIR
@@ -647,7 +642,7 @@ void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
 // Read Basic Block from the BIR
 std::shared_ptr<BasicBlock> BIRReader::readBasicBlock(std::shared_ptr<Function> birFunction) {
     int32_t nameCpIndex = readS4be();
-    auto basicBlock = std::make_shared<BasicBlock>(constantPool->getStringCp(nameCpIndex), birFunction);
+    auto basicBlock = std::make_shared<BasicBlock>(constantPool->getStringCp(nameCpIndex), *birFunction);
 
     int32_t insnCount = readS4be();
     for (auto i = 0; i < insnCount; i++) {
@@ -690,7 +685,7 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     int32_t typeCpIndex = readS4be();
     [[maybe_unused]] auto invocable_type = constantPool->getInvocableType(typeCpIndex);
     auto birFunction =
-        std::make_shared<Function>(package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
+        std::make_shared<Function>(*package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
     birFunction->setLocation(location);
 
     int64_t annotationLength __attribute__((unused)) = readS8be();
@@ -714,13 +709,11 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // if (!hasReceiver)
     //   birFunction->setReceiver(NULL);
 
-    int64_t taintTableLength = readS8be();
-    std::vector<char> taint(taintTableLength);
-    is.read(&taint[0], taintTableLength);
+    auto taintTableLength = readS8be();
+    is.ignore(taintTableLength);
 
-    int32_t docLength = readS4be();
-    std::vector<char> doc(docLength);
-    is.read(&doc[0], docLength);
+    auto docLength = readS4be();
+    is.ignore(docLength);
 
     int64_t functionBodyLength __attribute__((unused)) = readS8be();
     int32_t argsCount __attribute__((unused)) = readS4be();
@@ -779,10 +772,10 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
 StringCpInfo::StringCpInfo() { setTag(TAG_ENUM_CP_ENTRY_STRING); }
 
 void StringCpInfo::read() {
-    int32_t stringLength = readerRef.readS4be();
-    std::vector<char> result(stringLength);
-    readerRef.is.read(&result[0], stringLength);
-    value = std::string(result.begin(), result.end());
+    auto stringLength = readerRef.readS4be();
+    std::unique_ptr<char[]> result(new char[stringLength]);
+    readerRef.is.read(result.get(), stringLength);
+    value = std::string(result.get(), stringLength);
 }
 
 ShapeCpInfo::ShapeCpInfo() { setTag(TAG_ENUM_CP_ENTRY_SHAPE); }
@@ -864,8 +857,7 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_NEVER:
     case TYPE_TAG_NULL_SET:
     case TYPE_TAG_PARAMETERIZED_TYPE: {
-        std::vector<char> result(shapeLengthTypeInfo);
-        readerRef.is.read(&result[0], shapeLengthTypeInfo);
+        readerRef.is.ignore(shapeLengthTypeInfo);
         break;
     }
     case TYPE_TAG_ARRAY: {

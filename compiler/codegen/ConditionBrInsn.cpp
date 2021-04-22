@@ -22,36 +22,31 @@
 #include "Operand.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
-
-using namespace std;
 
 namespace nballerina {
 
-ConditionBrInsn::ConditionBrInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                                 std::shared_ptr<BasicBlock> ifThenBB, std::shared_ptr<BasicBlock> elseBB)
-    : TerminatorInsn(lhs, std::move(currentBB), nullptr, true), ifThenBB(std::move(ifThenBB)),
-      elseBB(std::move(elseBB)) {
+ConditionBrInsn::ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID)
+    : TerminatorInsn(lhs, currentBB, "", true), ifBBID(std::move(ifBBID)), elseBBID(std::move(elseBBID)) {
     kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
 }
 
-const BasicBlock &ConditionBrInsn::getIfThenBB() const { return *ifThenBB; }
-const BasicBlock &ConditionBrInsn::getElseBB() const { return *elseBB; }
-void ConditionBrInsn::setIfThenBB(std::shared_ptr<BasicBlock> bb) { ifThenBB = std::move(bb); }
-void ConditionBrInsn::setElseBB(std::shared_ptr<BasicBlock> bb) { elseBB = std::move(bb); }
+const std::string &ConditionBrInsn::getIfThenBBID() const { return ifBBID; }
+const std::string &ConditionBrInsn::getElseBBID() const { return elseBBID; }
+void ConditionBrInsn::setIfThenBB(std::weak_ptr<BasicBlock> bb) { ifThenBB = std::move(bb); }
+void ConditionBrInsn::setElseBB(std::weak_ptr<BasicBlock> bb) { elseBB = std::move(bb); }
 
-void ConditionBrInsn::translate(LLVMModuleRef &) {
+void ConditionBrInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcRef = getFunctionRef();
-    LLVMBuilderRef builder = funcRef.getLLVMBuilder();
-    string lhsName = getLhsOperand().getName();
-
-    LLVMValueRef brCondition = funcRef.getLLVMValueForBranchComparison(lhsName);
+    std::string lhsName = getLhsOperand().getName();
+    auto *brCondition = funcRef.getLLVMValueForBranchComparison(lhsName);
     if (brCondition == nullptr) {
-        brCondition = LLVMBuildIsNotNull(builder, funcRef.createTempVariable(getLhsOperand()), lhsName.c_str());
+        auto *lhsTemp = funcRef.createTempVariable(getLhsOperand(), module, builder);
+        brCondition = builder.CreateIsNotNull(lhsTemp, lhsName);
     }
-
-    LLVMBuildCondBr(builder, brCondition, ifThenBB->getLLVMBBRef(), elseBB->getLLVMBBRef());
+    assert(!ifThenBB.expired());
+    assert(!elseBB.expired());
+    builder.CreateCondBr(brCondition, ifThenBB.lock()->getLLVMBBRef(), elseBB.lock()->getLLVMBBRef());
 }
 
 } // namespace nballerina

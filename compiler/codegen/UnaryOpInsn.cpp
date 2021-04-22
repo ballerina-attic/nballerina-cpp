@@ -20,34 +20,29 @@
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
-#include <llvm-c/Core.h>
-#include <string>
 
 namespace nballerina {
 
-UnaryOpInsn::UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), rhsOp(rhs) {}
+UnaryOpInsn::UnaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs)
+    : NonTerminatorInsn(lhs, currentBB), rhsOp(rhs) {}
 
 void UnaryOpInsn::setInstKind(InstructionKind kind) { this->kind = kind; }
 
-void UnaryOpInsn::translate(LLVMModuleRef &) {
-
+void UnaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
     const auto &lhsOp = getLhsOperand();
-    std::string lhsTmpName = lhsOp.getName() + "_temp";
-    LLVMValueRef lhsRef = funcObj.getLLVMLocalOrGlobalVar(lhsOp);
-    LLVMValueRef rhsOpref = funcObj.createTempVariable(rhsOp);
+    auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(lhsOp, module);
+    auto *rhsOpref = funcObj.createTempVariable(rhsOp, module, builder);
 
     switch (kind) {
     case INSTRUCTION_KIND_UNARY_NOT: {
-        LLVMValueRef retVal = LLVMBuildNot(builder, rhsOpref, lhsTmpName.c_str());
-        LLVMBuildStore(builder, retVal, lhsRef);
+        auto *ifReturn = builder.CreateNot(rhsOpref, lhsOp.getName() + "_temp");
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_UNARY_NEG: {
-        LLVMValueRef retVal = LLVMBuildNeg(builder, rhsOpref, lhsTmpName.c_str());
-        LLVMBuildStore(builder, retVal, lhsRef);
+        auto *ifReturn = builder.CreateNeg(rhsOpref, lhsOp.getName() + "_temp");
+        builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     default:

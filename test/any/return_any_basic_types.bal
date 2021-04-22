@@ -1,10 +1,10 @@
-// RUN: "%testRunScript" %s %nballerinacc "%java_path" "%skip_bir_gen" | filecheck %s
+// RUN: "%testRunScript" %s %nballerinacc "%java_path" "%target_variant" "%skip_bir_gen" | filecheck %s
 
 public function print_string(string val) = external;
 
 public function print_integer(int val) = external;
 
-public function printf32(float val) = external;
+public function printf64(float val) = external;
 
 function fooInt() returns any {
     return 221;
@@ -28,7 +28,7 @@ public function main() {
     print_integer(i);
     float f = <float>fooFloat();
     print_string("RESULT=");
-    printf32(f);
+    printf64(f);
 }
 
 // CHECK: RESULT=222

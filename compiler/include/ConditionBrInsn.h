@@ -20,27 +20,29 @@
 #define __CONDITIONBRINSN__H__
 
 #include "TerminatorInsn.h"
+#include <memory>
 
 namespace nballerina {
 
 class ConditionBrInsn : public TerminatorInsn {
   private:
-    std::shared_ptr<BasicBlock> ifThenBB;
-    std::shared_ptr<BasicBlock> elseBB;
+    std::weak_ptr<BasicBlock> ifThenBB;
+    std::weak_ptr<BasicBlock> elseBB;
+    std::string ifBBID;
+    std::string elseBBID;
 
   public:
     ConditionBrInsn() = delete;
-    ConditionBrInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, std::shared_ptr<BasicBlock> ifThenBB,
-                    std::shared_ptr<BasicBlock> elseBB);
+    ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID);
     ~ConditionBrInsn() = default;
 
-    const BasicBlock &getIfThenBB() const;
-    const BasicBlock &getElseBB() const;
+    const std::string &getIfThenBBID() const;
+    const std::string &getElseBBID() const;
 
-    void setIfThenBB(std::shared_ptr<BasicBlock> bb);
-    void setElseBB(std::shared_ptr<BasicBlock> bb);
+    void setIfThenBB(std::weak_ptr<BasicBlock> bb);
+    void setElseBB(std::weak_ptr<BasicBlock> bb);
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

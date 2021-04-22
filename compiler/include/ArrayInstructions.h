@@ -27,40 +27,37 @@ namespace nballerina {
 class ArrayInsn : public NonTerminatorInsn {
   private:
     Operand sizeOp;
-    LLVMValueRef getArrayInitDeclaration(LLVMModuleRef &modRef);
 
   public:
     ArrayInsn() = delete;
-    ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp);
+    ArrayInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &sizeOp);
     ~ArrayInsn() = default;
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 class ArrayLoadInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag);
 
   public:
     ArrayLoadInsn() = delete;
-    ArrayLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
+    ArrayLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp);
     ~ArrayLoadInsn() = default;
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 class ArrayStoreInsn : public NonTerminatorInsn {
   private:
     Operand keyOp;
     Operand rhsOp;
-    LLVMValueRef getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag);
 
   public:
     ArrayStoreInsn() = delete;
-    ArrayStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp, const Operand &ROp);
+    ArrayStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp);
     ~ArrayStoreInsn() = default;
 
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 } // namespace nballerina
 

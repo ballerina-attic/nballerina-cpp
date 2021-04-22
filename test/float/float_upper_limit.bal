@@ -5,10 +5,10 @@ public function print_string(string val) = external;
 public function printf64(float val) = external;
 
 public function main() {
-    float a = 77.7;
-    any b = a;
-    float c = <float>b;
     print_string("RESULT=");
-    printf64(c);
+    //Passing value greater than upper limit of float i.e. 3.402823466 E + 39
+    float f = 3.402823465999999976608952504680408952584;
+    printf64(f);
 }
-// CHECK: RESULT=77.7
+
+// CHECK: RESULT=3.402823466

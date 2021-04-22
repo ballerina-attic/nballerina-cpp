@@ -17,31 +17,16 @@
  */
 
 #include "Package.h"
+#include "CodeGenUtils.h"
 #include "Function.h"
 #include "FunctionParam.h"
 #include "Operand.h"
 #include "Types.h"
-#include "llvm-c/Core.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
 
 namespace nballerina {
 
-// return ValueRef of global variable based on variable name.
-LLVMValueRef Package::getGlobalLLVMVar(const std::string &globVar) const {
-    const auto &varIt = globalVarRefs.find(globVar);
-    assert(varIt != globalVarRefs.end());
-    return varIt->second;
-}
-
-LLVMValueRef Package::getGlobalNilVar() const { return getGlobalLLVMVar(BAL_NIL_VALUE); }
-
-const std::string &Package::getOrgName() const { return org; }
-const std::string &Package::getPackageName() const { return name; }
-const std::string &Package::getVersion() const { return version; }
-const std::string &Package::getSrcFileName() const { return sourceFileName; }
-LLVMValueRef Package::getStringBuilderTableGlobalPointer() { return strBuilderGlobalPtr; }
+std::string Package::getModuleName() const { return org + name + version; }
+llvm::Value *Package::getStringBuilderTableGlobalPointer() const { return strBuilderGlobal; }
 
 void Package::addToStrTable(std::string_view name) {
     if (!strBuilder->contains(name.data())) {
@@ -60,104 +45,45 @@ void Package::insertFunction(const std::shared_ptr<Function> &function) {
 
 const Function &Package::getFunction(const std::string &name) const { return *functionLookUp.at(name); }
 
-void Package::addFunctionRef(const std::string &arrayName, LLVMValueRef functionRef) {
-    functionRefs.insert(std::pair<std::string, LLVMValueRef>(arrayName, functionRef));
-}
+void Package::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-LLVMTypeRef Package::getLLVMTypeOfType(const Type &type) const { return getLLVMTypeOfType(type.getTypeTag()); }
+    module.setSourceFileName(sourceFileName);
 
-LLVMTypeRef Package::getLLVMTypeOfType(TypeTag typeTag) const {
-    switch (typeTag) {
-    case TYPE_TAG_INT:
-        return LLVMInt64Type();
-    case TYPE_TAG_FLOAT:
-        return LLVMFloatType();
-    case TYPE_TAG_BOOLEAN:
-        return LLVMInt8Type();
-    case TYPE_TAG_CHAR_STRING:
-    case TYPE_TAG_STRING:
-    case TYPE_TAG_MAP:
-    case TYPE_TAG_ARRAY:
-    case TYPE_TAG_NIL:
-        return LLVMPointerType(LLVMInt8Type(), 0);
-    case TYPE_TAG_ANY:
-    case TYPE_TAG_UNION:
-    case TYPE_TAG_ANYDATA:
-        return wrap(boxType.get());
-    default:
-        return LLVMInt64Type();
-    }
-}
+    llvm::Type *charPtrType = builder.getInt8PtrTy();
+    llvm::Constant *nullValue = llvm::Constant::getNullValue(charPtrType);
 
-void Package::translate(LLVMModuleRef &modRef) {
     // String Table initialization
     strBuilder = std::make_unique<llvm::StringTableBuilder>(llvm::StringTableBuilder::RAW, 1);
 
     // creating external char pointer to store string builder table.
-    LLVMTypeRef charPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    llvm::Constant *charValue = llvm::Constant::getNullValue(llvm::unwrap(charPtrType));
-    auto stringBuilderTable = std::make_unique<llvm::GlobalVariable>(*llvm::unwrap(modRef), llvm::unwrap(charPtrType),
-                                                                     false, llvm::GlobalValue::InternalLinkage,
-                                                                     charValue, STRING_TABLE_NAME, nullptr);
-    stringBuilderTable->setAlignment(llvm::Align(4));
-    strBuilderGlobalPtr = llvm::wrap(stringBuilderTable.get());
-    globalStringValues.push_back(std::move(stringBuilderTable));
-
-    // create global var for nil value
-    llvm::Constant *nullValue = llvm::Constant::getNullValue(llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)));
-    auto gVal = std::make_unique<llvm::GlobalVariable>(
-        *llvm::unwrap(modRef), llvm::unwrap(LLVMPointerType(LLVMInt8Type(), 0)), false,
-        llvm::GlobalValue::InternalLinkage, nullValue, BAL_NIL_VALUE, nullptr);
-    LLVMValueRef globVarRef = llvm::wrap(gVal.get());
-    globalVarRefs.insert({BAL_NIL_VALUE, globVarRef});
-    globalStringValues.push_back(std::move(gVal));
-
-    // creating struct smart pointer to store any type variables data.
-    LLVMTypeRef structGen = LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.smtPtr");
-    LLVMTypeRef structElementTypes[] = {LLVMInt64Type(), LLVMPointerType(LLVMInt8Type(), 0)};
-    LLVMStructSetBody(structGen, structElementTypes, 2, 0);
-    boxType = std::unique_ptr<llvm::StructType>(llvm::unwrap<llvm::StructType>(structGen));
+    strBuilderGlobal = new llvm::GlobalVariable(module, charPtrType, false, llvm::GlobalValue::InternalLinkage,
+                                                nullValue, STRING_TABLE_NAME, nullptr);
+    strBuilderGlobal->setAlignment(llvm::Align(4));
 
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {
         auto const &globVar = it.second;
-        LLVMTypeRef varTyperef = getLLVMTypeOfType(globVar.getType());
-        const auto &varName = globVar.getName();
-        // emit/adding the global variable.
-        llvm::Constant *initValue = llvm::Constant::getNullValue(llvm::unwrap(varTyperef));
-        auto gVar =
-            std::make_unique<llvm::GlobalVariable>(*llvm::unwrap(modRef), llvm::unwrap(varTyperef), false,
-                                                   llvm::GlobalValue::ExternalLinkage, initValue, varName, nullptr);
+        auto *varTyperef = CodeGenUtils::getLLVMTypeOfType(globVar.getType(), module);
+        llvm::Constant *initValue = llvm::Constant::getNullValue(varTyperef);
+        auto *gVar = new llvm::GlobalVariable(module, varTyperef, false, llvm::GlobalValue::ExternalLinkage, initValue,
+                                              globVar.getName(), nullptr);
         gVar->setAlignment(llvm::Align(4));
-        LLVMValueRef globVarRef = wrap(gVar.get());
-        globalVarRefs.insert({varName, globVarRef});
-        globalStringValues.push_back(std::move(gVar));
     }
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.
-    LLVMBuilderRef llvmBuilder = LLVMCreateBuilder();
     for (const auto &function : functionLookUp) {
-        function.second->setLLVMBuilder(llvmBuilder);
-        size_t numParams = function.second->getNumParams();
-        std::unique_ptr<LLVMTypeRef[]> paramTypes(new LLVMTypeRef[numParams]);
-        bool isVarArg = false;
-
-        if (function.second->getRestParam()) {
-            isVarArg = true;
-        }
-        assert(function.second->getReturnVar());
-        size_t i = 0;
+        auto numParams = function.second->getNumParams();
+        std::vector<llvm::Type *> paramTypes;
+        paramTypes.reserve(numParams);
         for (const auto &funcParam : function.second->getParams()) {
-            paramTypes[i++] = getLLVMTypeOfType(funcParam.getType());
+            paramTypes.push_back(CodeGenUtils::getLLVMTypeOfType(funcParam.getType(), module));
         }
 
-        LLVMTypeRef funcType = LLVMFunctionType(function.second->getLLVMTypeOfReturnVal(), paramTypes.get(), numParams,
-                                                static_cast<LLVMBool>(isVarArg));
-        if (funcType != nullptr) {
-            function.second->setLLVMFunctionValue(
-                LLVMAddFunction(modRef, function.second->getName().c_str(), funcType));
-        }
+        bool isVarArg = static_cast<bool>(function.second->getRestParam());
+        auto *funcType = llvm::FunctionType::get(function.second->getLLVMTypeOfReturnVal(module), paramTypes, isVarArg);
+
+        llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, function.second->getName(), module);
     }
 
     // iterating over each function translate the function body
@@ -165,31 +91,28 @@ void Package::translate(LLVMModuleRef &modRef) {
         if (function.second->isExternalFunction()) {
             continue;
         }
-        function.second->translate(modRef);
+        function.second->translate(module, builder);
     }
 
     // This Api will finalize the string table builder if table size is not zero
     if (strBuilder->getSize() != 0) {
-        applyStringOffsetRelocations(modRef);
+        applyStringOffsetRelocations(module, builder);
         // here, storing String builder table address into global char pointer.
         // like below example.
         // char arr[100] = { 'a' };
         // char *ptr = arr;
-        LLVMValueRef stringTableAddr = getGlobalLLVMVar(STRING_TABLE_NAME);
-        LLVMValueRef stringTablePtrAddress = getStringBuilderTableGlobalPointer();
-        LLVMValueRef bitCastRes =
-            LLVMBuildBitCast(llvmBuilder, stringTableAddr, LLVMPointerType(LLVMInt8Type(), 0), "");
-        LLVMSetInitializer(stringTablePtrAddress, bitCastRes);
+        auto *bitCastRes = builder.CreateBitCast(strTablePtr, charPtrType, "");
+        strBuilderGlobal->setInitializer(llvm::dyn_cast<llvm::Constant>(bitCastRes));
     }
 }
 
-void Package::addStringOffsetRelocationEntry(const std::string &eleType, LLVMValueRef storeInsn) {
+void Package::addStringOffsetRelocationEntry(const std::string &eleType, llvm::Value *storeInsn) {
     structElementStoreInst[eleType].push_back(storeInsn);
 }
 
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
-void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
+void Package::applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     // finalizing the string builder table.
     strBuilder->finalize();
@@ -213,29 +136,29 @@ void Package::applyStringOffsetRelocations(LLVMModuleRef &modRef) {
 
     for (const auto &element : structElementStoreInst) {
         size_t finalOrigOffset = strBuilder->getOffset(element.first);
-        LLVMValueRef tempVal = LLVMConstInt(LLVMInt64Type(), finalOrigOffset, 0);
+        auto *tempVal = builder.getInt64(finalOrigOffset);
         for (const auto &insn : element.second) {
-            auto *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(llvm::unwrap(insn));
-            LLVMValueRef constOperand = (GEPInst != nullptr) ? LLVMGetOperand(insn, 1) : LLVMGetOperand(insn, 0);
-            LLVMReplaceAllUsesWith(constOperand, tempVal);
+            auto *GEPInst = llvm::dyn_cast<llvm::GetElementPtrInst>(insn);
+            if (GEPInst != nullptr) {
+                GEPInst->getOperand(1)->replaceAllUsesWith(tempVal);
+                continue;
+            }
+            auto *temp = llvm::dyn_cast<llvm::User>(insn);
+            if (temp != nullptr) {
+                temp->getOperand(0)->replaceAllUsesWith(tempVal);
+            } else {
+                llvm_unreachable("");
+            }
         }
     }
-    LLVMTypeRef arraType = LLVMArrayType(LLVMInt8Type(), concatString.size() + 1);
-    LLVMValueRef createAddrsSpace = LLVMAddGlobalInAddressSpace(modRef, arraType, STRING_TABLE_NAME.c_str(), 0);
-    globalVarRefs.insert({STRING_TABLE_NAME, createAddrsSpace});
 
-    LLVMValueRef constString = LLVMConstString(concatString.c_str(), concatString.size(), 0);
+    auto *arrayType = llvm::ArrayType::get(llvm::Type::getInt8Ty(module.getContext()), concatString.size() + 1);
+    strTablePtr = new llvm::GlobalVariable(module, arrayType, false, llvm::GlobalValue::ExternalLinkage, nullptr,
+                                           STRING_TABLE_NAME, nullptr, llvm::GlobalVariable::NotThreadLocal, 0);
+    auto *constString = llvm::ConstantDataArray::getString(module.getContext(), concatString);
     // Initializing global address space with generated string(concat all the
     // strings from string builder table).
-    LLVMSetInitializer(createAddrsSpace, constString);
-}
-
-LLVMValueRef Package::getFunctionRef(const std::string &arrayName) const {
-    const auto &it = functionRefs.find(arrayName);
-    if (it == functionRefs.end()) {
-        return nullptr;
-    }
-    return it->second;
+    strTablePtr->setInitializer(constString);
 }
 
 const Variable &Package::getGlobalVariable(const std::string &name) const {
@@ -248,45 +171,27 @@ void Package::insertGlobalVar(const Variable &var) {
     globalVars.insert(std::pair<std::string, Variable>(var.getName(), var));
 }
 
-// Declaration for map<int> type store function
-LLVMValueRef Package::getMapStoreDeclaration(LLVMModuleRef &modRef, TypeTag typeTag) {
-    std::string funcName = "map_store_" + Type::getNameOfType(typeTag);
-    const char *externalFunctionName = funcName.c_str();
+void Package::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                      const Type &valueType, llvm::Value *smartStruct) {
 
-    LLVMValueRef mapStoreFunc = getFunctionRef(externalFunctionName);
-    if (mapStoreFunc != nullptr) {
-        return mapStoreFunc;
+    // struct first element original type
+    auto *inherentTypeIdx = builder.CreateStructGEP(smartStruct, 0, "inherentTypeName");
+    auto valueTypeName = Type::typeStringMangleName(valueType);
+    addToStrTable(valueTypeName);
+    int tempRandNum1 = std::rand() % 1000 + 1;
+    auto *constValue = builder.getInt64(tempRandNum1);
+    auto *storeInsn = builder.CreateStore(constValue, inherentTypeIdx);
+    addStringOffsetRelocationEntry(valueTypeName.data(), storeInsn);
+
+    // struct second element void pointer data.
+    auto *valueIndx = builder.CreateStructGEP(smartStruct, 1, "data");
+    if (Type::isBoxValueSupport(valueType.getTypeTag())) {
+        auto *valueTemp = builder.CreateLoad(value, "_temp");
+        auto boxValFunc = CodeGenUtils::getBoxValueFunc(module, valueTemp->getType(), valueType.getTypeTag());
+        value = builder.CreateCall(boxValFunc, llvm::ArrayRef<llvm::Value *>({valueTemp}), "call");
     }
-
-    LLVMTypeRef memberType;
-    if (Type::isSmartStructType(typeTag)) {
-        memberType = LLVMPointerType(getLLVMTypeOfType(typeTag), 0);
-    } else {
-        memberType = getLLVMTypeOfType(typeTag);
-    }
-
-    LLVMTypeRef keyType = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMTypeRef mapType = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMTypeRef paramTypes[] = {mapType, keyType, memberType};
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
-    mapStoreFunc = LLVMAddFunction(modRef, externalFunctionName, funcType);
-    addFunctionRef(externalFunctionName, mapStoreFunc);
-    return mapStoreFunc;
-}
-
-LLVMValueRef Package::getMapSpreadFieldDeclaration(LLVMModuleRef &modRef) {
-    std::string funcName = "map_spread_field_init";
-    const auto *externalFunctionName = funcName.c_str();
-
-    LLVMValueRef func = getFunctionRef(externalFunctionName);
-    if (func != nullptr) {
-        return func;
-    }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0)};
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 2, 0);
-    func = LLVMAddFunction(modRef, externalFunctionName, funcType);
-    addFunctionRef(externalFunctionName, func);
-    return func;
+    auto *bitCastRes = builder.CreateBitCast(value, builder.getInt8PtrTy(), "");
+    builder.CreateStore(bitCastRes, valueIndx);
 }
 
 } // namespace nballerina

@@ -16,27 +16,24 @@
  * under the License.
  */
 
-#ifndef __TYPECASTINSN__H__
-#define __TYPECASTINSN__H__
+#ifndef __CODEGENERATOR__H__
+#define __CODEGENERATOR__H__
 
-#include "NonTerminatorInsn.h"
+#include "interfaces/Translatable.h"
+#include <string>
 
 namespace nballerina {
 
-// Forward Declare
-class Operand;
-
-class TypeCastInsn : public NonTerminatorInsn {
+class CodeGenerator {
   private:
-    Operand rhsOp;
-
+    CodeGenerator() = default;
+    /* data */
   public:
-    TypeCastInsn() = delete;
-    TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp);
-    ~TypeCastInsn() = default;
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    ~CodeGenerator() = default;
+    static int generateLLVMIR(Translatable *translatableObj, const std::string &outFileName,
+                              const std::string &moduleName = "");
 };
 
 } // namespace nballerina
 
-#endif //!__TYPECASTINSN__H__
+#endif //!__CODEGENERATOR__H__

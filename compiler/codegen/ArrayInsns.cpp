@@ -17,12 +17,12 @@
  */
 
 #include "ArrayInstructions.h"
+#include "CodeGenUtils.h"
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
 #include <string>
 
 using namespace std;
@@ -30,118 +30,58 @@ using namespace std;
 namespace nballerina {
 
 // New Array Instruction
-ArrayInsn::ArrayInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &sizeOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), sizeOp(sizeOp) {}
+ArrayInsn::ArrayInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &sizeOp)
+    : NonTerminatorInsn(lhs, currentBB), sizeOp(sizeOp) {}
 
-LLVMValueRef ArrayInsn::getArrayInitDeclaration(LLVMModuleRef &modRef) {
-    const auto &lhsVar = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand());
-    const auto &arrayType = lhsVar.getType();
-    TypeTag memberTypeTag = arrayType.getMemberTypeTag();
-    const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
-    LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
-    if (addedFuncRef != nullptr) {
-        return addedFuncRef;
-    }
-    LLVMTypeRef paramTypes = LLVMInt64Type();
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMPointerType(LLVMInt8Type(), 0), &paramTypes, 1, 0);
-    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
-    getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
-    return addedFuncRef;
-}
-
-void ArrayInsn::translate(LLVMModuleRef &modRef) {
+void ArrayInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
-    LLVMValueRef sizeOpValueRef = funcObj.createTempVariable(sizeOp);
-    LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef arrayInitFunc = getArrayInitDeclaration(modRef);
-    LLVMValueRef newArrayRef = LLVMBuildCall(builder, arrayInitFunc, &sizeOpValueRef, 1, "");
-
-    LLVMBuildStore(builder, newArrayRef, lhsOpRef);
+    auto *sizeOpValueRef = funcObj.createTempVariable(sizeOp, module, builder);
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    const auto &lhsVar = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand());
+    TypeTag memberTypeTag = lhsVar.getType().getMemberTypeTag();
+    auto arrayInitFunc = CodeGenUtils::getArrayInitFunc(module, memberTypeTag);
+    auto *newArrayRef = builder.CreateCall(arrayInitFunc, llvm::ArrayRef<llvm::Value *>({sizeOpValueRef}));
+    builder.CreateStore(newArrayRef, lhsOpRef);
 }
 
 // Array Load Instruction
-ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
-                             const Operand &ROp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(ROp) {}
+ArrayLoadInsn::ArrayLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
 
-LLVMValueRef ArrayLoadInsn::getArrayLoadDeclaration(LLVMModuleRef &modRef, TypeTag lhsOpTypeTag) {
-    const auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(lhsOpTypeTag);
-    const auto &lhsType = getFunctionRef().getLocalOrGlobalVariable(getLhsOperand()).getType();
-    LLVMTypeRef funcRetType;
-    if (Type::isSmartStructType(lhsType.getTypeTag())) {
-        funcRetType = LLVMPointerType(getPackageRef().getLLVMTypeOfType(lhsType), 0);
-    } else {
-        funcRetType = getPackageRef().getLLVMTypeOfType(lhsType);
-    }
-    LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
-    if (addedFuncRef != nullptr) {
-        return addedFuncRef;
-    }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMInt64Type()};
-    LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 2, 0);
-    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
-    getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
-    return addedFuncRef;
-}
-
-void ArrayLoadInsn::translate(LLVMModuleRef &modRef) {
+void ArrayLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
     const auto &lhsOpTypeTag = funcObj.getLocalOrGlobalVariable(getLhsOperand()).getType().getTypeTag();
-    LLVMValueRef ArrayLoadFunc = getArrayLoadDeclaration(modRef, lhsOpTypeTag);
+    auto ArrayLoadFunc = CodeGenUtils::getArrayLoadFunc(module, lhsOpTypeTag);
 
-    LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
-    LLVMValueRef sizeOpValueRef[] = {LLVMBuildLoad(builder, rhsOpRef, ""), funcObj.createTempVariable(keyOp)};
-    LLVMValueRef valueInArrayPointer = LLVMBuildCall(builder, ArrayLoadFunc, sizeOpValueRef, 2, "");
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *rhsOpTempRef = funcObj.createTempVariable(rhsOp, module, builder);
+    auto *keyOpTempRef = funcObj.createTempVariable(keyOp, module, builder);
+    auto *valueInArrayPointer =
+        builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({rhsOpTempRef, keyOpTempRef}));
+
     if (!Type::isSmartStructType(lhsOpTypeTag)) {
-        LLVMBuildStore(builder, valueInArrayPointer, lhsOpRef);
+        builder.CreateStore(valueInArrayPointer, lhsOpRef);
         return;
     }
-    LLVMValueRef smtPtrArrElement = LLVMBuildLoad(builder, valueInArrayPointer, "");
-    LLVMBuildStore(builder, smtPtrArrElement, lhsOpRef);
+    auto *smtPtrArrElement = builder.CreateLoad(valueInArrayPointer);
+    builder.CreateStore(smtPtrArrElement, lhsOpRef);
 }
 
 // Array Store Instruction
-ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
-                               const Operand &rOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
+ArrayStoreInsn::ArrayStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
-LLVMValueRef ArrayStoreInsn::getArrayStoreDeclaration(LLVMModuleRef &modRef, TypeTag rhsOpTypeTag) {
-    const auto arrayTypeFuncName = "array_store_" + Type::getNameOfType(rhsOpTypeTag);
-    LLVMValueRef addedFuncRef = getPackageRef().getFunctionRef(arrayTypeFuncName);
-    if (addedFuncRef != nullptr) {
-        return addedFuncRef;
-    }
-    LLVMTypeRef memType;
-    if (Type::isSmartStructType(rhsOpTypeTag)) {
-        memType = LLVMPointerType(getPackageRef().getLLVMTypeOfType(rhsOpTypeTag), 0);
-    } else {
-        memType = getPackageRef().getLLVMTypeOfType(rhsOpTypeTag);
-    }
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0),  LLVMInt64Type(), memType};
-    LLVMTypeRef funcType = LLVMFunctionType(LLVMVoidType(), paramTypes, 3, 0);
-    addedFuncRef = LLVMAddFunction(modRef, arrayTypeFuncName.c_str(), funcType);
-    getPackageMutableRef().addFunctionRef(arrayTypeFuncName, addedFuncRef);
-    return addedFuncRef;
-}
-
-void ArrayStoreInsn::translate(LLVMModuleRef &modRef) {
+void ArrayStoreInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
     const auto &rhsOpTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getTypeTag();
-    LLVMValueRef ArrayLoadFunc = getArrayStoreDeclaration(modRef, rhsOpTypeTag);
+    auto ArrayLoadFunc = CodeGenUtils::getArrayStoreFunc(module, rhsOpTypeTag);
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *memVal = Type::isSmartStructType(rhsOpTypeTag) ? funcObj.getLLVMLocalOrGlobalVar(rhsOp, module)
+                                                         : funcObj.createTempVariable(rhsOp, module, builder);
+    auto *lhsOpTempRef = builder.CreateLoad(lhsOpRef);
+    auto *keyOpTempRef = funcObj.createTempVariable(keyOp, module, builder);
 
-    LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef memVal;
-    if (Type::isSmartStructType(rhsOpTypeTag)) {
-        memVal = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
-    } else {
-        memVal = funcObj.createTempVariable(rhsOp);
-    }
-    LLVMValueRef argOpValueRef[] = {LLVMBuildLoad(builder, lhsOpRef, ""), funcObj.createTempVariable(keyOp), memVal};
-    LLVMBuildCall(builder, ArrayLoadFunc, argOpValueRef, 3, "");
+    builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({lhsOpTempRef, keyOpTempRef, memVal}));
 }
 
 } // namespace nballerina

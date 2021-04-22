@@ -19,32 +19,24 @@
 #include "ReturnInsn.h"
 #include "Function.h"
 #include "Operand.h"
-#include "Package.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
-
-using namespace std;
-using namespace llvm;
 
 namespace nballerina {
 
-ReturnInsn::ReturnInsn(std::shared_ptr<BasicBlock> currentBB)
-    : TerminatorInsn(Operand("", NOT_A_KIND), std::move(currentBB), nullptr) {}
+ReturnInsn::ReturnInsn(BasicBlock &currentBB) : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, "") {}
 
-void ReturnInsn::translate(LLVMModuleRef &) {
+void ReturnInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
 
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
-
     if (funcObj.isMainFunction()) {
-        LLVMBuildRetVoid(builder);
+        builder.CreateRetVoid();
         return;
     }
     assert(funcObj.getReturnVar().has_value());
-    LLVMValueRef retValueRef =
-        LLVMBuildLoad(builder, funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
-    LLVMBuildRet(builder, retValueRef);
+    auto *retValueRef =
+        builder.CreateLoad(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
+    builder.CreateRet(retValueRef);
 }
 
 } // namespace nballerina

@@ -147,26 +147,28 @@ Clone the nballerina source and run below commands.
 By default debug build enables both sanitizers (via gcc or clang) and static analysis (via clang-tidy). To build a debug build use the following command template:
 
 
-        cmake -DCMAKE_BUILD_TYPE=Release <additional flags> -S . -B build/
+        cmake -DCMAKE_BUILD_TYPE=Release <options> -S . -B build/
         cmake --build ./build/
 
-The valid additional flags are listed below:
-* `-DSKIP_SANITIZER=ON` : Don't enable sanitizers
-  * `-USKIP_SANITIZER` To unset it
-* `-DSKIP_ANALYSE=ON` : Don't enable static analysis
-  * `-USKIP_ANALYSE` To unset it
-* `-DCLANG_TIDY_OVERRIDE=<compiler name>` : Override default clang-tidy executable name e.g. `-DCLANG_TIDY_OVERRIDE=clang-tidy-11`
-* `-DCMAKE_CXX_COMPILER=<compiler name>` : Override default compiler e.g. `-DCMAKE_CXX_COMPILER=clang++-11`, `-DCMAKE_CXX_COMPILER=g++`
-* `-DENABLE_COVERAGE=ON` : Enable code coverage
+Valid options:
+* `-DENABLE_SANITIZER=ON/OFF` : Enable sanitizers for GCC and Clang++ (Default `ON`)
   * Valid only for debug builds
-  * Launch code coverage test via `cmake --build ./build/ -t nballerinacc_coverage`
-  * `-UENABLE_COVERAGE` To unset it
-* `-DSKIP_BIR_GEN=ON` : Skip the execution of `ballerina build --dump-file` for check target, if dump files already exists. Set this to speed up LIT test execution.
-  * `-USKIP_BIR_GEN` To unset it
+* `-DENABLE_ANALYSE=ON/OFF` : Enable static analysis if clang-tidy is detected (Default `ON`)
+  * Valid only for debug builds
+* `-DENABLE_COVERAGE=ON/OFF` : Enable code coverage (Default `OFF`)
+  * Valid only for debug builds
+  * Launch code coverage test via `cd build; cmake --build . -t nballerinacc_coverage`
+* `-DSKIP_BIR_GEN=ON` : Skip the execution of `ballerina build --dump-file` for check target, if dump files already exists
+  * Set this to speed up LIT test execution. 
+  * `-DSKIP_BIR_GEN` To unset it
+* `-DCLANG_TIDY_OVERRIDE=<compiler name>` : Override default clang-tidy executable name e.g. `-DCLANG_TIDY_OVERRIDE=clang-tidy-11`
+  * `-DCLANG_TIDY_OVERRIDE` To unset it
 * `-DCHECK_FILTER="--filter=<regex>"` : Filter tests to run. e.g. `-DCHECK_FILTER="--filter=\"simpleMain.bal\""`, `-DCHECK_FILTER="--filter=\"functions\""`
   * `-UCHECK_FILTER` To unset it
+* `-DCMAKE_CXX_COMPILER=<compiler name>` : Override default compiler e.g. `-DCMAKE_CXX_COMPILER=clang++-11`, `-DCMAKE_CXX_COMPILER=g++`
+  * `-UCMAKE_CXX_COMPILER` To unset it
 
 **Additional notes:**
-* Don't use parallel builds with static analysis ON; otherwise the suggestions dumped on stdout will be hard to parse
+* Recommend not to use parallel builds with static analysis ON; otherwise the suggestions dumped on stdout will be hard to parse
 * To disable certain clang-tidy checks, add them to the list @ line 11 in the `Clang-tidy.cmake` file
-* To enable/disable specific sanitizers, edit the wnd of `Sanitizers.cmake` file
+* To enable/disable specific sanitizers, edit the `add_sanitizers` macro in `Sanitizers.cmake` file

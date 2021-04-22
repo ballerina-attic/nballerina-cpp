@@ -11,7 +11,7 @@ then
 fi
 
 # Skip BIR dump generation if forth input arg is set
-if [ -z "$4" ]
+if [ -z "$5" ]
 then
   ballerina build --dump-bir-file=$filename-bir-dump $1 1>bal_out.log 2>bal_err.log
 else
@@ -46,7 +46,7 @@ then
   exit 1
 fi
 
-clang-11 -flto=thin -fuse-ld=lld-11 -L../../runtime/release/ -lballerina_rt -lpthread -ldl -o $filename.out -O3 $filename.o 2>lld_err.log
+clang-11 -flto=thin -fuse-ld=lld-11 -L../../runtime/$4/ -lballerina_rt -lpthread -ldl -o $filename.out -O3 $filename.o 2>lld_err.log
 if [ -s ./lld_err.log ]
 then
   echo "Linker error/warning. Error msg: "
