@@ -26,12 +26,12 @@ namespace nballerina {
 // Forward Declaration
 class BasicBlock;
 
-class ReturnInsn : public TerminatorInsn {
+class ReturnInsn : public TerminatorInsn, public TranslatableNew<ReturnInsn> {
   public:
-    ReturnInsn(BasicBlock &currentBB);
+    ReturnInsn(BasicBlock &currentBB) : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, "") {}
     ~ReturnInsn() = default;
 
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class TerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

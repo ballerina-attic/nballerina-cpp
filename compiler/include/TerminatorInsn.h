@@ -29,29 +29,20 @@ namespace nballerina {
 class BasicBlock;
 class Operand;
 
-class TerminatorInsn : public AbstractInstruction, public Translatable {
+class TerminatorInsn : public AbstractInstruction, virtual public TranslatableInterface {
   private:
-    std::weak_ptr<BasicBlock> thenBB;
     std::string thenBBID;
-    bool patchRequired = false;
 
   protected:
     InstructionKind kind;
 
   public:
     TerminatorInsn() = delete;
-    TerminatorInsn(const Operand &lhs, BasicBlock &currentBB, std::string thenBBID, bool patchRequired = false);
+    TerminatorInsn(const Operand &lhs, BasicBlock &currentBB, std::string thenBBID);
     virtual ~TerminatorInsn() = default;
 
     const std::string &getNextBBID() const;
-    const BasicBlock &getNextBB() const;
-    bool isPatched() const;
     InstructionKind getInstKind() const;
-
-    void setPatched();
-    void setNextBB(std::weak_ptr<BasicBlock> bb);
-
-    virtual void translate(llvm::Module &module, llvm::IRBuilder<> &builder) override;
 };
 
 } // namespace nballerina

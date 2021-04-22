@@ -29,7 +29,7 @@ class Operand;
 class Variable;
 class MapConstruct;
 
-class StructureInsn : public NonTerminatorInsn {
+class StructureInsn : public NonTerminatorInsn, public TranslatableNew<StructureInsn> {
   private:
     std::vector<MapConstruct> initValues;
     void mapCreateTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder);
@@ -37,11 +37,11 @@ class StructureInsn : public NonTerminatorInsn {
 
   public:
     StructureInsn() = delete;
-    StructureInsn(const Operand &lhs, BasicBlock &currentBB);
-    StructureInsn(const Operand &lhs, BasicBlock &currentBB, std::vector<MapConstruct> initValues);
+    StructureInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
+    StructureInsn(const Operand &lhs, BasicBlock &currentBB, std::vector<MapConstruct> initValues)
+        : NonTerminatorInsn(lhs, currentBB), initValues(std::move(initValues)) {}
     ~StructureInsn() = default;
-
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

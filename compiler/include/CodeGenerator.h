@@ -27,10 +27,10 @@ namespace nballerina {
 class CodeGenerator {
   private:
     CodeGenerator() = default;
-    /* data */
+
   public:
     ~CodeGenerator() = default;
-    static int generateLLVMIR(Translatable *translatableObj, const std::string &outFileName,
+    static int generateLLVMIR(class Package &translatableObj, const std::string &outFileName,
                               const std::string &moduleName = "");
 };
 

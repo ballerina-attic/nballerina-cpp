@@ -16,39 +16,35 @@
  * under the License.
  */
 
-#include "StructureInsn.h"
 #include "CodeGenUtils.h"
 #include "Function.h"
 #include "MapInsns.h"
+#include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
 #include "Package.h"
+#include "StructureInsn.h"
 #include "TypeUtils.h"
 #include "Types.h"
 #include "Variable.h"
 
 namespace nballerina {
 
-StructureInsn::StructureInsn(const Operand &lhs, BasicBlock &currentBB, std::vector<MapConstruct> initValues)
-    : NonTerminatorInsn(lhs, currentBB), initValues(std::move(initValues)) {}
+void NonTerminatorInsnCodeGen::visit(class StructureInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-StructureInsn::StructureInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
-
-void StructureInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-
-    const auto &funcObj = getFunctionRef();
+    const auto &funcObj = obj.getFunctionRef();
     // Find Variable corresponding to lhs to determine structure and member type
-    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
+    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(obj.getLhsOperand());
     TypeTag structType = lhsVar.getType().getTypeTag();
     // Only handle Map type
     if (structType != TYPE_TAG_MAP) {
         llvm_unreachable("Only Map type structs are currently supported");
     }
 
-    mapCreateTranslate(lhsVar, module, builder);
-    if (initValues.empty()) {
+    obj.mapCreateTranslate(lhsVar, module, builder);
+    if (obj.initValues.empty()) {
         return;
     }
-    mapInitTranslate(lhsVar, module, builder);
+    obj.mapInitTranslate(lhsVar, module, builder);
 }
 
 void StructureInsn::mapInitTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder) {

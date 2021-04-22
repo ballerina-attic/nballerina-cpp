@@ -16,19 +16,21 @@
  * under the License.
  */
 
-#include "GoToInsn.h"
-#include "BasicBlock.h"
+#ifndef __PACKAGECODEGEN__H__
+#define __PACKAGECODEGEN__H__
+
+#include "interfaces/Translatable.h"
 
 namespace nballerina {
 
-GoToInsn::GoToInsn(BasicBlock &currentBB, std::string thenBBID)
-    : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, std::move(thenBBID), true) {
-    kind = INSTRUCTION_KIND_GOTO;
-}
-
-void GoToInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
-    assert(getNextBB().getLLVMBBRef() != nullptr);
-    builder.CreateBr(getNextBB().getLLVMBBRef());
-}
+class PackageCodeGen {
+    // private:
+  public:
+    PackageCodeGen() = default;
+    ~PackageCodeGen() = default;
+    void visit(class Package &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
+};
 
 } // namespace nballerina
+
+#endif //!__PACKAGECODEGEN__H__

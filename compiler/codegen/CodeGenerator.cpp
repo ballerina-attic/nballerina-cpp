@@ -17,14 +17,17 @@
  */
 
 #include "CodeGenerator.h"
+#include "Function.h"
+#include "Package.h"
+#include "PackageCodeGen.h"
+#include <iostream>
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
-#include <iostream>
 #include <sstream>
 
 namespace nballerina {
 
-int CodeGenerator::generateLLVMIR(Translatable *translatableObj, const std::string &outFileName,
+int CodeGenerator::generateLLVMIR(Package &translatableObj, const std::string &outFileName,
                                   const std::string &moduleName) {
 
     auto mContext = llvm::LLVMContext();
@@ -51,7 +54,8 @@ int CodeGenerator::generateLLVMIR(Translatable *translatableObj, const std::stri
     mod.setTargetTriple(tripleString);
 
     // Codegen
-    translatableObj->translate(mod, builder);
+    PackageCodeGen generator;
+    generator.visit(translatableObj, mod, builder);
 
     // Write LLVM IR to file
     std::error_code EC;

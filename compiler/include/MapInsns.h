@@ -66,30 +66,30 @@ class MapConstruct {
     const std::variant<KeyValue, SpreadField> &getInitValStruct() const { return initValueStruct; }
 };
 
-class MapStoreInsn : public NonTerminatorInsn {
+class MapStoreInsn : public NonTerminatorInsn, public TranslatableNew<MapStoreInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;
 
   public:
     MapStoreInsn() = delete;
-    MapStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp);
+    MapStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
+        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
     ~MapStoreInsn() = default;
-
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 
-class MapLoadInsn : public NonTerminatorInsn {
+class MapLoadInsn : public NonTerminatorInsn, public TranslatableNew<MapLoadInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;
 
   public:
     MapLoadInsn() = delete;
-    MapLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp);
+    MapLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
+        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
     ~MapLoadInsn() = default;
-
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 } // namespace nballerina
 

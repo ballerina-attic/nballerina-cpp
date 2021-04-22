@@ -24,25 +24,20 @@
 
 namespace nballerina {
 
-class ConditionBrInsn : public TerminatorInsn {
+class ConditionBrInsn : public TerminatorInsn, public TranslatableNew<ConditionBrInsn> {
   private:
-    std::weak_ptr<BasicBlock> ifThenBB;
-    std::weak_ptr<BasicBlock> elseBB;
-    std::string ifBBID;
     std::string elseBBID;
 
   public:
     ConditionBrInsn() = delete;
-    ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID);
+    ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID)
+        : TerminatorInsn(lhs, currentBB, ifBBID), elseBBID(std::move(elseBBID)) {
+        kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
+    }
     ~ConditionBrInsn() = default;
 
-    const std::string &getIfThenBBID() const;
-    const std::string &getElseBBID() const;
-
-    void setIfThenBB(std::weak_ptr<BasicBlock> bb);
-    void setElseBB(std::weak_ptr<BasicBlock> bb);
-
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    const std::string &getElseBBID() const { return elseBBID; }
+    friend class TerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

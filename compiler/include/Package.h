@@ -32,7 +32,8 @@ namespace nballerina {
 // Forward Declaration
 class Type;
 
-class Package : public Translatable {
+class Package {
+
   private:
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
@@ -72,7 +73,7 @@ class Package : public Translatable {
     void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
                                  const Type &valueType, llvm::Value *smartStruct);
 
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class PackageCodeGen;
 };
 
 } // namespace nballerina

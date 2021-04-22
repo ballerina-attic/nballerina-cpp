@@ -27,7 +27,7 @@ namespace nballerina {
 class Operand;
 class BasicBlock;
 
-class BinaryOpInsn : public NonTerminatorInsn {
+class BinaryOpInsn : public NonTerminatorInsn, public TranslatableNew<BinaryOpInsn> {
   private:
     Operand rhsOp1;
     Operand rhsOp2;
@@ -35,11 +35,11 @@ class BinaryOpInsn : public NonTerminatorInsn {
 
   public:
     BinaryOpInsn() = delete;
-    BinaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp1, const Operand &rhsOp2);
+    BinaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp1, const Operand &rhsOp2)
+        : NonTerminatorInsn(lhs, currentBB), rhsOp1(rhsOp1), rhsOp2(rhsOp2), kind{} {}
     ~BinaryOpInsn() = default;
-
-    void setInstKind(InstructionKind kind);
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    void setInstKind(InstructionKind kind) { this->kind = kind; }
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

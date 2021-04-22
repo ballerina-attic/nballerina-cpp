@@ -26,21 +26,25 @@
 
 namespace nballerina {
 
-class ConstantLoadInsn : public NonTerminatorInsn {
+class ConstantLoadInsn : public NonTerminatorInsn, public TranslatableNew<ConstantLoadInsn> {
   private:
     TypeTag typeTag;
     std::variant<int64_t, double, bool, std::string> value;
 
   public:
     ConstantLoadInsn() = delete;
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal);
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, double doubleVal);
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal);
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str);
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB);
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal)
+        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_INT), value(intVal) {}
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, double doubleVal)
+        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_FLOAT), value(doubleVal) {}
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal)
+        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str)
+        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
+    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB)
+        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_NIL) {}
     ~ConstantLoadInsn() = default;
-
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

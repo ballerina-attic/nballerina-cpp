@@ -16,25 +16,25 @@
  * under the License.
  */
 
-#ifndef __MOVEINSN__H__
-#define __MOVEINSN__H__
+#ifndef __BASICBLOCKCODEGEN__H__
+#define __BASICBLOCKCODEGEN__H__
 
-#include "NonTerminatorInsn.h"
+#include "FunctionCodeGen.h"
+#include "interfaces/Translatable.h"
 
 namespace nballerina {
 
-class MoveInsn : public NonTerminatorInsn, public TranslatableNew<MoveInsn> {
+class BasicBlockCodeGen {
   private:
-    Operand rhsOp;
+    FunctionCodeGen &parentGenerator;
 
   public:
-    MoveInsn() = delete;
-    MoveInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
-        : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
-    ~MoveInsn() = default;
-    friend class NonTerminatorInsnCodeGen;
+    BasicBlockCodeGen() = delete;
+    BasicBlockCodeGen(FunctionCodeGen &parentGenerator);
+    ~BasicBlockCodeGen() = default;
+    void visit(class BasicBlock &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
 };
 
 } // namespace nballerina
 
-#endif //!__MOVEINSN__H__
+#endif //!__BASICBLOCKCODEGEN__H__

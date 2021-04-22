@@ -16,23 +16,26 @@
  * under the License.
  */
 
-#include "MoveInsn.h"
-#include "Function.h"
-#include "Operand.h"
-#include "Package.h"
-#include "Variable.h"
+#ifndef __FUNCTIONCODEGEN__H__
+#define __FUNCTIONCODEGEN__H__
+
+#include "interfaces/Translatable.h"
+#include <map>
+#include <string>
 
 namespace nballerina {
 
-MoveInsn::MoveInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
-    : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
+class FunctionCodeGen {
+  private:
+    std::map<std::string, llvm::BasicBlock *> basicBlocksMap;
 
-void MoveInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-
-    const auto &funcRef = getFunctionRef();
-    auto *lhsRef = funcRef.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
-    auto *rhsVarOpRef = funcRef.createTempVariable(rhsOp, module, builder);
-    builder.CreateStore(rhsVarOpRef, lhsRef);
-}
+  public:
+    FunctionCodeGen() = default;
+    ~FunctionCodeGen() = default;
+    llvm::BasicBlock *getBasicBlock(const std::string &id);
+    void visit(class Function &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
+};
 
 } // namespace nballerina
+
+#endif //!__FUNCTIONCODEGEN__H__

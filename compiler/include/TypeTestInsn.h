@@ -27,12 +27,13 @@ namespace nballerina {
 class Type;
 class Operand;
 
-class TypeTestInsn : public NonTerminatorInsn {
+class TypeTestInsn : public NonTerminatorInsn, public TranslatableNew<TypeTestInsn> {
 
   public:
     TypeTestInsn() = delete;
     TypeTestInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
     ~TypeTestInsn() = default;
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

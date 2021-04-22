@@ -26,7 +26,7 @@
 
 namespace nballerina {
 
-class FunctionCallInsn : public TerminatorInsn {
+class FunctionCallInsn : public TerminatorInsn, public TranslatableNew<FunctionCallInsn> {
   private:
     std::string functionName;
     int argCount;
@@ -35,10 +35,14 @@ class FunctionCallInsn : public TerminatorInsn {
   public:
     FunctionCallInsn() = delete;
     FunctionCallInsn(BasicBlock &currentBB, std::string thenBBID, const Operand &lhs, std::string functionName,
-                     int argCount, std::vector<Operand> argsList);
+                     int argCount, std::vector<Operand> argsList)
+        : TerminatorInsn(lhs, currentBB, std::move(thenBBID)), functionName(std::move(functionName)),
+          argCount(argCount), argsList(std::move(argsList)) {
+        kind = INSTRUCTION_KIND_CALL;
+    }
     ~FunctionCallInsn() = default;
 
-    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
+    friend class TerminatorInsnCodeGen;
 };
 
 } // namespace nballerina

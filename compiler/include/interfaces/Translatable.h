@@ -21,6 +21,7 @@
 
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
+#include <iostream>
 
 namespace nballerina {
 
@@ -28,6 +29,53 @@ class Translatable {
   public:
     virtual void translate(llvm::Module &module, llvm::IRBuilder<> &builder) = 0;
 };
+
+/*
+ * Visitor (Translator) generic class definitions
+ */
+class TranslatorBase {
+  public:
+    virtual ~TranslatorBase() = default;
+};
+
+template <typename TranslatableType>
+class Translator {
+  public:
+    virtual void visit(TranslatableType &p, llvm::Module &module, llvm::IRBuilder<> &builder) = 0;
+};
+
+template <typename... V>
+class Translators;
+
+template <typename V1>
+class Translators<V1> : public Translator<V1>, virtual public TranslatorBase {};
+
+template <typename V1, typename... V>
+class Translators<V1, V...> : public Translator<V1>, public Translators<V...> {};
+
+/*
+ * Visitee (Translatable) generic class definitions
+ */
+
+class TranslatableInterface {
+  public:
+    virtual void accept(TranslatorBase &v, llvm::Module &module, llvm::IRBuilder<> &builder) = 0;
+};
+
+template <typename TranslatableInterface, typename TranslatableType>
+class TranslatableBase : virtual public TranslatableInterface {
+  public:
+    void accept(TranslatorBase &vb, llvm::Module &module, llvm::IRBuilder<> &builder) override {
+        if (Translator<TranslatableType> *v = dynamic_cast<Translator<TranslatableType> *>(&vb)) {
+            v->visit(*static_cast<TranslatableType *>(this), module, builder);
+        } else { // Handle error
+            llvm_unreachable("Invalid cast to Translator<TranslatableType>");
+        }
+    }
+};
+
+template <typename TranslatableType>
+using TranslatableNew = TranslatableBase<TranslatableInterface, TranslatableType>;
 
 } // namespace nballerina
 

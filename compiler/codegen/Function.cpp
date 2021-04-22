@@ -25,18 +25,13 @@
 #include "Package.h"
 #include "TerminatorInsn.h"
 #include "Types.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Module.h"
 
 namespace nballerina {
 
 Function::Function(Package &parentPackage, std::string name, std::string workerName, unsigned int flags)
     : parentPackage(parentPackage), name(std::move(name)), workerName(std::move(workerName)), flags(flags) {}
-
-// Search basic block based on the basic block ID
-std::weak_ptr<BasicBlock> Function::FindBasicBlock(const std::string &id) {
-    const auto &bb = basicBlocksMap.find(id);
-    assert(bb != basicBlocksMap.end());
-    return bb->second;
-}
 
 const std::string &Function::getName() const { return name; }
 const std::vector<FunctionParam> &Function::getParams() const { return requiredParams; }
@@ -59,15 +54,6 @@ llvm::AllocaInst *Function::getLLVMLocalVar(const std::string &varName) const {
     return varIt->second;
 }
 
-static bool isParamter(const Variable &locVar) {
-    switch (locVar.getKind()) {
-    case ARG_VAR_KIND:
-        return true;
-    default:
-        return false;
-    }
-}
-
 llvm::Type *Function::getLLVMTypeOfReturnVal(llvm::Module &module) const {
     if (isMainFunction()) {
         return llvm::Type::getVoidTy(module.getContext());
@@ -82,11 +68,7 @@ void Function::insertLocalVar(const Variable &var) {
 }
 void Function::setReturnVar(const Variable &var) { returnVar = var; }
 void Function::insertBasicBlock(const std::shared_ptr<BasicBlock> &bb) {
-    if (isBBMapEmpty) {
-        firstBlock = bb;
-        isBBMapEmpty = false;
-    }
-    basicBlocksMap.insert(std::pair<std::string, std::shared_ptr<BasicBlock>>(bb->getId(), bb));
+    basicBlocks.push_back(bb);
 }
 void Function::insertBranchComparisonValue(const std::string &name, llvm::Value *compRef) {
     branchComparisonList.insert(std::pair<std::string, llvm::Value *>(name, compRef));
@@ -130,82 +112,5 @@ size_t Function::getNumParams() const { return requiredParams.size(); }
 bool Function::isMainFunction() const { return (name == MAIN_FUNCTION_NAME); }
 
 bool Function::isExternalFunction() const { return ((flags & NATIVE) == NATIVE); }
-
-// Patches the Terminator Insn with destination Basic Block
-void Function::patchBasicBlocks() {
-    for (auto &basicBlock : basicBlocksMap) {
-        auto *terminator = basicBlock.second->getTerminatorInsnPtr();
-        if ((terminator == nullptr) || !terminator->isPatched()) {
-            continue;
-        }
-        switch (terminator->getInstKind()) {
-        case INSTRUCTION_KIND_CONDITIONAL_BRANCH: {
-            auto *instruction = static_cast<ConditionBrInsn *>(terminator);
-            auto trueBB = FindBasicBlock(instruction->getIfThenBBID());
-            auto falseBB = FindBasicBlock(instruction->getElseBBID());
-            instruction->setIfThenBB(trueBB);
-            instruction->setElseBB(falseBB);
-            instruction->setPatched();
-            break;
-        }
-        case INSTRUCTION_KIND_GOTO: {
-            auto destBB = FindBasicBlock(terminator->getNextBBID());
-            terminator->setNextBB(destBB);
-            terminator->setPatched();
-            break;
-        }
-        case INSTRUCTION_KIND_CALL: {
-            auto destBB = FindBasicBlock(terminator->getNextBBID());
-            terminator->setNextBB(destBB);
-            break;
-        }
-        default:
-            llvm_unreachable("Invalid Insn Kind for Instruction Patching");
-            break;
-        }
-    }
-}
-
-void Function::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
-
-    auto *llvmFunction = module.getFunction(name);
-    auto *BbRef = llvm::BasicBlock::Create(module.getContext(), "entry", llvmFunction);
-    builder.SetInsertPoint(BbRef);
-
-    // iterate through all local vars.
-    size_t paramIndex = 0;
-    for (auto const &it : localVars) {
-        const auto &locVar = it.second;
-        auto *varType = CodeGenUtils::getLLVMTypeOfType(locVar.getType(), module);
-        auto *localVarRef = builder.CreateAlloca(varType, nullptr, locVar.getName());
-        localVarRefs.insert({locVar.getName(), localVarRef});
-
-        if (isParamter(locVar)) {
-            llvm::Argument *parmRef = &(llvmFunction->arg_begin()[paramIndex]);
-            auto paramName = requiredParams[paramIndex].getName();
-            parmRef->setName(paramName);
-            builder.CreateStore(parmRef, localVarRef);
-            paramIndex++;
-        }
-    }
-
-    // iterate through with each basic block in the function and create them
-    for (auto &bb : basicBlocksMap) {
-        bb.second->setLLVMBBRef(llvm::BasicBlock::Create(module.getContext(), bb.second->getId(), llvmFunction));
-    }
-
-    // creating branch to next basic block.
-    if (auto firstBB = firstBlock.lock()) {
-        builder.CreateBr(firstBB->getLLVMBBRef());
-    }
-
-    // Now translate the basic blocks (essentially add the instructions in them)
-    for (auto &bb : basicBlocksMap) {
-        builder.SetInsertPoint(bb.second->getLLVMBBRef());
-        bb.second->translate(module, builder);
-    }
-    CodeGenUtils::injectAbortCall(module, builder, name);
-}
-
 
 } // namespace nballerina
