@@ -29,7 +29,6 @@ Type::Type(TypeTag type, std::string namep, ArrayType arrayType)
 Type::Type(TypeTag type, std::string namep, MapType mapType) : type(type), name(std::move(namep)), typeInfo(mapType) {}
 
 TypeTag Type::getTypeTag() const { return type; }
-const std::string &Type::getName() const { return name; }
 
 TypeTag Type::getMemberTypeTag() const {
     if (type == TYPE_TAG_ARRAY) {
@@ -106,6 +105,17 @@ bool Type::isSmartStructType(TypeTag typeTag) {
     case TYPE_TAG_ANY:
     case TYPE_TAG_UNION:
     case TYPE_TAG_ANYDATA:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool Type::isBoxValueSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_FLOAT:
+    case TYPE_TAG_BOOLEAN:
         return true;
     default:
         return false;

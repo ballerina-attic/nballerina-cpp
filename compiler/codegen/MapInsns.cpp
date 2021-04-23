@@ -17,13 +17,13 @@
  */
 
 #include "MapInsns.h"
+#include "CodeGenUtils.h"
 #include "Function.h"
 #include "Operand.h"
 #include "Package.h"
 #include "TypeUtils.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
 
 using namespace std;
 
@@ -31,81 +31,48 @@ namespace nballerina {
 
 // new Map Instruction and Codegen logic are in the llvmStructure.cpp
 
-MapStoreInsn::MapStoreInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
-                           const Operand &rOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
+MapStoreInsn::MapStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
-void MapStoreInsn::translate(LLVMModuleRef &modRef) {
+void MapStoreInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
     const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
-
-    // Only handle Int type
     TypeUtils::checkMapSupport(memberTypeTag);
-
-    LLVMValueRef mapValue;
-    if (Type::isSmartStructType(memberTypeTag)) {
-        mapValue = funcObj.getLLVMLocalOrGlobalVar(rhsOp);
-    } else {
-        mapValue = funcObj.createTempVariable(rhsOp);
-    }
-    // Codegen for map<int> type store
-    codeGenMapStore(funcObj.getLLVMBuilder(), getPackageMutableRef().getMapStoreDeclaration(modRef, memberTypeTag),
-                    funcObj.createTempVariable(getLhsOperand()), funcObj.createTempVariable(keyOp), mapValue);
+    llvm::Value *mapValue = Type::isSmartStructType(memberTypeTag) ? funcObj.getLLVMLocalOrGlobalVar(rhsOp, module)
+                                                                   : funcObj.createTempVariable(rhsOp, module, builder);
+    builder.CreateCall(CodeGenUtils::getMapStoreFunc(module, memberTypeTag),
+                       llvm::ArrayRef<llvm::Value *>({funcObj.createTempVariable(getLhsOperand(), module, builder),
+                                                      funcObj.createTempVariable(keyOp, module, builder), mapValue}));
 }
 
-// Generic map store static function
-void MapStoreInsn::codeGenMapStore(LLVMBuilderRef builder, LLVMValueRef mapStoreFunc, LLVMValueRef map,
-                                   LLVMValueRef key, LLVMValueRef value) {
-    LLVMValueRef argOpValueRef[] = {map, key, value};
-    LLVMBuildCall(builder, mapStoreFunc, argOpValueRef, 3, "");
-}
+MapLoadInsn::MapLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &rOp)
+    : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(rOp) {}
 
-MapLoadInsn::MapLoadInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &KOp,
-                         const Operand &rOp)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), keyOp(KOp), rhsOp(rOp) {}
-
-void MapLoadInsn::translate(LLVMModuleRef &modRef) {
-
+void MapLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = getFunctionRef();
-    auto builder = funcObj.getLLVMBuilder();
     TypeTag memTypeTag = funcObj.getLocalOrGlobalVariable(rhsOp).getType().getMemberTypeTag();
-    LLVMTypeRef outParamType = getPackageRef().getLLVMTypeOfType(memTypeTag);
+    auto *outParamType = CodeGenUtils::getLLVMTypeOfType(memTypeTag, module);
 
-    LLVMValueRef lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
-    LLVMValueRef outParam = LLVMBuildAlloca(builder, outParamType, "_out_param");
-    LLVMValueRef params[] = {funcObj.createTempVariable(rhsOp), funcObj.createTempVariable(keyOp), outParam};
+    auto *lhs = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
+    auto *outParam = builder.CreateAlloca(outParamType);
+    auto *rhsTemp = funcObj.createTempVariable(rhsOp, module, builder);
+    auto *keyTemp = funcObj.createTempVariable(keyOp, module, builder);
+    auto mapLoadFunction = CodeGenUtils::getMapLoadFunc(module, memTypeTag);
 
-    [[maybe_unused]] LLVMValueRef retVal = LLVMBuildCall(
-        builder, getMapLoadDeclaration(modRef, LLVMPointerType(outParamType, 0), Type::getNameOfType(memTypeTag)),
-        params, 3, "");
-
+    [[maybe_unused]] auto *retVal =
+        builder.CreateCall(mapLoadFunction, llvm::ArrayRef<llvm::Value *>({rhsTemp, keyTemp, outParam}));
     // TODO check retVal and branch
     // if retVal is true
     if (Type::isSmartStructType(memTypeTag)) {
-        LLVMValueRef outParamTemp = LLVMBuildLoad(builder, outParam, "");
-        LLVMBuildStore(builder, outParamTemp, lhs);
+        auto *outParamTemp = builder.CreateLoad(outParam);
+        builder.CreateStore(outParamTemp, lhs);
     } else {
-        getFunctionMutableRef().storeValueInSmartStruct(modRef, outParam, Type(memTypeTag, ""), lhs);
+        getPackageMutableRef().storeValueInSmartStruct(module, builder, outParam, Type(memTypeTag, ""), lhs);
     }
     // else
     // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
     // ""), lhs);
-}
-
-LLVMValueRef MapLoadInsn::getMapLoadDeclaration(LLVMModuleRef &modRef, LLVMTypeRef outParamType, std::string typeName) {
-    std::string funcName = "map_load_" + typeName;
-    const char *externalFunctionName = funcName.c_str();
-    LLVMValueRef mapLoadFunc = getPackageRef().getFunctionRef(funcName);
-    if (mapLoadFunc != nullptr) {
-        return mapLoadFunc;
-    }
-    LLVMTypeRef funcRetType = LLVMInt8Type();
-    LLVMTypeRef paramTypes[] = {LLVMPointerType(LLVMInt8Type(), 0), LLVMPointerType(LLVMInt8Type(), 0), outParamType};
-    LLVMTypeRef funcType = LLVMFunctionType(funcRetType, paramTypes, 3, 0);
-    mapLoadFunc = LLVMAddFunction(modRef, externalFunctionName, funcType);
-    getPackageMutableRef().addFunctionRef(funcName, mapLoadFunc);
-    return mapLoadFunc;
 }
 
 } // namespace nballerina

@@ -17,19 +17,24 @@
  */
 
 #include "BIRReader.h"
+#include "CodeGenerator.h"
 #include "Package.h"
-#include <fstream>
 #include <iostream>
-#include <llvm-c/Core.h>
-#include <llvm/ADT/Triple.h>
-#include <memory>
 #include <string>
-#include <vector>
 
 using namespace std;
 using namespace nballerina;
 
 BIRReader BIRReader::reader;
+
+std::string removeExtension(const std::string& path) {
+
+    size_t pos = path.find_last_of("\\/.");
+    if (pos != std::string::npos && path[pos] == '.'){
+        return path.substr(0, pos);
+    }
+    return path;
+}
 
 int main(int argc, char **argv) {
     string inFileName = "";
@@ -55,12 +60,7 @@ int main(int argc, char **argv) {
     }
     // if output file name is empty from command line options.
     if (outFileName == "") {
-        for (unsigned int i = 0; i < inFileName.length(); i++) {
-            char tmpstr = inFileName[i];
-            if (tmpstr == '.')
-                break;
-            outFileName = outFileName + inFileName[i];
-        }
+        outFileName=removeExtension(inFileName);
         outFileName = outFileName + ".ll";
     }
 
@@ -68,33 +68,6 @@ int main(int argc, char **argv) {
 
     std::shared_ptr<nballerina::Package> birPackage = BIRReader::reader.deserialize();
 
-    char *message;
-    bool dumpLlvm = true; // temp value
-    string moduleName = birPackage->getOrgName() + birPackage->getPackageName() + birPackage->getVersion();
-    LLVMModuleRef mod = LLVMModuleCreateWithName(moduleName.c_str());
-    const char *tripleStr = LLVM_DEFAULT_TARGET_TRIPLE;
-
-    // MacOS specific code. This is needed, since the default Triple will have the
-    // OS as darwin, but the clang will expect the os as macosx
-    llvm::Triple triple(LLVM_DEFAULT_TARGET_TRIPLE);
-    char modifiedTriple[200];
-    if (triple.isMacOSX()) {
-        unsigned major, minor, micro;
-        if (triple.getMacOSXVersion(major, minor, micro)) {
-            triple.setOS(llvm::Triple::OSType::MacOSX);
-            sprintf(modifiedTriple, "%s%i.%i.%i", triple.getTriple().c_str(), major, minor, micro);
-            tripleStr = modifiedTriple;
-        }
-    }
-
-    LLVMSetSourceFileName(mod, birPackage->getSrcFileName().c_str(), birPackage->getSrcFileName().length());
-    LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128");
-    LLVMSetTarget(mod, tripleStr);
-    birPackage->translate(mod);
-
-    if (dumpLlvm) {
-        if (LLVMPrintModuleToFile(mod, outFileName.c_str(), &message)) {
-            std::cerr << message;
-        }
-    }
+    // Codegen
+    return CodeGenerator::generateLLVMIR(birPackage.get(), outFileName, birPackage->getModuleName());
 }

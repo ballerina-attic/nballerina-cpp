@@ -33,11 +33,11 @@ class UnaryOpInsn : public NonTerminatorInsn {
 
   public:
     UnaryOpInsn() = delete;
-    UnaryOpInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB, const Operand &rhs);
+    UnaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs);
     ~UnaryOpInsn() = default;
 
     void setInstKind(InstructionKind kind);
-    void translate(LLVMModuleRef &modRef) final;
+    void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };
 
 } // namespace nballerina

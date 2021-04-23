@@ -17,6 +17,7 @@
  */
 
 #include "StructureInsn.h"
+#include "CodeGenUtils.h"
 #include "Function.h"
 #include "MapInsns.h"
 #include "Operand.h"
@@ -24,104 +25,71 @@
 #include "TypeUtils.h"
 #include "Types.h"
 #include "Variable.h"
-#include "llvm-c/Core.h"
-
-using namespace std;
-using namespace llvm;
 
 namespace nballerina {
 
-StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB,
-                             std::vector<MapConstruct> initValues)
-    : NonTerminatorInsn(lhs, std::move(currentBB)), initValues(std::move(initValues)) {}
+StructureInsn::StructureInsn(const Operand &lhs, BasicBlock &currentBB, std::vector<MapConstruct> initValues)
+    : NonTerminatorInsn(lhs, currentBB), initValues(std::move(initValues)) {}
 
-StructureInsn::StructureInsn(const Operand &lhs, std::shared_ptr<BasicBlock> currentBB)
-    : NonTerminatorInsn(lhs, std::move(currentBB)) {}
+StructureInsn::StructureInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
 
-void StructureInsn::translate(LLVMModuleRef &modRef) {
+void StructureInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcObj = getFunctionRef();
     // Find Variable corresponding to lhs to determine structure and member type
     const auto &lhsVar = funcObj.getLocalOrGlobalVariable(getLhsOperand());
-
-    // Determine structure type
     TypeTag structType = lhsVar.getType().getTypeTag();
-
     // Only handle Map type
     if (structType != TYPE_TAG_MAP) {
         llvm_unreachable("Only Map type structs are currently supported");
     }
 
-    mapCreateTranslate(lhsVar, modRef);
+    mapCreateTranslate(lhsVar, module, builder);
     if (initValues.empty()) {
         return;
     }
-    mapInitTranslate(lhsVar, modRef);
+    mapInitTranslate(lhsVar, module, builder);
 }
 
-void StructureInsn::mapInitTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
+void StructureInsn::mapInitTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     TypeTag memTypeTag = lhsVar.getType().getMemberTypeTag();
     TypeUtils::checkMapSupport(memTypeTag);
 
-    // Codegen for map<int> type store
-    LLVMValueRef mapStoreFunc = getPackageMutableRef().getMapStoreDeclaration(modRef, memTypeTag);
-    LLVMValueRef mapSpreadFieldFunc = getPackageMutableRef().getMapSpreadFieldDeclaration(modRef);
+    auto mapStoreFunc = CodeGenUtils::getMapStoreFunc(module, memTypeTag);
+    auto mapSpreadFieldFunc = CodeGenUtils::getMapSpreadFieldInitFunc(module);
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
     for (const auto &initValue : initValues) {
         const auto &initstruct = initValue.getInitValStruct();
         if (initValue.getKind() == Spread_Field_Kind) {
             const auto &expr = std::get<MapConstruct::SpreadField>(initstruct).getExpr();
-            LLVMValueRef argOpValueRef[] = {funcObj.createTempVariable(getLhsOperand()),
-                                            funcObj.createTempVariable(expr)};
-            LLVMBuildCall(builder, mapSpreadFieldFunc, argOpValueRef, 2, "");
+            auto *lhsTmp = funcObj.createTempVariable(getLhsOperand(), module, builder);
+            auto *exprTmp = funcObj.createTempVariable(expr, module, builder);
+            builder.CreateCall(mapSpreadFieldFunc, llvm::ArrayRef<llvm::Value *>({lhsTmp, exprTmp}));
             continue;
         }
         // For Key_Value_Kind
         const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
-        LLVMValueRef mapValue;
-        if (Type::isSmartStructType(memTypeTag)) {
-            mapValue = funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue());
-        } else {
-            mapValue = funcObj.createTempVariable(keyVal.getValue());
-        }
-        MapStoreInsn::codeGenMapStore(builder, mapStoreFunc, funcObj.createTempVariable(getLhsOperand()),
-                                      funcObj.createTempVariable(keyVal.getKey()), mapValue);
+        llvm::Value *mapValue = Type::isSmartStructType(memTypeTag)
+                                    ? funcObj.getLLVMLocalOrGlobalVar(keyVal.getValue(), module)
+                                    : funcObj.createTempVariable(keyVal.getValue(), module, builder);
+        builder.CreateCall(mapStoreFunc, llvm::ArrayRef<llvm::Value *>(
+                                             {funcObj.createTempVariable(getLhsOperand(), module, builder),
+                                              funcObj.createTempVariable(keyVal.getKey(), module, builder), mapValue}));
     }
 }
 
-void StructureInsn::mapCreateTranslate(const Variable &lhsVar, LLVMModuleRef &modRef) {
+void StructureInsn::mapCreateTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     const auto &funcObj = getFunctionRef();
-    LLVMBuilderRef builder = funcObj.getLLVMBuilder();
-    LLVMValueRef lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand());
+    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(getLhsOperand(), module);
     const auto &mapType = lhsVar.getType();
-
-    // Get member type
     TypeTag memberTypeTag = mapType.getMemberTypeTag();
-    // Only handle Int type
     TypeUtils::checkMapSupport(memberTypeTag);
 
-    // Codegen for Map of Int type
-    LLVMValueRef newMapIntFunc = getNewMapDeclaration(modRef, Type::getNameOfType(memberTypeTag));
-    LLVMValueRef newMapIntRef = LLVMBuildCall(builder, newMapIntFunc, nullptr, 0, "");
-    LLVMBuildStore(builder, newMapIntRef, lhsOpRef);
-}
-
-// Declaration for new map<int> function
-LLVMValueRef StructureInsn::getNewMapDeclaration(LLVMModuleRef &modRef, std::string typeName) {
-
-    std::string funcName = "map_new_" + typeName;
-    LLVMValueRef newMapIntFunc = getPackageRef().getFunctionRef(funcName);
-    if (newMapIntFunc != nullptr) {
-        return newMapIntFunc;
-    }
-    LLVMTypeRef memPtrType = LLVMPointerType(LLVMInt8Type(), 0);
-    LLVMTypeRef funcType = LLVMFunctionType(memPtrType, nullptr, 0, 0);
-    newMapIntFunc = LLVMAddFunction(modRef, funcName.c_str(), funcType);
-    getPackageMutableRef().addFunctionRef(funcName, newMapIntFunc);
-    return newMapIntFunc;
+    auto newMapIntFunc = CodeGenUtils::getNewMapInitFunc(module, memberTypeTag);
+    auto *newMapIntRef = builder.CreateCall(newMapIntFunc);
+    builder.CreateStore(newMapIntRef, lhsOpRef);
 }
 
 } // namespace nballerina

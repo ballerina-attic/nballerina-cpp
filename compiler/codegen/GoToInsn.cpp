@@ -18,21 +18,17 @@
 
 #include "GoToInsn.h"
 #include "BasicBlock.h"
-#include "Function.h"
-#include "Operand.h"
-#include "llvm-c/Core.h"
 
 namespace nballerina {
 
-GoToInsn::GoToInsn(std::shared_ptr<BasicBlock> nextBB, std::shared_ptr<BasicBlock> currentBB)
-    : TerminatorInsn(Operand("", NOT_A_KIND), std::move(currentBB), std::move(nextBB), true) {
+GoToInsn::GoToInsn(BasicBlock &currentBB, std::string thenBBID)
+    : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, std::move(thenBBID), true) {
     kind = INSTRUCTION_KIND_GOTO;
 }
 
-void GoToInsn::translate(LLVMModuleRef &) {
-    LLVMBuilderRef builder = getFunctionRef().getLLVMBuilder();
-    assert(getNextBB() != nullptr);
-    LLVMBuildBr(builder, getNextBB()->getLLVMBBRef());
+void GoToInsn::translate(llvm::Module &, llvm::IRBuilder<> &builder) {
+    assert(getNextBB().getLLVMBBRef() != nullptr);
+    builder.CreateBr(getNextBB().getLLVMBBRef());
 }
 
 } // namespace nballerina
