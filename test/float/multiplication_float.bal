@@ -9,5 +9,10 @@ public function main() {
     float b = 5.7;
     print_string("RESULT=");
     printf64(a * b);
+    float c = -10.3;
+    float d = -5.7;
+    print_string("RESULT=");
+    printf64(c * d);
 }
 // CHECK: RESULT=58.71
+// CHECK: RESULT=58.71000000000001
