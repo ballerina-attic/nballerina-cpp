@@ -61,9 +61,9 @@ void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builde
     }
     case TYPE_TAG_BOOLEAN: {
         if (std::get<bool>(value)) {
-            constRef = builder.getInt8(1);
+            constRef = builder.getInt1(1);
         } else {
-            constRef = builder.getInt8(0);
+            constRef = builder.getInt1(0);
         }
         break;
     }
