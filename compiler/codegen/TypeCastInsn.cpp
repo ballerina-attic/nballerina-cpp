@@ -77,6 +77,11 @@ void TypeCastInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         builder.CreateStore(castLoad, lhsOpRef);
     } else if (Type::isSmartStructType(lhsTypeTag)) {
         getPackageMutableRef().storeValueInSmartStruct(module, builder, rhsOpRef, rhsType, lhsOpRef);
+    } else if (lhsTypeTag == TYPE_TAG_INT && rhsTypeTag == TYPE_TAG_FLOAT) {
+        auto *rhsLoad = builder.CreateLoad(rhsOpRef);
+        auto *lhsLoad = builder.CreateLoad(lhsOpRef);
+        auto *castResult = builder.CreateFPToSI(rhsLoad, lhsLoad->getType(), "");
+        builder.CreateStore(castResult, lhsOpRef);
     } else {
         builder.CreateBitCast(rhsOpRef, lhsTypeRef, "data_cast");
     }

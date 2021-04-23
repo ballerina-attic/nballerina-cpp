@@ -5,13 +5,13 @@ public function print_string(string val) = external;
 public function print_integer(int val) = external;
 
 function fooFloat() returns any {
-    return 0.0;
+    return 1.0;
 }
 
 public function main() {
     float f = <float>fooFloat();
     print_string("RESULT=");
-    print_integer(1 + <int>f);
+    print_integer(7 + <int>f);
 }
 
-// CHECK: RESULT=1
+// CHECK: RESULT=8
