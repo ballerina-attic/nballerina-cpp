@@ -37,7 +37,7 @@ void BinaryOpInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     auto *rhsOp1ref = funcObj.createTempVariable(rhsOp1, module, builder);
     auto *rhsOp2ref = funcObj.createTempVariable(rhsOp2, module, builder);
     TypeTag rhsType = funcObj.getLocalOrGlobalVariable(rhsOp1).getType().getTypeTag();
-    auto *binaryOpResult = (llvm::Value *)nullptr;
+    llvm::Value *binaryOpResult = nullptr;
 
     switch (kind) {
     case INSTRUCTION_KIND_BINARY_ADD: {

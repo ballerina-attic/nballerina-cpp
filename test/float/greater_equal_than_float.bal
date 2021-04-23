@@ -14,6 +14,15 @@ public function main() {
     else {
         printf64(b);
     }
+    float c = -10.5;
+    float d = -5.5;
+    print_string("RESULT=");
+    if (c >= d) {
+        printf64(c);
+    }
+    else {
+        printf64(d);
+    }
 }
 // CHECK: RESULT=10.5
-
+// CHECK: RESULT=-5.5

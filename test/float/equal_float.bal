@@ -5,14 +5,24 @@ public function print_string(string val) = external;
 public function printf64(float val) = external;
 
 public function main() {
-    float a = -42.85;
-    float b = -22.56;
+    float a = 10.5;
+    float b = 5.5;
     print_string("RESULT=");
-    if (a < b) {
+    if (a == b) {
         printf64(a);
     }
     else {
         printf64(b);
     }
+    float c = -10.5;
+    float d = -10.5;
+    print_string("RESULT=");
+    if (c == d) {
+        printf64(c);
+    }
+    else {
+        printf64(0.0);
+    }
 }
-// CHECK: RESULT=-42.85
+//CHECK: RESULT=5.5
+//CHECK: RESULT=-10.5
