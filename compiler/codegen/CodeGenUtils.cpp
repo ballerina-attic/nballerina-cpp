@@ -58,7 +58,7 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
             return type;
         }
         return llvm::StructType::create(
-            context, llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
+            context, llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
             "struct.smtPtr");
     }
     default:
