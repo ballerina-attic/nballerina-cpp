@@ -16,19 +16,18 @@
  * under the License.
  */
 
-#include "UnaryOpInsn.h"
 #include "Function.h"
 #include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
 #include "Package.h"
+#include "UnaryOpInsn.h"
 
 namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(class UnaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = obj.getFunctionRef();
     const auto &lhsOp = obj.getLhsOperand();
-    auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(lhsOp, module);
-    auto *rhsOpref = funcObj.createTempVariable(obj.rhsOp, module, builder);
+    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(lhsOp, module);
+    auto *rhsOpref = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
 
     switch (obj.kind) {
     case INSTRUCTION_KIND_UNARY_NOT: {

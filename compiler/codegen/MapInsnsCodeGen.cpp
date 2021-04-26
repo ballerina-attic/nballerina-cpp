@@ -16,9 +16,9 @@
  * under the License.
  */
 
-#include "MapInsns.h"
 #include "CodeGenUtils.h"
 #include "Function.h"
+#include "MapInsns.h"
 #include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
 #include "Package.h"
@@ -29,28 +29,26 @@
 namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(MapStoreInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = obj.getFunctionRef();
-    const auto &lhsVar = funcObj.getLocalOrGlobalVariable(obj.getLhsOperand());
+    const auto &lhsVar = obj.getFunctionRef().getLocalOrGlobalVariable(obj.getLhsOperand());
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
     TypeUtils::checkMapSupport(memberTypeTag);
     llvm::Value *mapValue = Type::isSmartStructType(memberTypeTag)
-                                ? funcObj.getLLVMLocalOrGlobalVar(obj.rhsOp, module)
-                                : funcObj.createTempVariable(obj.rhsOp, module, builder);
+                                ? parentGenerator.getLLVMLocalOrGlobalVar(obj.rhsOp, module)
+                                : parentGenerator.createTempVariable(obj.rhsOp, module, builder);
     builder.CreateCall(
         CodeGenUtils::getMapStoreFunc(module, memberTypeTag),
-        llvm::ArrayRef<llvm::Value *>({funcObj.createTempVariable(obj.getLhsOperand(), module, builder),
-                                       funcObj.createTempVariable(obj.keyOp, module, builder), mapValue}));
+        llvm::ArrayRef<llvm::Value *>({parentGenerator.createTempVariable(obj.getLhsOperand(), module, builder),
+                                       parentGenerator.createTempVariable(obj.keyOp, module, builder), mapValue}));
 }
 
 void NonTerminatorInsnCodeGen::visit(MapLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = obj.getFunctionRef();
-    TypeTag memTypeTag = funcObj.getLocalOrGlobalVariable(obj.rhsOp).getType().getMemberTypeTag();
+    TypeTag memTypeTag = obj.getFunctionRef().getLocalOrGlobalVariable(obj.rhsOp).getType().getMemberTypeTag();
     auto *outParamType = CodeGenUtils::getLLVMTypeOfType(memTypeTag, module);
 
-    auto *lhs = funcObj.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *lhs = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
     auto *outParam = builder.CreateAlloca(outParamType);
-    auto *rhsTemp = funcObj.createTempVariable(obj.rhsOp, module, builder);
-    auto *keyTemp = funcObj.createTempVariable(obj.keyOp, module, builder);
+    auto *rhsTemp = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
+    auto *keyTemp = parentGenerator.createTempVariable(obj.keyOp, module, builder);
     auto mapLoadFunction = CodeGenUtils::getMapLoadFunc(module, memTypeTag);
 
     [[maybe_unused]] auto *retVal =

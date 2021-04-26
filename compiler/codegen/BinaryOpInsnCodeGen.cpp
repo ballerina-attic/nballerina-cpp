@@ -27,13 +27,12 @@ namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-    auto &funcObj = obj.getFunctionMutableRef();
     const std::string lhsName = obj.getLhsOperand().getName();
     const std::string lhstmpName = lhsName + "_temp";
-    auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
-    auto *rhsOp1ref = funcObj.createTempVariable(obj.rhsOp1, module, builder);
-    auto *rhsOp2ref = funcObj.createTempVariable(obj.rhsOp2, module, builder);
-    TypeTag rhsType = funcObj.getLocalOrGlobalVariable(obj.rhsOp1).getType().getTypeTag();
+    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *rhsOp1ref = parentGenerator.createTempVariable(obj.rhsOp1, module, builder);
+    auto *rhsOp2ref = parentGenerator.createTempVariable(obj.rhsOp2, module, builder);
+    TypeTag rhsType = obj.getFunctionRef().getLocalOrGlobalVariable(obj.rhsOp1).getType().getTypeTag();
     llvm::Value *binaryOpResult = nullptr;
 
     switch (obj.kind) {
@@ -45,7 +44,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_SUB: {
@@ -56,7 +54,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_MUL: {
@@ -67,7 +64,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_DIV: {
@@ -78,7 +74,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_MOD: {
@@ -89,7 +84,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_THAN: {
@@ -100,7 +94,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_GREATER_EQUAL: {
@@ -111,7 +104,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_THAN: {
@@ -122,7 +114,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_LESS_EQUAL: {
@@ -133,7 +124,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_EQUAL: {
@@ -144,7 +134,6 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_NOT_EQUAL: {
@@ -155,16 +144,16 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
         } else {
             llvm_unreachable("");
         }
-        funcObj.insertBranchComparisonValue(lhsName, binaryOpResult);
         break;
     }
     case INSTRUCTION_KIND_BINARY_BITWISE_XOR: {
         binaryOpResult = builder.CreateXor(rhsOp1ref, rhsOp2ref, lhstmpName);
-        builder.CreateStore(binaryOpResult, lhsRef);
         break;
     }
     default:
         llvm_unreachable("");
     }
+    builder.CreateStore(binaryOpResult, lhsRef);
 }
+
 } // namespace nballerina

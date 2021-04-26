@@ -32,8 +32,6 @@ class MapConstruct;
 class StructureInsn : public NonTerminatorInsn, public TranslatableNew<StructureInsn> {
   private:
     std::vector<MapConstruct> initValues;
-    void mapCreateTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder);
-    void mapInitTranslate(const Variable &lhsVar, llvm::Module &module, llvm::IRBuilder<> &builder);
 
   public:
     StructureInsn() = delete;

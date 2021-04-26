@@ -22,7 +22,6 @@
 #include "RestParam.h"
 #include "Variable.h"
 #include "interfaces/Debuggable.h"
-#include "interfaces/Translatable.h"
 #include <map>
 #include <memory>
 #include <optional>
@@ -50,12 +49,9 @@ class Function : public Debuggable {
     unsigned int flags;
     std::optional<Variable> returnVar;
     std::optional<RestParam> restParam;
-    bool isBBMapEmpty = true;
     std::map<std::string, Variable> localVars;
     std::vector<std::shared_ptr<BasicBlock>> basicBlocks;
-    std::vector<FunctionParam> requiredParams;
-    std::map<std::string, llvm::Value *> branchComparisonList;
-    std::map<std::string, llvm::AllocaInst *> localVarRefs;
+    std::vector<FunctionParam> requiredParams; 
 
   public:
     Function() = delete;
@@ -74,21 +70,14 @@ class Function : public Debuggable {
     const Package &getPackageRef() const;
     const Variable &getLocalVariable(const std::string &opName) const;
     const Variable &getLocalOrGlobalVariable(const Operand &op) const;
-    llvm::Type *getLLVMTypeOfReturnVal(llvm::Module &module) const;
     bool isMainFunction() const;
     bool isExternalFunction() const;
     const std::vector<FunctionParam> &getParams() const;
-
-    llvm::Value *getLLVMValueForBranchComparison(const std::string &lhsName) const;
-    llvm::AllocaInst *getLLVMLocalVar(const std::string &varName) const;
-    llvm::Value *getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const;
-    llvm::Value *createTempVariable(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
 
     void insertParam(const FunctionParam &param);
     void setReturnVar(const Variable &var);
     void insertLocalVar(const Variable &var);
     void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
-    void insertBranchComparisonValue(const std::string &lhsName, llvm::Value *compRef);
 
     friend class FunctionCodeGen;
 };
