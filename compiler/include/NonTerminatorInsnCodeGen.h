@@ -29,6 +29,10 @@ class NonTerminatorInsnCodeGen
                          class ArrayLoadInsn, class UnaryOpInsn, class MoveInsn> {
   private:
     FunctionCodeGen &parentGenerator;
+    void mapInitTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::Module &module,
+                          llvm::IRBuilder<> &builder);
+    void mapCreateTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::Module &module,
+                            llvm::IRBuilder<> &builder);
 
   public:
     NonTerminatorInsnCodeGen() = delete;

@@ -29,13 +29,10 @@ namespace nballerina {
 TerminatorInsnCodeGen::TerminatorInsnCodeGen(FunctionCodeGen &parentGenerator) : parentGenerator(parentGenerator) {}
 
 void TerminatorInsnCodeGen::visit(ConditionBrInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcRef = obj.getFunctionRef();
-    std::string lhsName = obj.getLhsOperand().getName();
-    auto *brCondition = funcRef.getLLVMValueForBranchComparison(lhsName);
-    if (brCondition == nullptr) {
-        auto *lhsTemp = funcRef.createTempVariable(obj.getLhsOperand(), module, builder);
-        brCondition = builder.CreateIsNotNull(lhsTemp, lhsName);
-    }
+    auto lhs = obj.getLhsOperand();
+    auto *brCondition = parentGenerator.getLLVMLocalOrGlobalVar(lhs, module);
+    auto *lhsTemp = parentGenerator.createTempVariable(obj.getLhsOperand(), module, builder);
+    brCondition = builder.CreateIsNotNull(lhsTemp, lhs.getName());
     assert(parentGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
     assert(parentGenerator.getBasicBlock(obj.getElseBBID()) != nullptr);
     builder.CreateCondBr(brCondition, parentGenerator.getBasicBlock(obj.getNextBBID()),
@@ -43,14 +40,13 @@ void TerminatorInsnCodeGen::visit(ConditionBrInsn &obj, llvm::Module &module, ll
 }
 
 void TerminatorInsnCodeGen::visit(FunctionCallInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &funcObj = obj.getFunctionRef();
     std::vector<llvm::Value *> paramRefs;
     paramRefs.reserve(obj.argCount);
     for (const auto &arg : obj.argsList) {
-        paramRefs.push_back(funcObj.createTempVariable(arg, module, builder));
+        paramRefs.push_back(parentGenerator.createTempVariable(arg, module, builder));
     }
 
-    auto *lhsRef = funcObj.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
     auto *namedFuncRef = module.getFunction(obj.functionName);
     auto *callResult = builder.CreateCall(namedFuncRef, paramRefs, "call");
     builder.CreateStore(callResult, lhsRef);
@@ -75,7 +71,7 @@ void TerminatorInsnCodeGen::visit(ReturnInsn &obj, llvm::Module &, llvm::IRBuild
     }
     assert(funcObj.getReturnVar().has_value());
     auto *retValueRef =
-        builder.CreateLoad(funcObj.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
+        builder.CreateLoad(parentGenerator.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
     builder.CreateRet(retValueRef);
 }
 } // namespace nballerina

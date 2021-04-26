@@ -25,14 +25,22 @@
 
 namespace nballerina {
 
+class Operand;
+class Function;
+
 class FunctionCodeGen {
   private:
     std::map<std::string, llvm::BasicBlock *> basicBlocksMap;
+    std::map<std::string, llvm::AllocaInst *> localVarRefs;
 
   public:
     FunctionCodeGen() = default;
     ~FunctionCodeGen() = default;
     llvm::BasicBlock *getBasicBlock(const std::string &id);
+    llvm::AllocaInst *getLLVMLocalVar(const std::string &varName) const;
+    llvm::Value *getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const;
+    llvm::Value *createTempVariable(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
+    static llvm::Type *getLLVMTypeOfReturnVal(Function &obj, llvm::Module &module);
     void visit(class Function &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
 };
 

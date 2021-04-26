@@ -27,6 +27,37 @@ namespace nballerina {
 
 llvm::BasicBlock *FunctionCodeGen::getBasicBlock(const std::string &id) { return basicBlocksMap[id]; }
 
+llvm::AllocaInst *FunctionCodeGen::getLLVMLocalVar(const std::string &varName) const {
+    const auto &varIt = localVarRefs.find(varName);
+    if (varIt == localVarRefs.end()) {
+        return nullptr;
+    }
+    return varIt->second;
+}
+
+llvm::Type *FunctionCodeGen::getLLVMTypeOfReturnVal(Function &obj, llvm::Module &module) {
+    if (obj.isMainFunction()) {
+        return llvm::Type::getVoidTy(module.getContext());
+    }
+    assert(obj.returnVar.has_value());
+    return CodeGenUtils::getLLVMTypeOfType(obj.returnVar->getType(), module);
+}
+
+llvm::Value *FunctionCodeGen::createTempVariable(const Operand &operand, llvm::Module &module,
+                                                         llvm::IRBuilder<> &builder) const {
+    auto *variable = getLLVMLocalOrGlobalVar(operand, module);
+    return builder.CreateLoad(variable, operand.getName() + "_temp");
+}
+
+llvm::Value *FunctionCodeGen::getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const {
+    if (op.getKind() == GLOBAL_VAR_KIND) {
+        auto *variable = module.getGlobalVariable(op.getName(), false);
+        assert(variable != nullptr);
+        return variable;
+    }
+    return getLLVMLocalVar(op.getName());
+}
+
 void FunctionCodeGen::visit(Function &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     auto *llvmFunction = module.getFunction(obj.name);
@@ -39,7 +70,7 @@ void FunctionCodeGen::visit(Function &obj, llvm::Module &module, llvm::IRBuilder
         const auto &locVar = it.second;
         auto *varType = CodeGenUtils::getLLVMTypeOfType(locVar.getType(), module);
         auto *localVarRef = builder.CreateAlloca(varType, nullptr, locVar.getName());
-        obj.localVarRefs.insert({locVar.getName(), localVarRef});
+        localVarRefs.insert({locVar.getName(), localVarRef});
 
         if (locVar.isParamter()) {
             llvm::Argument *parmRef = &(llvmFunction->arg_begin()[paramIndex]);

@@ -31,7 +31,7 @@ namespace nballerina {
 void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &lhsOp = obj.getLhsOperand();
     const auto &funcRef = obj.getFunctionRef();
-    auto *lhsRef = funcRef.getLLVMLocalOrGlobalVar(lhsOp, module);
+    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(lhsOp, module);
 
     assert(funcRef.getLocalOrGlobalVariable(lhsOp).getType().getTypeTag() == obj.typeTag);
     llvm::Value *constRef = nullptr;

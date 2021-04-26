@@ -61,7 +61,8 @@ void PackageCodeGen::visit(Package &obj, llvm::Module &module, llvm::IRBuilder<>
         }
 
         bool isVarArg = static_cast<bool>(function.second->getRestParam());
-        auto *funcType = llvm::FunctionType::get(function.second->getLLVMTypeOfReturnVal(module), paramTypes, isVarArg);
+        auto *funcType = llvm::FunctionType::get(FunctionCodeGen::getLLVMTypeOfReturnVal(*function.second, module),
+                                                 paramTypes, isVarArg);
 
         llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, function.second->getName(), module);
     }

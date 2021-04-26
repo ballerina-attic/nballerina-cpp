@@ -27,9 +27,8 @@ namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(class MoveInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-    const auto &funcRef = obj.getFunctionRef();
-    auto *lhsRef = funcRef.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
-    auto *rhsVarOpRef = funcRef.createTempVariable(obj.rhsOp, module, builder);
+    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *rhsVarOpRef = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
     builder.CreateStore(rhsVarOpRef, lhsRef);
 }
 

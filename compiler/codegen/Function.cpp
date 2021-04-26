@@ -38,53 +38,12 @@ const std::vector<FunctionParam> &Function::getParams() const { return requiredP
 const std::optional<RestParam> &Function::getRestParam() const { return restParam; }
 const std::optional<Variable> &Function::getReturnVar() const { return returnVar; }
 
-llvm::Value *Function::getLLVMValueForBranchComparison(const std::string &lhsName) const {
-    const auto &branch = branchComparisonList.find(lhsName);
-    if (branch == branchComparisonList.end()) {
-        return nullptr;
-    }
-    return branch->second;
-}
-
-llvm::AllocaInst *Function::getLLVMLocalVar(const std::string &varName) const {
-    const auto &varIt = localVarRefs.find(varName);
-    if (varIt == localVarRefs.end()) {
-        return nullptr;
-    }
-    return varIt->second;
-}
-
-llvm::Type *Function::getLLVMTypeOfReturnVal(llvm::Module &module) const {
-    if (isMainFunction()) {
-        return llvm::Type::getVoidTy(module.getContext());
-    }
-    assert(returnVar.has_value());
-    return CodeGenUtils::getLLVMTypeOfType(returnVar->getType(), module);
-}
-
 void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
 void Function::insertLocalVar(const Variable &var) {
     localVars.insert(std::pair<std::string, Variable>(var.getName(), var));
 }
 void Function::setReturnVar(const Variable &var) { returnVar = var; }
-void Function::insertBasicBlock(const std::shared_ptr<BasicBlock> &bb) {
-    basicBlocks.push_back(bb);
-}
-void Function::insertBranchComparisonValue(const std::string &name, llvm::Value *compRef) {
-    branchComparisonList.insert(std::pair<std::string, llvm::Value *>(name, compRef));
-}
-
-llvm::Value *Function::createTempVariable(const Operand &operand, llvm::Module &module,
-                                          llvm::IRBuilder<> &builder) const {
-    auto *variable = getLLVMLocalOrGlobalVar(operand, module);
-    return builder.CreateLoad(variable, operand.getName() + "_temp");
-}
-
-const Variable &Function::getLocalVariable(const std::string &opName) const {
-    const auto &varIt = localVars.find(opName);
-    assert(varIt != localVars.end());
-    return varIt->second;
-}
+void Function::insertBasicBlock(const std::shared_ptr<BasicBlock> &bb) { basicBlocks.push_back(bb); }
 
 const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
@@ -93,13 +52,10 @@ const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
     return getLocalVariable(op.getName());
 }
 
-llvm::Value *Function::getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const {
-    if (op.getKind() == GLOBAL_VAR_KIND) {
-        auto *variable = module.getGlobalVariable(op.getName(), false);
-        assert(variable != nullptr);
-        return variable;
-    }
-    return getLLVMLocalVar(op.getName());
+const Variable &Function::getLocalVariable(const std::string &opName) const {
+    const auto &varIt = localVars.find(opName);
+    assert(varIt != localVars.end());
+    return varIt->second;
 }
 
 const Package &Function::getPackageRef() const { return parentPackage; }

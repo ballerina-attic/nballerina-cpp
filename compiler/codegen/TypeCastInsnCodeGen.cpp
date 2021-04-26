@@ -29,8 +29,8 @@ namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &funcObj = obj.getFunctionRef();
-    auto *rhsOpRef = funcObj.getLLVMLocalOrGlobalVar(obj.rhsOp, module);
-    auto *lhsOpRef = funcObj.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *rhsOpRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.rhsOp, module);
+    auto *lhsOpRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
     auto *lhsTypeRef = lhsOpRef->getType();
 
     const auto &lhsVar = funcObj.getLocalOrGlobalVariable(obj.getLhsOperand());
@@ -42,7 +42,7 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &modu
 
     if (Type::isSmartStructType(rhsTypeTag)) {
         if (Type::isSmartStructType(lhsTypeTag)) {
-            auto *rhsVarOpRef = funcObj.createTempVariable(obj.rhsOp, module, builder);
+            auto *rhsVarOpRef = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
             builder.CreateStore(rhsVarOpRef, lhsOpRef);
             return;
         }
