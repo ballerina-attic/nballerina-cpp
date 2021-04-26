@@ -19,15 +19,30 @@
 #ifndef __PACKAGECODEGEN__H__
 #define __PACKAGECODEGEN__H__
 
+#include "Types.h"
 #include "interfaces/Translatable.h"
+#include "llvm/MC/StringTableBuilder.h"
 
 namespace nballerina {
 
 class PackageCodeGen {
-    // private:
+  private:
+    inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
+    inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
+    std::unique_ptr<llvm::StringTableBuilder> strBuilder;
+    std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
+    llvm::GlobalVariable *globalStrTable;
+    llvm::GlobalVariable *globalStrTable2;
+    void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
+
   public:
     PackageCodeGen() = default;
     ~PackageCodeGen() = default;
+
+    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                 const Type &valueType, llvm::Value *smartStruct);
+    llvm::Value *addToStringTable(std::string_view newString, llvm::Module &module, llvm::IRBuilder<> &builder);
+
     void visit(class Package &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
 };
 

@@ -58,11 +58,14 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
             return type;
         }
         return llvm::StructType::create(
-            context, llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
+            context,
+            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
             "struct.smtPtr");
     }
-    default:
+    case TYPE_TAG_TYPEDESC:
         return llvm::Type::getInt64Ty(context);
+    default:
+        llvm_unreachable("Invalid type");
     }
 }
 

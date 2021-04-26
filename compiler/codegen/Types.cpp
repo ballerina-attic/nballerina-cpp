@@ -17,7 +17,7 @@
  */
 
 #include "Types.h"
-#include <cassert>
+#include "llvm/Support/ErrorHandling.h"
 
 namespace nballerina {
 
@@ -37,7 +37,7 @@ TypeTag Type::getMemberTypeTag() const {
     if (type == TYPE_TAG_MAP) {
         return std::get<Type::MapType>(typeInfo).memberType;
     }
-    return TYPE_TAG_INVALID;
+    llvm_unreachable("Invalid member type");
 }
 
 std::string Type::getNameOfType(TypeTag typeTag) {
@@ -56,9 +56,9 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "union";
     case TYPE_TAG_ANYDATA:
         return "anydata";
-    default:
-        assert(false);
-        return "";
+    default: {
+        llvm_unreachable("Invalid type");
+    }
     }
 }
 
@@ -95,8 +95,9 @@ std::string_view Type::typeStringMangleName(const Type &type) {
             return "__M";
         }
     }
-    default:
-        return "";
+    default: {
+        llvm_unreachable("Invalid type");
+    }
     }
 }
 
@@ -119,6 +120,17 @@ bool Type::isBoxValueSupport(TypeTag typeTag) {
         return true;
     default:
         return false;
+    }
+}
+
+void Type::checkMapSupport(TypeTag typeTag) {
+    switch (typeTag) {
+    case TYPE_TAG_INT:
+    case TYPE_TAG_ANYDATA:
+        return;
+    default:
+        std::string msg = "Map of " + Type::getNameOfType(typeTag) + " is not currently supported";
+        llvm_unreachable(msg.c_str());
     }
 }
 

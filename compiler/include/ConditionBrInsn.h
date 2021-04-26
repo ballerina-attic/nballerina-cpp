@@ -24,7 +24,7 @@
 
 namespace nballerina {
 
-class ConditionBrInsn : public TerminatorInsn, public TranslatableNew<ConditionBrInsn> {
+class ConditionBrInsn : public TerminatorInsn, public Translatable<ConditionBrInsn> {
   private:
     std::string elseBBID;
 

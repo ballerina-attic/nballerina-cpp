@@ -24,12 +24,10 @@
 
 namespace nballerina {
 
-// Forward Declaration
 class Operand;
-class Variable;
 class MapConstruct;
 
-class StructureInsn : public NonTerminatorInsn, public TranslatableNew<StructureInsn> {
+class StructureInsn : public NonTerminatorInsn, public Translatable<StructureInsn> {
   private:
     std::vector<MapConstruct> initValues;
 

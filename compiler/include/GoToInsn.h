@@ -23,7 +23,7 @@
 
 namespace nballerina {
 
-class GoToInsn : public TerminatorInsn, public TranslatableNew<GoToInsn> {
+class GoToInsn : public TerminatorInsn, public Translatable<GoToInsn> {
   public:
     GoToInsn() = delete;
     GoToInsn(BasicBlock &currentBB, std::string thenBBID)

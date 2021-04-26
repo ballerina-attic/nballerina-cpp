@@ -66,7 +66,7 @@ class MapConstruct {
     const std::variant<KeyValue, SpreadField> &getInitValStruct() const { return initValueStruct; }
 };
 
-class MapStoreInsn : public NonTerminatorInsn, public TranslatableNew<MapStoreInsn> {
+class MapStoreInsn : public NonTerminatorInsn, public Translatable<MapStoreInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;
@@ -79,7 +79,7 @@ class MapStoreInsn : public NonTerminatorInsn, public TranslatableNew<MapStoreIn
     friend class NonTerminatorInsnCodeGen;
 };
 
-class MapLoadInsn : public NonTerminatorInsn, public TranslatableNew<MapLoadInsn> {
+class MapLoadInsn : public NonTerminatorInsn, public Translatable<MapLoadInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;

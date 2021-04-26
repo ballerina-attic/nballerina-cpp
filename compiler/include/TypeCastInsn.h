@@ -23,10 +23,9 @@
 
 namespace nballerina {
 
-// Forward Declare
 class Operand;
 
-class TypeCastInsn : public NonTerminatorInsn, public TranslatableNew<TypeCastInsn> {
+class TypeCastInsn : public NonTerminatorInsn, public Translatable<TypeCastInsn> {
   private:
     Operand rhsOp;
 

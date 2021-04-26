@@ -20,15 +20,14 @@
 #include "MoveInsn.h"
 #include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
-#include "Package.h"
 #include "Variable.h"
 
 namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(class MoveInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
-    auto *rhsVarOpRef = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
+    auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, module, builder);
     builder.CreateStore(rhsVarOpRef, lhsRef);
 }
 

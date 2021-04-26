@@ -26,41 +26,40 @@
 
 namespace nballerina {
 
-TerminatorInsnCodeGen::TerminatorInsnCodeGen(FunctionCodeGen &parentGenerator) : parentGenerator(parentGenerator) {}
+TerminatorInsnCodeGen::TerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &)
+    : functionGenerator(functionGenerator) {}
 
 void TerminatorInsnCodeGen::visit(ConditionBrInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    auto lhs = obj.getLhsOperand();
-    auto *brCondition = parentGenerator.getLLVMLocalOrGlobalVar(lhs, module);
-    auto *lhsTemp = parentGenerator.createTempVariable(obj.getLhsOperand(), module, builder);
-    brCondition = builder.CreateIsNotNull(lhsTemp, lhs.getName());
-    assert(parentGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
-    assert(parentGenerator.getBasicBlock(obj.getElseBBID()) != nullptr);
-    builder.CreateCondBr(brCondition, parentGenerator.getBasicBlock(obj.getNextBBID()),
-                         parentGenerator.getBasicBlock(obj.getElseBBID()));
+    auto *lhsTemp = functionGenerator.createTempVal(obj.lhsOp, module, builder);
+    auto *brCondition = builder.CreateIsNotNull(lhsTemp, obj.lhsOp.getName());
+    assert(functionGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
+    assert(functionGenerator.getBasicBlock(obj.getElseBBID()) != nullptr);
+    builder.CreateCondBr(brCondition, functionGenerator.getBasicBlock(obj.getNextBBID()),
+                         functionGenerator.getBasicBlock(obj.getElseBBID()));
 }
 
 void TerminatorInsnCodeGen::visit(FunctionCallInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
     std::vector<llvm::Value *> paramRefs;
     paramRefs.reserve(obj.argCount);
     for (const auto &arg : obj.argsList) {
-        paramRefs.push_back(parentGenerator.createTempVariable(arg, module, builder));
+        paramRefs.push_back(functionGenerator.createTempVal(arg, module, builder));
     }
 
-    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
     auto *namedFuncRef = module.getFunction(obj.functionName);
     auto *callResult = builder.CreateCall(namedFuncRef, paramRefs, "call");
     builder.CreateStore(callResult, lhsRef);
 
     // creating branch to next basic block.
-    auto *nextBB = parentGenerator.getBasicBlock(obj.getNextBBID());
+    auto *nextBB = functionGenerator.getBasicBlock(obj.getNextBBID());
     if (nextBB != nullptr) {
         builder.CreateBr(nextBB);
     }
 }
 
 void TerminatorInsnCodeGen::visit(GoToInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) {
-    assert(parentGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
-    builder.CreateBr(parentGenerator.getBasicBlock(obj.getNextBBID()));
+    assert(functionGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
+    builder.CreateBr(functionGenerator.getBasicBlock(obj.getNextBBID()));
 }
 
 void TerminatorInsnCodeGen::visit(ReturnInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) {
@@ -71,7 +70,7 @@ void TerminatorInsnCodeGen::visit(ReturnInsn &obj, llvm::Module &, llvm::IRBuild
     }
     assert(funcObj.getReturnVar().has_value());
     auto *retValueRef =
-        builder.CreateLoad(parentGenerator.getLLVMLocalVar(funcObj.getReturnVar()->getName()), "return_val_temp");
+        builder.CreateLoad(functionGenerator.getLocalVal(funcObj.getReturnVar()->getName()), "return_val_temp");
     builder.CreateRet(retValueRef);
 }
 } // namespace nballerina

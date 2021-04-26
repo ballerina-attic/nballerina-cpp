@@ -25,9 +25,11 @@
 
 namespace nballerina {
 
+FunctionCodeGen::FunctionCodeGen(PackageCodeGen &parentGenerator) : parentGenerator(parentGenerator) {}
+
 llvm::BasicBlock *FunctionCodeGen::getBasicBlock(const std::string &id) { return basicBlocksMap[id]; }
 
-llvm::AllocaInst *FunctionCodeGen::getLLVMLocalVar(const std::string &varName) const {
+llvm::AllocaInst *FunctionCodeGen::getLocalVal(const std::string &varName) const {
     const auto &varIt = localVarRefs.find(varName);
     if (varIt == localVarRefs.end()) {
         return nullptr;
@@ -35,7 +37,7 @@ llvm::AllocaInst *FunctionCodeGen::getLLVMLocalVar(const std::string &varName) c
     return varIt->second;
 }
 
-llvm::Type *FunctionCodeGen::getLLVMTypeOfReturnVal(Function &obj, llvm::Module &module) {
+llvm::Type *FunctionCodeGen::getRetValType(const Function &obj, llvm::Module &module) {
     if (obj.isMainFunction()) {
         return llvm::Type::getVoidTy(module.getContext());
     }
@@ -43,19 +45,19 @@ llvm::Type *FunctionCodeGen::getLLVMTypeOfReturnVal(Function &obj, llvm::Module 
     return CodeGenUtils::getLLVMTypeOfType(obj.returnVar->getType(), module);
 }
 
-llvm::Value *FunctionCodeGen::createTempVariable(const Operand &operand, llvm::Module &module,
-                                                         llvm::IRBuilder<> &builder) const {
-    auto *variable = getLLVMLocalOrGlobalVar(operand, module);
+llvm::Value *FunctionCodeGen::createTempVal(const Operand &operand, llvm::Module &module,
+                                                 llvm::IRBuilder<> &builder) const {
+    auto *variable = getLocalOrGlobalVal(operand, module);
     return builder.CreateLoad(variable, operand.getName() + "_temp");
 }
 
-llvm::Value *FunctionCodeGen::getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const {
+llvm::Value *FunctionCodeGen::getLocalOrGlobalVal(const Operand &op, llvm::Module &module) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
         auto *variable = module.getGlobalVariable(op.getName(), false);
         assert(variable != nullptr);
         return variable;
     }
-    return getLLVMLocalVar(op.getName());
+    return getLocalVal(op.getName());
 }
 
 void FunctionCodeGen::visit(Function &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
@@ -94,9 +96,10 @@ void FunctionCodeGen::visit(Function &obj, llvm::Module &module, llvm::IRBuilder
     // Now translate the basic blocks (essentially add the instructions in them)
     for (auto &bb : obj.basicBlocks) {
         builder.SetInsertPoint(basicBlocksMap[bb->getId()]);
-        BasicBlockCodeGen generator(*this);
+        BasicBlockCodeGen generator(*this, parentGenerator);
         generator.visit(*bb, module, builder);
     }
+    
     CodeGenUtils::injectAbortCall(module, builder, obj.name);
 }
 } // namespace nballerina

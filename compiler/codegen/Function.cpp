@@ -58,11 +58,6 @@ const Variable &Function::getLocalVariable(const std::string &opName) const {
     return varIt->second;
 }
 
-const Package &Function::getPackageRef() const { return parentPackage; }
-
-// TODO mutable reference shouldn't be required
-Package &Function::getPackageMutableRef() const { return parentPackage; }
-
 size_t Function::getNumParams() const { return requiredParams.size(); }
 
 bool Function::isMainFunction() const { return (name == MAIN_FUNCTION_NAME); }

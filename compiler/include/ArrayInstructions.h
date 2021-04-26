@@ -24,7 +24,7 @@
 
 namespace nballerina {
 
-class ArrayInsn : public NonTerminatorInsn, public TranslatableNew<ArrayInsn> {
+class ArrayInsn : public NonTerminatorInsn, public Translatable<ArrayInsn> {
   private:
     Operand sizeOp;
 
@@ -36,7 +36,7 @@ class ArrayInsn : public NonTerminatorInsn, public TranslatableNew<ArrayInsn> {
     friend class NonTerminatorInsnCodeGen;
 };
 
-class ArrayLoadInsn : public NonTerminatorInsn, public TranslatableNew<ArrayLoadInsn> {
+class ArrayLoadInsn : public NonTerminatorInsn, public Translatable<ArrayLoadInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;
@@ -49,7 +49,7 @@ class ArrayLoadInsn : public NonTerminatorInsn, public TranslatableNew<ArrayLoad
     friend class NonTerminatorInsnCodeGen;
 };
 
-class ArrayStoreInsn : public NonTerminatorInsn, public TranslatableNew<ArrayStoreInsn> {
+class ArrayStoreInsn : public NonTerminatorInsn, public Translatable<ArrayStoreInsn> {
   private:
     Operand keyOp;
     Operand rhsOp;
@@ -61,6 +61,7 @@ class ArrayStoreInsn : public NonTerminatorInsn, public TranslatableNew<ArraySto
     ~ArrayStoreInsn() = default;
     friend class NonTerminatorInsnCodeGen;
 };
+
 } // namespace nballerina
 
 #endif //!__ARRAYINSNS__H__

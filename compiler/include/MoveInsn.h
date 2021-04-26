@@ -23,7 +23,7 @@
 
 namespace nballerina {
 
-class MoveInsn : public NonTerminatorInsn, public TranslatableNew<MoveInsn> {
+class MoveInsn : public NonTerminatorInsn, public Translatable<MoveInsn> {
   private:
     Operand rhsOp;
 

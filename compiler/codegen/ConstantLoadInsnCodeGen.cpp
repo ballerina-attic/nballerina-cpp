@@ -21,7 +21,6 @@
 #include "Function.h"
 #include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
-#include "Package.h"
 #include "Variable.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -29,11 +28,7 @@
 namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &lhsOp = obj.getLhsOperand();
-    const auto &funcRef = obj.getFunctionRef();
-    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(lhsOp, module);
-
-    assert(funcRef.getLocalOrGlobalVariable(lhsOp).getType().getTypeTag() == obj.typeTag);
+    assert(obj.getFunctionRef().getLocalOrGlobalVariable(obj.lhsOp).getType().getTypeTag() == obj.typeTag);
     llvm::Value *constRef = nullptr;
     switch (obj.typeTag) {
     case TYPE_TAG_INT: {
@@ -45,11 +40,7 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module
         break;
     }
     case TYPE_TAG_BOOLEAN: {
-        if (std::get<bool>(obj.value)) {
-            constRef = builder.getInt1(1);
-        } else {
-            constRef = builder.getInt1(0);
-        }
+        constRef = builder.getInt1(std::get<bool>(obj.value));
         break;
     }
     case TYPE_TAG_STRING:
@@ -68,7 +59,8 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module
         break;
     }
     case TYPE_TAG_NIL: {
-        const auto &lhsOpName = lhsOp.getName();
+        const auto &lhsOpName = obj.lhsOp.getName();
+        const auto &funcRef = obj.getFunctionRef();
         if (funcRef.isMainFunction() && (lhsOpName == funcRef.getReturnVar()->getName())) {
             return;
         }
@@ -76,9 +68,9 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module
         break;
     }
     default:
-        llvm_unreachable("Unknown Type");
+        llvm_unreachable("Invalid Type");
     }
-
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
     builder.CreateStore(constRef, lhsRef);
 }
 

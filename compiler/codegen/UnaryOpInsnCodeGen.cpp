@@ -25,18 +25,17 @@
 namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(class UnaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &lhsOp = obj.getLhsOperand();
-    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(lhsOp, module);
-    auto *rhsOpref = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
+    auto *rhsOpref = functionGenerator.createTempVal(obj.rhsOp, module, builder);
 
     switch (obj.kind) {
     case INSTRUCTION_KIND_UNARY_NOT: {
-        auto *ifReturn = builder.CreateNot(rhsOpref, lhsOp.getName() + "_temp");
+        auto *ifReturn = builder.CreateNot(rhsOpref, obj.lhsOp.getName() + "_temp");
         builder.CreateStore(ifReturn, lhsRef);
         break;
     }
     case INSTRUCTION_KIND_UNARY_NEG: {
-        auto *ifReturn = builder.CreateNeg(rhsOpref, lhsOp.getName() + "_temp");
+        auto *ifReturn = builder.CreateNeg(rhsOpref, obj.lhsOp.getName() + "_temp");
         builder.CreateStore(ifReturn, lhsRef);
         break;
     }

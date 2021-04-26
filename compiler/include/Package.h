@@ -21,33 +21,21 @@
 
 #include "Function.h"
 #include "Variable.h"
-#include "interfaces/Translatable.h"
-#include "llvm/MC/StringTableBuilder.h"
 #include <map>
+#include <memory>
 #include <string>
-#include <vector>
 
 namespace nballerina {
-
-// Forward Declaration
-class Type;
 
 class Package {
 
   private:
-    inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
-    inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
     std::string org;
     std::string name;
     std::string version;
     std::string sourceFileName;
     std::map<std::string, Variable> globalVars;
     std::map<std::string, std::shared_ptr<Function>> functionLookUp;
-    std::unique_ptr<llvm::StringTableBuilder> strBuilder;
-    std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
-    llvm::GlobalVariable *strBuilderGlobal;
-    llvm::GlobalVariable *strTablePtr;
-    void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
 
   public:
     Package() = default;
@@ -61,17 +49,12 @@ class Package {
     const Function &getFunction(const std::string &name) const;
     const Variable &getGlobalVariable(const std::string &name) const;
 
-    llvm::Value *getStringBuilderTableGlobalPointer() const;
-    void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
     void setPackageName(std::string pkgName);
     void setVersion(std::string verName);
     void setSrcFileName(std::string srcFileName);
     void insertGlobalVar(const Variable &var);
     void insertFunction(const std::shared_ptr<Function> &function);
-    void addStringOffsetRelocationEntry(const std::string &eleType, llvm::Value *storeInsn);
-    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
-                                 const Type &valueType, llvm::Value *smartStruct);
 
     friend class PackageCodeGen;
 };
