@@ -28,7 +28,9 @@ class NonTerminatorInsnCodeGen
                          class MapStoreInsn, class MapLoadInsn, class ArrayInsn, class ArrayStoreInsn,
                          class ArrayLoadInsn, class UnaryOpInsn, class MoveInsn> {
   private:
-    FunctionCodeGen &parentGenerator;
+    FunctionCodeGen &functionGenerator;
+    PackageCodeGen &moduleGenerator;
+
     void mapInitTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::Module &module,
                           llvm::IRBuilder<> &builder);
     void mapCreateTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::Module &module,
@@ -36,7 +38,8 @@ class NonTerminatorInsnCodeGen
 
   public:
     NonTerminatorInsnCodeGen() = delete;
-    NonTerminatorInsnCodeGen(FunctionCodeGen &parentGenerator) : parentGenerator(parentGenerator) {}
+    NonTerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator)
+        : functionGenerator(functionGenerator), moduleGenerator(moduleGenerator) {}
     ~NonTerminatorInsnCodeGen() = default;
     void visit(class ArrayInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
     void visit(class ArrayStoreInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;

@@ -23,15 +23,11 @@
 
 namespace nballerina {
 
-// Forward Declare
-class Type;
-class Operand;
-
-class TypeTestInsn : public NonTerminatorInsn, public TranslatableNew<TypeTestInsn> {
+class TypeTestInsn : public NonTerminatorInsn, public Translatable<TypeTestInsn> {
 
   public:
     TypeTestInsn() = delete;
-    TypeTestInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
+    TypeTestInsn(const class Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
     ~TypeTestInsn() = default;
     friend class NonTerminatorInsnCodeGen;
 };

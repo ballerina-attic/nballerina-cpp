@@ -19,6 +19,7 @@
 #ifndef __FUNCTIONCODEGEN__H__
 #define __FUNCTIONCODEGEN__H__
 
+#include "PackageCodeGen.h"
 #include "interfaces/Translatable.h"
 #include <map>
 #include <string>
@@ -32,15 +33,19 @@ class FunctionCodeGen {
   private:
     std::map<std::string, llvm::BasicBlock *> basicBlocksMap;
     std::map<std::string, llvm::AllocaInst *> localVarRefs;
+    PackageCodeGen &parentGenerator;
 
   public:
-    FunctionCodeGen() = default;
+    FunctionCodeGen() = delete;
+    FunctionCodeGen(PackageCodeGen &parentGenerator);
     ~FunctionCodeGen() = default;
+    
     llvm::BasicBlock *getBasicBlock(const std::string &id);
-    llvm::AllocaInst *getLLVMLocalVar(const std::string &varName) const;
-    llvm::Value *getLLVMLocalOrGlobalVar(const Operand &op, llvm::Module &module) const;
-    llvm::Value *createTempVariable(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
-    static llvm::Type *getLLVMTypeOfReturnVal(Function &obj, llvm::Module &module);
+    llvm::AllocaInst *getLocalVal(const std::string &varName) const;
+    llvm::Value *getLocalOrGlobalVal(const Operand &op, llvm::Module &module) const;
+    llvm::Value *createTempVal(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
+    static llvm::Type *getRetValType(const Function &obj, llvm::Module &module);
+
     void visit(class Function &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
 };
 

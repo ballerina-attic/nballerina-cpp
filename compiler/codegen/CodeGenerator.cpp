@@ -17,12 +17,11 @@
  */
 
 #include "CodeGenerator.h"
-#include "Function.h"
 #include "Package.h"
 #include "PackageCodeGen.h"
-#include <iostream>
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
+#include <iostream>
 #include <sstream>
 
 namespace nballerina {

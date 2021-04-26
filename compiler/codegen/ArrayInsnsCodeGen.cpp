@@ -20,8 +20,6 @@
 #include "CodeGenUtils.h"
 #include "Function.h"
 #include "NonTerminatorInsnCodeGen.h"
-#include "Operand.h"
-#include "Package.h"
 #include "Types.h"
 #include "Variable.h"
 #include <string>
@@ -29,9 +27,9 @@
 namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(ArrayInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    auto *sizeOpValueRef = parentGenerator.createTempVariable(obj.sizeOp, module, builder);
-    auto *lhsOpRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
-    const auto &lhsVar = obj.getFunctionRef().getLocalOrGlobalVariable(obj.getLhsOperand());
+    auto *sizeOpValueRef = functionGenerator.createTempVal(obj.sizeOp, module, builder);
+    auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
+    const auto &lhsVar = obj.getFunctionRef().getLocalOrGlobalVariable(obj.lhsOp);
     TypeTag memberTypeTag = lhsVar.getType().getMemberTypeTag();
     auto arrayInitFunc = CodeGenUtils::getArrayInitFunc(module, memberTypeTag);
     auto *newArrayRef = builder.CreateCall(arrayInitFunc, llvm::ArrayRef<llvm::Value *>({sizeOpValueRef}));
@@ -40,12 +38,12 @@ void NonTerminatorInsnCodeGen::visit(ArrayInsn &obj, llvm::Module &module, llvm:
 
 void NonTerminatorInsnCodeGen::visit(ArrayLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &lhsOpTypeTag =
-        obj.getFunctionRef().getLocalOrGlobalVariable(obj.getLhsOperand()).getType().getTypeTag();
+        obj.getFunctionRef().getLocalOrGlobalVariable(obj.lhsOp).getType().getTypeTag();
     auto ArrayLoadFunc = CodeGenUtils::getArrayLoadFunc(module, lhsOpTypeTag);
 
-    auto *lhsOpRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
-    auto *rhsOpTempRef = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
-    auto *keyOpTempRef = parentGenerator.createTempVariable(obj.keyOp, module, builder);
+    auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
+    auto *rhsOpTempRef = functionGenerator.createTempVal(obj.rhsOp, module, builder);
+    auto *keyOpTempRef = functionGenerator.createTempVal(obj.keyOp, module, builder);
     auto *valueInArrayPointer =
         builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({rhsOpTempRef, keyOpTempRef}));
 
@@ -60,12 +58,12 @@ void NonTerminatorInsnCodeGen::visit(ArrayLoadInsn &obj, llvm::Module &module, l
 void NonTerminatorInsnCodeGen::visit(ArrayStoreInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
     const auto &rhsOpTypeTag = obj.getFunctionRef().getLocalOrGlobalVariable(obj.rhsOp).getType().getTypeTag();
     auto ArrayLoadFunc = CodeGenUtils::getArrayStoreFunc(module, rhsOpTypeTag);
-    auto *lhsOpRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
     auto *memVal = Type::isSmartStructType(rhsOpTypeTag)
-                       ? parentGenerator.getLLVMLocalOrGlobalVar(obj.rhsOp, module)
-                       : parentGenerator.createTempVariable(obj.rhsOp, module, builder);
+                       ? functionGenerator.getLocalOrGlobalVal(obj.rhsOp, module)
+                       : functionGenerator.createTempVal(obj.rhsOp, module, builder);
     auto *lhsOpTempRef = builder.CreateLoad(lhsOpRef);
-    auto *keyOpTempRef = parentGenerator.createTempVariable(obj.keyOp, module, builder);
+    auto *keyOpTempRef = functionGenerator.createTempVal(obj.keyOp, module, builder);
 
     builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({lhsOpTempRef, keyOpTempRef, memVal}));
 }

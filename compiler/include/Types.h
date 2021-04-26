@@ -110,6 +110,7 @@ class Type {
     static std::string_view typeStringMangleName(const Type &type);
     static bool isSmartStructType(TypeTag typeTag);
     static bool isBoxValueSupport(TypeTag typeTag);
+    static void checkMapSupport(TypeTag typeTag);
 };
 
 } // namespace nballerina

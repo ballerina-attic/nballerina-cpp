@@ -25,7 +25,6 @@
 
 namespace nballerina {
 
-// Forward Declaration
 class Type;
 
 class InvocableType {

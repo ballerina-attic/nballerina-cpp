@@ -26,7 +26,7 @@
 
 namespace nballerina {
 
-class FunctionCallInsn : public TerminatorInsn, public TranslatableNew<FunctionCallInsn> {
+class FunctionCallInsn : public TerminatorInsn, public Translatable<FunctionCallInsn> {
   private:
     std::string functionName;
     int argCount;

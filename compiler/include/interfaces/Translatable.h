@@ -21,15 +21,8 @@
 
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
-#include <iostream>
 
 namespace nballerina {
-
-class Translatable {
-  public:
-    virtual void translate(llvm::Module &module, llvm::IRBuilder<> &builder) = 0;
-};
-
 /*
  * Visitor (Translator) generic class definitions
  */
@@ -44,14 +37,15 @@ class Translator {
     virtual void visit(TranslatableType &p, llvm::Module &module, llvm::IRBuilder<> &builder) = 0;
 };
 
-template <typename... V>
+template <typename... TranslatableTypes>
 class Translators;
 
-template <typename V1>
-class Translators<V1> : public Translator<V1>, virtual public TranslatorBase {};
+template <typename TranslatableType>
+class Translators<TranslatableType> : public Translator<TranslatableType>, virtual public TranslatorBase {};
 
-template <typename V1, typename... V>
-class Translators<V1, V...> : public Translator<V1>, public Translators<V...> {};
+template <typename TranslatableType, typename... TranslatableTypes>
+class Translators<TranslatableType, TranslatableTypes...> : public Translator<TranslatableType>,
+                                                            public Translators<TranslatableTypes...> {};
 
 /*
  * Visitee (Translatable) generic class definitions
@@ -75,7 +69,7 @@ class TranslatableBase : virtual public TranslatableInterface {
 };
 
 template <typename TranslatableType>
-using TranslatableNew = TranslatableBase<TranslatableInterface, TranslatableType>;
+using Translatable = TranslatableBase<TranslatableInterface, TranslatableType>;
 
 } // namespace nballerina
 

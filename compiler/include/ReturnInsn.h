@@ -23,12 +23,9 @@
 
 namespace nballerina {
 
-// Forward Declaration
-class BasicBlock;
-
-class ReturnInsn : public TerminatorInsn, public TranslatableNew<ReturnInsn> {
+class ReturnInsn : public TerminatorInsn, public Translatable<ReturnInsn> {
   public:
-    ReturnInsn(BasicBlock &currentBB) : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, "") {}
+    ReturnInsn(class BasicBlock &currentBB) : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, "") {}
     ~ReturnInsn() = default;
 
     friend class TerminatorInsnCodeGen;

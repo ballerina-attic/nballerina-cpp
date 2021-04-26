@@ -25,16 +25,17 @@
 
 namespace nballerina {
 
-BasicBlockCodeGen::BasicBlockCodeGen(FunctionCodeGen &parentGenerator) : parentGenerator(parentGenerator) {}
+BasicBlockCodeGen::BasicBlockCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator)
+    : functionGenerator(functionGenerator), moduleGenerator(moduleGenerator) {}
 
 void BasicBlockCodeGen::visit(BasicBlock &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
     for (const auto &instruction : obj.instructions) {
-        NonTerminatorInsnCodeGen generator(parentGenerator);
+        NonTerminatorInsnCodeGen generator(functionGenerator, moduleGenerator);
         instruction->accept(generator, module, builder);
     }
     if (obj.terminator != nullptr) {
-        TerminatorInsnCodeGen generator(parentGenerator);
+        TerminatorInsnCodeGen generator(functionGenerator, moduleGenerator);
         obj.terminator->accept(generator, module, builder);
     }
 }

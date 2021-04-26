@@ -26,7 +26,7 @@
 
 namespace nballerina {
 
-class ConstantLoadInsn : public NonTerminatorInsn, public TranslatableNew<ConstantLoadInsn> {
+class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantLoadInsn> {
   private:
     TypeTag typeTag;
     std::variant<int64_t, double, bool, std::string> value;

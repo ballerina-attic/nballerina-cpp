@@ -27,11 +27,11 @@ namespace nballerina {
 class TerminatorInsnCodeGen
     : public Translators<class ConditionBrInsn, class FunctionCallInsn, class GoToInsn, class ReturnInsn> {
   private:
-    FunctionCodeGen &parentGenerator;
+    FunctionCodeGen &functionGenerator;
 
   public:
     TerminatorInsnCodeGen() = delete;
-    TerminatorInsnCodeGen(FunctionCodeGen &parentGenerator);
+    TerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &);
     ~TerminatorInsnCodeGen() = default;
     void visit(class ConditionBrInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
     void visit(class FunctionCallInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;

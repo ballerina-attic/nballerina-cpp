@@ -27,20 +27,19 @@ namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
 
-    const std::string lhsName = obj.getLhsOperand().getName();
-    const std::string lhstmpName = lhsName + "_temp";
-    auto *lhsRef = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
-    auto *rhsOp1ref = parentGenerator.createTempVariable(obj.rhsOp1, module, builder);
-    auto *rhsOp2ref = parentGenerator.createTempVariable(obj.rhsOp2, module, builder);
+    const std::string lhsTempName = obj.lhsOp.getName() + "_temp";
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
+    auto *rhsOp1ref = functionGenerator.createTempVal(obj.rhsOp1, module, builder);
+    auto *rhsOp2ref = functionGenerator.createTempVal(obj.rhsOp2, module, builder);
     TypeTag rhsType = obj.getFunctionRef().getLocalOrGlobalVariable(obj.rhsOp1).getType().getTypeTag();
     llvm::Value *binaryOpResult = nullptr;
 
     switch (obj.kind) {
     case INSTRUCTION_KIND_BINARY_ADD: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateAdd(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateAdd(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFAdd(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFAdd(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -48,9 +47,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_SUB: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateSub(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateSub(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFSub(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFSub(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -58,9 +57,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_MUL: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateMul(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateMul(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFMul(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFMul(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -68,9 +67,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_DIV: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateUDiv(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateUDiv(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFDiv(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFDiv(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -78,9 +77,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_MOD: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateURem(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateURem(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFRem(rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFRem(rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -88,9 +87,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_GREATER_THAN: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -98,9 +97,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_GREATER_EQUAL: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -108,9 +107,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_LESS_THAN: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -118,9 +117,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_LESS_EQUAL: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -128,9 +127,9 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_EQUAL: {
         if (rhsType == nballerina::TYPE_TAG_INT || rhsType == nballerina::TYPE_TAG_NIL) {
-            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
@@ -138,16 +137,16 @@ void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &modu
     }
     case INSTRUCTION_KIND_BINARY_NOT_EQUAL: {
         if (rhsType == nballerina::TYPE_TAG_INT) {
-            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else if (rhsType == nballerina::TYPE_TAG_FLOAT) {
-            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, rhsOp1ref, rhsOp2ref, lhstmpName);
+            binaryOpResult = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, rhsOp1ref, rhsOp2ref, lhsTempName);
         } else {
             llvm_unreachable("");
         }
         break;
     }
     case INSTRUCTION_KIND_BINARY_BITWISE_XOR: {
-        binaryOpResult = builder.CreateXor(rhsOp1ref, rhsOp2ref, lhstmpName);
+        binaryOpResult = builder.CreateXor(rhsOp1ref, rhsOp2ref, lhsTempName);
         break;
     }
     default:

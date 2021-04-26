@@ -66,8 +66,6 @@ class Function : public Debuggable {
     size_t getNumParams() const;
     const std::optional<RestParam> &getRestParam() const;
     const std::optional<Variable> &getReturnVar() const;
-    Package &getPackageMutableRef() const;
-    const Package &getPackageRef() const;
     const Variable &getLocalVariable(const std::string &opName) const;
     const Variable &getLocalOrGlobalVariable(const Operand &op) const;
     bool isMainFunction() const;

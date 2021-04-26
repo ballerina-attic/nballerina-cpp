@@ -26,11 +26,12 @@ namespace nballerina {
 
 class BasicBlockCodeGen {
   private:
-    FunctionCodeGen &parentGenerator;
+    FunctionCodeGen &functionGenerator;
+    PackageCodeGen &moduleGenerator;
 
   public:
     BasicBlockCodeGen() = delete;
-    BasicBlockCodeGen(FunctionCodeGen &parentGenerator);
+    BasicBlockCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator);
     ~BasicBlockCodeGen() = default;
     void visit(class BasicBlock &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
 };

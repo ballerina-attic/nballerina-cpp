@@ -23,10 +23,9 @@
 
 namespace nballerina {
 
-// Forward Declare
 class Operand;
 
-class UnaryOpInsn : public NonTerminatorInsn, public TranslatableNew<UnaryOpInsn> {
+class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
   private:
     Operand rhsOp;
     InstructionKind kind;

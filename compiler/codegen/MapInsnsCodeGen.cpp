@@ -21,34 +21,32 @@
 #include "MapInsns.h"
 #include "NonTerminatorInsnCodeGen.h"
 #include "Operand.h"
-#include "Package.h"
-#include "TypeUtils.h"
 #include "Types.h"
 #include "Variable.h"
 
 namespace nballerina {
 
 void NonTerminatorInsnCodeGen::visit(MapStoreInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    const auto &lhsVar = obj.getFunctionRef().getLocalOrGlobalVariable(obj.getLhsOperand());
+    const auto &lhsVar = obj.getFunctionRef().getLocalOrGlobalVariable(obj.lhsOp);
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
-    TypeUtils::checkMapSupport(memberTypeTag);
+    Type::checkMapSupport(memberTypeTag);
     llvm::Value *mapValue = Type::isSmartStructType(memberTypeTag)
-                                ? parentGenerator.getLLVMLocalOrGlobalVar(obj.rhsOp, module)
-                                : parentGenerator.createTempVariable(obj.rhsOp, module, builder);
+                                ? functionGenerator.getLocalOrGlobalVal(obj.rhsOp, module)
+                                : functionGenerator.createTempVal(obj.rhsOp, module, builder);
     builder.CreateCall(
         CodeGenUtils::getMapStoreFunc(module, memberTypeTag),
-        llvm::ArrayRef<llvm::Value *>({parentGenerator.createTempVariable(obj.getLhsOperand(), module, builder),
-                                       parentGenerator.createTempVariable(obj.keyOp, module, builder), mapValue}));
+        llvm::ArrayRef<llvm::Value *>({functionGenerator.createTempVal(obj.lhsOp, module, builder),
+                                       functionGenerator.createTempVal(obj.keyOp, module, builder), mapValue}));
 }
 
 void NonTerminatorInsnCodeGen::visit(MapLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
     TypeTag memTypeTag = obj.getFunctionRef().getLocalOrGlobalVariable(obj.rhsOp).getType().getMemberTypeTag();
     auto *outParamType = CodeGenUtils::getLLVMTypeOfType(memTypeTag, module);
 
-    auto *lhs = parentGenerator.getLLVMLocalOrGlobalVar(obj.getLhsOperand(), module);
+    auto *lhs = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
     auto *outParam = builder.CreateAlloca(outParamType);
-    auto *rhsTemp = parentGenerator.createTempVariable(obj.rhsOp, module, builder);
-    auto *keyTemp = parentGenerator.createTempVariable(obj.keyOp, module, builder);
+    auto *rhsTemp = functionGenerator.createTempVal(obj.rhsOp, module, builder);
+    auto *keyTemp = functionGenerator.createTempVal(obj.keyOp, module, builder);
     auto mapLoadFunction = CodeGenUtils::getMapLoadFunc(module, memTypeTag);
 
     [[maybe_unused]] auto *retVal =
@@ -59,10 +57,10 @@ void NonTerminatorInsnCodeGen::visit(MapLoadInsn &obj, llvm::Module &module, llv
         auto *outParamTemp = builder.CreateLoad(outParam);
         builder.CreateStore(outParamTemp, lhs);
     } else {
-        obj.getPackageMutableRef().storeValueInSmartStruct(module, builder, outParam, Type(memTypeTag, ""), lhs);
+        moduleGenerator.storeValueInSmartStruct(module, builder, outParam, Type(memTypeTag, ""), lhs);
     }
     // else
-    // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
+    // moduleGenerator.storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
     // ""), lhs);
 }
 

@@ -26,7 +26,6 @@
 
 namespace nballerina {
 
-// Forward Declaration
 class Function;
 class TerminatorInsn;
 class NonTerminatorInsn;
