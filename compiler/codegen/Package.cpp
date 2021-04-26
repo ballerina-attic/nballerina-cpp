@@ -122,8 +122,14 @@ void Package::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &b
     addToStrTable(valueTypeName);
     int tempRandNum1 = std::rand() % 1000 + 1;
     auto *constValue = builder.getInt64(tempRandNum1);
-    auto *storeInsn = builder.CreateStore(constValue, inherentTypeIdx);
-    addStringOffsetRelocationEntry(valueTypeName.data(), storeInsn);
+
+    auto *strTblPtr = getStringBuilderTableGlobalPointer();
+    auto *strTblLoad = builder.CreateLoad(strTblPtr);
+    auto *lhsGep = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({constValue}));
+
+    auto *bitCastLhsGep = builder.CreateBitCast(lhsGep, builder.getInt8PtrTy(), "");
+    auto *storeInsn = builder.CreateStore(bitCastLhsGep, inherentTypeIdx);
+    addStringOffsetRelocationEntry(valueTypeName.data(), lhsGep);
 
     // struct second element void pointer data.
     auto *valueIndx = builder.CreateStructGEP(smartStruct, 1, "data");

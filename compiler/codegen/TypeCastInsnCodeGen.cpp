@@ -48,14 +48,13 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &modu
         }
         // GEP of last type of smart pointer(original type of any variable(smart pointer))
         auto *inherentTypeIdx = builder.CreateStructGEP(rhsOpRef, 0, "inherentTypeName");
-        auto *inherentTypeLoad = builder.CreateLoad(inherentTypeIdx);
+        auto *gepOfStr = builder.CreateLoad(inherentTypeIdx);
 
         auto *data = builder.CreateStructGEP(rhsOpRef, 1, "data");
         auto *dataLoad = builder.CreateLoad(data);
 
         auto *strTblPtr = obj.getPackageRef().getStringBuilderTableGlobalPointer();
         auto *strTblLoad = builder.CreateLoad(strTblPtr);
-        auto *gepOfStr = builder.CreateInBoundsGEP(strTblLoad, llvm::ArrayRef<llvm::Value *>({inherentTypeLoad}));
 
         // get the mangled name of the lhs type and store it to string builder table.
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
