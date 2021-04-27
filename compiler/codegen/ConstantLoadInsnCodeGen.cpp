@@ -16,12 +16,12 @@
  * under the License.
  */
 
-#include "CodeGenUtils.h"
-#include "ConstantLoad.h"
-#include "Function.h"
-#include "NonTerminatorInsnCodeGen.h"
-#include "Operand.h"
-#include "Variable.h"
+#include "codegen/NonTerminatorInsnCodeGen.h"
+#include "codegen/CodeGenUtils.h"
+#include "bir/ConstantLoad.h"
+#include "bir/Function.h"
+#include "bir/Operand.h"
+#include "bir/Variable.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalVariable.h"
 

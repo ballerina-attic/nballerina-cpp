@@ -16,23 +16,30 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __CONDITIONBRINSN__H__
+#define __CONDITIONBRINSN__H__
 
-#include "bir/Location.h"
+#include "interfaces/TerminatorInsn.h"
+#include <memory>
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+class ConditionBrInsn : public TerminatorInsn, public Translatable<ConditionBrInsn> {
+  private:
+    std::string elseBBID;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    ConditionBrInsn() = delete;
+    ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID)
+        : TerminatorInsn(lhs, currentBB, ifBBID), elseBBID(std::move(elseBBID)) {
+        kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
+    }
+    ~ConditionBrInsn() = default;
+
+    const std::string &getElseBBID() const { return elseBBID; }
+    friend class TerminatorInsnCodeGen;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__CONDITIONBRINSN__H__

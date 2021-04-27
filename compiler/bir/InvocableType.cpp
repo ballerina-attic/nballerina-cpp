@@ -16,23 +16,14 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
-#include "bir/Location.h"
+#include "bir/InvocableType.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+InvocableType::InvocableType(std::vector<Type> paramTy, const Type &restTy, const Type &retTy)
+    : paramTypes(std::move(paramTy)), returnType(retTy), restType(restTy) {}
 
-  public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
-};
+InvocableType::InvocableType(std::vector<Type> paramTy, const Type &retTy)
+    : paramTypes(std::move(paramTy)), returnType(retTy) {}
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

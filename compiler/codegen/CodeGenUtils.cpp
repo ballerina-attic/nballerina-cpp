@@ -16,7 +16,7 @@
  * under the License.
  */
 
-#include "CodeGenUtils.h"
+#include "codegen/CodeGenUtils.h"
 
 namespace nballerina {
 

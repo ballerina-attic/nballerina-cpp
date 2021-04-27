@@ -17,8 +17,8 @@
  */
 
 #include "BIRReader.h"
-#include "CodeGenerator.h"
-#include "Package.h"
+#include "codegen/CodeGenerator.h"
+#include "bir/Package.h"
 #include <iostream>
 #include <string>
 

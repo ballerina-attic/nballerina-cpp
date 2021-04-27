@@ -16,27 +16,25 @@
  * under the License.
  */
 
-#include "codegen/BasicBlockCodeGen.h"
 #include "bir/BasicBlock.h"
-#include "codegen/NonTerminatorInsnCodeGen.h"
-#include "codegen/TerminatorInsnCodeGen.h"
+#include "bir/Function.h"
 #include "interfaces/NonTerminatorInsn.h"
 #include "interfaces/TerminatorInsn.h"
 
 namespace nballerina {
 
-BasicBlockCodeGen::BasicBlockCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator)
-    : functionGenerator(functionGenerator), moduleGenerator(moduleGenerator) {}
+BasicBlock::BasicBlock(std::string pid, Function &parentFunc)
+    : id(std::move(pid)), parentFunction(parentFunc), terminator(nullptr) {}
 
-void BasicBlockCodeGen::visit(BasicBlock &obj, llvm::IRBuilder<> &builder) {
+const std::string &BasicBlock::getId() const { return id; }
+TerminatorInsn *BasicBlock::getTerminatorInsnPtr() const { return terminator.get(); }
 
-    for (const auto &instruction : obj.instructions) {
-        NonTerminatorInsnCodeGen generator(functionGenerator, moduleGenerator);
-        instruction->accept(generator, builder);
-    }
-    if (obj.terminator != nullptr) {
-        TerminatorInsnCodeGen generator(functionGenerator, moduleGenerator);
-        obj.terminator->accept(generator, builder);
-    }
-}
+Function &BasicBlock::getFunctionMutableRef() const { return parentFunction; }
+
+const Function &BasicBlock::getParentFunctionRef() const { return parentFunction; }
+
+void BasicBlock::setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn) { terminator = std::move(insn); }
+void BasicBlock::setNextBB(std::weak_ptr<BasicBlock> bb) { nextBB = std::move(bb); }
+void BasicBlock::addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn) { instructions.push_back(std::move(insn)); }
+
 } // namespace nballerina

@@ -16,9 +16,9 @@
  * under the License.
  */
 
-#include "CodeGenerator.h"
-#include "Package.h"
-#include "PackageCodeGen.h"
+#include "codegen/CodeGenerator.h"
+#include "codegen/PackageCodeGen.h"
+#include "bir/Package.h"
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
 #include <iostream>
