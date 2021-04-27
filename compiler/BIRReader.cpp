@@ -1022,7 +1022,7 @@ void ShapeCpInfo::read() {
         for (auto i = 0; i < valueSpaceSize; i++) {
             [[maybe_unused]] int32_t fTypeCpIndex = readerRef.readS4be();
             int32_t valueLength = readerRef.readS4be();
-            for (auto j = 0; j < valueLength; i++) {
+            for (auto j = 0; j < valueLength; j++) {
                 [[maybe_unused]] int8_t tmp = readerRef.readU1();
             }
         }
