@@ -47,8 +47,6 @@ class CodeGenUtils {
     static llvm::FunctionCallee getArrayLoadFunc(llvm::Module &module, TypeTag memberTypeTag);
     static llvm::FunctionCallee getBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
     static llvm::FunctionCallee getIsSameTypeFunc(llvm::Module &module, llvm::Value *lhs, llvm::Value *rhs);
-    static void injectAbortCall(llvm::Module &module, llvm::IRBuilder<> &builder,
-                                const std::string &parentFunctionName);
 };
 
 } // namespace nballerina
