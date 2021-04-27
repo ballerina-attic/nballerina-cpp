@@ -21,7 +21,10 @@ ${PROJECT_SOURCE_DIR}/compiler/*.cpp
 file(GLOB CODEGEN
 ${PROJECT_SOURCE_DIR}/compiler/codegen/*.cpp
 )
-add_executable(nballerinacc ${SOURCES} ${CODEGEN})
+file(GLOB BIR
+${PROJECT_SOURCE_DIR}/compiler/bir/*.cpp
+)
+add_executable(nballerinacc ${SOURCES} ${CODEGEN} ${BIR})
 
 # Output to root of build directory
 set_target_properties( nballerinacc

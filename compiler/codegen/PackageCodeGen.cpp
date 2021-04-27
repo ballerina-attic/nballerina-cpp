@@ -16,11 +16,11 @@
  * under the License.
  */
 
-#include "PackageCodeGen.h"
-#include "CodeGenUtils.h"
-#include "FunctionCodeGen.h"
-#include "FunctionParam.h"
-#include "Package.h"
+#include "codegen/PackageCodeGen.h"
+#include "codegen/CodeGenUtils.h"
+#include "codegen/FunctionCodeGen.h"
+#include "bir/FunctionParam.h"
+#include "bir/Package.h"
 #include <iostream>
 
 namespace nballerina {

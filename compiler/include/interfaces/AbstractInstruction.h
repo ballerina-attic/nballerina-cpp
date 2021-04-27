@@ -19,8 +19,8 @@
 #ifndef __ABSTRACTINSN__H__
 #define __ABSTRACTINSN__H__
 
-#include "BasicBlock.h"
-#include "Operand.h"
+#include "bir/BasicBlock.h"
+#include "bir/Operand.h"
 #include "interfaces/Debuggable.h"
 
 namespace nballerina {

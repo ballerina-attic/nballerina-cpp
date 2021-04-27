@@ -16,13 +16,13 @@
  * under the License.
  */
 
-#include "TerminatorInsnCodeGen.h"
-#include "BasicBlock.h"
-#include "ConditionBrInsn.h"
-#include "Function.h"
-#include "FunctionCallInsn.h"
-#include "GoToInsn.h"
-#include "ReturnInsn.h"
+#include "codegen/TerminatorInsnCodeGen.h"
+#include "bir/BasicBlock.h"
+#include "bir/ConditionBrInsn.h"
+#include "bir/Function.h"
+#include "bir/FunctionCallInsn.h"
+#include "bir/GoToInsn.h"
+#include "bir/ReturnInsn.h"
 
 namespace nballerina {
 

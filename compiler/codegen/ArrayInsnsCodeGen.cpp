@@ -16,12 +16,12 @@
  * under the License.
  */
 
-#include "ArrayInstructions.h"
-#include "CodeGenUtils.h"
-#include "Function.h"
-#include "NonTerminatorInsnCodeGen.h"
-#include "Types.h"
-#include "Variable.h"
+#include "codegen/NonTerminatorInsnCodeGen.h"
+#include "bir/ArrayInstructions.h"
+#include "bir/Function.h"
+#include "bir/Types.h"
+#include "bir/Variable.h"
+#include "codegen/CodeGenUtils.h"
 #include <string>
 
 namespace nballerina {

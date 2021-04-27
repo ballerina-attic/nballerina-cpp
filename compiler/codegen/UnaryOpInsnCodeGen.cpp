@@ -16,11 +16,11 @@
  * under the License.
  */
 
-#include "Function.h"
-#include "NonTerminatorInsnCodeGen.h"
-#include "Operand.h"
-#include "Package.h"
-#include "UnaryOpInsn.h"
+#include "codegen/NonTerminatorInsnCodeGen.h"
+#include "bir/Function.h"
+#include "bir/Operand.h"
+#include "bir/Package.h"
+#include "bir/UnaryOpInsn.h"
 
 namespace nballerina {
 

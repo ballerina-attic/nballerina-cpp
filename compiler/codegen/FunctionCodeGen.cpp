@@ -16,12 +16,12 @@
  * under the License.
  */
 
-#include "FunctionCodeGen.h"
-#include "BasicBlock.h"
-#include "BasicBlockCodeGen.h"
-#include "CodeGenUtils.h"
-#include "Function.h"
-#include "FunctionParam.h"
+#include "codegen/FunctionCodeGen.h"
+#include "codegen/BasicBlockCodeGen.h"
+#include "codegen/CodeGenUtils.h"
+#include "bir/BasicBlock.h"
+#include "bir/Function.h"
+#include "bir/FunctionParam.h"
 
 namespace nballerina {
 
