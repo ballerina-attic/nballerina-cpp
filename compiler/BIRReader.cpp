@@ -1013,6 +1013,7 @@ void ShapeCpInfo::read() {
         for (auto i = 0; i < typeInclusionsCount; i++) {
             typeInclusionsCpIndex.push_back(readerRef.readS4be());
         }
+        break;
     }
     case TYPE_TAG_FINITE: {
         [[maybe_unused]] int32_t nameCpIndex = readerRef.readS4be();
