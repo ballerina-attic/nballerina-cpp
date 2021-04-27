@@ -30,28 +30,25 @@ class NonTerminatorInsnCodeGen
   private:
     FunctionCodeGen &functionGenerator;
     PackageCodeGen &moduleGenerator;
-
-    void mapInitTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::Module &module,
-                          llvm::IRBuilder<> &builder);
-    void mapCreateTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::Module &module,
-                            llvm::IRBuilder<> &builder);
+    void mapInitTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::IRBuilder<> &builder);
+    void mapCreateTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::IRBuilder<> &builder);
 
   public:
     NonTerminatorInsnCodeGen() = delete;
     NonTerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator)
         : functionGenerator(functionGenerator), moduleGenerator(moduleGenerator) {}
     ~NonTerminatorInsnCodeGen() = default;
-    void visit(class ArrayInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class ArrayStoreInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class ArrayLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class BinaryOpInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) override;
-    void visit(class ConstantLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class MapLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class MapStoreInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class MoveInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) override;
-    void visit(class StructureInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) override;
-    void visit(class TypeCastInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class UnaryOpInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) override;
+    void visit(class ArrayInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class ArrayStoreInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class ArrayLoadInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class BinaryOpInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class ConstantLoadInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class MapLoadInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class MapStoreInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class MoveInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class StructureInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class TypeCastInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class UnaryOpInsn &obj, llvm::IRBuilder<> &builder) override;
 };
 
 } // namespace nballerina

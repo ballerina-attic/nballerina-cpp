@@ -26,11 +26,11 @@
 
 namespace nballerina {
 
-TerminatorInsnCodeGen::TerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &)
-    : functionGenerator(functionGenerator) {}
+TerminatorInsnCodeGen::TerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator)
+    : functionGenerator(functionGenerator), moduleGenerator(moduleGenerator) {}
 
-void TerminatorInsnCodeGen::visit(ConditionBrInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    auto *lhsTemp = functionGenerator.createTempVal(obj.lhsOp, module, builder);
+void TerminatorInsnCodeGen::visit(ConditionBrInsn &obj, llvm::IRBuilder<> &builder) {
+    auto *lhsTemp = functionGenerator.createTempVal(obj.lhsOp, builder);
     auto *brCondition = builder.CreateIsNotNull(lhsTemp, obj.lhsOp.getName());
     assert(functionGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
     assert(functionGenerator.getBasicBlock(obj.getElseBBID()) != nullptr);
@@ -38,15 +38,15 @@ void TerminatorInsnCodeGen::visit(ConditionBrInsn &obj, llvm::Module &module, ll
                          functionGenerator.getBasicBlock(obj.getElseBBID()));
 }
 
-void TerminatorInsnCodeGen::visit(FunctionCallInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+void TerminatorInsnCodeGen::visit(FunctionCallInsn &obj, llvm::IRBuilder<> &builder) {
     std::vector<llvm::Value *> paramRefs;
     paramRefs.reserve(obj.argCount);
     for (const auto &arg : obj.argsList) {
-        paramRefs.push_back(functionGenerator.createTempVal(arg, module, builder));
+        paramRefs.push_back(functionGenerator.createTempVal(arg, builder));
     }
 
-    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
-    auto *namedFuncRef = module.getFunction(obj.functionName);
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
+    auto *namedFuncRef = moduleGenerator.getModule().getFunction(obj.functionName);
     auto *callResult = builder.CreateCall(namedFuncRef, paramRefs, "call");
     builder.CreateStore(callResult, lhsRef);
 
@@ -57,12 +57,12 @@ void TerminatorInsnCodeGen::visit(FunctionCallInsn &obj, llvm::Module &module, l
     }
 }
 
-void TerminatorInsnCodeGen::visit(GoToInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) {
+void TerminatorInsnCodeGen::visit(GoToInsn &obj, llvm::IRBuilder<> &builder) {
     assert(functionGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
     builder.CreateBr(functionGenerator.getBasicBlock(obj.getNextBBID()));
 }
 
-void TerminatorInsnCodeGen::visit(ReturnInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) {
+void TerminatorInsnCodeGen::visit(ReturnInsn &obj, llvm::IRBuilder<> &builder) {
     const auto &funcObj = obj.getFunctionRef();
     if (funcObj.isMainFunction()) {
         builder.CreateRetVoid();

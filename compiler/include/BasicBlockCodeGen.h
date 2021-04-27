@@ -33,7 +33,7 @@ class BasicBlockCodeGen {
     BasicBlockCodeGen() = delete;
     BasicBlockCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator);
     ~BasicBlockCodeGen() = default;
-    void visit(class BasicBlock &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
+    void visit(class BasicBlock &obj, llvm::IRBuilder<> &builder);
 };
 
 } // namespace nballerina

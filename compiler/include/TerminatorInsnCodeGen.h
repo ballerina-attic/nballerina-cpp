@@ -28,15 +28,16 @@ class TerminatorInsnCodeGen
     : public Translators<class ConditionBrInsn, class FunctionCallInsn, class GoToInsn, class ReturnInsn> {
   private:
     FunctionCodeGen &functionGenerator;
+    PackageCodeGen &moduleGenerator;
 
   public:
     TerminatorInsnCodeGen() = delete;
-    TerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &);
+    TerminatorInsnCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator);
     ~TerminatorInsnCodeGen() = default;
-    void visit(class ConditionBrInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class FunctionCallInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) override;
-    void visit(class GoToInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) override;
-    void visit(class ReturnInsn &obj, llvm::Module &, llvm::IRBuilder<> &builder) override;
+    void visit(class ConditionBrInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class FunctionCallInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class GoToInsn &obj, llvm::IRBuilder<> &builder) override;
+    void visit(class ReturnInsn &obj, llvm::IRBuilder<> &builder) override;
 };
 
 } // namespace nballerina

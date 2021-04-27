@@ -31,22 +31,22 @@ class Function;
 
 class FunctionCodeGen {
   private:
+    PackageCodeGen &parentGenerator;
     std::map<std::string, llvm::BasicBlock *> basicBlocksMap;
     std::map<std::string, llvm::AllocaInst *> localVarRefs;
-    PackageCodeGen &parentGenerator;
 
   public:
     FunctionCodeGen() = delete;
     FunctionCodeGen(PackageCodeGen &parentGenerator);
     ~FunctionCodeGen() = default;
-    
+
     llvm::BasicBlock *getBasicBlock(const std::string &id);
     llvm::AllocaInst *getLocalVal(const std::string &varName) const;
-    llvm::Value *getLocalOrGlobalVal(const Operand &op, llvm::Module &module) const;
-    llvm::Value *createTempVal(const Operand &op, llvm::Module &module, llvm::IRBuilder<> &builder) const;
+    llvm::Value *getLocalOrGlobalVal(const Operand &op) const;
+    llvm::Value *createTempVal(const Operand &op, llvm::IRBuilder<> &builder) const;
     static llvm::Type *getRetValType(const Function &obj, llvm::Module &module);
 
-    void visit(class Function &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
+    void visit(class Function &obj, llvm::IRBuilder<> &builder);
 };
 
 } // namespace nballerina

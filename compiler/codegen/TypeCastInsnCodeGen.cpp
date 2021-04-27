@@ -26,10 +26,10 @@
 
 namespace nballerina {
 
-void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> &builder) {
     const auto &funcObj = obj.getFunctionRef();
-    auto *rhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.rhsOp, module);
-    auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
+    auto *rhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.rhsOp);
+    auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
     auto *lhsTypeRef = lhsOpRef->getType();
 
     const auto &lhsVar = funcObj.getLocalOrGlobalVariable(obj.lhsOp);
@@ -41,7 +41,7 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &modu
 
     if (Type::isSmartStructType(rhsTypeTag)) {
         if (Type::isSmartStructType(lhsTypeTag)) {
-            auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, module, builder);
+            auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, builder);
             builder.CreateStore(rhsVarOpRef, lhsOpRef);
             return;
         }
@@ -53,10 +53,11 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &modu
 
         // get the mangled name of the lhs type and store it to string builder table.
         std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
-        auto *lhsGep = moduleGenerator.addToStringTable(lhsTypeName, module, builder);
+        auto *lhsGep = moduleGenerator.addToStringTable(lhsTypeName, builder);
 
         // call is_same_type rust function to check LHS and RHS type are same or not.
-        auto isSameTypeFunc = CodeGenUtils::getIsSameTypeFunc(module, lhsGep, inherentTypeStringVal);
+        auto isSameTypeFunc =
+            CodeGenUtils::getIsSameTypeFunc(moduleGenerator.getModule(), lhsGep, inherentTypeStringVal);
         auto *sameTypeResult =
             builder.CreateCall(isSameTypeFunc, llvm::ArrayRef<llvm::Value *>({lhsGep, inherentTypeStringVal}));
         // creating branch condition using is_same_type() function result.
@@ -66,7 +67,7 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::Module &modu
         auto *castLoad = builder.CreateLoad(castResult);
         builder.CreateStore(castLoad, lhsOpRef);
     } else if (Type::isSmartStructType(lhsTypeTag)) {
-        moduleGenerator.storeValueInSmartStruct(module, builder, rhsOpRef, rhsType, lhsOpRef);
+        moduleGenerator.storeValueInSmartStruct(builder, rhsOpRef, rhsType, lhsOpRef);
     } else if (lhsTypeTag == TYPE_TAG_INT && rhsTypeTag == TYPE_TAG_FLOAT) {
         auto *rhsLoad = builder.CreateLoad(rhsOpRef);
         auto *lhsLoad = builder.CreateLoad(lhsOpRef);
