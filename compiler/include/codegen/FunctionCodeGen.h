@@ -33,6 +33,7 @@ class FunctionCodeGen {
     PackageCodeGen &parentGenerator;
     std::map<std::string, llvm::BasicBlock *> basicBlocksMap;
     std::map<std::string, llvm::AllocaInst *> localVarRefs;
+    llvm::Function *llvmValue;
 
   public:
     FunctionCodeGen() = delete;
@@ -44,6 +45,7 @@ class FunctionCodeGen {
     llvm::Value *getLocalOrGlobalVal(const Operand &op) const;
     llvm::Value *createTempVal(const Operand &op, llvm::IRBuilder<> &builder) const;
     static llvm::Type *getRetValType(const Function &obj, llvm::Module &module);
+    llvm::Function *getFunctionValue();
 
     void visit(class Function &obj, llvm::IRBuilder<> &builder);
 };
