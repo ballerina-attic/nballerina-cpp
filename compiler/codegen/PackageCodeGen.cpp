@@ -25,7 +25,11 @@
 
 namespace nballerina {
 
-void PackageCodeGen::visit(Package &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+PackageCodeGen::PackageCodeGen(llvm::Module &module) : module(module) {}
+
+llvm::Module &PackageCodeGen::getModule() { return module; }
+
+void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
 
     module.setSourceFileName(obj.sourceFileName);
 
@@ -36,8 +40,8 @@ void PackageCodeGen::visit(Package &obj, llvm::Module &module, llvm::IRBuilder<>
     strBuilder = std::make_unique<llvm::StringTableBuilder>(llvm::StringTableBuilder::RAW, 1);
 
     // creating external char pointer to store string builder table.
-    globalStrTable = new llvm::GlobalVariable(module, charPtrType, false, llvm::GlobalValue::InternalLinkage,
-                                                nullValue, STRING_TABLE_NAME, nullptr);
+    globalStrTable = new llvm::GlobalVariable(module, charPtrType, false, llvm::GlobalValue::InternalLinkage, nullValue,
+                                              STRING_TABLE_NAME, nullptr);
     globalStrTable->setAlignment(llvm::Align(4));
 
     // iterate over all global variables and translate
@@ -61,8 +65,8 @@ void PackageCodeGen::visit(Package &obj, llvm::Module &module, llvm::IRBuilder<>
         }
 
         bool isVarArg = static_cast<bool>(function.second->getRestParam());
-        auto *funcType = llvm::FunctionType::get(FunctionCodeGen::getRetValType(*function.second, module),
-                                                 paramTypes, isVarArg);
+        auto *funcType =
+            llvm::FunctionType::get(FunctionCodeGen::getRetValType(*function.second, module), paramTypes, isVarArg);
 
         llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, function.second->getName(), module);
     }
@@ -73,12 +77,12 @@ void PackageCodeGen::visit(Package &obj, llvm::Module &module, llvm::IRBuilder<>
             continue;
         }
         FunctionCodeGen funcGenerator(*this);
-        funcGenerator.visit(*function.second, module, builder);
+        funcGenerator.visit(*function.second, builder);
     }
 
     // This Api will finalize the string table builder if table size is not zero
     if (strBuilder->getSize() != 0) {
-        applyStringOffsetRelocations(module, builder);
+        applyStringOffsetRelocations(builder);
         // here, storing String builder table address into global char pointer.
         // like below example.
         // char arr[100] = { 'a' };
@@ -88,12 +92,12 @@ void PackageCodeGen::visit(Package &obj, llvm::Module &module, llvm::IRBuilder<>
     }
 }
 
-void PackageCodeGen::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
-                                             const Type &valueType, llvm::Value *smartStruct) {
+void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
+                                             llvm::Value *smartStruct) {
 
     // struct first element original type
     auto valueTypeName = Type::typeStringMangleName(valueType);
-    auto *lhsGep = addToStringTable(valueTypeName, module, builder);
+    auto *lhsGep = addToStringTable(valueTypeName, builder);
 
     auto *bitCastLhsGep = builder.CreateBitCast(lhsGep, builder.getInt8PtrTy(), "");
     auto *inherentTypeIdx = builder.CreateStructGEP(smartStruct, 0, "inherentTypeName");
@@ -110,7 +114,7 @@ void PackageCodeGen::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuild
     builder.CreateStore(bitCastRes, valueIndx);
 }
 
-llvm::Value *PackageCodeGen::addToStringTable(std::string_view newString, llvm::Module &, llvm::IRBuilder<> &builder) {
+llvm::Value *PackageCodeGen::addToStringTable(std::string_view newString, llvm::IRBuilder<> &builder) {
     if (!strBuilder->contains(newString.data())) {
         strBuilder->add(newString.data());
     }
@@ -124,7 +128,7 @@ llvm::Value *PackageCodeGen::addToStringTable(std::string_view newString, llvm::
 
 // Finalizing the string table after storing all the values into string table
 // and Storing the any type data (string table offset).
-void PackageCodeGen::applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder) {
+void PackageCodeGen::applyStringOffsetRelocations(llvm::IRBuilder<> &builder) {
 
     // finalizing the string builder table.
     strBuilder->finalize();
@@ -166,7 +170,7 @@ void PackageCodeGen::applyStringOffsetRelocations(llvm::Module &module, llvm::IR
 
     auto *arrayType = llvm::ArrayType::get(llvm::Type::getInt8Ty(module.getContext()), concatString.size() + 1);
     globalStrTable2 = new llvm::GlobalVariable(module, arrayType, false, llvm::GlobalValue::ExternalLinkage, nullptr,
-                                           STRING_TABLE_NAME, nullptr, llvm::GlobalVariable::NotThreadLocal, 0);
+                                               STRING_TABLE_NAME, nullptr, llvm::GlobalVariable::NotThreadLocal, 0);
     auto *constString = llvm::ConstantDataArray::getString(module.getContext(), concatString);
     // Initializing global address space with generated string(concat all the
     // strings from string builder table).

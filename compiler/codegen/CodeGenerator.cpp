@@ -53,8 +53,8 @@ int CodeGenerator::generateLLVMIR(Package &translatableObj, const std::string &o
     mod.setTargetTriple(tripleString);
 
     // Codegen
-    PackageCodeGen generator;
-    generator.visit(translatableObj, mod, builder);
+    PackageCodeGen generator(mod);
+    generator.visit(translatableObj, builder);
 
     // Write LLVM IR to file
     std::error_code EC;

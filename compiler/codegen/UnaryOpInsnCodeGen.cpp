@@ -24,9 +24,9 @@
 
 namespace nballerina {
 
-void NonTerminatorInsnCodeGen::visit(class UnaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
-    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
-    auto *rhsOpref = functionGenerator.createTempVal(obj.rhsOp, module, builder);
+void NonTerminatorInsnCodeGen::visit(class UnaryOpInsn &obj, llvm::IRBuilder<> &builder) {
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
+    auto *rhsOpref = functionGenerator.createTempVal(obj.rhsOp, builder);
 
     switch (obj.kind) {
     case INSTRUCTION_KIND_UNARY_NOT: {

@@ -21,6 +21,7 @@
 
 #include "Types.h"
 #include "interfaces/Translatable.h"
+#include "llvm/IR/Module.h"
 #include "llvm/MC/StringTableBuilder.h"
 
 namespace nballerina {
@@ -29,21 +30,24 @@ class PackageCodeGen {
   private:
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
+    llvm::Module &module;
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
     std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
     llvm::GlobalVariable *globalStrTable;
     llvm::GlobalVariable *globalStrTable2;
-    void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
+    void applyStringOffsetRelocations(llvm::IRBuilder<> &builder);
 
   public:
-    PackageCodeGen() = default;
+    PackageCodeGen() = delete;
+    PackageCodeGen(llvm::Module &module);
     ~PackageCodeGen() = default;
 
-    void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
-                                 const Type &valueType, llvm::Value *smartStruct);
-    llvm::Value *addToStringTable(std::string_view newString, llvm::Module &module, llvm::IRBuilder<> &builder);
+    llvm::Module &getModule();
+    void storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
+                                 llvm::Value *smartStruct);
+    llvm::Value *addToStringTable(std::string_view newString, llvm::IRBuilder<> &builder);
 
-    void visit(class Package &obj, llvm::Module &module, llvm::IRBuilder<> &builder);
+    void visit(class Package &obj, llvm::IRBuilder<> &builder);
 };
 
 } // namespace nballerina

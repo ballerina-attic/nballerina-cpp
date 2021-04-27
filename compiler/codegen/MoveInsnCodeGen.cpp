@@ -24,10 +24,10 @@
 
 namespace nballerina {
 
-void NonTerminatorInsnCodeGen::visit(class MoveInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+void NonTerminatorInsnCodeGen::visit(class MoveInsn &obj, llvm::IRBuilder<> &builder) {
 
-    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
-    auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, module, builder);
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
+    auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, builder);
     builder.CreateStore(rhsVarOpRef, lhsRef);
 }
 

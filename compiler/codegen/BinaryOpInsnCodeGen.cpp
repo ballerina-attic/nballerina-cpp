@@ -25,12 +25,12 @@
 
 namespace nballerina {
 
-void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+void NonTerminatorInsnCodeGen::visit(class BinaryOpInsn &obj, llvm::IRBuilder<> &builder) {
 
     const std::string lhsTempName = obj.lhsOp.getName() + "_temp";
-    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
-    auto *rhsOp1ref = functionGenerator.createTempVal(obj.rhsOp1, module, builder);
-    auto *rhsOp2ref = functionGenerator.createTempVal(obj.rhsOp2, module, builder);
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
+    auto *rhsOp1ref = functionGenerator.createTempVal(obj.rhsOp1, builder);
+    auto *rhsOp2ref = functionGenerator.createTempVal(obj.rhsOp2, builder);
     TypeTag rhsType = obj.getFunctionRef().getLocalOrGlobalVariable(obj.rhsOp1).getType().getTypeTag();
     llvm::Value *binaryOpResult = nullptr;
 

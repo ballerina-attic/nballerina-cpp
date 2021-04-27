@@ -27,7 +27,7 @@
 
 namespace nballerina {
 
-void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &builder) {
     assert(obj.getFunctionRef().getLocalOrGlobalVariable(obj.lhsOp).getType().getTypeTag() == obj.typeTag);
     llvm::Value *constRef = nullptr;
     switch (obj.typeTag) {
@@ -36,7 +36,8 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module
         break;
     }
     case TYPE_TAG_FLOAT: {
-        constRef = llvm::ConstantFP::get(module.getContext(), llvm::APFloat(std::get<double>(obj.value)));
+        constRef =
+            llvm::ConstantFP::get(moduleGenerator.getModule().getContext(), llvm::APFloat(std::get<double>(obj.value)));
         break;
     }
     case TYPE_TAG_BOOLEAN: {
@@ -46,6 +47,7 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
         std::string stringValue = std::get<std::string>(obj.value);
+        llvm::Module &module = moduleGenerator.getModule();
         llvm::Constant *llvmConst = llvm::ConstantDataArray::getString(module.getContext(), stringValue);
         auto *globalStringValue = new llvm::GlobalVariable(module, llvmConst->getType(), false,
                                                            llvm::GlobalValue::PrivateLinkage, llvmConst, ".str");
@@ -64,13 +66,13 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::Module &module
         if (funcRef.isMainFunction() && (lhsOpName == funcRef.getReturnVar()->getName())) {
             return;
         }
-        constRef = builder.CreateLoad(CodeGenUtils::getGlobalNilVar(module), lhsOpName + "_temp");
+        constRef = builder.CreateLoad(CodeGenUtils::getGlobalNilVar(moduleGenerator.getModule()), lhsOpName + "_temp");
         break;
     }
     default:
         llvm_unreachable("Invalid Type");
     }
-    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp, module);
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
     builder.CreateStore(constRef, lhsRef);
 }
 

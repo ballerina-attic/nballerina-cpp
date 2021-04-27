@@ -45,23 +45,23 @@ llvm::Type *FunctionCodeGen::getRetValType(const Function &obj, llvm::Module &mo
     return CodeGenUtils::getLLVMTypeOfType(obj.returnVar->getType(), module);
 }
 
-llvm::Value *FunctionCodeGen::createTempVal(const Operand &operand, llvm::Module &module,
-                                                 llvm::IRBuilder<> &builder) const {
-    auto *variable = getLocalOrGlobalVal(operand, module);
+llvm::Value *FunctionCodeGen::createTempVal(const Operand &operand, llvm::IRBuilder<> &builder) const {
+    auto *variable = getLocalOrGlobalVal(operand);
     return builder.CreateLoad(variable, operand.getName() + "_temp");
 }
 
-llvm::Value *FunctionCodeGen::getLocalOrGlobalVal(const Operand &op, llvm::Module &module) const {
+llvm::Value *FunctionCodeGen::getLocalOrGlobalVal(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
-        auto *variable = module.getGlobalVariable(op.getName(), false);
+        auto *variable = parentGenerator.getModule().getGlobalVariable(op.getName(), false);
         assert(variable != nullptr);
         return variable;
     }
     return getLocalVal(op.getName());
 }
 
-void FunctionCodeGen::visit(Function &obj, llvm::Module &module, llvm::IRBuilder<> &builder) {
+void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
 
+    llvm::Module &module = parentGenerator.getModule();
     auto *llvmFunction = module.getFunction(obj.name);
     auto *BbRef = llvm::BasicBlock::Create(module.getContext(), "entry", llvmFunction);
     builder.SetInsertPoint(BbRef);
@@ -97,9 +97,9 @@ void FunctionCodeGen::visit(Function &obj, llvm::Module &module, llvm::IRBuilder
     for (auto &bb : obj.basicBlocks) {
         builder.SetInsertPoint(basicBlocksMap[bb->getId()]);
         BasicBlockCodeGen generator(*this, parentGenerator);
-        generator.visit(*bb, module, builder);
+        generator.visit(*bb, builder);
     }
-    
+
     CodeGenUtils::injectAbortCall(module, builder, obj.name);
 }
 } // namespace nballerina
