@@ -47,7 +47,6 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
-    case TYPE_TAG_ARRAY:
     case TYPE_TAG_NIL:
         return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_ANY:
@@ -62,7 +61,30 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
             llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
             "struct.smtPtr");
     }
-    case TYPE_TAG_TYPEDESC:
+    case TYPE_TAG_ARRAY: {
+        auto *dynamicBalArrayType = module.getTypeByName("struct.dynamicBalArray");
+        if (dynamicBalArrayType == nullptr) {
+            auto *dynamicArrayType = module.getTypeByName("struct.dynamicArray");
+            if (dynamicArrayType == nullptr) {
+                dynamicArrayType = llvm::StructType::create(
+                    context,
+                    llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64PtrTy(context)}),
+                    "struct.dynamicArray");
+            }
+            dynamicBalArrayType = llvm::StructType::create(
+                context,
+                llvm::ArrayRef<llvm::Type *>({
+                        llvm::Type::getInt64Ty(context),
+                        llvm::Type::getInt64Ty(context),
+                        llvm::Type::getInt64Ty(context),
+                        llvm::Type::getInt64Ty(context),
+                        llvm::PointerType::getUnqual(dynamicArrayType)
+                    }),
+                "struct.dynamicBalArray");
+        }
+        return llvm::PointerType::getUnqual(dynamicBalArrayType);
+    }
+    default:
         return llvm::Type::getInt64Ty(context);
     default:
         llvm_unreachable("Invalid type");
