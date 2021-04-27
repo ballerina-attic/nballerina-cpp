@@ -20,9 +20,9 @@
 #define __PACKAGECODEGEN__H__
 
 #include "bir/Types.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
-#include "llvm/MC/StringTableBuilder.h"
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
+#include <llvm/MC/StringTableBuilder.h>
 
 namespace nballerina {
 
@@ -31,10 +31,10 @@ class PackageCodeGen {
     inline static const std::string BAL_NIL_VALUE = "bal_nil_value";
     inline static const std::string STRING_TABLE_NAME = "__string_table_ptr";
     llvm::Module &module;
-    std::unique_ptr<llvm::StringTableBuilder> strBuilder;
-    std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
     llvm::GlobalVariable *globalStrTable;
     llvm::GlobalVariable *globalStrTable2;
+    std::unique_ptr<llvm::StringTableBuilder> strBuilder;
+    std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
     void applyStringOffsetRelocations(llvm::IRBuilder<> &builder);
 
   public:

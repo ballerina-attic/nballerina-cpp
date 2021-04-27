@@ -17,15 +17,16 @@
  */
 
 #include "codegen/PackageCodeGen.h"
-#include "codegen/CodeGenUtils.h"
-#include "codegen/FunctionCodeGen.h"
 #include "bir/FunctionParam.h"
 #include "bir/Package.h"
+#include "codegen/CodeGenUtils.h"
+#include "codegen/FunctionCodeGen.h"
 #include <iostream>
 
 namespace nballerina {
 
-PackageCodeGen::PackageCodeGen(llvm::Module &module) : module(module) {}
+PackageCodeGen::PackageCodeGen(llvm::Module &module)
+    : module(module), globalStrTable(nullptr), globalStrTable2(nullptr) {}
 
 llvm::Module &PackageCodeGen::getModule() { return module; }
 

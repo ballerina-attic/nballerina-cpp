@@ -17,8 +17,8 @@
  */
 
 #include "codegen/CodeGenerator.h"
-#include "codegen/PackageCodeGen.h"
 #include "bir/Package.h"
+#include "codegen/PackageCodeGen.h"
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
 #include <iostream>
@@ -26,11 +26,10 @@
 
 namespace nballerina {
 
-int CodeGenerator::generateLLVMIR(Package &translatableObj, const std::string &outFileName,
-                                  const std::string &moduleName) {
+int CodeGenerator::generateLLVMIR(Package &translatableObj, const std::string &outFileName) {
 
     auto mContext = llvm::LLVMContext();
-    auto mod = llvm::Module(moduleName, mContext);
+    auto mod = llvm::Module(translatableObj.getModuleName(), mContext);
     auto builder = llvm::IRBuilder<>(mContext);
 
     // MacOS specific code. This is needed, since the default Triple will have the

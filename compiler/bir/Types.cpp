@@ -17,7 +17,7 @@
  */
 
 #include "bir/Types.h"
-#include "llvm/Support/ErrorHandling.h"
+#include <llvm/Support/ErrorHandling.h>
 
 namespace nballerina {
 
