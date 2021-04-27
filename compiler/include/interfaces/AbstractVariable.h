@@ -31,7 +31,8 @@ enum VarKind {
     RETURN_VAR_KIND = 4,
     GLOBAL_VAR_KIND = 5,
     SELF_VAR_KIND = 6,
-    CONSTANT_VAR_KIND = 7
+    CONSTANT_VAR_KIND = 7,
+    SYNTHETIC_VAR_KIND = 8
 };
 
 class AbstractVariable {
