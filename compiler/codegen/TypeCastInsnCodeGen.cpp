@@ -72,8 +72,10 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
         // if comparison failed
         builder.SetInsertPoint(elseBB);
         auto abortFunc = CodeGenUtils::getAbortFunc(module);
-        builder.CreateCall(abortFunc);
-        builder.CreateBr(ifBB);
+        auto *abortCall = builder.CreateCall(abortFunc);
+        abortCall->addAttribute(~0U, llvm::Attribute::NoReturn);
+        abortCall->addAttribute(~0U, llvm::Attribute::NoUnwind);
+        builder.CreateUnreachable();
 
         // if comparison is successful
         builder.SetInsertPoint(ifBB);
