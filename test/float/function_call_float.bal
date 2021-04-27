@@ -2,10 +2,15 @@
 
 public function print_string(string val) = external;
 
-public function main() {
-    string? str = "Hello World!";
-    print_string("RESULT=");
-    print_string(<string>str);
+public function printf64(float val) = external;
+
+public function bar(float z) returns float {
+    return z + 10.2;
 }
 
-// CHECK: RESULT=Hello World!
+public function main() {
+    float a = 5.6;
+    print_string("RESULT=");
+    printf64(bar(a));
+}
+// CHECK: RESULT=15.799999

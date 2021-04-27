@@ -29,7 +29,10 @@ public function main() {
     float f = <float>fooFloat();
     print_string("RESULT=");
     printf64(f);
+    print_string("RESULT=");
+    print_integer(i + <int>f);
 }
 
 // CHECK: RESULT=222
 // CHECK: RESULT=7.1
+// CHECK: RESULT=229
