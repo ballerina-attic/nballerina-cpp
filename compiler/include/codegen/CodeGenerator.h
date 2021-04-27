@@ -30,8 +30,7 @@ class CodeGenerator {
 
   public:
     ~CodeGenerator() = default;
-    static int generateLLVMIR(class Package &translatableObj, const std::string &outFileName,
-                              const std::string &moduleName = "");
+    static int generateLLVMIR(class Package &translatableObj, const std::string &outFileName);
 };
 
 } // namespace nballerina

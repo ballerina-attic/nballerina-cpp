@@ -19,7 +19,7 @@
 #ifndef __TRANSLATABLE__H__
 #define __TRANSLATABLE__H__
 
-#include "llvm/IR/IRBuilder.h"
+#include <llvm/IR/IRBuilder.h>
 
 namespace nballerina {
 /*

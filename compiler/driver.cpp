@@ -17,57 +17,53 @@
  */
 
 #include "BIRReader.h"
-#include "codegen/CodeGenerator.h"
 #include "bir/Package.h"
+#include "codegen/CodeGenerator.h"
 #include <iostream>
 #include <string>
 
-using namespace std;
-using namespace nballerina;
-
 BIRReader BIRReader::reader;
 
-std::string removeExtension(const std::string& path) {
-
+std::string removeExtension(const std::string &path) {
     size_t pos = path.find_last_of("\\/.");
-    if (pos != std::string::npos && path[pos] == '.'){
+    if (pos != std::string::npos && path[pos] == '.') {
         return path.substr(0, pos);
     }
     return path;
 }
 
 int main(int argc, char **argv) {
-    string inFileName = "";
-    string outFileName = "";
-    string exeName = "";
+    std::string inFileName;
+    std::string outFileName;
+    std::string exeName;
     if (argc <= 1) {
-        printf("Need input file name \n");
+        std::cerr << "Need input file name" << std::endl;
         exit(0);
     }
 
     int i = 0;
     while (i < argc) {
-        string arg = std::string(argv[i]);
+        std::string arg = std::string(argv[i]);
         if (arg == "-c") {
-            i = i + 1;
+            i++;
         } else if (arg == "-o") {
-            outFileName = argv[i + 1];
-            i = i + 2;
+            outFileName = std::string(argv[i + 1]);
+            i += 2;
         } else {
-            inFileName = argv[i];
-            i = i + 1;
+            inFileName = std::string(argv[i]);
+            i++;
         }
     }
     // if output file name is empty from command line options.
-    if (outFileName == "") {
-        outFileName=removeExtension(inFileName);
+    if (outFileName.empty()) {
+        outFileName = removeExtension(inFileName);
         outFileName = outFileName + ".ll";
     }
 
     BIRReader::reader.setFileStream(inFileName);
 
-    std::shared_ptr<nballerina::Package> birPackage = BIRReader::reader.deserialize();
+    auto birPackage = BIRReader::reader.deserialize();
 
     // Codegen
-    return CodeGenerator::generateLLVMIR(*birPackage.get(), outFileName, birPackage->getModuleName());
+    return nballerina::CodeGenerator::generateLLVMIR(*birPackage, outFileName);
 }

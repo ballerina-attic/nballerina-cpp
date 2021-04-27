@@ -17,11 +17,11 @@
  */
 
 #include "codegen/FunctionCodeGen.h"
-#include "codegen/BasicBlockCodeGen.h"
-#include "codegen/CodeGenUtils.h"
 #include "bir/BasicBlock.h"
 #include "bir/Function.h"
 #include "bir/FunctionParam.h"
+#include "codegen/BasicBlockCodeGen.h"
+#include "codegen/CodeGenUtils.h"
 
 namespace nballerina {
 

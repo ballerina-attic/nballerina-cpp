@@ -20,8 +20,8 @@
 #define __CODEGENUTILS__H__
 
 #include "bir/Types.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
 #include <string>
 
 namespace nballerina {

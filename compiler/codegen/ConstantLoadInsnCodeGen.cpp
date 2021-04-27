@@ -16,14 +16,14 @@
  * under the License.
  */
 
-#include "codegen/NonTerminatorInsnCodeGen.h"
-#include "codegen/CodeGenUtils.h"
 #include "bir/ConstantLoad.h"
 #include "bir/Function.h"
 #include "bir/Operand.h"
 #include "bir/Variable.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/GlobalVariable.h"
+#include "codegen/CodeGenUtils.h"
+#include "codegen/NonTerminatorInsnCodeGen.h"
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/GlobalVariable.h>
 
 namespace nballerina {
 

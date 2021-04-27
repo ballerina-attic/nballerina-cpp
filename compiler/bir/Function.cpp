@@ -22,8 +22,7 @@
 #include "bir/Operand.h"
 #include "bir/Package.h"
 #include "bir/Types.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
+#include <cassert>
 
 namespace nballerina {
 
