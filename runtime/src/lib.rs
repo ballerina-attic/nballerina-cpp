@@ -114,8 +114,8 @@ pub extern "C" fn print_boolean(num8: i8) {
 #[no_mangle]
 pub extern "C" fn array_init_int(size: i64) -> *mut DynamicBalArray {
     let array: Box<DynamicBalArray> = Box::new(DynamicBalArray::new(size));
-    let vec_pointer = Box::into_raw(array);
-    return vec_pointer as *mut DynamicBalArray;
+    let array_pointer = Box::into_raw(array);
+    return array_pointer as *mut DynamicBalArray;
 }
 
 #[no_mangle]

@@ -17,19 +17,19 @@
  *
  */
 
-pub mod dynamic_array{
-    const GROWTH_FACTOR:i64 = 2;
-    use libc;
-    use std::mem;
+pub mod dynamic_array {
+    const GROWTH_FACTOR: i64 = 2;
     use crate::BalType;
+    use libc;
     use std::convert::TryFrom;
+    use std::mem;
 
     pub struct DynamicBalArray {
         header: i64,
         inherentType: BalType,
-        length: i64,
-        capacity: i64,
-        array: DynamicArray
+        length: i64,   // largest index of an element stored in the array + 1
+        capacity: i64, // amount of memory actually allocated for
+        array: DynamicArray,
     }
 
     struct DynamicArray {
@@ -37,25 +37,26 @@ pub mod dynamic_array{
         values: *mut i64,
     }
 
-    impl DynamicBalArray{
-        pub fn new(size: i64)->DynamicBalArray{
+    impl DynamicBalArray {
+        pub fn new(size: i64) -> DynamicBalArray {
             let size_t = if size > 0 { size } else { 8 };
-            let dynamic_array = DynamicArray{
-                header:0,
-                values: DynamicBalArray::allocate_memory(size_t)
+            let dynamic_array = DynamicArray {
+                header: 0,
+                values: DynamicBalArray::allocate_memory(size_t),
             };
-            return DynamicBalArray{
-                header:0,
-                inherentType:BalType::Int,
-                length:0,
+            return DynamicBalArray {
+                header: 0,
+                inherentType: BalType::Int,
+                length: 0,
                 capacity: size_t,
-                array: dynamic_array
-            }
+                array: dynamic_array,
+            };
         }
 
-        fn allocate_memory(size: i64)-> *mut i64{
-            unsafe{
-                let mem_ptr: *mut i64 = libc::calloc(usize::try_from(size).unwrap(),mem::size_of::<i64>()) as *mut i64;
+        fn allocate_memory(size: i64) -> *mut i64 {
+            unsafe {
+                let mem_ptr: *mut i64 =
+                    libc::calloc(usize::try_from(size).unwrap(), mem::size_of::<i64>()) as *mut i64;
                 if mem_ptr.is_null() {
                     panic!("Failed to allocate memory");
                 }
@@ -63,46 +64,44 @@ pub mod dynamic_array{
             }
         }
 
-        fn copy_memory(source: *const i64, dest:*mut i64, size: i64){
+        fn copy_memory(source: *const i64, dest: *mut i64, size: i64) {
             unsafe {
                 std::ptr::copy(source, dest, usize::try_from(size).unwrap());
             }
         }
 
-        fn deallocate_memory(mem_ptr: *mut i64){
-            unsafe{
+        fn deallocate_memory(mem_ptr: *mut i64) {
+            unsafe {
                 libc::free(mem_ptr as *mut libc::c_void);
             }
         }
 
-        pub fn get_element(&self, index:i64)-> i64{
+        pub fn get_element(&self, index: i64) -> i64 {
             if self.length <= index {
                 panic!("Index out of range");
             } else {
-                unsafe{
+                unsafe {
                     return *self.array.values.offset(isize::try_from(index).unwrap());
                 }
             }
         }
 
-        pub fn set_element(&mut self, index:i64, value:i64){
+        pub fn set_element(&mut self, index: i64, value: i64) {
             if self.capacity <= index {
-               let new_size = self.capacity * GROWTH_FACTOR;
-               let new_array = DynamicBalArray::allocate_memory(new_size); 
-               DynamicBalArray::copy_memory(self.array.values, new_array, self.capacity);
-               DynamicBalArray::deallocate_memory(self.array.values);
-               self.array.values = new_array;
-               self.capacity = new_size;
+                let repeat = (index / (self.capacity * GROWTH_FACTOR)) + 1;
+                let new_size = self.capacity * GROWTH_FACTOR * repeat;
+                let new_array = DynamicBalArray::allocate_memory(new_size);
+                DynamicBalArray::copy_memory(self.array.values, new_array, self.capacity);
+                DynamicBalArray::deallocate_memory(self.array.values);
+                self.array.values = new_array;
+                self.capacity = new_size;
             }
             unsafe {
                 *self.array.values.offset(isize::try_from(index).unwrap()) = value;
             }
             if self.length <= index {
-
-               self.length = index+1;
+                self.length = index + 1;
             }
-
         }
     }
-
 }

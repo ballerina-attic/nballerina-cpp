@@ -63,25 +63,23 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     }
     case TYPE_TAG_ARRAY: {
         auto *dynamicBalArrayType = module.getTypeByName("struct.dynamicBalArray");
-        if (dynamicBalArrayType == nullptr) {
-            auto *dynamicArrayType = module.getTypeByName("struct.dynamicArray");
-            if (dynamicArrayType == nullptr) {
-                dynamicArrayType = llvm::StructType::create(
-                    context,
-                    llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64PtrTy(context)}),
-                    "struct.dynamicArray");
-            }
-            dynamicBalArrayType = llvm::StructType::create(
-                context,
-                llvm::ArrayRef<llvm::Type *>({
-                        llvm::Type::getInt64Ty(context),
-                        llvm::Type::getInt64Ty(context),
-                        llvm::Type::getInt64Ty(context),
-                        llvm::Type::getInt64Ty(context),
-                        llvm::PointerType::getUnqual(dynamicArrayType)
-                    }),
-                "struct.dynamicBalArray");
+
+        if (dynamicBalArrayType != nullptr) {
+            return llvm::PointerType::getUnqual(dynamicBalArrayType);
         }
+
+        assert(module.getTypeByName("struct.dynamicArray") == nullptr);
+
+        auto *dynamicArrayType = llvm::StructType::create(
+            context,
+            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64PtrTy(context)}),
+            "struct.dynamicArray");
+        dynamicBalArrayType = llvm::StructType::create(
+            context,
+            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context),
+                                          llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context),
+                                          llvm::PointerType::getUnqual(dynamicArrayType)}),
+            "struct.dynamicBalArray");
         return llvm::PointerType::getUnqual(dynamicBalArrayType);
     }
     default:
@@ -129,7 +127,7 @@ llvm::FunctionCallee CodeGenUtils::getAbortFunc(llvm::Module &module) {
 llvm::FunctionCallee CodeGenUtils::getArrayInitFunc(llvm::Module &module, TypeTag memberTypeTag) {
     const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
     auto *funcType =
-        llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
+        llvm::FunctionType::get(CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_ARRAY, module),
                                 llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(module.getContext())}), false);
     return module.getOrInsertFunction(arrayTypeFuncName, funcType);
 }
