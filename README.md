@@ -160,7 +160,7 @@ Valid options:
   * Launch code coverage test via `cd build; cmake --build . -t nballerinacc_coverage`
 * `-DSKIP_BIR_GEN=ON` : Skip the execution of `ballerina build --dump-file` for check target, if dump files already exists
   * Set this to speed up LIT test execution. 
-  * `-DSKIP_BIR_GEN` To unset it
+  * `-USKIP_BIR_GEN` To unset it
 * `-DCLANG_TIDY_OVERRIDE=<compiler name>` : Override default clang-tidy executable name e.g. `-DCLANG_TIDY_OVERRIDE=clang-tidy-11`
   * `-DCLANG_TIDY_OVERRIDE` To unset it
 * `-DCHECK_FILTER="--filter=<regex>"` : Filter tests to run. e.g. `-DCHECK_FILTER="--filter=\"simpleMain.bal\""`, `-DCHECK_FILTER="--filter=\"functions\""`
