@@ -15,7 +15,7 @@ This will build:
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
 ### Usage
-* Run nballerinacc against a BIR dump file (using `ballerina build -dump-bir-file=<output> <input>`) to generate the .ll LLVM IR file
+* Run nballerinacc against a BIR dump file (using `bal build -dump-bir-file=<output> <input>`) to generate the .ll LLVM IR file
  
         ./nballerinacc <bir dump file path>
 * The .ll file can be compiled into an executable using clang and the compiled runtime library
@@ -23,10 +23,10 @@ This will build:
         clang -O0 -o $filename.out $filename-bir-dump.ll -L../runtime/target/release/ -lballerina_rt
 
 ### Run tests
-1. Install Java 8 runtime (e.g. openjdk-8-jre on ubuntu)
+1. Install Java 11 runtime (e.g. openjdk-11-jre on ubuntu)
 2. Create `JAVA_HOME` environment variable and point it to the Java install dir
-3. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-Preview2-nballerina-r2)
-4. Extract Ballerina pack and add the `bin` folder with the `ballerina` executable to your `PATH` system variable 
+3. Get this specific Ballerina version : [2.0.0-alpha8-20210419-135100-df7a4e3f.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-alpha8-20210419-135100-df7a4e3f))
+4. Extract Ballerina pack and add the `bin` folder with the `bal` executable to your `PATH` system variable 
 5. Run:
 
         cmake --build ./build/ -t check
@@ -58,10 +58,10 @@ This will build:
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
 ### Run tests
-1. Install Java 8 runtime (e.g. JRE 8 package for MacOS)
+1. Install Java 11 runtime (e.g. JRE 11 package for MacOS)
 2. Create `JAVA_HOME` environment variable and point it to the Java install dir
-3. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-Preview2-nballerina-r2)
-4. Extract Ballerina pack and add the `bin` folder with the `ballerina` executable to your `PATH` system variable 
+3. Get this specific Ballerina version : [2.0.0-alpha8-20210419-135100-df7a4e3f.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-alpha8-20210419-135100-df7a4e3f))
+4. Extract Ballerina pack and add the `bin` folder with the `bal` executable to your `PATH` system variable 
 5. Navigate to nBallerina `build/` folder and run tests
 
         cd build/
@@ -127,10 +127,10 @@ Clone the nballerina source and run below commands.
 
         pip3 Install lit filecheck
 
-3. Install java and set up JAVA_HOME in your PATH system variable
-4. Get this specific Ballerina version : [jballerina-tools-2.0.0-Preview2-nballerina-r2.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-Preview2-nballerina-r2)
+3. Install java 11 and set up JAVA_HOME in your PATH system variable
+4. Get this specific Ballerina version : [2.0.0-alpha8-20210419-135100-df7a4e3f.zip](https://github.com/ballerina-platform/ballerina-lang/packages/413010?version=2.0.0-alpha8-20210419-135100-df7a4e3f))
 5. Extract Ballerina pack and add the bin folder with the ballerina executable to your PATH system variable
-4. Run tests
+6. Run tests
 
         msbuild test /p:configuration=Release
 

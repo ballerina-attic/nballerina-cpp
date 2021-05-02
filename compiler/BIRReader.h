@@ -121,8 +121,124 @@ class BIRReader {
     friend class ReadArrayLoadInsn;
     friend class ReadMapStoreInsn;
     friend class ReadMapLoadInsn;
+    friend class TypeId;
+    friend class TypeIdSet;
+    friend class ObjectField;
+    friend class Markdown;
+    friend class ObjectAttachedFunction;
+    friend class TableFieldNameList;
+    friend class RecordField;
 };
 
+class TypeIdSet {
+  public:
+    TypeIdSet() = default;
+    void read();
+    ~TypeIdSet() = default;
+    BIRReader &readerRef = BIRReader::reader;
+
+  private:
+    int32_t pkgIdCpIndex;
+    int32_t typeIdNameCpIndex;
+    uint8_t isPublicId;
+
+  public:
+    int32_t getPkgCpIndex() { return pkgIdCpIndex; }
+    int32_t getTypeIdNameCpIndex() { return typeIdNameCpIndex; }
+    uint8_t getIsPublicId() { return isPublicId; }
+};
+class TypeId {
+  public:
+    TypeId() = default;
+    void read();
+    ~TypeId() = default;
+    BIRReader &readerRef = BIRReader::reader;
+
+  private:
+    int32_t primaryTypeIdCount;
+    std::vector<std::unique_ptr<TypeIdSet>> primaryTypeId;
+    int32_t secondaryTypeIdCount;
+    std::vector<std::unique_ptr<TypeIdSet>> secondaryTypeId;
+
+  public:
+    int32_t getPrimaryTypeIdCount() { return primaryTypeIdCount; }
+    int32_t getSecondaryTypeIdCount() { return secondaryTypeIdCount; }
+    TypeIdSet *getPrimaryTypeId(int index) { return primaryTypeId[index].get(); }
+    TypeIdSet *getSecondaryTypeId(int index) { return secondaryTypeId[index].get(); }
+};
+
+class Markdown {
+  public:
+    Markdown() = default;
+    void read();
+    ~Markdown() = default;
+    BIRReader &readerRef = BIRReader::reader;
+};
+
+class ObjectField {
+  public:
+    ObjectField() = default;
+    void read();
+    ~ObjectField() = default;
+    BIRReader &readerRef = BIRReader::reader;
+
+  private:
+    int32_t nameCpIndex;
+    int64_t flags;
+    std::unique_ptr<Markdown> doc;
+    int32_t typeCpIndex;
+
+  public:
+    int32_t getNameCpIndex() { return nameCpIndex; }
+    int64_t getFlags() { return flags; }
+    Markdown *getDoc() { return doc.get(); }
+    int64_t getTypeCpIndex() { return typeCpIndex; }
+};
+
+// identical for RecordInitFunction
+class ObjectAttachedFunction {
+  public:
+    ObjectAttachedFunction() = default;
+    void read();
+    ~ObjectAttachedFunction() = default;
+    BIRReader &readerRef = BIRReader::reader;
+
+  private:
+    int32_t nameCpIndex;
+    int64_t flags;
+    int32_t typeCpIndex;
+
+  public:
+    int32_t getNameCpIndex() { return nameCpIndex; }
+    int64_t getFlags() { return flags; }
+    int32_t getTypeCpIndex() { return typeCpIndex; }
+};
+
+class TableFieldNameList {
+  public:
+    TableFieldNameList(){};
+    void read();
+    ~TableFieldNameList(){};
+    BIRReader &readerRef = BIRReader::reader;
+
+  private:
+    int32_t size;
+    std::vector<int32_t> fieldNameCpIndex;
+};
+
+class RecordField {
+  public:
+    RecordField() = default;
+    void read();
+    ~RecordField() = default;
+    BIRReader &readerRef = BIRReader::reader;
+
+  private:
+    int32_t nameCpIndex;
+    int64_t flags;
+    std::unique_ptr<Markdown> doc;
+    int32_t typeCpIndex;
+};
 class ConstantPoolEntry {
 
   public:

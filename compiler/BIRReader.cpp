@@ -245,7 +245,7 @@ InvocableType ConstantPoolSet::getInvocableType(int32_t index) {
     auto paramCount = shapeCp->getParamCount();
     std::vector<Type> paramTypes;
     paramTypes.reserve(paramCount);
-    for (int32_t i = 0; i < paramCount; i++) {
+    for (auto i = 0; i < paramCount; i++) {
         paramTypes.push_back(getTypeCp(shapeCp->getParam(i), false));
     }
     auto returnTypeDecl = getTypeCp(shapeCp->getReturnTypeIndex(), false);
@@ -262,14 +262,12 @@ Variable BIRReader::readGlobalVar() {
 
     int32_t varDclNameCpIndex = readS4be();
 
-    int32_t flags __attribute__((unused)) = readS4be();
-    int32_t length __attribute__((unused)) = readS4be();
-    uint8_t hasDoc = readU1();
-    if (hasDoc) {
-        int32_t descriptionCpIndex __attribute__((unused)) = readS4be();
-        int32_t returnValueDescriptionCpIndex __attribute__((unused)) = readS4be();
-        int32_t parameterCount __attribute__((unused)) = readS4be();
-    }
+    [[maybe_unused]] int64_t flags = readS8be();
+    [[maybe_unused]] uint8_t origin = readU1();
+    // Markdown
+    int32_t docLength = readS4be();
+    is.ignore(docLength);
+
     int32_t typeCpIndex = readS4be();
     auto type = constantPool->getTypeCp(typeCpIndex, false);
     return Variable(std::move(type), (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
@@ -282,28 +280,29 @@ Variable BIRReader::readLocalVar() {
     int32_t nameCpIndex = readS4be();
 
     if (kind == ARG_VAR_KIND) {
-        int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
+        [[maybe_unused]] int32_t metaVarNameCpIndex = readS4be();
     } else if (kind == LOCAL_VAR_KIND) {
-        int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
-        int32_t endBbIdCpIndex __attribute__((unused)) = readS4be();
-        int32_t startBbIdCpIndex __attribute__((unused)) = readS4be();
-        int32_t instructionOffset __attribute__((unused)) = readS4be();
+        // enclosing basic block id
+        [[maybe_unused]] int32_t metaVarNameCpIndex = readS4be();
+        [[maybe_unused]] int32_t endBbIdCpIndex = readS4be();
+        [[maybe_unused]] int32_t startBbIdCpIndex = readS4be();
+        [[maybe_unused]] int32_t instructionOffset = readS4be();
     }
     return Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind);
 }
 
 // Read Local Variable and return Variable pointer
 Operand BIRReader::readOperand() {
-    uint8_t ignoredVar __attribute__((unused)) = readU1();
+    [[maybe_unused]] uint8_t ignoredVar = readU1();
 
     uint8_t kind = readU1();
 
-    uint8_t scope __attribute__((unused)) = readU1();
+    [[maybe_unused]] uint8_t scope = readU1();
 
     int32_t varDclNameCpIndex = readS4be();
 
     if ((VarKind)kind == GLOBAL_VAR_KIND) {
-        int32_t packageIndex __attribute__((unused)) = readS4be();
+        [[maybe_unused]] int32_t packageIndex = readS4be();
         int32_t typeCpIndex = readS4be();
         [[maybe_unused]] Type typeDecl = constantPool->getTypeCp(typeCpIndex, false);
     }
@@ -328,7 +327,7 @@ MapConstruct BIRReader::readMapConstructor() {
 // Read TYPEDESC Insn
 std::unique_ptr<TypeDescInsn> ReadTypeDescInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     auto lhsOp = readerRef.readOperand();
-    int32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
+    [[maybe_unused]] int32_t typeCpIndex = readerRef.readS4be();
     return std::make_unique<TypeDescInsn>(std::move(lhsOp), *currentBB);
 }
 
@@ -353,7 +352,7 @@ std::unique_ptr<StructureInsn> ReadStructureInsn::readNonTerminatorInsn(std::sha
 
 // Read CONST_LOAD Insn
 std::unique_ptr<ConstantLoadInsn> ReadConstLoadInsn::readNonTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
-    int32_t typeCpIndex __attribute__((unused)) = readerRef.readS4be();
+    [[maybe_unused]] int32_t typeCpIndex = readerRef.readS4be();
     auto lhsOp = readerRef.readOperand();
 
     switch (readerRef.constantPool->getTypeTag(typeCpIndex)) {
@@ -434,14 +433,14 @@ std::unique_ptr<MoveInsn> ReadMoveInsn::readNonTerminatorInsn(std::shared_ptr<Ba
 // Read Function Call
 std::unique_ptr<FunctionCallInsn> ReadFuncCallInsn::readTerminatorInsn(std::shared_ptr<BasicBlock> currentBB) {
     [[maybe_unused]] uint8_t isVirtual = readerRef.readU1();
-    int32_t packageIndex __attribute__((unused)) = readerRef.readS4be();
+    [[maybe_unused]] int32_t packageIndex = readerRef.readS4be();
     int32_t callNameCpIndex = readerRef.readS4be();
     string funcName = readerRef.constantPool->getStringCp(callNameCpIndex);
     int32_t argumentsCount = readerRef.readS4be();
 
     std::vector<Operand> fnArgs;
     fnArgs.reserve(argumentsCount);
-    for (int32_t i = 0; i < argumentsCount; i++) {
+    for (auto i = 0; i < argumentsCount; i++) {
         fnArgs.push_back(readerRef.readOperand());
     }
 
@@ -537,11 +536,11 @@ std::unique_ptr<ReturnInsn> ReadReturnInsn::readTerminatorInsn(std::shared_ptr<B
 
 // Read an Instruction - either a NonTerminatorInsn or TerminatorInsn from the BIR
 void BIRReader::readInsn(std::shared_ptr<BasicBlock> basicBlock) {
-    int32_t sLine = readS4be();
-    int32_t eLine = readS4be();
-    int32_t sCol = readS4be();
-    int32_t eCol = readS4be();
     int32_t sourceFileCpIndex = readS4be();
+    int32_t sLine = readS4be();
+    int32_t sCol = readS4be();
+    int32_t eLine = readS4be();
+    int32_t eCol = readS4be();
     Location location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
 
     InstructionKind insnKind = (InstructionKind)readU1();
@@ -653,7 +652,7 @@ std::shared_ptr<BasicBlock> BIRReader::readBasicBlock(std::shared_ptr<Function> 
 }
 
 bool BIRReader::ignoreFunction(std::string funcName) {
-    std::array<std::string, 3> ignoreNames{"..<init>", "..<start>", "..<stop>"};
+    std::array<std::string, 6> ignoreNames{".<init>", ".<start>", ".<stop>", "..<init>", "..<start>", "..<stop>"};
     bool ignoreFunction = false;
     for (const auto &name : ignoreNames) {
         if (funcName.rfind(name, 0) == 0) {
@@ -668,11 +667,12 @@ bool BIRReader::ignoreFunction(std::string funcName) {
 std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> package) {
 
     // Read debug info
-    int32_t sLine = readS4be();
-    int32_t eLine = readS4be();
-    int32_t sCol = readS4be();
-    int32_t eCol = readS4be();
+    // position
     int32_t sourceFileCpIndex = readS4be();
+    int32_t sLine = readS4be();
+    int32_t sCol = readS4be();
+    int32_t eLine = readS4be();
+    int32_t eCol = readS4be();
     Location location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
 
     // TODO should not set src for every function
@@ -681,15 +681,18 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     int32_t nameCpIndex = readS4be();
     std::string functionName = constantPool->getStringCp(nameCpIndex);
     int32_t workdernameCpIndex = readS4be();
-    int32_t flags = readS4be();
+    int32_t flags = readS8be();
+    [[maybe_unused]] uint8_t origin = readU1();
     int32_t typeCpIndex = readS4be();
     [[maybe_unused]] auto invocable_type = constantPool->getInvocableType(typeCpIndex);
     auto birFunction =
         std::make_shared<Function>(*package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
     birFunction->setLocation(location);
 
-    int64_t annotationLength __attribute__((unused)) = readS8be();
-    int32_t annotationAttachments __attribute__((unused)) = readS4be();
+    // annotation_attachments_content
+    int64_t annotationLength = readS8be(); // annotation_attachments_content_length
+    is.ignore(annotationLength);
+
     int32_t requiredParamCount = readS4be();
 
     // Set function param here and then fill remaining values from the default Params
@@ -698,16 +701,26 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     for (auto i = 0; i < requiredParamCount; i++) {
         int32_t paramNameCpIndex = readS4be();
         functionParams.push_back(Operand(constantPool->getStringCp(paramNameCpIndex), ARG_VAR_KIND));
-        int32_t paramFlags __attribute__((unused)) = readS4be();
+        [[maybe_unused]] int64_t paramFlags = readS8be();
     }
 
-    uint8_t hasRestParam __attribute__((unused)) = readU1();
+    uint8_t hasRestParam = readU1();
+    [[maybe_unused]] int32_t restParamNameCpIndex;
+    if (hasRestParam) {
+        restParamNameCpIndex = readS4be();
+    }
+
     // if (!hasRestParam)
     //   birFunction->setRestParam(NULL);
 
-    uint8_t hasReceiver __attribute__((unused)) = readU1();
+    [[maybe_unused]] uint8_t hasReceiver = readU1();
     // if (!hasReceiver)
     //   birFunction->setReceiver(NULL);
+    if (hasReceiver) {
+        [[maybe_unused]] uint8_t receiverKind = readU1();
+        [[maybe_unused]] int32_t receiverTypeCpIndex = readS4be();
+        [[maybe_unused]] int32_t receiverNameCpIndex = readS4be();
+    }
 
     auto taintTableLength = readS8be();
     is.ignore(taintTableLength);
@@ -715,10 +728,28 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     auto docLength = readS4be();
     is.ignore(docLength);
 
-    int64_t functionBodyLength __attribute__((unused)) = readS8be();
-    int32_t argsCount __attribute__((unused)) = readS4be();
+    int32_t depended_global_var_length = readS4be();
+    for (auto i = 0; i < depended_global_var_length; i++) {
+        [[maybe_unused]] int32_t depended_global_var_cp_entry = readS4be();
+    }
+    [[maybe_unused]] int64_t scopeTableLength = readS8be();
+    int32_t scopeEntryCount = readS4be();
+    // scope entry
+    for (auto i = 0; i < scopeEntryCount; i++) {
+        [[maybe_unused]] int32_t currentScopeIndex = readS4be();
+        [[maybe_unused]] int32_t instructionOffset = readS4be();
+        uint8_t hasParent = readU1();
+        if (hasParent) {
+            [[maybe_unused]] int32_t parentScopeIndex = readS4be();
+        }
+    }
+
+    [[maybe_unused]] int64_t functionBodyLength = readS8be();
+    // function body
+    [[maybe_unused]] int32_t argsCount = readS4be();
     uint8_t hasReturnVar = readU1();
 
+    // returnVar
     if (hasReturnVar) {
         uint8_t kind = readU1();
         int32_t typeCpIndex = readS4be();
@@ -728,27 +759,33 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     }
 
     int32_t defaultParamValue = readS4be();
+    // default parameter
     for (auto i = 0; i < defaultParamValue; i++) {
         uint8_t kind = readU1();
         int32_t typeCpIndex = readS4be();
         birFunction->insertParam(FunctionParam(functionParams[i], constantPool->getTypeCp(typeCpIndex, false)));
 
-        int32_t nameCpIndex __attribute__((unused)) = readS4be();
+        [[maybe_unused]] int32_t nameCpIndex = readS4be();
         if (kind == ARG_VAR_KIND) {
-            int32_t metaVarNameCpIndex __attribute__((unused)) = readS4be();
+            [[maybe_unused]] int32_t metaVarNameCpIndex = readS4be();
         }
-        uint8_t hasDefaultExpr __attribute__((unused)) = readU1();
+        [[maybe_unused]] uint8_t hasDefaultExpr = readU1();
     }
 
     int32_t localVarCount = readS4be();
     for (auto i = 0; i < localVarCount; i++) {
         birFunction->insertLocalVar(readLocalVar());
     }
-    // Ignore default param values
+
     for (auto i = 0; i < defaultParamValue; i++) {
-        int32_t basicBlocksCount __attribute__((unused)) = readS4be();
+        // default parameter basic blocks info
+        int32_t defaultParameterBBCount = readS4be();
+        for (auto i = 0; i < defaultParameterBBCount; i++) {
+            auto basicBlock = readBasicBlock(birFunction);
+        }
     }
 
+    // basic block info
     int32_t BBCount = readS4be();
     std::shared_ptr<BasicBlock> previousBB;
     for (auto i = 0; i < BBCount; i++) {
@@ -764,8 +801,9 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
     // Patching the Instructions
     birFunction->patchBasicBlocks();
 
-    int32_t errorEntriesCount __attribute__((unused)) = readS4be();
-    int32_t channelsLength __attribute__((unused)) = readS4be();
+    // error table
+    [[maybe_unused]] int32_t errorEntriesCount = readS4be();
+    [[maybe_unused]] int32_t channelsLength = readS4be();
     return birFunction;
 }
 
@@ -784,30 +822,214 @@ void ShapeCpInfo::read() {
     shapeLength = readerRef.readS4be();
     typeTag = TypeTag(readerRef.readU1());
     nameIndex = readerRef.readS4be();
-    typeFlag = readerRef.readS4be();
+    typeFlag = readerRef.readS8be();
     typeSpecialFlag = readerRef.readS4be();
-
-    int32_t shapeLengthTypeInfo = shapeLength - 13;
-
+    [[maybe_unused]] int32_t shapeTypeLengthInfo = shapeLength - 13;
     switch (typeTag) {
     case TYPE_TAG_INVOKABLE: {
-        paramCount = readerRef.readS4be();
-        for (auto i = 0; i < paramCount; i++) {
-            int32_t paramTypeCpIndex = readerRef.readS4be();
-            addParam(paramTypeCpIndex);
+        uint8_t isAnyFunction = readerRef.readU1();
+        if (!isAnyFunction) {
+            paramCount = readerRef.readS4be();
+            for (auto i = 0; i < paramCount; i++) {
+                int32_t paramTypeCpIndex = readerRef.readS4be();
+                addParam(paramTypeCpIndex);
+            }
+            hasRestType = readerRef.readU1();
+            if (hasRestType) {
+                restTypeIndex = readerRef.readS4be();
+            }
+            returnTypeIndex = readerRef.readS4be();
         }
-        hasRestType = readerRef.readU1();
-        if (hasRestType) {
-            restTypeIndex = readerRef.readS4be();
-        }
-        returnTypeIndex = readerRef.readS4be();
         break;
     }
     case TYPE_TAG_MAP: {
-        assert(shapeLengthTypeInfo == 4);
         constraintTypeCpIndex = readerRef.readS4be();
         break;
     }
+    case TYPE_TAG_ERROR: {
+        [[maybe_unused]] int32_t pkgIdCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t errorTypeNameCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t detailTypeCpIndex = readerRef.readS4be();
+        auto typeIds = std::make_unique<TypeId>();
+        typeIds->read();
+        break;
+    }
+    case TYPE_TAG_STREAM: {
+        constraintTypeCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t hasErrorType = readerRef.readU1();
+        if (hasErrorType) {
+            [[maybe_unused]] int32_t errorTypeCpIndex = readerRef.readS4be();
+        }
+        break;
+    }
+    case TYPE_TAG_TYPEDESC: {
+        constraintTypeCpIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_PARAMETERIZED_TYPE: {
+        [[maybe_unused]] int32_t paramValueTypeCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t paramIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_FUTURE: {
+        constraintTypeCpIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_OBJECT: {
+        [[maybe_unused]] uint8_t isObjectType = readerRef.readU1();
+        [[maybe_unused]] int32_t pkdIdCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t nameCpIndex = readerRef.readS4be();
+        [[maybe_unused]] uint8_t isAbstract = readerRef.readU1();
+        [[maybe_unused]] uint8_t isClient = readerRef.readU1();
+        int32_t objectFieldsCount = readerRef.readS4be();
+        auto objectFields = std::vector<std::unique_ptr<ObjectField>>();
+        objectFields.reserve(objectFieldsCount);
+        for (auto i = 0; i < objectFieldsCount; i++) {
+            auto objectField = std::make_unique<ObjectField>();
+            objectField->read();
+            objectFields.push_back(std::move(objectField));
+        }
+        uint8_t hasGeneratedInitFunction = readerRef.readU1();
+        if (hasGeneratedInitFunction) {
+            auto generatedInitFunction = std::make_unique<ObjectAttachedFunction>();
+            generatedInitFunction->read();
+        }
+        uint8_t hasInitFunction = readerRef.readU1();
+        if (hasInitFunction) {
+            auto initFunction = std::make_unique<ObjectAttachedFunction>();
+            initFunction->read();
+        }
+        int32_t objectAttachedFunctionsCount = readerRef.readS4be();
+        auto objectAttachedFunctions = std::vector<std::unique_ptr<ObjectAttachedFunction>>();
+        objectAttachedFunctions.reserve(objectAttachedFunctionsCount);
+        for (auto i = 0; i < objectAttachedFunctionsCount; i++) {
+            auto objectAttachedFunction = std::make_unique<ObjectAttachedFunction>();
+            objectAttachedFunction->read();
+            objectAttachedFunctions.push_back(std::move(objectAttachedFunction));
+        }
+        int32_t typeInclusionsCount = readerRef.readS4be();
+        auto typeInclusionsCpIndex = std::vector<int32_t>();
+        typeInclusionsCpIndex.reserve(typeInclusionsCount);
+        for (auto i = 0; i < typeInclusionsCount; i++) {
+            typeInclusionsCpIndex.push_back(readerRef.readS4be());
+        }
+        auto typeIds = std::make_unique<TypeId>();
+        typeIds->read();
+        break;
+    }
+    case TYPE_TAG_UNION: {
+        [[maybe_unused]] uint8_t isCyclic = readerRef.readU1();
+        uint8_t hasName = readerRef.readU1();
+        if (hasName) {
+            [[maybe_unused]] int32_t pkdIdCpIndex = readerRef.readS4be();
+            [[maybe_unused]] int32_t nameCpIndex = readerRef.readS4be();
+        }
+        [[maybe_unused]] int32_t memberTypeCount = readerRef.readS4be();
+        auto memberTypeCpIndex = std::vector<int32_t>();
+        memberTypeCpIndex.reserve(memberTypeCount);
+        for (auto i = 0; i < memberTypeCount; i++) {
+            memberTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        [[maybe_unused]] int32_t originalMemberTypeCount = readerRef.readS4be();
+        auto originalMemberTypeCpIndex = std::vector<int32_t>();
+        originalMemberTypeCpIndex.reserve(originalMemberTypeCount);
+        for (auto i = 0; i < originalMemberTypeCount; i++) {
+            originalMemberTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        uint8_t isEnumType = readerRef.readU1();
+        if (isEnumType) {
+            [[maybe_unused]] int32_t pkgCpIndex = readerRef.readS4be();
+            [[maybe_unused]] int32_t enumName = readerRef.readS4be();
+            [[maybe_unused]] int32_t enumMemberSize = readerRef.readS4be();
+            auto enumMembers = std::vector<int32_t>();
+            enumMembers.reserve(enumMemberSize);
+            for (auto i = 0; i < enumMemberSize; i++) {
+                enumMembers.push_back(readerRef.readS4be());
+            }
+        }
+        break;
+    }
+    case TYPE_TAG_TUPLE: {
+        [[maybe_unused]] int32_t tupleTypesCount = readerRef.readS4be();
+        auto tupleTypeCpIndex = std::vector<int32_t>();
+        tupleTypeCpIndex.reserve(tupleTypesCount);
+        for (auto i = 0; i < tupleTypesCount; i++) {
+            tupleTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        hasRestType = readerRef.readU1();
+        if (hasRestType) {
+            [[maybe_unused]] int32_t restTypeCpIndex = readerRef.readS4be();
+        }
+        break;
+    }
+    case TYPE_TAG_INTERSECTION: {
+        [[maybe_unused]] int32_t constituentTypesCount = readerRef.readS4be();
+        auto constituentTypeCpIndex = std::vector<int32_t>();
+        constituentTypeCpIndex.reserve(constituentTypesCount);
+        for (auto i = 0; i < constituentTypesCount; i++) {
+            constituentTypeCpIndex.push_back(readerRef.readS4be());
+        }
+        [[maybe_unused]] int32_t effectiveTypeCount = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_XML: {
+        constraintTypeCpIndex = readerRef.readS4be();
+        break;
+    }
+    case TYPE_TAG_TABLE: {
+        constraintTypeCpIndex = readerRef.readS4be();
+        uint8_t hasFieldNameList = readerRef.readU1();
+        if (hasFieldNameList) {
+            auto fieldNameList = std::make_unique<TableFieldNameList>();
+            fieldNameList->read();
+        }
+        uint8_t hasKeyConstraintType = readerRef.readU1();
+        if (hasKeyConstraintType) {
+            [[maybe_unused]] int32_t keyConstraintTypeCpIndex = readerRef.readS4be();
+        }
+        break;
+    }
+    case TYPE_TAG_RECORD: {
+        [[maybe_unused]] int32_t pkdIdCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t nameCpIndex = readerRef.readS4be();
+        [[maybe_unused]] uint8_t isSealed = readerRef.readU1();
+        [[maybe_unused]] int32_t resetFieldTypeCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t recordFieldCount = readerRef.readS4be();
+        auto recordFields = std::vector<std::unique_ptr<RecordField>>();
+        recordFields.reserve(recordFieldCount);
+        for (auto i = 0; i < recordFieldCount; i++) {
+            auto recordField = std::make_unique<RecordField>();
+            recordField->read();
+            recordFields.push_back(std::move(recordField));
+        }
+        [[maybe_unused]] int32_t hasInitFunction = readerRef.readU1();
+        if (hasInitFunction) {
+            auto recordInitFunction = std::make_unique<ObjectAttachedFunction>();
+            recordInitFunction->read();
+        }
+        [[maybe_unused]] int32_t typeInclusionsCount = readerRef.readS4be();
+        auto typeInclusionsCpIndex = std::vector<int32_t>();
+        typeInclusionsCpIndex.reserve(typeInclusionsCount);
+        for (auto i = 0; i < typeInclusionsCount; i++) {
+            typeInclusionsCpIndex.push_back(readerRef.readS4be());
+        }
+        break;
+    }
+    case TYPE_TAG_FINITE: {
+        [[maybe_unused]] int32_t nameCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int64_t flags = readerRef.readS8be();
+        int32_t valueSpaceSize = readerRef.readS4be();
+        for (auto i = 0; i < valueSpaceSize; i++) {
+            [[maybe_unused]] int32_t fTypeCpIndex = readerRef.readS4be();
+            int32_t valueLength = readerRef.readS4be();
+            for (auto j = 0; j < valueLength; j++) {
+                [[maybe_unused]] int8_t tmp = readerRef.readU1();
+            }
+        }
+
+        break;
+    }
+    case TYPE_TAG_NIL:
     case TYPE_TAG_INT:
     case TYPE_TAG_BYTE:
     case TYPE_TAG_FLOAT:
@@ -815,29 +1037,16 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_STRING:
     case TYPE_TAG_BOOLEAN:
     case TYPE_TAG_JSON:
-    case TYPE_TAG_XML:
-    case TYPE_TAG_TABLE:
-    case TYPE_TAG_NIL:
     case TYPE_TAG_ANYDATA:
-    case TYPE_TAG_RECORD:
-    case TYPE_TAG_TYPEDESC:
-    case TYPE_TAG_STREAM:
     case TYPE_TAG_ANY:
     case TYPE_TAG_ENDPOINT:
-    case TYPE_TAG_UNION:
-    case TYPE_TAG_INTERSECTION:
     case TYPE_TAG_PACKAGE:
     case TYPE_TAG_NONE:
     case TYPE_TAG_VOID:
     case TYPE_TAG_XMLNS:
     case TYPE_TAG_ANNOTATION:
     case TYPE_TAG_SEMANTIC_ERROR:
-    case TYPE_TAG_ERROR:
     case TYPE_TAG_ITERATOR:
-    case TYPE_TAG_TUPLE:
-    case TYPE_TAG_FUTURE:
-    case TYPE_TAG_FINITE:
-    case TYPE_TAG_OBJECT:
     case TYPE_TAG_SERVICE:
     case TYPE_TAG_BYTE_ARRAY:
     case TYPE_TAG_FUNCTION_POINTER:
@@ -855,9 +1064,7 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_XML_COMMENT:
     case TYPE_TAG_XML_TEXT:
     case TYPE_TAG_NEVER:
-    case TYPE_TAG_NULL_SET:
-    case TYPE_TAG_PARAMETERIZED_TYPE: {
-        readerRef.is.ignore(shapeLengthTypeInfo);
+    case TYPE_TAG_NULL_SET: {
         break;
     }
     case TYPE_TAG_ARRAY: {
@@ -1025,13 +1232,40 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
 
     // The following three are read into unused variables so that the file
     // pointer advances to the data that we need next.
-    int32_t importCount __attribute__((unused));
-    int32_t constCount __attribute__((unused));
-    int32_t typeDefinitionCount __attribute__((unused));
+    int32_t importCount;
+    int32_t constCount;
+    int32_t typeDefinitionCount;
 
     importCount = readS4be();
+    int32_t importSize = importCount * 12; // package_cp_info is 12 bytes
+    is.ignore(importSize);
+
     constCount = readS4be();
+    for (auto i = 0; i < constCount; i++) {
+        [[maybe_unused]] int32_t constNameCpIndex = readS4be();
+        [[maybe_unused]] int64_t constFlags = readS8be();
+        [[maybe_unused]] uint8_t constOrigin = readU1();
+        is.ignore(20);
+        int32_t markdownLength = readS4be();
+        is.ignore(markdownLength);
+        [[maybe_unused]] int32_t constTypeCpIndex = readS4be();
+        int64_t constValueLength = readS8be();
+        is.ignore(constValueLength);
+    }
+
     typeDefinitionCount = readS4be();
+    for (auto i = 0; i < typeDefinitionCount; i++) {
+        is.ignore(20);
+        [[maybe_unused]] int32_t tdNameCpIndex = readS4be();
+        [[maybe_unused]] int64_t tdFlags = readS8be();
+        [[maybe_unused]] uint8_t tdLabel = readU1();
+        [[maybe_unused]] uint8_t tdOrigin = readU1();
+        int32_t markdownLength = readS4be();
+        is.ignore(markdownLength);
+        int64_t annotationAttachmentsContentLength = readS8be();
+        is.ignore(annotationAttachmentsContentLength);
+        [[maybe_unused]] int32_t tdTypeCpIndex = readS4be();
+    }
 
     int32_t globalVarCount = readS4be();
     if (globalVarCount > 0) {
@@ -1040,7 +1274,18 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
         }
     }
 
-    int32_t typeDefinitionBodiesCount __attribute__((unused)) = readS4be();
+    int32_t typeDefinitionBodiesCount = readS4be();
+    for (auto i = 0; i < typeDefinitionBodiesCount; i++) {
+        int32_t attachedFunctionsCount = readS4be();
+        for (auto j = 0; j < attachedFunctionsCount; j++) {
+            auto function = readFunction(birPackage);
+        }
+        int32_t referencedTypesCount = readS4be();
+        for (auto j = 0; j < referencedTypesCount; j++) {
+            [[maybe_unused]] int32_t referencedType = readS4be();
+        }
+    }
+
     int32_t functionCount = readS4be();
 
     // Push all the functions in BIRpackage except __init, __start & __stop
@@ -1050,11 +1295,6 @@ std::shared_ptr<nballerina::Package> BIRReader::readModule() {
             birPackage->insertFunction(curFunc);
         }
     }
-
-    int32_t annotationsSize __attribute__((unused)) = readS4be();
-
-    // Assign typedecl to function param of call Insn
-    // patchTypesToFuncParam();
 
     return birPackage;
 }
@@ -1067,4 +1307,67 @@ std::shared_ptr<nballerina::Package> BIRReader::deserialize() {
 
     // Read Module
     return readModule();
+}
+
+void TypeId::read() {
+    primaryTypeIdCount = readerRef.readS4be();
+    primaryTypeId = std::vector<std::unique_ptr<TypeIdSet>>();
+    primaryTypeId.reserve(primaryTypeIdCount);
+    for (auto i = 0; i < primaryTypeIdCount; i++) {
+        auto typeIdSet = std::make_unique<TypeIdSet>();
+        typeIdSet->read();
+        primaryTypeId.push_back(std::move(typeIdSet));
+    }
+    secondaryTypeIdCount = readerRef.readS4be();
+    secondaryTypeId = std::vector<std::unique_ptr<TypeIdSet>>();
+    secondaryTypeId.reserve(secondaryTypeIdCount);
+    for (auto i = 0; i < secondaryTypeIdCount; i++) {
+        auto typeIdSet = std::make_unique<TypeIdSet>();
+        typeIdSet->read();
+        secondaryTypeId.push_back(std::move(typeIdSet));
+    }
+}
+
+void TypeIdSet::read() {
+    pkgIdCpIndex = readerRef.readS4be();
+    typeIdNameCpIndex = readerRef.readS4be();
+    isPublicId = readerRef.readU1();
+}
+
+void ObjectField::read() {
+    nameCpIndex = readerRef.readS4be();
+    flags = readerRef.readS8be();
+    doc = std::make_unique<Markdown>();
+    doc->read();
+    typeCpIndex = readerRef.readS4be();
+}
+
+void Markdown::read() {
+    int32_t length = readerRef.readS4be();
+    for (auto i = 0; i < length; i++) {
+        [[maybe_unused]] int32_t body = readerRef.readS4be();
+    }
+}
+
+void ObjectAttachedFunction::read() {
+    nameCpIndex = readerRef.readS4be();
+    flags = readerRef.readS8be();
+    typeCpIndex = readerRef.readS4be();
+}
+
+void TableFieldNameList::read() {
+    size = readerRef.readS4be();
+    fieldNameCpIndex = std::vector<int32_t>();
+    fieldNameCpIndex.reserve(size);
+    for (auto i = 0; i < size; i++) {
+        fieldNameCpIndex.push_back(readerRef.readS4be());
+    }
+}
+
+void RecordField::read() {
+    nameCpIndex = readerRef.readS4be();
+    flags = readerRef.readS8be();
+    doc = std::make_unique<Markdown>();
+    doc->read();
+    typeCpIndex = readerRef.readS4be();
 }
