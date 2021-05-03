@@ -82,7 +82,7 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
             "struct.dynamicBalArray");
         return llvm::PointerType::getUnqual(dynamicBalArrayType);
     }
-    default:
+    case TYPE_TAG_TYPEDESC:
         return llvm::Type::getInt64Ty(context);
     default:
         llvm_unreachable("Invalid type");

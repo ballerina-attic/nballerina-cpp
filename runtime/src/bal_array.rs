@@ -20,7 +20,7 @@
 pub mod dynamic_array {
     const GROWTH_FACTOR: i64 = 2;
     use crate::BalType;
-    use libc;
+    use std::alloc::{alloc_zeroed, dealloc, realloc, Layout};
     use std::convert::TryFrom;
     use std::mem;
 
@@ -29,50 +29,54 @@ pub mod dynamic_array {
         inherentType: BalType,
         length: i64,   // largest index of an element stored in the array + 1
         capacity: i64, // amount of memory actually allocated for
-        array: DynamicArray,
+        array: *mut DynamicArray,
     }
 
     struct DynamicArray {
         header: u64,
-        values: *mut i64,
+        values: [i64],
     }
 
     impl DynamicBalArray {
         pub fn new(size: i64) -> DynamicBalArray {
             let size_t = if size > 0 { size } else { 8 };
-            let dynamic_array = DynamicArray {
-                header: 0,
-                values: DynamicBalArray::allocate_memory(size_t),
-            };
-            return DynamicBalArray {
-                header: 0,
-                inherentType: BalType::Int,
-                length: 0,
-                capacity: size_t,
-                array: dynamic_array,
-            };
-        }
-
-        fn allocate_memory(size: i64) -> *mut i64 {
+            let layout = DynamicBalArray::get_layout(size_t);
             unsafe {
-                let mem_ptr: *mut i64 =
-                    libc::calloc(usize::try_from(size).unwrap(), mem::size_of::<i64>()) as *mut i64;
-                if mem_ptr.is_null() {
-                    panic!("Failed to allocate memory");
+                let raw_ptr = alloc_zeroed(layout);
+                if raw_ptr.is_null() {
+                    panic!("Array initialization failed");
                 }
-                return mem_ptr;
+                let dynamic_array =
+                    std::ptr::slice_from_raw_parts_mut(raw_ptr, layout.size()) as *mut DynamicArray;
+                return DynamicBalArray {
+                    header: 0,
+                    inherentType: BalType::Int,
+                    length: 0,
+                    capacity: size_t,
+                    array: dynamic_array,
+                };
             }
         }
 
-        fn copy_memory(source: *const i64, dest: *mut i64, size: i64) {
-            unsafe {
-                std::ptr::copy(source, dest, usize::try_from(size).unwrap());
-            }
+        fn get_layout(capacity: i64) -> Layout {
+            let header_layout = Layout::new::<i64>();
+            let align = mem::align_of::<i64>();
+            let size = usize::try_from(capacity).unwrap() * mem::size_of::<i64>();
+            let values_layout = Layout::from_size_align(size, align).unwrap();
+            return header_layout.extend(values_layout).unwrap().0;
         }
 
-        fn deallocate_memory(mem_ptr: *mut i64) {
+        fn grow_array(&mut self, old_capacity: i64, new_capacity: i64) {
+            let old_layout = DynamicBalArray::get_layout(old_capacity);
+            let new_layout = DynamicBalArray::get_layout(new_capacity);
             unsafe {
-                libc::free(mem_ptr as *mut libc::c_void);
+                let raw_ptr = realloc(self.array as *mut u8, old_layout, new_layout.size());
+                if raw_ptr.is_null() {
+                    panic!("Array resizing failed");
+                }
+                let dynamic_array = std::ptr::slice_from_raw_parts_mut(raw_ptr, new_layout.size())
+                    as *mut DynamicArray;
+                self.array = dynamic_array;
             }
         }
 
@@ -81,7 +85,7 @@ pub mod dynamic_array {
                 panic!("Index out of range");
             } else {
                 unsafe {
-                    return *self.array.values.offset(isize::try_from(index).unwrap());
+                    return (*self.array).values[usize::try_from(index).unwrap()];
                 }
             }
         }
@@ -90,14 +94,11 @@ pub mod dynamic_array {
             if self.capacity <= index {
                 let repeat = (index / (self.capacity * GROWTH_FACTOR)) + 1;
                 let new_size = self.capacity * GROWTH_FACTOR * repeat;
-                let new_array = DynamicBalArray::allocate_memory(new_size);
-                DynamicBalArray::copy_memory(self.array.values, new_array, self.capacity);
-                DynamicBalArray::deallocate_memory(self.array.values);
-                self.array.values = new_array;
+                self.grow_array(self.capacity, new_size);
                 self.capacity = new_size;
             }
             unsafe {
-                *self.array.values.offset(isize::try_from(index).unwrap()) = value;
+                (*self.array).values[usize::try_from(index).unwrap()] = value;
             }
             if self.length <= index {
                 self.length = index + 1;
