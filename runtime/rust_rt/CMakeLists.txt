@@ -1,7 +1,7 @@
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CARGO_CMD cargo build --verbose)
 else ()
-    set(CARGO_CMD cargo build --release --verbose)
+    set(CARGO_CMD cargo build --release)
 endif ()
 
 # Flags to enable C++/Rust LTO

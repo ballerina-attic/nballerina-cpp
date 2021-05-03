@@ -39,7 +39,9 @@ static struct BString *cloneBString(struct BString *src) {
     return clone;
 }
 
-static size_t getSizeOfHashTable(uint64_t nEntries) { return sizeof(struct HashTable) + (sizeof(struct Entry) * nEntries); }
+static size_t getSizeOfHashTable(uint64_t nEntries) {
+    return sizeof(struct HashTable) + (sizeof(struct Entry) * nEntries);
+}
 
 struct BalMap *map_new(void) {
     struct BalMap *retVal = gc_alloc(sizeof(struct BalMap));

@@ -3,15 +3,16 @@ Translate Ballerina IR to LLVM IR.
 
 ## Building from source in Ubuntu 20.04
 ### Prerequisites
-* `sudo apt install build-essential llvm-11-dev lld-11 cmake cargo python3-pip`
+* `sudo apt install build-essential llvm-11-dev lld-11 cmake cargo python3-pip libgtest-dev`
 * `pip3 install lit filecheck`
 
 ### Build steps
-1. `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`
+1. `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-11 -DCMAKE_C_COMPILER=clang-11 -S . -B build/`
 2. `cmake --build ./build/ -- -j`
 
 This will build:
-* The Rust runtime : runtime/target/release/libballerina_rt.so
+* The Rust runtime : build/runtime/rust_rt/release/libballerina_rt.a
+* The C runtime : build/runtime/c_rt/libballerina_crt.a
 * The nballerinacc (BIR to LLVM IR converter) app : build/nballerinacc
 
 ### Usage
@@ -20,7 +21,8 @@ This will build:
         ./nballerinacc <bir dump file path>
 * The .ll file can be compiled into an executable using clang and the compiled runtime library
  
-        clang -O0 -o $filename.out $filename-bir-dump.ll -L../runtime/target/release/ -lballerina_rt
+        clang-11 --target=x86_64-unknown-linux-gnu -c -O3 -flto=thin -Wno-override-module -o $filename.o $filename.ll
+        clang-11 -flto=thin -fuse-ld=lld-11 -Lruntime/rust_rt/release/ -Lruntime/c_rt/ -lballerina_rt -lballerina_crt -lpthread -ldl -o $filename.out -O3 $filename.o 
 
 ### Run tests
 1. Install Java 11 runtime (e.g. openjdk-11-jre on ubuntu)

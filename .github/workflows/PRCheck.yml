@@ -13,7 +13,7 @@ jobs:
       - name: Install utils
         run: | 
           sudo apt update
-          sudo apt install -y build-essential llvm-11-dev lld-11 cmake python3-pip
+          sudo apt install -y build-essential llvm-11-dev lld-11 cmake python3-pip libgtest-dev
           pip3 install lit filecheck
 
       - name: Install Rust
@@ -34,7 +34,7 @@ jobs:
 
       - name: Build nballerinacc
         run: | 
-          cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-11 -DCMAKE_C_COMPILER=clang-11 -S . -B build/
           cmake --build ./build/ -- -j
       
       - name: Setup Ballerina pack
