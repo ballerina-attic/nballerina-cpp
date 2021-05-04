@@ -97,7 +97,13 @@ pub mod dynamic_array {
                 let repeat = (index / (self.capacity * GROWTH_FACTOR)) + 1;
                 let new_size = self.capacity * GROWTH_FACTOR * repeat;
                 self.grow_array(self.capacity, new_size);
+                let old_capacity = self.capacity;
                 self.capacity = new_size;
+                if new_size > old_capacity {
+                    for i in old_capacity..new_size {
+                        self.set_element(i, 0);
+                    }
+                }
             }
             unsafe {
                 (*self.array).values[usize::try_from(index).unwrap()] = value;
