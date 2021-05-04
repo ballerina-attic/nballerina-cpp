@@ -139,7 +139,7 @@ llvm::FunctionCallee CodeGenUtils::getArrayStoreFunc(llvm::Module &module, TypeT
                               : CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module);
     auto *funcType =
         llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
-                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_ARRAY, module),
                                                               llvm::Type::getInt64Ty(module.getContext()), memType}),
                                 false);
     return module.getOrInsertFunction(arrayTypeFuncName, funcType);
@@ -153,7 +153,7 @@ llvm::FunctionCallee CodeGenUtils::getArrayLoadFunc(llvm::Module &module, TypeTa
                                   : CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module);
     auto *funcType =
         llvm::FunctionType::get(funcRetType,
-                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_ARRAY, module),
                                                               llvm::Type::getInt64Ty(module.getContext())}),
                                 false);
     return module.getOrInsertFunction(arrayTypeFuncName, funcType);
