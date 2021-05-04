@@ -16,23 +16,28 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __FUNCTIONPARAM__H__
+#define __FUNCTIONPARAM__H__
 
-#include "bir/Location.h"
+#include "bir/Operand.h"
+#include "bir/Types.h"
+#include <memory>
+#include <string>
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+class FunctionParam : public Operand {
+  private:
+    Type type;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    FunctionParam() = delete;
+    FunctionParam(Operand paramOp, Type type) : Operand(std::move(paramOp)), type(std::move(type)) {}
+    ~FunctionParam() = default;
+
+    const Type &getType() const { return type; }
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__FUNCTIONPARAM__H__

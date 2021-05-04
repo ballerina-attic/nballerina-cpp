@@ -16,7 +16,9 @@
  * under the License.
  */
 
-#include "CodeGenerator.h"
+#include "codegen/CodeGenerator.h"
+#include "bir/Package.h"
+#include "codegen/PackageCodeGen.h"
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
 #include <iostream>
@@ -24,11 +26,10 @@
 
 namespace nballerina {
 
-int CodeGenerator::generateLLVMIR(Translatable *translatableObj, const std::string &outFileName,
-                                  const std::string &moduleName) {
+int CodeGenerator::generateLLVMIR(Package &translatableObj, const std::string &outFileName) {
 
     auto mContext = llvm::LLVMContext();
-    auto mod = llvm::Module(moduleName, mContext);
+    auto mod = llvm::Module(translatableObj.getModuleName(), mContext);
     auto builder = llvm::IRBuilder<>(mContext);
 
     // MacOS specific code. This is needed, since the default Triple will have the
@@ -51,7 +52,8 @@ int CodeGenerator::generateLLVMIR(Translatable *translatableObj, const std::stri
     mod.setTargetTriple(tripleString);
 
     // Codegen
-    translatableObj->translate(mod, builder);
+    PackageCodeGen generator(mod);
+    generator.visit(translatableObj, builder);
 
     // Write LLVM IR to file
     std::error_code EC;

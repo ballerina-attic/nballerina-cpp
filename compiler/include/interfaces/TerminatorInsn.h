@@ -16,39 +16,32 @@
  * under the License.
  */
 
-#ifndef __ABSTRACTVARIABLE__H__
-#define __ABSTRACTVARIABLE__H__
+#ifndef __TERMINATORINSN__H__
+#define __TERMINATORINSN__H__
 
+#include "interfaces/AbstractInstruction.h"
+#include "interfaces/Translatable.h"
 #include <string>
 
 namespace nballerina {
 
-enum VarKind {
-    NOT_A_KIND = 0,
-    LOCAL_VAR_KIND = 1,
-    ARG_VAR_KIND = 2,
-    TEMP_VAR_KIND = 3,
-    RETURN_VAR_KIND = 4,
-    GLOBAL_VAR_KIND = 5,
-    SELF_VAR_KIND = 6,
-    CONSTANT_VAR_KIND = 7,
-    SYNTHETIC_VAR_KIND = 8
-};
-
-class AbstractVariable {
+class TerminatorInsn : public AbstractInstruction, virtual public TranslatableInterface {
   private:
-    std::string name;
-    VarKind kind;
+    std::string thenBBID;
+
+  protected:
+    InstructionKind kind;
 
   public:
-    AbstractVariable() = delete;
-    AbstractVariable(std::string name, VarKind kind) : name(std::move(name)), kind(kind) {}
-    virtual ~AbstractVariable() = default;
+    TerminatorInsn() = delete;
+    TerminatorInsn(const class Operand &lhs, class BasicBlock &currentBB, std::string thenBBID)
+        : AbstractInstruction(lhs, currentBB), thenBBID(std::move(thenBBID)), kind(INSTRUCTION_NOT_AN_INSTRUCTION) {}
+    virtual ~TerminatorInsn() = default;
 
-    VarKind getKind() const { return kind; }
-    const std::string &getName() const { return name; };
+    const std::string &getNextBBID() const { return thenBBID; }
+    InstructionKind getInstKind() const { return kind; }
 };
 
 } // namespace nballerina
 
-#endif //!__ABSTRACTVARIABLE__H__
+#endif //!__TERMINATORINSN__H__

@@ -16,23 +16,19 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
-#include "bir/Location.h"
+#include "codegen/NonTerminatorInsnCodeGen.h"
+#include "bir/Function.h"
+#include "bir/MoveInsn.h"
+#include "bir/Operand.h"
+#include "bir/Variable.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+void NonTerminatorInsnCodeGen::visit(class MoveInsn &obj, llvm::IRBuilder<> &builder) {
 
-  public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
-};
+    auto *lhsRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
+    auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, builder);
+    builder.CreateStore(rhsVarOpRef, lhsRef);
+}
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

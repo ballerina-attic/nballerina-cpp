@@ -798,9 +798,6 @@ std::shared_ptr<Function> BIRReader::readFunction(std::shared_ptr<Package> packa
         previousBB = basicBlock;
     }
 
-    // Patching the Instructions
-    birFunction->patchBasicBlocks();
-
     // error table
     [[maybe_unused]] int32_t errorEntriesCount = readS4be();
     [[maybe_unused]] int32_t channelsLength = readS4be();
@@ -824,7 +821,7 @@ void ShapeCpInfo::read() {
     nameIndex = readerRef.readS4be();
     typeFlag = readerRef.readS8be();
     typeSpecialFlag = readerRef.readS4be();
-    [[maybe_unused]] int32_t shapeTypeLengthInfo = shapeLength - 13; 
+    [[maybe_unused]] int32_t shapeTypeLengthInfo = shapeLength - 13;
     switch (typeTag) {
     case TYPE_TAG_INVOKABLE: {
         uint8_t isAnyFunction = readerRef.readU1();
@@ -843,7 +840,6 @@ void ShapeCpInfo::read() {
         break;
     }
     case TYPE_TAG_MAP: {
-        assert(shapeLengthTypeInfo == 4);
         constraintTypeCpIndex = readerRef.readS4be();
         break;
     }
@@ -879,7 +875,7 @@ void ShapeCpInfo::read() {
     case TYPE_TAG_OBJECT: {
         [[maybe_unused]] uint8_t isObjectType = readerRef.readU1();
         [[maybe_unused]] int32_t pkdIdCpIndex = readerRef.readS4be();
-        [[maybe_unused]] int32_t  nameCpIndex = readerRef.readS4be();
+        [[maybe_unused]] int32_t nameCpIndex = readerRef.readS4be();
         [[maybe_unused]] uint8_t isAbstract = readerRef.readU1();
         [[maybe_unused]] uint8_t isClient = readerRef.readU1();
         int32_t objectFieldsCount = readerRef.readS4be();
@@ -1014,6 +1010,7 @@ void ShapeCpInfo::read() {
         for (auto i = 0; i < typeInclusionsCount; i++) {
             typeInclusionsCpIndex.push_back(readerRef.readS4be());
         }
+        break;
     }
     case TYPE_TAG_FINITE: {
         [[maybe_unused]] int32_t nameCpIndex = readerRef.readS4be();
