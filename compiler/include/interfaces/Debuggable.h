@@ -19,7 +19,7 @@
 #ifndef __DEBUGGABLE__H__
 #define __DEBUGGABLE__H__
 
-#include "Location.h"
+#include "bir/Location.h"
 
 namespace nballerina {
 

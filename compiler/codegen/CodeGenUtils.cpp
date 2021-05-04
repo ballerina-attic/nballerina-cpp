@@ -16,7 +16,7 @@
  * under the License.
  */
 
-#include "CodeGenUtils.h"
+#include "codegen/CodeGenUtils.h"
 
 namespace nballerina {
 
@@ -43,7 +43,7 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_FLOAT:
         return llvm::Type::getDoubleTy(context);
     case TYPE_TAG_BOOLEAN:
-        return llvm::Type::getInt8Ty(context);
+        return llvm::Type::getInt1Ty(context);
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
@@ -58,11 +58,14 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
             return type;
         }
         return llvm::StructType::create(
-            context, llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
+            context,
+            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
             "struct.smtPtr");
     }
-    default:
+    case TYPE_TAG_TYPEDESC:
         return llvm::Type::getInt64Ty(context);
+    default:
+        llvm_unreachable("Invalid type");
     }
 }
 
