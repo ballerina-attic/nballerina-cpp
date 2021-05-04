@@ -20,18 +20,20 @@
 pub mod dynamic_array {
     const GROWTH_FACTOR: i64 = 2;
     use crate::BalType;
-    use std::alloc::{alloc_zeroed, dealloc, realloc, Layout};
+    use std::alloc::{alloc_zeroed, realloc, Layout};
     use std::convert::TryFrom;
     use std::mem;
 
+    #[repr(C)]
     pub struct DynamicBalArray {
         header: i64,
-        inherentType: BalType,
+        inherent_type: BalType,
         length: i64,   // largest index of an element stored in the array + 1
         capacity: i64, // amount of memory actually allocated for
         array: *mut DynamicArray,
     }
 
+    #[repr(C)]
     struct DynamicArray {
         header: u64,
         values: [i64],
@@ -50,7 +52,7 @@ pub mod dynamic_array {
                     std::ptr::slice_from_raw_parts_mut(raw_ptr, layout.size()) as *mut DynamicArray;
                 return DynamicBalArray {
                     header: 0,
-                    inherentType: BalType::Int,
+                    inherent_type: BalType::Int,
                     length: 0,
                     capacity: size_t,
                     array: dynamic_array,

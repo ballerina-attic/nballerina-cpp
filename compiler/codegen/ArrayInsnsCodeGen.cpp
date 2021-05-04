@@ -43,7 +43,7 @@ void NonTerminatorInsnCodeGen::visit(ArrayLoadInsn &obj, llvm::IRBuilder<> &buil
     auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
     auto *rhsOpTempRef = functionGenerator.createTempVal(obj.rhsOp, builder);
     auto *bitCastRhsOpTempRef = builder.CreateBitCast(
-        rhsOpTempRef, builder.getInt8PtrTy(), "");
+        rhsOpTempRef, builder.getInt8PtrTy());
     auto *keyOpTempRef = functionGenerator.createTempVal(obj.keyOp, builder);
     auto *valueInArrayPointer =
         builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({bitCastRhsOpTempRef, keyOpTempRef}));
@@ -64,7 +64,7 @@ void NonTerminatorInsnCodeGen::visit(ArrayStoreInsn &obj, llvm::IRBuilder<> &bui
                                                          : functionGenerator.createTempVal(obj.rhsOp, builder);
     auto *lhsOpTempRef = builder.CreateLoad(lhsOpRef);
     auto *bitCastLhsOpTempRef = builder.CreateBitCast(
-        lhsOpTempRef, builder.getInt8PtrTy(), "");
+        lhsOpTempRef, builder.getInt8PtrTy());
     auto *keyOpTempRef = functionGenerator.createTempVal(obj.keyOp, builder);
 
     builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({bitCastLhsOpTempRef, keyOpTempRef, memVal}));
