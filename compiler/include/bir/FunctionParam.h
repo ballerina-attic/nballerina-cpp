@@ -31,10 +31,7 @@ class FunctionParam : public Operand {
     Type type;
 
   public:
-    FunctionParam() = delete;
     FunctionParam(Operand paramOp, Type type) : Operand(std::move(paramOp)), type(std::move(type)) {}
-    ~FunctionParam() = default;
-
     const Type &getType() const { return type; }
 };
 

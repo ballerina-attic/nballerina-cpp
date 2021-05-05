@@ -28,10 +28,8 @@ class MoveInsn : public NonTerminatorInsn, public Translatable<MoveInsn> {
     Operand rhsOp;
 
   public:
-    MoveInsn() = delete;
-    MoveInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
-        : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
-    ~MoveInsn() = default;
+    MoveInsn(Operand lhs, BasicBlock &currentBB, Operand rhsOp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhsOp)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 

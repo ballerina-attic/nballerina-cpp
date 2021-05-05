@@ -33,14 +33,12 @@ class FunctionCallInsn : public TerminatorInsn, public Translatable<FunctionCall
     std::vector<Operand> argsList;
 
   public:
-    FunctionCallInsn() = delete;
-    FunctionCallInsn(BasicBlock &currentBB, std::string thenBBID, const Operand &lhs, std::string functionName,
-                     int argCount, std::vector<Operand> argsList)
-        : TerminatorInsn(lhs, currentBB, std::move(thenBBID)), functionName(std::move(functionName)),
+    FunctionCallInsn(BasicBlock &currentBB, std::string thenBBID, Operand lhs, std::string functionName, int argCount,
+                     std::vector<Operand> argsList)
+        : TerminatorInsn(std::move(lhs), currentBB, std::move(thenBBID)), functionName(std::move(functionName)),
           argCount(argCount), argsList(std::move(argsList)) {
         kind = INSTRUCTION_KIND_CALL;
     }
-    ~FunctionCallInsn() = default;
 
     friend class TerminatorInsnCodeGen;
 };

@@ -20,10 +20,10 @@
 
 namespace nballerina {
 
-InvocableType::InvocableType(std::vector<Type> paramTy, const Type &restTy, const Type &retTy)
-    : paramTypes(std::move(paramTy)), returnType(retTy), restType(restTy) {}
+InvocableType::InvocableType(std::vector<Type> paramTy, Type restTy, Type retTy)
+    : paramTypes(std::move(paramTy)), returnType(std::move(retTy)), restType(std::move(restTy)) {}
 
-InvocableType::InvocableType(std::vector<Type> paramTy, const Type &retTy)
-    : paramTypes(std::move(paramTy)), returnType(retTy) {}
+InvocableType::InvocableType(std::vector<Type> paramTy, Type retTy)
+    : paramTypes(std::move(paramTy)), returnType(std::move(retTy)) {}
 
 } // namespace nballerina

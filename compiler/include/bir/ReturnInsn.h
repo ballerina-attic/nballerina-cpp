@@ -26,8 +26,6 @@ namespace nballerina {
 class ReturnInsn : public TerminatorInsn, public Translatable<ReturnInsn> {
   public:
     ReturnInsn(class BasicBlock &currentBB) : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, "") {}
-    ~ReturnInsn() = default;
-
     friend class TerminatorInsnCodeGen;
 };
 

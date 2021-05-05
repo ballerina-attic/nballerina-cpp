@@ -16,32 +16,15 @@
  * under the License.
  */
 
-#ifndef __LOCATION__H__
-#define __LOCATION__H__
-
-#include <string>
+#include "interfaces/AbstractInstruction.h"
+#include "bir/BasicBlock.h"
+#include "bir/Function.h"
 
 namespace nballerina {
 
-class Location {
-  private:
-    std::string fileName;
-    int sLine;
-    int sCol;
-    int eLine;
-    int eCol;
+AbstractInstruction::AbstractInstruction(Operand lOp, BasicBlock &parentBB)
+    : parentBB(parentBB), lhsOp(std::move(lOp)) {}
 
-  public:
-    Location() = default;
-    Location(std::string name, int sline, int scol, int eline, int ecol);
-
-    const std::string &getFileName() const;
-    int getStartLineNum() const;
-    int getStartColumnNum() const;
-    int getEndLineNum() const;
-    int getEndColumnNum() const;
-};
+const Function &AbstractInstruction::getFunctionRef() const { return parentBB.getParentFunctionRef(); }
 
 } // namespace nballerina
-
-#endif //!__LOCATION__H__

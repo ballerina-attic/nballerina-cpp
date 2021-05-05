@@ -20,6 +20,8 @@
 #define __BASICBLOCK__H__
 
 #include "interfaces/Debuggable.h"
+#include "interfaces/NonTerminatorInsn.h"
+#include "interfaces/TerminatorInsn.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -27,32 +29,25 @@
 namespace nballerina {
 
 class Function;
-class TerminatorInsn;
-class NonTerminatorInsn;
 
 class BasicBlock : public Debuggable {
   private:
     std::string id;
-    Function &parentFunction;
+    Function *parentFunction;
     std::unique_ptr<TerminatorInsn> terminator;
-    std::weak_ptr<BasicBlock> nextBB;
     std::vector<std::unique_ptr<NonTerminatorInsn>> instructions;
 
   public:
-    BasicBlock() = delete;
-    BasicBlock(std::string id, Function &parentFunc);
+    BasicBlock(std::string id, Function *parentFunc);
     BasicBlock(const BasicBlock &) = delete;
-    BasicBlock(BasicBlock &&obj) noexcept = delete;
-    BasicBlock &operator=(const BasicBlock &obj) = delete;
-    BasicBlock &operator=(BasicBlock &&obj) noexcept = delete;
-    ~BasicBlock() = default;
+    BasicBlock(BasicBlock &&j) noexcept = default;
+    BasicBlock &operator=(const BasicBlock &) = delete;
+    BasicBlock &operator=(BasicBlock &&) noexcept = default;
 
     const std::string &getId() const;
     TerminatorInsn *getTerminatorInsnPtr() const;
-    Function &getFunctionMutableRef() const;
     const Function &getParentFunctionRef() const;
 
-    void setNextBB(std::weak_ptr<BasicBlock> bb);
     void setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn);
     void addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn);
 

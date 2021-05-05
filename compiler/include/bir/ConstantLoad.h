@@ -32,18 +32,16 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
     std::variant<int64_t, double, bool, std::string> value;
 
   public:
-    ConstantLoadInsn() = delete;
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, int64_t intVal)
-        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_INT), value(intVal) {}
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, double doubleVal)
-        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_FLOAT), value(doubleVal) {}
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, bool boolVal)
-        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB, std::string str)
-        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
-    ConstantLoadInsn(const Operand &lhs, BasicBlock &currentBB)
-        : NonTerminatorInsn(lhs, currentBB), typeTag(TYPE_TAG_NIL) {}
-    ~ConstantLoadInsn() = default;
+    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int64_t intVal)
+        : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_INT), value(intVal) {}
+    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, double doubleVal)
+        : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_FLOAT), value(doubleVal) {}
+    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, bool boolVal)
+        : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_BOOLEAN), value(boolVal) {}
+    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, std::string str)
+        : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
+    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB)
+        : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_NIL) {}
     friend class NonTerminatorInsnCodeGen;
 };
 
