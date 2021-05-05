@@ -35,15 +35,14 @@ class Package {
     std::string version;
     std::string sourceFileName;
     std::map<std::string, Variable> globalVars;
-    std::map<std::string, std::shared_ptr<Function>> functionLookUp;
+    std::map<std::string, std::unique_ptr<Function>> functionLookUp;
 
   public:
     Package() = default;
-    virtual ~Package() = default;
     Package(const Package &) = delete;
-    Package(Package &&obj) noexcept = delete;
-    Package &operator=(const Package &obj) = delete;
-    Package &operator=(Package &&obj) noexcept = delete;
+    Package(Package &&) noexcept = default;
+    Package &operator=(const Package &) = delete;
+    Package &operator=(Package &&) noexcept = default;
 
     std::string getModuleName() const;
     const Function &getFunction(const std::string &name) const;
@@ -53,8 +52,8 @@ class Package {
     void setPackageName(std::string pkgName);
     void setVersion(std::string verName);
     void setSrcFileName(std::string srcFileName);
-    void insertGlobalVar(const Variable &var);
-    void insertFunction(const std::shared_ptr<Function> &function);
+    void insertGlobalVar(Variable var);
+    void insertFunction(std::unique_ptr<Function> function);
 
     friend class PackageCodeGen;
 };

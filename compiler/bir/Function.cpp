@@ -17,16 +17,13 @@
  */
 
 #include "bir/Function.h"
-#include "bir/BasicBlock.h"
-#include "bir/FunctionParam.h"
-#include "bir/Operand.h"
 #include "bir/Package.h"
 #include "bir/Types.h"
 #include <cassert>
 
 namespace nballerina {
 
-Function::Function(Package &parentPackage, std::string name, std::string workerName, unsigned int flags)
+Function::Function(Package *parentPackage, std::string name, std::string workerName, unsigned int flags)
     : parentPackage(parentPackage), name(std::move(name)), workerName(std::move(workerName)), flags(flags) {}
 
 const std::string &Function::getName() const { return name; }
@@ -34,16 +31,16 @@ const std::vector<FunctionParam> &Function::getParams() const { return requiredP
 const std::optional<RestParam> &Function::getRestParam() const { return restParam; }
 const std::optional<Variable> &Function::getReturnVar() const { return returnVar; }
 
-void Function::insertParam(const FunctionParam &param) { requiredParams.push_back(param); }
-void Function::insertLocalVar(const Variable &var) {
-    localVars.insert(std::pair<std::string, Variable>(var.getName(), var));
+void Function::insertParam(FunctionParam param) { requiredParams.push_back(std::move(param)); }
+void Function::insertLocalVar(Variable var) {
+    localVars.insert(std::pair<std::string, Variable>(var.getName(), std::move(var)));
 }
-void Function::setReturnVar(const Variable &var) { returnVar = var; }
-void Function::insertBasicBlock(const std::shared_ptr<BasicBlock> &bb) { basicBlocks.push_back(bb); }
+void Function::setReturnVar(Variable var) { returnVar = std::move(var); }
+void Function::insertBasicBlock(std::unique_ptr<BasicBlock> bb) { basicBlocks.push_back(std::move(bb)); }
 
 const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
-        return parentPackage.getGlobalVariable(op.getName());
+        return parentPackage->getGlobalVariable(op.getName());
     }
     return getLocalVariable(op.getName());
 }

@@ -31,8 +31,8 @@ void Package::setVersion(std::string verName) { version = std::move(verName); }
 
 void Package::setSrcFileName(std::string srcFileName) { sourceFileName = std::move(srcFileName); }
 
-void Package::insertFunction(const std::shared_ptr<Function> &function) {
-    functionLookUp.insert(std::pair<std::string, std::shared_ptr<Function>>(function->getName(), function));
+void Package::insertFunction(std::unique_ptr<Function> function) {
+    functionLookUp.insert(std::pair<std::string, std::unique_ptr<Function>>(function->getName(), std::move(function)));
 }
 
 const Function &Package::getFunction(const std::string &name) const { return *functionLookUp.at(name); }
@@ -43,8 +43,8 @@ const Variable &Package::getGlobalVariable(const std::string &name) const {
     return varIt->second;
 }
 
-void Package::insertGlobalVar(const Variable &var) {
-    globalVars.insert(std::pair<std::string, Variable>(var.getName(), var));
+void Package::insertGlobalVar(Variable var) {
+    globalVars.insert(std::pair<std::string, Variable>(var.getName(), std::move(var)));
 }
 
 } // namespace nballerina

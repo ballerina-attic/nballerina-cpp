@@ -19,8 +19,8 @@
 #ifndef __VARIABLE__H__
 #define __VARIABLE__H__
 
-#include "interfaces/AbstractVariable.h"
 #include "bir/Types.h"
+#include "interfaces/AbstractVariable.h"
 #include <memory>
 #include <string>
 
@@ -31,14 +31,12 @@ class Variable : public AbstractVariable {
     Type type;
 
   public:
-    Variable() = delete;
     Variable(Type type, std::string name, VarKind kind)
         : AbstractVariable(std::move(name), kind), type(std::move(type)) {}
-    virtual ~Variable() = default;
 
     const Type &getType() const { return type; }
     bool isParamter() const {
-        switch (getKind()) {
+        switch (kind) {
         case ARG_VAR_KIND:
             return true;
         default:

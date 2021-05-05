@@ -18,23 +18,18 @@
 
 #include "bir/BasicBlock.h"
 #include "bir/Function.h"
-#include "interfaces/NonTerminatorInsn.h"
-#include "interfaces/TerminatorInsn.h"
 
 namespace nballerina {
 
-BasicBlock::BasicBlock(std::string pid, Function &parentFunc)
+BasicBlock::BasicBlock(std::string pid, Function *parentFunc)
     : id(std::move(pid)), parentFunction(parentFunc), terminator(nullptr) {}
 
 const std::string &BasicBlock::getId() const { return id; }
 TerminatorInsn *BasicBlock::getTerminatorInsnPtr() const { return terminator.get(); }
 
-Function &BasicBlock::getFunctionMutableRef() const { return parentFunction; }
-
-const Function &BasicBlock::getParentFunctionRef() const { return parentFunction; }
+const Function &BasicBlock::getParentFunctionRef() const { return *parentFunction; }
 
 void BasicBlock::setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn) { terminator = std::move(insn); }
-void BasicBlock::setNextBB(std::weak_ptr<BasicBlock> bb) { nextBB = std::move(bb); }
 void BasicBlock::addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn) { instructions.push_back(std::move(insn)); }
 
 } // namespace nballerina

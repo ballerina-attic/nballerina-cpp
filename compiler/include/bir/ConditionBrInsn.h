@@ -29,12 +29,10 @@ class ConditionBrInsn : public TerminatorInsn, public Translatable<ConditionBrIn
     std::string elseBBID;
 
   public:
-    ConditionBrInsn() = delete;
-    ConditionBrInsn(const Operand &lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID)
-        : TerminatorInsn(lhs, currentBB, ifBBID), elseBBID(std::move(elseBBID)) {
+    ConditionBrInsn(Operand lhs, BasicBlock &currentBB, std::string ifBBID, std::string elseBBID)
+        : TerminatorInsn(std::move(lhs), currentBB, ifBBID), elseBBID(std::move(elseBBID)) {
         kind = INSTRUCTION_KIND_CONDITIONAL_BRANCH;
     }
-    ~ConditionBrInsn() = default;
 
     const std::string &getElseBBID() const { return elseBBID; }
     friend class TerminatorInsnCodeGen;

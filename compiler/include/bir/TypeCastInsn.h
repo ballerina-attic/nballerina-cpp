@@ -30,10 +30,8 @@ class TypeCastInsn : public NonTerminatorInsn, public Translatable<TypeCastInsn>
     Operand rhsOp;
 
   public:
-    TypeCastInsn() = delete;
-    TypeCastInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhsOp)
-        : NonTerminatorInsn(lhs, currentBB), rhsOp(rhsOp) {}
-    ~TypeCastInsn() = default;
+    TypeCastInsn(Operand lhs, BasicBlock &currentBB, Operand rhsOp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhsOp)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 
