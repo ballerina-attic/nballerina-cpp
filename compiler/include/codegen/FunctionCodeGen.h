@@ -33,7 +33,7 @@ class FunctionCodeGen {
     PackageCodeGen &parentGenerator;
     std::map<std::string, llvm::BasicBlock *> basicBlocksMap;
     std::map<std::string, llvm::AllocaInst *> localVarRefs;
-    llvm::Function *llvmValue;
+    llvm::Function *llvmFunction;
 
   public:
     FunctionCodeGen() = delete;

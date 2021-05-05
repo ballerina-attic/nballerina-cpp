@@ -59,13 +59,13 @@ llvm::Value *FunctionCodeGen::getLocalOrGlobalVal(const Operand &op) const {
     return getLocalVal(op.getName());
 }
 
-llvm::Function *FunctionCodeGen::getFunctionValue() { return llvmValue; }
+llvm::Function *FunctionCodeGen::getFunctionValue() { return llvmFunction; }
 
 void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
 
     llvm::Module &module = parentGenerator.getModule();
-    llvmValue = module.getFunction(obj.name);
-    auto *BbRef = llvm::BasicBlock::Create(module.getContext(), "entry", llvmValue);
+    llvmFunction = module.getFunction(obj.name);
+    auto *BbRef = llvm::BasicBlock::Create(module.getContext(), "entry", llvmFunction);
     builder.SetInsertPoint(BbRef);
 
     // iterate through all local vars.
@@ -77,7 +77,7 @@ void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
         localVarRefs.insert({locVar.getName(), localVarRef});
 
         if (locVar.isParamter()) {
-            llvm::Argument *parmRef = &(llvmValue->arg_begin()[paramIndex]);
+            llvm::Argument *parmRef = &(llvmFunction->arg_begin()[paramIndex]);
             auto paramName = obj.requiredParams[paramIndex].getName();
             parmRef->setName(paramName);
             builder.CreateStore(parmRef, localVarRef);
@@ -87,7 +87,7 @@ void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
 
     // iterate through with each basic block in the function and create them
     for (auto &bb : obj.basicBlocks) {
-        basicBlocksMap[bb->getId()] = llvm::BasicBlock::Create(module.getContext(), bb->getId(), llvmValue);
+        basicBlocksMap[bb->getId()] = llvm::BasicBlock::Create(module.getContext(), bb->getId(), llvmFunction);
     }
 
     // creating branch to next basic block.
