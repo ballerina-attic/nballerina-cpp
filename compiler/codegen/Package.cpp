@@ -194,4 +194,22 @@ void Package::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &b
     builder.CreateStore(bitCastRes, valueIndx);
 }
 
+void Package::storeValueInBalAsciiString(llvm::IRBuilder<> &builder, llvm::Value *value, std::string stringValue,
+                                         llvm::Value *balString) {
+    // struct first element - header
+    auto *header = builder.CreateStructGEP(balString, 0, "header");
+    auto *constValue = builder.getInt64(0b000110);
+    builder.CreateStore(constValue, header);
+
+    // struct second element - string length
+    auto *len = builder.CreateStructGEP(balString, 1, "length");
+    auto *lenValue = builder.getInt64(stringValue.length());
+    builder.CreateStore(lenValue, len);
+
+    // struct third element - char array data
+    auto *utf = builder.CreateStructGEP(balString, 2, "data");
+    auto *loadUtf = builder.CreateLoad(utf, "_temp");
+    builder.CreateMemCpy(loadUtf, llvm::Align(1), value, llvm::Align(1), stringValue.length());
+}
+
 } // namespace nballerina

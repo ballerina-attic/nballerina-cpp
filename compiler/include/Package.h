@@ -71,6 +71,8 @@ class Package : public Translatable {
     void addStringOffsetRelocationEntry(const std::string &eleType, llvm::Value *storeInsn);
     void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
                                  const Type &valueType, llvm::Value *smartStruct);
+    void storeValueInBalAsciiString(llvm::IRBuilder<> &builder, llvm::Value *value, std::string stringValue,
+                                    llvm::Value *balString);
 
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };

@@ -36,6 +36,13 @@ pub struct BString {
     value: &'static str,
 }
 
+#[repr(C)]
+pub struct BalAsciiString {
+    header: u64,
+    n_bytes: i64,
+    bytes: &'static[char],
+}
+
 // Return a pointer to struct containing heap allocated string
 #[no_mangle]
 pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
@@ -50,9 +57,9 @@ pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
 }
 
 #[no_mangle]
-pub extern "C" fn print_string(opaque_ptr: *mut BString) {
-    assert!(!opaque_ptr.is_null());
-    print!("{}", unsafe { (*opaque_ptr).value });
+pub extern "C" fn print_string(ascii_ptr: *const BalAsciiString) {
+    assert!(!ascii_ptr.is_null());
+    print!("{:?}", unsafe { (*ascii_ptr).bytes });
     io::stdout().flush().unwrap();
 }
 

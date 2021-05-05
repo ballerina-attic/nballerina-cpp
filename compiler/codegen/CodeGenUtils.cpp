@@ -45,7 +45,17 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_BOOLEAN:
         return llvm::Type::getInt1Ty(context);
     case TYPE_TAG_CHAR_STRING:
-    case TYPE_TAG_STRING:
+    case TYPE_TAG_STRING: {
+        auto *type = module.getTypeByName("struct.balAsciiString");
+        if (type != nullptr) {
+            return type;
+        }
+        return llvm::StructType::create(
+            context,
+            llvm::ArrayRef<llvm::Type *>(
+                {llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
+            "struct.balAsciiString");
+    }
     case TYPE_TAG_MAP:
     case TYPE_TAG_ARRAY:
     case TYPE_TAG_NIL:
