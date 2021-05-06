@@ -25,8 +25,6 @@
 #include "bir/RestParam.h"
 #include "bir/Variable.h"
 #include "interfaces/Debuggable.h"
-#include <map>
-#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -46,8 +44,8 @@ class Function : public Debuggable {
     unsigned int flags;
     std::optional<Variable> returnVar;
     std::optional<RestParam> restParam;
-    std::map<std::string, Variable> localVars;
-    std::vector<std::unique_ptr<BasicBlock>> basicBlocks;
+    std::vector<Variable> localVars;
+    std::vector<BasicBlock> basicBlocks;
     std::vector<FunctionParam> requiredParams;
 
   public:
@@ -67,12 +65,8 @@ class Function : public Debuggable {
     bool isExternalFunction() const;
     const std::vector<FunctionParam> &getParams() const;
 
-    void insertParam(FunctionParam param);
-    void setReturnVar(Variable var);
-    void insertLocalVar(Variable var);
-    void insertBasicBlock(std::unique_ptr<BasicBlock> bb);
-
     friend class FunctionCodeGen;
+    friend class BIRReader;
 };
 } // namespace nballerina
 

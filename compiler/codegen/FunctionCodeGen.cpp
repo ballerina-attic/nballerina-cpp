@@ -70,8 +70,7 @@ void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
 
     // iterate through all local vars.
     size_t paramIndex = 0;
-    for (auto const &it : obj.localVars) {
-        const auto &locVar = it.second;
+    for (auto const &locVar : obj.localVars) {
         auto *varType = CodeGenUtils::getLLVMTypeOfType(locVar.getType(), module);
         auto *localVarRef = builder.CreateAlloca(varType, nullptr, locVar.getName());
         localVarRefs.insert({locVar.getName(), localVarRef});
@@ -87,19 +86,19 @@ void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
 
     // iterate through with each basic block in the function and create them
     for (auto &bb : obj.basicBlocks) {
-        basicBlocksMap[bb->getId()] = llvm::BasicBlock::Create(module.getContext(), bb->getId(), llvmFunction);
+        basicBlocksMap[bb.getId()] = llvm::BasicBlock::Create(module.getContext(), bb.getId(), llvmFunction);
     }
 
     // creating branch to next basic block.
     if (!obj.basicBlocks.empty()) {
-        builder.CreateBr(basicBlocksMap[obj.basicBlocks[0]->getId()]);
+        builder.CreateBr(basicBlocksMap[obj.basicBlocks[0].getId()]);
     }
 
     // Now translate the basic blocks (essentially add the instructions in them)
     for (auto &bb : obj.basicBlocks) {
-        builder.SetInsertPoint(basicBlocksMap[bb->getId()]);
+        builder.SetInsertPoint(basicBlocksMap[bb.getId()]);
         BasicBlockCodeGen generator(*this, parentGenerator);
-        generator.visit(*bb, builder);
+        generator.visit(bb, builder);
     }
 }
 } // namespace nballerina
