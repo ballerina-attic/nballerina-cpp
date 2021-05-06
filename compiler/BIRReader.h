@@ -44,6 +44,7 @@
 #include "interfaces/NonTerminatorInsn.h"
 #include "interfaces/TerminatorInsn.h"
 #include <fstream>
+#include <memory>
 
 namespace nballerina {
 
@@ -70,7 +71,7 @@ class BIRReader {
     void readInsn(BasicBlock &basicBlock);
     void readBasicBlock(Function &birFunction, bool ignore = false);
     void readFunction(Package &birPackage, bool ignore = false);
-    Package readModule();
+    std::shared_ptr<Package> readModule();
 
     // Read bytes functions
     uint8_t readU1();
@@ -94,7 +95,7 @@ class BIRReader {
         is.open(fileName, std::ifstream::binary);
     }
     std::string getFileName() { return fileName; }
-    Package deserialize();
+    std::shared_ptr<Package> deserialize();
     void setConstantPool(ConstantPoolSet *constantPoolSet) { constantPool = constantPoolSet; }
     void patchTypesToFuncParam();
     friend class ConstantPoolEntry;

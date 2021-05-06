@@ -39,9 +39,9 @@ class Package {
   public:
     Package() = default;
     Package(const Package &) = delete;
-    Package(Package &&) noexcept = default;
+    Package(Package &&) noexcept = delete;
     Package &operator=(const Package &) = delete;
-    Package &operator=(Package &&) noexcept = default;
+    Package &operator=(Package &&) noexcept = delete;
 
     std::string getModuleName() const;
     const Function &getFunction(const std::string &name) const;
