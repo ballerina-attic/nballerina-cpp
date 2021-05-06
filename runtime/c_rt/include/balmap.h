@@ -3,37 +3,37 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef uint64_t BalValue;
 
-struct BString {
-    char *value;
-};
+typedef struct {
+    const char *value;
+} BString;
 
-struct Entry {
-    struct BString key;
+typedef struct {
+    BString key;
     BalValue value;
-};
+} Entry;
 
-struct HashTable {
+typedef struct {
     uint64_t header;
-    struct Entry entries[];
-};
+    Entry entries[];
+} HashTable;
 
-struct BalMap {
+typedef struct {
     uint64_t header;
-    uint64_t used;
-    uint64_t capacity;
-    struct HashTable *hashTable;
-};
+    size_t used;
+    size_t capacity;
+    HashTable *hashTable;
+} BalMap;
 
-struct BalMap *map_new(void);
-void map_deint(struct BalMap *ptr);
-void map_store(struct BalMap *ptr, struct BString *key, BalValue value);
-bool map_load(struct BalMap *ptr, struct BString *key, BalValue *outValue);
-void map_spread_field_init(struct BalMap *target, struct BalMap *src);
+BalMap *map_new(void);
+void map_store(BalMap *ptr, BString *key, BalValue value);
+bool map_load(BalMap *ptr, BString *key, BalValue *outValue);
+void map_spread_field_init(BalMap *target, BalMap *src);
 
 // Debugging only
-void map_print(struct BalMap *ptr);
+void map_print(BalMap *ptr);
 
 #endif //!__BALMAP__H__
