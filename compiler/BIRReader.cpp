@@ -258,7 +258,7 @@ InvocableType ConstantPoolSet::getInvocableType(int32_t index) {
 }
 
 // Read Global Variable and push it to BIRPackage
-Variable BIRReader::readGlobalVar() {
+void BIRReader::readGlobalVar(nballerina::Package &birPackage) {
     uint8_t kind = readU1();
 
     int32_t varDclNameCpIndex = readS4be();
@@ -271,10 +271,10 @@ Variable BIRReader::readGlobalVar() {
 
     int32_t typeCpIndex = readS4be();
     auto type = constantPool->getTypeCp(typeCpIndex, false);
-    return Variable(std::move(type), (constantPool->getStringCp(varDclNameCpIndex)), (VarKind)kind);
+    birPackage.globalVars.emplace_back(std::move(type), constantPool->getStringCp(varDclNameCpIndex), (VarKind)kind);
 }
 
-Variable BIRReader::readLocalVar() {
+void BIRReader::readLocalVar(nballerina::Function &birFunction) {
     uint8_t kind = readU1();
     int32_t typeCpIndex = readS4be();
     auto type = constantPool->getTypeCp(typeCpIndex, false);
@@ -289,7 +289,7 @@ Variable BIRReader::readLocalVar() {
         [[maybe_unused]] int32_t startBbIdCpIndex = readS4be();
         [[maybe_unused]] int32_t instructionOffset = readS4be();
     }
-    return Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind);
+    birFunction.localVars.emplace_back(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind);
 }
 
 // Read Local Variable and return Variable pointer
@@ -639,16 +639,18 @@ void BIRReader::readInsn(nballerina::BasicBlock &basicBlock) {
 }
 
 // Read Basic Block from the BIR
-std::unique_ptr<BasicBlock> BIRReader::readBasicBlock(Function &birFunction) {
+void BIRReader::readBasicBlock(Function &birFunction, bool ignore) {
     int32_t nameCpIndex = readS4be();
-    auto basicBlock = std::make_unique<BasicBlock>(constantPool->getStringCp(nameCpIndex), &birFunction);
+    birFunction.basicBlocks.emplace_back(constantPool->getStringCp(nameCpIndex), &birFunction);
+    auto &basicBlock = birFunction.basicBlocks.back();
 
     int32_t insnCount = readS4be();
     for (auto i = 0; i < insnCount; i++) {
-        // Read an Instruction and adds it to basicBlock
-        readInsn(*basicBlock);
+        readInsn(basicBlock);
     }
-    return basicBlock;
+    if (ignore) {
+        birFunction.basicBlocks.pop_back();
+    }
 }
 
 bool BIRReader::ignoreFunction(const std::string &funcName) {
@@ -664,7 +666,7 @@ bool BIRReader::ignoreFunction(const std::string &funcName) {
 }
 
 // Reads BIR function
-std::unique_ptr<Function> BIRReader::readFunction(Package &package) {
+void BIRReader::readFunction(Package &package, bool ignore) {
 
     // Read debug info
     // position
@@ -676,7 +678,7 @@ std::unique_ptr<Function> BIRReader::readFunction(Package &package) {
     Location location(constantPool->getStringCp(sourceFileCpIndex), (int)sLine, (int)eLine, (int)sCol, (int)eCol);
 
     // TODO should not set src for every function
-    package.setSrcFileName(constantPool->getStringCp(sourceFileCpIndex));
+    package.sourceFileName = constantPool->getStringCp(sourceFileCpIndex);
 
     int32_t nameCpIndex = readS4be();
     std::string functionName = constantPool->getStringCp(nameCpIndex);
@@ -685,9 +687,10 @@ std::unique_ptr<Function> BIRReader::readFunction(Package &package) {
     [[maybe_unused]] uint8_t origin = readU1();
     int32_t typeCpIndex = readS4be();
     [[maybe_unused]] auto invocable_type = constantPool->getInvocableType(typeCpIndex);
-    auto birFunction =
-        std::make_unique<Function>(&package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
-    birFunction->setLocation(location);
+
+    package.functions.emplace_back(&package, functionName, constantPool->getStringCp(workdernameCpIndex), flags);
+    auto &birFunction = package.functions.back();
+    birFunction.setLocation(location);
 
     // annotation_attachments_content
     int64_t annotationLength = readS8be(); // annotation_attachments_content_length
@@ -749,16 +752,16 @@ std::unique_ptr<Function> BIRReader::readFunction(Package &package) {
         int32_t typeCpIndex = readS4be();
         auto type = constantPool->getTypeCp(typeCpIndex, false);
         int32_t nameCpIndex = readS4be();
-        birFunction->setReturnVar(Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind));
+        birFunction.returnVar = Variable(std::move(type), constantPool->getStringCp(nameCpIndex), (VarKind)kind);
     }
 
-    int32_t defaultParamValue = readS4be();
-    // default parameter
-    for (auto i = 0; i < defaultParamValue; i++) {
+    int32_t paramsWithDefaults = readS4be();
+    birFunction.requiredParams.reserve(paramsWithDefaults);
+    for (auto i = 0; i < paramsWithDefaults; i++) {
         uint8_t kind = readU1();
         int32_t typeCpIndex = readS4be();
-        birFunction->insertParam(
-            FunctionParam(std::move(functionParams.front()), constantPool->getTypeCp(typeCpIndex, false)));
+        birFunction.requiredParams.emplace_back(std::move(functionParams.front()),
+                                                constantPool->getTypeCp(typeCpIndex, false));
         functionParams.pop();
         [[maybe_unused]] int32_t nameCpIndex = readS4be();
         if (kind == ARG_VAR_KIND) {
@@ -768,28 +771,34 @@ std::unique_ptr<Function> BIRReader::readFunction(Package &package) {
     }
 
     int32_t localVarCount = readS4be();
+    birFunction.localVars.reserve(localVarCount);
     for (auto i = 0; i < localVarCount; i++) {
-        birFunction->insertLocalVar(readLocalVar());
+        readLocalVar(birFunction);
     }
 
-    for (auto i = 0; i < defaultParamValue; i++) {
+    for (auto i = 0; i < paramsWithDefaults; i++) {
         // default parameter basic blocks info
         int32_t defaultParameterBBCount = readS4be();
         for (auto i = 0; i < defaultParameterBBCount; i++) {
-            auto basicBlock = readBasicBlock(*birFunction);
+            readBasicBlock(birFunction, true);
         }
     }
 
     // basic block info
     int32_t BBCount = readS4be();
+    birFunction.basicBlocks.reserve(BBCount);
     for (auto i = 0; i < BBCount; i++) {
-        birFunction->insertBasicBlock(readBasicBlock(*birFunction));
+        readBasicBlock(birFunction);
     }
 
     // error table
     [[maybe_unused]] int32_t errorEntriesCount = readS4be();
     [[maybe_unused]] int32_t channelsLength = readS4be();
-    return birFunction;
+
+    if (ignore || ignoreFunction(functionName)) {
+        package.functions.pop_back();
+    }
+    return;
 }
 
 StringCpInfo::StringCpInfo() { setTag(TAG_ENUM_CP_ENTRY_STRING); }
@@ -1200,15 +1209,15 @@ nballerina::Package BIRReader::readModule() {
         auto *packageEntry = static_cast<PackageCpInfo *>(poolEntry);
         poolEntry = constantPool->getEntry(packageEntry->getOrgIndex());
         auto *stringCp = static_cast<StringCpInfo *>(poolEntry);
-        birPackage.setOrgName(stringCp->getValue());
+        birPackage.org = stringCp->getValue();
 
         poolEntry = constantPool->getEntry(packageEntry->getNameIndex());
         stringCp = static_cast<StringCpInfo *>(poolEntry);
-        birPackage.setPackageName(stringCp->getValue());
+        birPackage.name = stringCp->getValue();
 
         poolEntry = constantPool->getEntry(packageEntry->getVersionIndex());
         stringCp = static_cast<StringCpInfo *>(poolEntry);
-        birPackage.setVersion(stringCp->getValue());
+        birPackage.version = stringCp->getValue();
         break;
     }
     default:
@@ -1253,17 +1262,16 @@ nballerina::Package BIRReader::readModule() {
     }
 
     int32_t globalVarCount = readS4be();
-    if (globalVarCount > 0) {
-        for (auto i = 0; i < globalVarCount; i++) {
-            birPackage.insertGlobalVar(readGlobalVar());
-        }
+    birPackage.globalVars.reserve(globalVarCount);
+    for (auto i = 0; i < globalVarCount; i++) {
+        readGlobalVar(birPackage);
     }
 
     int32_t typeDefinitionBodiesCount = readS4be();
     for (auto i = 0; i < typeDefinitionBodiesCount; i++) {
         int32_t attachedFunctionsCount = readS4be();
         for (auto j = 0; j < attachedFunctionsCount; j++) {
-            auto function = readFunction(birPackage);
+            readFunction(birPackage, true);
         }
         int32_t referencedTypesCount = readS4be();
         for (auto j = 0; j < referencedTypesCount; j++) {
@@ -1272,13 +1280,9 @@ nballerina::Package BIRReader::readModule() {
     }
 
     int32_t functionCount = readS4be();
-
-    // Push all the functions in BIRpackage except __init, __start & __stop
+    birPackage.functions.reserve(functionCount);
     for (auto i = 0; i < functionCount; i++) {
-        auto curFunc = readFunction(birPackage);
-        if (!ignoreFunction(curFunc->getName())) {
-            birPackage.insertFunction(std::move(curFunc));
-        }
+        readFunction(birPackage);
     }
 
     return birPackage;

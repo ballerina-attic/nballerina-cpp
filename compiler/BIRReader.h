@@ -45,6 +45,8 @@
 #include "interfaces/TerminatorInsn.h"
 #include <fstream>
 
+namespace nballerina {
+
 class ConstantPoolSet;
 class ConstantPoolEntry;
 class PackageCpInfo;
@@ -59,15 +61,15 @@ class BIRReader {
     BIRReader() {}
 
     ConstantPoolSet *constantPool;
-    nballerina::Variable readGlobalVar();
+    void readGlobalVar(nballerina::Package &birPackage);
     nballerina::Operand readOperand();
-    nballerina::Variable readLocalVar();
+    void readLocalVar(nballerina::Function &birFunction);
     nballerina::MapConstruct readMapConstructor();
     nballerina::TypeDescInsn *readTypeDescInsn();
     nballerina::StructureInsn *readStructureInsn();
     void readInsn(nballerina::BasicBlock &basicBlock);
-    std::unique_ptr<nballerina::BasicBlock> readBasicBlock(nballerina::Function &birFunction);
-    std::unique_ptr<nballerina::Function> readFunction(nballerina::Package &birPackage);
+    void readBasicBlock(nballerina::Function &birFunction, bool ignore = false);
+    void readFunction(nballerina::Package &birPackage, bool ignore = false);
     nballerina::Package readModule();
 
     // Read bytes functions
@@ -593,5 +595,7 @@ class ReadMapLoadInsn : public ReadNonTerminatorInstruction {
     ~ReadMapLoadInsn() {}
     std::unique_ptr<nballerina::MapLoadInsn> readNonTerminatorInsn(nballerina::BasicBlock &currentBB);
 };
+
+} // namespace nballerina
 
 #endif // BIRREADER_H

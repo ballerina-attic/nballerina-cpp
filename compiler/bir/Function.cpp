@@ -19,6 +19,7 @@
 #include "bir/Function.h"
 #include "bir/Package.h"
 #include "bir/Types.h"
+#include <algorithm>
 #include <cassert>
 
 namespace nballerina {
@@ -31,13 +32,6 @@ const std::vector<FunctionParam> &Function::getParams() const { return requiredP
 const std::optional<RestParam> &Function::getRestParam() const { return restParam; }
 const std::optional<Variable> &Function::getReturnVar() const { return returnVar; }
 
-void Function::insertParam(FunctionParam param) { requiredParams.push_back(std::move(param)); }
-void Function::insertLocalVar(Variable var) {
-    localVars.insert(std::pair<std::string, Variable>(var.getName(), std::move(var)));
-}
-void Function::setReturnVar(Variable var) { returnVar = std::move(var); }
-void Function::insertBasicBlock(std::unique_ptr<BasicBlock> bb) { basicBlocks.push_back(std::move(bb)); }
-
 const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
     if (op.getKind() == GLOBAL_VAR_KIND) {
         return parentPackage->getGlobalVariable(op.getName());
@@ -46,9 +40,10 @@ const Variable &Function::getLocalOrGlobalVariable(const Operand &op) const {
 }
 
 const Variable &Function::getLocalVariable(const std::string &opName) const {
-    const auto &varIt = localVars.find(opName);
-    assert(varIt != localVars.end());
-    return varIt->second;
+    auto result = std::find_if(localVars.begin(), localVars.end(),
+                               [&opName](const Variable &i) -> bool { return i.getName() == opName; });
+    assert(result != localVars.end());
+    return *result;
 }
 
 size_t Function::getNumParams() const { return requiredParams.size(); }

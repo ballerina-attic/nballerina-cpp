@@ -17,34 +17,25 @@
  */
 
 #include "bir/Package.h"
+#include <algorithm>
 #include <cassert>
 
 namespace nballerina {
 
 std::string Package::getModuleName() const { return org + name + version; }
 
-void Package::setOrgName(std::string orgName) { org = std::move(orgName); }
-
-void Package::setPackageName(std::string pkgName) { name = std::move(pkgName); }
-
-void Package::setVersion(std::string verName) { version = std::move(verName); }
-
-void Package::setSrcFileName(std::string srcFileName) { sourceFileName = std::move(srcFileName); }
-
-void Package::insertFunction(std::unique_ptr<Function> function) {
-    functionLookUp.insert(std::pair<std::string, std::unique_ptr<Function>>(function->getName(), std::move(function)));
+const Function &Package::getFunction(const std::string &name) const {
+    auto result = std::find_if(functions.begin(), functions.end(),
+                               [&name](const Function &i) -> bool { return i.getName() == name; });
+    assert(result != functions.end());
+    return *result;
 }
-
-const Function &Package::getFunction(const std::string &name) const { return *functionLookUp.at(name); }
 
 const Variable &Package::getGlobalVariable(const std::string &name) const {
-    const auto &varIt = globalVars.find(name);
-    assert(varIt != globalVars.end());
-    return varIt->second;
-}
-
-void Package::insertGlobalVar(Variable var) {
-    globalVars.insert(std::pair<std::string, Variable>(var.getName(), std::move(var)));
+    auto result = std::find_if(globalVars.begin(), globalVars.end(),
+                               [&name](const Variable &i) -> bool { return i.getName() == name; });
+    assert(result != globalVars.end());
+    return *result;
 }
 
 } // namespace nballerina
