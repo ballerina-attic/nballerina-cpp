@@ -59,10 +59,12 @@ llvm::Value *FunctionCodeGen::getLocalOrGlobalVal(const Operand &op) const {
     return getLocalVal(op.getName());
 }
 
+llvm::Function *FunctionCodeGen::getFunctionValue() { return llvmFunction; }
+
 void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
 
     llvm::Module &module = parentGenerator.getModule();
-    auto *llvmFunction = module.getFunction(obj.name);
+    llvmFunction = module.getFunction(obj.name);
     auto *BbRef = llvm::BasicBlock::Create(module.getContext(), "entry", llvmFunction);
     builder.SetInsertPoint(BbRef);
 
@@ -99,7 +101,5 @@ void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
         BasicBlockCodeGen generator(*this, parentGenerator);
         generator.visit(*bb, builder);
     }
-
-    CodeGenUtils::injectAbortCall(module, builder, obj.name);
 }
 } // namespace nballerina
