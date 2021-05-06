@@ -69,7 +69,7 @@ int16_t BIRReader::readS2be() {
     int16_t result = 0;
     char *p = reinterpret_cast<char *>(&value);
     is.read(p, sizeof(value));
-    char tmp;
+    char tmp = 0;
     if (isLittleEndian()) {
         tmp = p[0];
         p[0] = p[1];
@@ -181,7 +181,7 @@ bool ConstantPoolSet::getBooleanCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
     auto *booleanCp = static_cast<BooleanCpInfo *>(poolEntry);
-    return booleanCp->getValue();
+    return (booleanCp->getValue() != 0u);
 }
 
 // Search type from the constant pool based on index
@@ -199,9 +199,9 @@ Type ConstantPoolSet::getTypeCp(int32_t index, bool voidToInt) {
     auto type = TypeTag(shapeCp->getTypeTag());
 
     // Handle voidToInt flag
-    if (type == TYPE_TAG_NIL && voidToInt)
+    if (type == TYPE_TAG_NIL && voidToInt) {
         return Type(TYPE_TAG_INT, name);
-
+    }
     // Handle Map type
     if (type == TYPE_TAG_MAP) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getConstraintTypeCpIndex());
@@ -792,7 +792,6 @@ void BIRReader::readFunction(Package &package, bool ignore) {
     if (ignore || ignoreFunction(functionName)) {
         package.functions.pop_back();
     }
-    return;
 }
 
 StringCpInfo::StringCpInfo() { setTag(TAG_ENUM_CP_ENTRY_STRING); }
@@ -1193,25 +1192,25 @@ void BIRReader::patchTypesToFuncParam() {
 }
 */
 
-Package BIRReader::readModule() {
+std::shared_ptr<Package> BIRReader::readModule() {
     int32_t idCpIndex = readS4be();
     ConstantPoolEntry *poolEntry = constantPool->getEntry(idCpIndex);
-    auto birPackage = Package();
+    auto birPackage = std::make_shared<Package>();
 
     switch (poolEntry->getTag()) {
     case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_PACKAGE: {
         auto *packageEntry = static_cast<PackageCpInfo *>(poolEntry);
         poolEntry = constantPool->getEntry(packageEntry->getOrgIndex());
         auto *stringCp = static_cast<StringCpInfo *>(poolEntry);
-        birPackage.org = stringCp->getValue();
+        birPackage->org = stringCp->getValue();
 
         poolEntry = constantPool->getEntry(packageEntry->getNameIndex());
         stringCp = static_cast<StringCpInfo *>(poolEntry);
-        birPackage.name = stringCp->getValue();
+        birPackage->name = stringCp->getValue();
 
         poolEntry = constantPool->getEntry(packageEntry->getVersionIndex());
         stringCp = static_cast<StringCpInfo *>(poolEntry);
-        birPackage.version = stringCp->getValue();
+        birPackage->version = stringCp->getValue();
         break;
     }
     default:
@@ -1256,16 +1255,16 @@ Package BIRReader::readModule() {
     }
 
     int32_t globalVarCount = readS4be();
-    birPackage.globalVars.reserve(globalVarCount);
+    birPackage->globalVars.reserve(globalVarCount);
     for (auto i = 0; i < globalVarCount; i++) {
-        readGlobalVar(birPackage);
+        readGlobalVar(*birPackage);
     }
 
     int32_t typeDefinitionBodiesCount = readS4be();
     for (auto i = 0; i < typeDefinitionBodiesCount; i++) {
         int32_t attachedFunctionsCount = readS4be();
         for (auto j = 0; j < attachedFunctionsCount; j++) {
-            readFunction(birPackage, true);
+            readFunction(*birPackage, true);
         }
         int32_t referencedTypesCount = readS4be();
         for (auto j = 0; j < referencedTypesCount; j++) {
@@ -1274,15 +1273,15 @@ Package BIRReader::readModule() {
     }
 
     int32_t functionCount = readS4be();
-    birPackage.functions.reserve(functionCount);
+    birPackage->functions.reserve(functionCount);
     for (auto i = 0; i < functionCount; i++) {
-        readFunction(birPackage);
+        readFunction(*birPackage);
     }
 
     return birPackage;
 }
 
-Package BIRReader::deserialize() {
+std::shared_ptr<Package> BIRReader::deserialize() {
     // Read Constant Pool
     auto *constantPoolSet = new ConstantPoolSet();
     constantPoolSet->read();

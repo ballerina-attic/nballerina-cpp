@@ -25,7 +25,8 @@
 
 namespace nballerina {
 
-FunctionCodeGen::FunctionCodeGen(PackageCodeGen &parentGenerator) : parentGenerator(parentGenerator) {}
+FunctionCodeGen::FunctionCodeGen(PackageCodeGen &parentGenerator)
+    : parentGenerator(parentGenerator), llvmFunction(nullptr) {}
 
 llvm::BasicBlock *FunctionCodeGen::getBasicBlock(const std::string &id) { return basicBlocksMap[id]; }
 

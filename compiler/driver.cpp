@@ -64,8 +64,6 @@ int main(int argc, char **argv) {
 
     auto birPackage = nballerina::BIRReader::reader.deserialize();
 
-    printf("%p\n", &birPackage);
-
     // Codegen
-    return nballerina::CodeGenerator::generateLLVMIR(birPackage, outFileName);
+    return nballerina::CodeGenerator::generateLLVMIR(*birPackage, outFileName);
 }
