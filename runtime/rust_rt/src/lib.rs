@@ -90,6 +90,13 @@ pub extern "C" fn print_integer(num64: i64) {
     println!("{}", num64);
 }
 
+
+// Prints 8 bit signed byte
+#[no_mangle]
+pub extern "C" fn print_byte(num8: i8) {
+    println!("{}", num8);
+}
+
 // Prints 64 bit float
 #[no_mangle]
 pub extern "C" fn printf64(num64: f64) {

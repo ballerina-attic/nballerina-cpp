@@ -44,6 +44,8 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
         return llvm::Type::getDoubleTy(context);
     case TYPE_TAG_BOOLEAN:
         return llvm::Type::getInt1Ty(context);
+    case TYPE_TAG_BYTE:
+        return llvm::Type::getInt8Ty(context);
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:

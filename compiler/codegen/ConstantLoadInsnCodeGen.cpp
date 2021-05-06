@@ -40,6 +40,10 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
             llvm::ConstantFP::get(moduleGenerator.getModule().getContext(), llvm::APFloat(std::get<double>(obj.value)));
         break;
     }
+    case TYPE_TAG_BYTE: {
+        constRef = builder.getInt8(std::get<int8_t>(obj.value));
+        break;
+    }
     case TYPE_TAG_BOOLEAN: {
         constRef = builder.getInt1(std::get<bool>(obj.value));
         break;
