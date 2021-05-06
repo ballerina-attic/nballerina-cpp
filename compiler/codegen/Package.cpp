@@ -17,16 +17,21 @@
  */
 
 #include "Package.h"
+#include "BasicBlock.h"
 #include "CodeGenUtils.h"
 #include "Function.h"
 #include "FunctionParam.h"
 #include "Operand.h"
+#include "TerminatorInsn.h"
 #include "Types.h"
 
 namespace nballerina {
 
 std::string Package::getModuleName() const { return org + name + version; }
 llvm::Value *Package::getStringBuilderTableGlobalPointer() const { return strBuilderGlobal; }
+llvm::Value *Package::getBalValueGlobalVariable() const { return balValue; }
+llvm::Value *Package::getHeaderSizeBytes() const { return headerSizeBytes; }
+llvm::Value *Package::getTagMaskValue() const { return tagMask; }
 
 void Package::addToStrTable(std::string_view name) {
     if (!strBuilder->contains(name.data())) {
@@ -59,6 +64,23 @@ void Package::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
     strBuilderGlobal = new llvm::GlobalVariable(module, charPtrType, false, llvm::GlobalValue::InternalLinkage,
                                                 nullValue, STRING_TABLE_NAME, nullptr);
     strBuilderGlobal->setAlignment(llvm::Align(4));
+
+    llvm::Constant *nullBalValue = llvm::Constant::getNullValue(builder.getInt8PtrTy());
+    balValue = new llvm::GlobalVariable(module, builder.getInt8PtrTy(), false, llvm::GlobalValue::InternalLinkage,
+                                        nullBalValue, "balValue", nullptr);
+    balValue->setAlignment(llvm::Align(8));
+
+    auto *constByteValue = llvm::ConstantInt::get(builder.getInt64Ty(), 1, 0);
+    headerSizeBytes = new llvm::GlobalVariable(module, builder.getInt64Ty(), false, llvm::GlobalValue::InternalLinkage,
+                                               constByteValue, "HEADER_SIZE_IN_BYTES", nullptr);
+    headerSizeBytes->setAlignment(llvm::Align(8));
+    headerSizeBytes->setDSOLocal(true);
+
+    auto *constTagMask = llvm::ConstantInt::get(builder.getInt64Ty(), 0b11, 0);
+    tagMask = new llvm::GlobalVariable(module, builder.getInt64Ty(), false, llvm::GlobalValue::InternalLinkage,
+                                       constTagMask, "TAG_MASK", nullptr);
+    tagMask->setAlignment(llvm::Align(8));
+    tagMask->setDSOLocal(true);
 
     // iterate over all global variables and translate
     for (auto const &it : globalVars) {
@@ -172,26 +194,100 @@ void Package::insertGlobalVar(const Variable &var) {
 }
 
 void Package::storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
-                                      const Type &valueType, llvm::Value *smartStruct) {
+                                      const Type &valueType, llvm::Value *smartStruct, const BasicBlock &parentBB) {
+    llvm::BasicBlock *succBB = parentBB.getTerminatorInsnPtr()->getNextBB().getLLVMBBRef();
+    auto *constIntValue = llvm::ConstantInt::get(builder.getInt64Ty(), 4611686018427387904, 0);
+    auto *addResult = builder.CreateAdd(builder.CreateLoad(balValue, ""), constIntValue, "");
+    auto *constCmpValue = llvm::ConstantInt::get(builder.getInt8Ty(), -1, 0);
+    auto *ifReturn =
+        builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, builder.CreateLoad(addResult, ""), constCmpValue, "");
 
+    // create if BB
+    llvm::BasicBlock *ifBB = llvm::BasicBlock::Create(module.getContext(), "ifBB");
+    // create else BB
+    llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "elseBB");
+
+    // Creating Branch condition using if and else BB's.
+    auto *consBr = builder.CreateCondBr(ifReturn, ifBB, elseBB);
+
+    llvm::BasicBlock *currBB = consBr->getParent();
+    auto *constShlValue = llvm::ConstantInt::get(builder.getInt32Ty(), 1, 0);
+    llvm::BinaryOperator *shlInsn = llvm::BinaryOperator::CreateShl(balValue, constShlValue);
+    shlInsn->setHasNoSignedWrap();
+    llvm::BinaryOperator *orInsn = llvm::BinaryOperator::CreateOr(shlInsn, constShlValue);
+    ifBB->getInstList().push_back(shlInsn);
+    ifBB->getInstList().push_back(orInsn);
+
+    // creating branch of the if basicblock.
+    llvm::Instruction *brInsn = builder.CreateBr(succBB);
+    brInsn->removeFromParent();
+    ifBB->getInstList().push_back(brInsn);
+    currBB->getParent()->getBasicBlockList().insertAfter(currBB->getIterator(), ifBB);
+    ifBB->getParent()->getBasicBlockList().insertAfter(ifBB->getIterator(), elseBB);
+
+    // else case instructions
+    auto *balValSize = llvm::ConstantInt::get(builder.getInt64Ty(), sizeof(balValue), 0);
+    llvm::LoadInst *headerSizeLoad = builder.CreateLoad(headerSizeBytes, "");
+    headerSizeLoad->removeFromParent();
+    elseBB->getInstList().push_back(headerSizeLoad);
+    llvm::BinaryOperator *elseAddInsn = llvm::BinaryOperator::CreateAdd(headerSizeLoad, balValSize, "");
+    elseBB->getInstList().push_back(elseAddInsn);
+
+    llvm::Instruction *mallocInsn = llvm::CallInst::CreateMalloc(elseBB, builder.getInt8Ty(), builder.getInt8Ty(),
+                                                                 elseAddInsn, nullptr, nullptr, "");
+    elseBB->getInstList().push_back(mallocInsn);
+
+    auto *gepOfMalloc = llvm::dyn_cast<llvm::Instruction>(builder.CreateInBoundsGEP(
+        builder.getInt8Ty(), mallocInsn, llvm::ArrayRef<llvm::Value *>({headerSizeLoad}), ""));
+    gepOfMalloc->removeFromParent();
+    elseBB->getInstList().push_back(gepOfMalloc);
+
+    auto *bitCastOfGEPMalloc = llvm::dyn_cast<llvm::Instruction>(
+        builder.CreateBitCast(gepOfMalloc, llvm::Type::getInt64PtrTy(module.getContext()), ""));
+    bitCastOfGEPMalloc->removeFromParent();
+    elseBB->getInstList().push_back(bitCastOfGEPMalloc);
+
+    llvm::LoadInst *balValueLoadInsn = builder.CreateLoad(balValue, "");
+    balValueLoadInsn->removeFromParent();
+    elseBB->getInstList().push_back(balValueLoadInsn);
+
+    llvm::StoreInst *storeValueToBalValue = builder.CreateStore(balValueLoadInsn, bitCastOfGEPMalloc);
+    storeValueToBalValue->removeFromParent();
+    elseBB->getInstList().push_back(storeValueToBalValue);
+
+    auto *ptrToIntCast =
+        llvm::dyn_cast<llvm::Instruction>(builder.CreatePtrToInt(mallocInsn, builder.getInt64Ty(), ""));
+    ptrToIntCast->removeFromParent();
+    elseBB->getInstList().push_back(ptrToIntCast);
+
+    // llvm::PHINode *phi =
+    //  builder.CreatePHI(builder.getInt64Ty(), 2, "cond-lvalue");
+    // phi->addIncoming(builder.CreateLoad(orInsn,""), ifBB);
+    // phi->addIncoming(ptrToIntCast, elseBB);
+    llvm::Instruction *elseBBBrInsn = builder.CreateBr(succBB);
+    elseBBBrInsn->removeFromParent();
+    elseBB->getInstList().push_back(elseBBBrInsn);
+#if 0
     // struct first element original type
-    auto *inherentTypeIdx = builder.CreateStructGEP(smartStruct, 0, "inherentTypeName");
-    auto valueTypeName = Type::typeStringMangleName(valueType);
-    addToStrTable(valueTypeName);
-    int tempRandNum1 = std::rand() % 1000 + 1;
-    auto *constValue = builder.getInt64(tempRandNum1);
-    auto *storeInsn = builder.CreateStore(constValue, inherentTypeIdx);
-    addStringOffsetRelocationEntry(valueTypeName.data(), storeInsn);
+        auto *inherentTypeIdx = builder.CreateStructGEP(smartStruct, 0, "inherentTypeName");
+        auto valueTypeName = Type::typeStringMangleName(valueType);
+        addToStrTable(valueTypeName);
+        int tempRandNum1 = std::rand() % 1000 + 1;
+        auto *constValue = builder.getInt64(tempRandNum1);
+        auto *storeInsn = builder.CreateStore(constValue, inherentTypeIdx);
+        addStringOffsetRelocationEntry(valueTypeName.data(), storeInsn);
 
-    // struct second element void pointer data.
-    auto *valueIndx = builder.CreateStructGEP(smartStruct, 1, "data");
-    if (Type::isBoxValueSupport(valueType.getTypeTag())) {
-        auto *valueTemp = builder.CreateLoad(value, "_temp");
-        auto boxValFunc = CodeGenUtils::getBoxValueFunc(module, valueTemp->getType(), valueType.getTypeTag());
-        value = builder.CreateCall(boxValFunc, llvm::ArrayRef<llvm::Value *>({valueTemp}), "call");
-    }
-    auto *bitCastRes = builder.CreateBitCast(value, builder.getInt8PtrTy(), "");
-    builder.CreateStore(bitCastRes, valueIndx);
+        // struct second element void pointer data.
+        auto *valueIndx = builder.CreateStructGEP(smartStruct, 1, "data");
+        if (Type::isBoxValueSupport(valueType.getTypeTag())) {
+            auto *valueTemp = builder.CreateLoad(value, "_temp");
+            auto boxValFunc = CodeGenUtils::getBoxValueFunc(module, valueTemp->getType(), valueType.getTypeTag());
+            value = builder.CreateCall(boxValFunc, llvm::ArrayRef<llvm::Value *>({valueTemp}), "call");
+        }
+        auto *bitCastRes = builder.CreateBitCast(value, builder.getInt8PtrTy(), "");
+        builder.CreateStore(bitCastRes, valueIndx);
+    // get the last instruction from current BB.
+#endif
 }
 
 } // namespace nballerina

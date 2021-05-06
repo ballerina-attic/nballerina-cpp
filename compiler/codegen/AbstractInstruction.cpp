@@ -32,6 +32,8 @@ const Package &AbstractInstruction::getPackageRef() const { return parentBB.getP
 
 Function &AbstractInstruction::getFunctionMutableRef() const { return parentBB.getFunctionMutableRef(); }
 
+const BasicBlock &AbstractInstruction::getParentBB() const { return parentBB; }
+
 Package &AbstractInstruction::getPackageMutableRef() const {
     return parentBB.getFunctionMutableRef().getPackageMutableRef();
 }

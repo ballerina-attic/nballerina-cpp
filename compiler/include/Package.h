@@ -46,6 +46,9 @@ class Package : public Translatable {
     std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
     llvm::GlobalVariable *strBuilderGlobal;
     llvm::GlobalVariable *strTablePtr;
+    llvm::GlobalVariable *balValue;
+    llvm::GlobalVariable *headerSizeBytes;
+    llvm::GlobalVariable *tagMask;
     void applyStringOffsetRelocations(llvm::Module &module, llvm::IRBuilder<> &builder);
 
   public:
@@ -60,6 +63,9 @@ class Package : public Translatable {
     const Function &getFunction(const std::string &name) const;
     const Variable &getGlobalVariable(const std::string &name) const;
 
+    llvm::Value *getHeaderSizeBytes() const;
+    llvm::Value *getBalValueGlobalVariable() const;
+    llvm::Value *getTagMaskValue() const;
     llvm::Value *getStringBuilderTableGlobalPointer() const;
     void addToStrTable(std::string_view name);
     void setOrgName(std::string orgName);
@@ -70,7 +76,7 @@ class Package : public Translatable {
     void insertFunction(const std::shared_ptr<Function> &function);
     void addStringOffsetRelocationEntry(const std::string &eleType, llvm::Value *storeInsn);
     void storeValueInSmartStruct(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
-                                 const Type &valueType, llvm::Value *smartStruct);
+                                 const Type &valueType, llvm::Value *smartStruct, const BasicBlock &parentBB);
 
     void translate(llvm::Module &module, llvm::IRBuilder<> &builder) final;
 };

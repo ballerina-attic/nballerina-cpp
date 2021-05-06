@@ -82,6 +82,7 @@ class AbstractInstruction : public Debuggable {
     const Package &getPackageRef() const;
     Function &getFunctionMutableRef() const;
     Package &getPackageMutableRef() const;
+    const BasicBlock &getParentBB() const;
 
   public:
     AbstractInstruction() = delete;

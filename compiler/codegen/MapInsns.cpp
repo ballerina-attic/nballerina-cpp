@@ -68,7 +68,7 @@ void MapLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builder) {
         auto *outParamTemp = builder.CreateLoad(outParam);
         builder.CreateStore(outParamTemp, lhs);
     } else {
-        getPackageMutableRef().storeValueInSmartStruct(module, builder, outParam, Type(memTypeTag, ""), lhs);
+        getPackageMutableRef().storeValueInSmartStruct(module, builder, outParam, Type(memTypeTag, ""), lhs, getParentBB());
     }
     // else
     // getFunctionMutableRef().storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
