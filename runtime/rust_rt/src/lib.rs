@@ -90,7 +90,6 @@ pub extern "C" fn print_integer(num64: i64) {
     println!("{}", num64);
 }
 
-
 // Prints 8 bit signed byte
 #[no_mangle]
 pub extern "C" fn print_byte(num8: i8) {
@@ -116,6 +115,13 @@ pub extern "C" fn print_boolean(num8: i8) {
 #[no_mangle]
 pub extern "C" fn array_init_int(size: i64) -> *mut DynamicBalArray<i64> {
     let array: Box<DynamicBalArray<i64>> = Box::new(DynamicBalArray::<i64>::new(size));
+    let array_pointer = Box::into_raw(array);
+    return array_pointer as *mut DynamicBalArray<i64>;
+}
+
+#[no_mangle]
+pub extern "C" fn array_init_byte(size: i64) -> *mut DynamicBalArray<i64> {
+    let array: Box<DynamicBalArray<i8>> = Box::new(DynamicBalArray::<i8>::new(size));
     let array_pointer = Box::into_raw(array);
     return array_pointer as *mut DynamicBalArray<i64>;
 }
@@ -165,6 +171,21 @@ pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64
 
 #[no_mangle]
 pub extern "C" fn array_load_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64) -> i64 {
+    let arr = unsafe { Box::from_raw(arr_ptr) };
+    let value = arr.get_element(index);
+    mem::forget(arr);
+    return value;
+}
+
+#[no_mangle]
+pub extern "C" fn array_store_byte(arr_ptr: *mut DynamicBalArray<i8>, index: i64, ref_ptr: i8) {
+    let mut arr = unsafe { Box::from_raw(arr_ptr) };
+    arr.set_element(index, ref_ptr);
+    mem::forget(arr);
+}
+
+#[no_mangle]
+pub extern "C" fn array_load_byte(arr_ptr: *mut DynamicBalArray<i8>, index: i64) -> i8 {
     let arr = unsafe { Box::from_raw(arr_ptr) };
     let value = arr.get_element(index);
     mem::forget(arr);
