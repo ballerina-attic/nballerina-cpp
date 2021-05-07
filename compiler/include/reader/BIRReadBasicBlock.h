@@ -16,26 +16,20 @@
  * under the License.
  */
 
-#ifndef __UNARYOPINSN__H__
-#define __UNARYOPINSN__H__
+#ifndef __BIRREADBASICBLOCK__H__
+#define __BIRREADBASICBLOCK__H__
 
-#include "interfaces/NonTerminatorInsn.h"
+#include "bir/Function.h"
+#include "interfaces/Parser.h"
+#include "reader/ConstantPool.h"
 
 namespace nballerina {
 
-class Operand;
-
-class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
-  private:
-    Operand rhsOp;
-    InstructionKind kind;
-
+class BIRReadBasicBlock {
   public:
-    UnaryOpInsn(Operand lhs, BasicBlock &currentBB, Operand rhs, InstructionKind kind)
-        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhs)), kind(kind) {}
-    friend class NonTerminatorInsnCodeGen;
+    static void readBasicBlock(Function &birFunction, Parser &reader, ConstantPoolSet &cp, bool ignore = false);
 };
 
 } // namespace nballerina
 
-#endif //!__UNARYOPINSN__H__
+#endif //!__BIRREADBASICBLOCK__H__

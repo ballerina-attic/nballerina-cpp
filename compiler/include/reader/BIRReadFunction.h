@@ -15,27 +15,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+#ifndef __BIRREADFUNCTION__H__
+#define __BIRREADFUNCTION__H__
 
-#ifndef __UNARYOPINSN__H__
-#define __UNARYOPINSN__H__
-
-#include "interfaces/NonTerminatorInsn.h"
+#include "bir/Package.h"
+#include "interfaces/Parser.h"
+#include "reader/ConstantPool.h"
 
 namespace nballerina {
 
-class Operand;
-
-class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
+class BIRReadFunction {
   private:
-    Operand rhsOp;
-    InstructionKind kind;
+    static void readLocalVar(Function &function, Parser &reader, ConstantPoolSet &cp);
 
   public:
-    UnaryOpInsn(Operand lhs, BasicBlock &currentBB, Operand rhs, InstructionKind kind)
-        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhs)), kind(kind) {}
-    friend class NonTerminatorInsnCodeGen;
+    static void readFunction(Package &package, Parser &reader, ConstantPoolSet &cp, bool ignore = false);
 };
 
 } // namespace nballerina
 
-#endif //!__UNARYOPINSN__H__
+#endif //!__BIRREADFUNCTION__H__

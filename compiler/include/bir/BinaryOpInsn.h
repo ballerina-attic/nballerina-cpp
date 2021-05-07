@@ -32,9 +32,9 @@ class BinaryOpInsn : public NonTerminatorInsn, public Translatable<BinaryOpInsn>
     InstructionKind kind;
 
   public:
-    BinaryOpInsn(Operand lhs, class BasicBlock &currentBB, Operand rhsOp1, Operand rhsOp2)
-        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp1(std::move(rhsOp1)), rhsOp2(std::move(rhsOp2)), kind{} {}
-    void setInstKind(InstructionKind kind) { this->kind = kind; }
+    BinaryOpInsn(Operand lhs, class BasicBlock &currentBB, Operand rhsOp1, Operand rhsOp2, InstructionKind kind)
+        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp1(std::move(rhsOp1)), rhsOp2(std::move(rhsOp2)),
+          kind(kind) {}
     friend class NonTerminatorInsnCodeGen;
 };
 
