@@ -49,6 +49,22 @@ bool BIRReader::isLittleEndian() {
     return (int)*c != 0;
 }
 
+template <typename T>
+T swapEndian(T u) {
+    static_assert(CHAR_BIT == 8);
+    union {
+        T u;
+        unsigned char u8[sizeof(T)];
+    } source, dest;
+
+    source.u = u;
+
+    for (size_t k = 0; k < sizeof(T); k++) {
+        dest.u8[k] = source.u8[sizeof(T) - k - 1];
+    }
+    return dest.u;
+}
+
 // Read 1 byte from the stream
 uint8_t BIRReader::readU1() {
     uint8_t value = 0;
@@ -66,90 +82,45 @@ uint8_t BIRReader::peekReadU1() {
 // Read 2 bytes from the stream
 int16_t BIRReader::readS2be() {
     int16_t value = 0;
-    int16_t result = 0;
     char *p = reinterpret_cast<char *>(&value);
     is.read(p, sizeof(value));
-    char tmp = 0;
-    if (isLittleEndian()) {
-        tmp = p[0];
-        p[0] = p[1];
-        p[1] = tmp;
+    if (!isLittleEndian()) {
+        return value;
     }
-    result = value;
-    return result;
+    return swapEndian<int16_t>(value);
 }
 
 // Read 4 bytes from the stream
 int32_t BIRReader::readS4be() {
-    uint32_t value = 0;
-    is.read(reinterpret_cast<char *>(&value), sizeof(value));
-    if (isLittleEndian()) {
-        uint32_t result = 0;
-        result |= (value & 0x000000FFU) << 24;
-        result |= (value & 0x0000FF00U) << 8;
-        result |= (value & 0x00FF0000U) >> 8;
-        result |= (value & 0xFF000000U) >> 24;
-        value = result;
+    int32_t value = 0;
+    char *p = reinterpret_cast<char *>(&value);
+    is.read(p, sizeof(value));
+    if (!isLittleEndian()) {
+        return value;
     }
-    return value;
+    return swapEndian<int32_t>(value);
 }
 
 // Read 8 bytes from the stream
 int64_t BIRReader::readS8be() {
     int64_t value = 0;
-    int64_t result = 0;
     char *p = reinterpret_cast<char *>(&value);
     is.read(p, sizeof(value));
-    if (isLittleEndian()) {
-        char tmp = 0;
-
-        tmp = p[0];
-        p[0] = p[7];
-        p[7] = tmp;
-
-        tmp = p[1];
-        p[1] = p[6];
-        p[6] = tmp;
-
-        tmp = p[2];
-        p[2] = p[5];
-        p[5] = tmp;
-
-        tmp = p[3];
-        p[3] = p[4];
-        p[4] = tmp;
+    if (!isLittleEndian()) {
+        return value;
     }
-    result = value;
-    return result;
+    return swapEndian<int64_t>(value);
 }
 
 // Read 8 bytes from the stream for float value
 double BIRReader::readS8bef() {
     double value = NAN;
-    double result = NAN;
     char *p = reinterpret_cast<char *>(&value);
     is.read(p, sizeof(value));
-    if (isLittleEndian()) {
-        char tmp = 0;
-
-        tmp = p[0];
-        p[0] = p[7];
-        p[7] = tmp;
-
-        tmp = p[1];
-        p[1] = p[6];
-        p[6] = tmp;
-
-        tmp = p[2];
-        p[2] = p[5];
-        p[5] = tmp;
-
-        tmp = p[3];
-        p[3] = p[4];
-        p[4] = tmp;
+    if (!isLittleEndian()) {
+        return value;
     }
-    result = value;
-    return result;
+    return swapEndian<double>(value);
 }
 
 // Search string from the constant pool based on index
