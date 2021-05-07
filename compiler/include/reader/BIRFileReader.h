@@ -16,26 +16,33 @@
  * under the License.
  */
 
-#ifndef __UNARYOPINSN__H__
-#define __UNARYOPINSN__H__
+#ifndef BIRREADER_H
+#define BIRREADER_H
 
-#include "interfaces/NonTerminatorInsn.h"
+#include "bir/Package.h"
+#include "interfaces/Parser.h"
+#include <fstream>
+#include <memory>
 
 namespace nballerina {
 
-class Operand;
-
-class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
+class BIRFileReader : public Parser {
   private:
-    Operand rhsOp;
-    InstructionKind kind;
+    std::ifstream is;
+    BIRFileReader(std::string FileName);
+
+    uint8_t readU1() override;
+    int16_t readS2be() override;
+    int32_t readS4be() override;
+    int64_t readS8be() override;
+    double readS8bef() override;
+    void ignore(std::streamsize length) override;
+    void readChars(char *outBuff, std::streamsize length) override;
 
   public:
-    UnaryOpInsn(Operand lhs, BasicBlock &currentBB, Operand rhs, InstructionKind kind)
-        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhs)), kind(kind) {}
-    friend class NonTerminatorInsnCodeGen;
+    static std::shared_ptr<Package> deserialize(const std::string &FileName);
 };
 
 } // namespace nballerina
 
-#endif //!__UNARYOPINSN__H__
+#endif // BIRREADER_H

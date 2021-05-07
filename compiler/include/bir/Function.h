@@ -66,7 +66,8 @@ class Function : public Debuggable {
     const std::vector<FunctionParam> &getParams() const;
 
     friend class FunctionCodeGen;
-    friend class BIRReader;
+    friend class BIRReadFunction;
+    friend class BIRReadBasicBlock;
 };
 } // namespace nballerina
 
