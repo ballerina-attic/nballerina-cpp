@@ -56,16 +56,33 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
         auto *lhsGep = moduleGenerator.addToStringTable(lhsTypeName, builder);
 
         // call is_same_type rust function to check LHS and RHS type are same or not.
-        auto isSameTypeFunc =
-            CodeGenUtils::getIsSameTypeFunc(moduleGenerator.getModule(), lhsGep, inherentTypeStringVal);
+        auto &module = moduleGenerator.getModule();
+        auto isSameTypeFunc = CodeGenUtils::getIsSameTypeFunc(module, lhsGep, inherentTypeStringVal);
         auto *sameTypeResult =
             builder.CreateCall(isSameTypeFunc, llvm::ArrayRef<llvm::Value *>({lhsGep, inherentTypeStringVal}));
-        // creating branch condition using is_same_type() function result.
-        builder.CreateIsNotNull(sameTypeResult);
+        auto *compareVal = builder.CreateIsNotNull(sameTypeResult);
 
+        // creating branch condition using is_same_type() function result.
+        auto *functionVal = functionGenerator.getFunctionValue();
+        auto &context = module.getContext();
+        auto *ifBB = llvm::BasicBlock::Create(context, "bb.ok", functionVal);
+        auto *elseBB = llvm::BasicBlock::Create(context, "bb.abort", functionVal);
+        builder.CreateCondBr(compareVal, ifBB, elseBB);
+
+        // if comparison failed
+        builder.SetInsertPoint(elseBB);
+        auto abortFunc = CodeGenUtils::getAbortFunc(module);
+        auto *abortCall = builder.CreateCall(abortFunc);
+        abortCall->addAttribute(~0U, llvm::Attribute::NoReturn);
+        abortCall->addAttribute(~0U, llvm::Attribute::NoUnwind);
+        builder.CreateUnreachable();
+
+        // if comparison is successful
+        builder.SetInsertPoint(ifBB);
         auto *castResult = builder.CreateBitCast(dataVal, lhsTypeRef, obj.lhsOp.getName());
         auto *castLoad = builder.CreateLoad(castResult);
         builder.CreateStore(castLoad, lhsOpRef);
+
     } else if (Type::isSmartStructType(lhsTypeTag)) {
         moduleGenerator.storeValueInSmartStruct(builder, rhsOpRef, rhsType, lhsOpRef);
     } else if (lhsTypeTag == TYPE_TAG_INT && rhsTypeTag == TYPE_TAG_FLOAT) {
