@@ -22,7 +22,7 @@
 #include <iostream>
 #include <string>
 
-BIRReader BIRReader::reader;
+nballerina::BIRReader nballerina::BIRReader::reader;
 
 std::string removeExtension(const std::string &path) {
     size_t pos = path.find_last_of("\\/.");
@@ -60,9 +60,9 @@ int main(int argc, char **argv) {
         outFileName = outFileName + ".ll";
     }
 
-    BIRReader::reader.setFileStream(inFileName);
+    nballerina::BIRReader::reader.setFileStream(inFileName);
 
-    auto birPackage = BIRReader::reader.deserialize();
+    auto birPackage = nballerina::BIRReader::reader.deserialize();
 
     // Codegen
     return nballerina::CodeGenerator::generateLLVMIR(*birPackage, outFileName);

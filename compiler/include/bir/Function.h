@@ -19,22 +19,18 @@
 #ifndef __FUNCTION__H__
 #define __FUNCTION__H__
 
+#include "bir/BasicBlock.h"
+#include "bir/FunctionParam.h"
+#include "bir/Operand.h"
 #include "bir/RestParam.h"
 #include "bir/Variable.h"
 #include "interfaces/Debuggable.h"
-#include <map>
-#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 namespace nballerina {
 
-class BasicBlock;
-class Operand;
-class FunctionParam;
-class InvocableType;
-class Type;
 class Package;
 
 class Function : public Debuggable {
@@ -42,24 +38,22 @@ class Function : public Debuggable {
     inline static const std::string MAIN_FUNCTION_NAME = "main";
     static constexpr unsigned int PUBLIC = 1;
     static constexpr unsigned int NATIVE = PUBLIC << 1;
-    Package &parentPackage;
+    Package *parentPackage;
     std::string name;
     std::string workerName;
     unsigned int flags;
     std::optional<Variable> returnVar;
     std::optional<RestParam> restParam;
-    std::map<std::string, Variable> localVars;
-    std::vector<std::shared_ptr<BasicBlock>> basicBlocks;
+    std::vector<Variable> localVars;
+    std::vector<BasicBlock> basicBlocks;
     std::vector<FunctionParam> requiredParams;
 
   public:
-    Function() = delete;
-    Function(Package &parentPackage, std::string name, std::string workerName, unsigned int flags);
+    Function(Package *parentPackage, std::string name, std::string workerName, unsigned int flags);
     Function(const Function &) = delete;
-    Function(Function &&obj) noexcept = delete;
-    Function &operator=(const Function &obj) = delete;
-    Function &operator=(Function &&obj) noexcept = delete;
-    ~Function() = default;
+    Function(Function &&) noexcept = default;
+    Function &operator=(const Function &) = delete;
+    Function &operator=(Function &&) noexcept = default;
 
     const std::string &getName() const;
     size_t getNumParams() const;
@@ -71,12 +65,8 @@ class Function : public Debuggable {
     bool isExternalFunction() const;
     const std::vector<FunctionParam> &getParams() const;
 
-    void insertParam(const FunctionParam &param);
-    void setReturnVar(const Variable &var);
-    void insertLocalVar(const Variable &var);
-    void insertBasicBlock(const std::shared_ptr<BasicBlock> &bb);
-
     friend class FunctionCodeGen;
+    friend class BIRReader;
 };
 } // namespace nballerina
 

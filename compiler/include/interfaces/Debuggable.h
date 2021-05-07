@@ -27,8 +27,6 @@ class Debuggable {
     Location pos;
 
   public:
-    Debuggable() = default;
-    virtual ~Debuggable() = default;
     const Location &getLocation() const { return pos; };
     void setLocation(Location newPos) { pos = std::move(newPos); };
 };

@@ -32,9 +32,9 @@ TerminatorInsnCodeGen::TerminatorInsnCodeGen(FunctionCodeGen &functionGenerator,
 void TerminatorInsnCodeGen::visit(ConditionBrInsn &obj, llvm::IRBuilder<> &builder) {
     auto *lhsTemp = functionGenerator.createTempVal(obj.lhsOp, builder);
     auto *brCondition = builder.CreateIsNotNull(lhsTemp, obj.lhsOp.getName());
-    assert(functionGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
+    assert(functionGenerator.getBasicBlock(obj.thenBBID) != nullptr);
     assert(functionGenerator.getBasicBlock(obj.getElseBBID()) != nullptr);
-    builder.CreateCondBr(brCondition, functionGenerator.getBasicBlock(obj.getNextBBID()),
+    builder.CreateCondBr(brCondition, functionGenerator.getBasicBlock(obj.thenBBID),
                          functionGenerator.getBasicBlock(obj.getElseBBID()));
 }
 
@@ -51,15 +51,15 @@ void TerminatorInsnCodeGen::visit(FunctionCallInsn &obj, llvm::IRBuilder<> &buil
     builder.CreateStore(callResult, lhsRef);
 
     // creating branch to next basic block.
-    auto *nextBB = functionGenerator.getBasicBlock(obj.getNextBBID());
+    auto *nextBB = functionGenerator.getBasicBlock(obj.thenBBID);
     if (nextBB != nullptr) {
         builder.CreateBr(nextBB);
     }
 }
 
 void TerminatorInsnCodeGen::visit(GoToInsn &obj, llvm::IRBuilder<> &builder) {
-    assert(functionGenerator.getBasicBlock(obj.getNextBBID()) != nullptr);
-    builder.CreateBr(functionGenerator.getBasicBlock(obj.getNextBBID()));
+    assert(functionGenerator.getBasicBlock(obj.thenBBID) != nullptr);
+    builder.CreateBr(functionGenerator.getBasicBlock(obj.thenBBID));
 }
 
 void TerminatorInsnCodeGen::visit(ReturnInsn &obj, llvm::IRBuilder<> &builder) {

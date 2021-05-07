@@ -19,8 +19,8 @@
 #ifndef __ARRAYINSNS__H__
 #define __ARRAYINSNS__H__
 
-#include "interfaces/NonTerminatorInsn.h"
 #include "bir/Types.h"
+#include "interfaces/NonTerminatorInsn.h"
 
 namespace nballerina {
 
@@ -29,10 +29,8 @@ class ArrayInsn : public NonTerminatorInsn, public Translatable<ArrayInsn> {
     Operand sizeOp;
 
   public:
-    ArrayInsn() = delete;
-    ArrayInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &sizeOp)
-        : NonTerminatorInsn(lhs, currentBB), sizeOp(sizeOp) {}
-    ~ArrayInsn() = default;
+    ArrayInsn(Operand lhs, BasicBlock &currentBB, Operand sizeOp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), sizeOp(std::move(sizeOp)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 
@@ -42,10 +40,8 @@ class ArrayLoadInsn : public NonTerminatorInsn, public Translatable<ArrayLoadIns
     Operand rhsOp;
 
   public:
-    ArrayLoadInsn() = delete;
-    ArrayLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
-        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
-    ~ArrayLoadInsn() = default;
+    ArrayLoadInsn(Operand lhs, BasicBlock &currentBB, Operand KOp, Operand ROp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), keyOp(std::move(KOp)), rhsOp(std::move(ROp)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 
@@ -55,10 +51,8 @@ class ArrayStoreInsn : public NonTerminatorInsn, public Translatable<ArrayStoreI
     Operand rhsOp;
 
   public:
-    ArrayStoreInsn() = delete;
-    ArrayStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
-        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
-    ~ArrayStoreInsn() = default;
+    ArrayStoreInsn(Operand lhs, BasicBlock &currentBB, Operand KOp, Operand ROp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), keyOp(std::move(KOp)), rhsOp(std::move(ROp)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 
