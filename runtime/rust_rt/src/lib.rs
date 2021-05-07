@@ -114,10 +114,10 @@ pub extern "C" fn print_boolean(num8: i8) {
 }
 
 #[no_mangle]
-pub extern "C" fn array_init_int(size: i64) -> *mut DynamicBalArray {
-    let array: Box<DynamicBalArray> = Box::new(DynamicBalArray::new(size));
+pub extern "C" fn array_init_int(size: i64) -> *mut DynamicBalArray<i64> {
+    let array: Box<DynamicBalArray<i64>> = Box::new(DynamicBalArray::<i64>::new(size));
     let array_pointer = Box::into_raw(array);
-    return array_pointer as *mut DynamicBalArray;
+    return array_pointer as *mut DynamicBalArray<i64>;
 }
 
 #[no_mangle]
@@ -157,14 +157,14 @@ pub extern "C" fn array_init_anydata(size: i32) -> *mut Vec<*mut c_void> {
 }
 
 #[no_mangle]
-pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray, index: i64, ref_ptr: i64) {
+pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64, ref_ptr: i64) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     arr.set_element(index, ref_ptr);
     mem::forget(arr);
 }
 
 #[no_mangle]
-pub extern "C" fn array_load_int(arr_ptr: *mut DynamicBalArray, index: i64) -> i64 {
+pub extern "C" fn array_load_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64) -> i64 {
     let arr = unsafe { Box::from_raw(arr_ptr) };
     let value = arr.get_element(index);
     mem::forget(arr);
