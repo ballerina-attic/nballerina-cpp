@@ -46,6 +46,8 @@ std::string Type::getNameOfType(TypeTag typeTag) {
         return "int";
     case TYPE_TAG_FLOAT:
         return "float";
+    case TYPE_TAG_BYTE:
+        return "byte";
     case TYPE_TAG_STRING:
         return "string";
     case TYPE_TAG_BOOLEAN:
