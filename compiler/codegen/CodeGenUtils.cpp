@@ -208,7 +208,7 @@ llvm::FunctionCallee CodeGenUtils::replaceProtoFunc(std::string funcName, llvm::
     llvm::SmallVector<llvm::ReturnInst*, 8> returns;
 
     llvm::CloneFunctionInto(destFunc, srcFunc , valuemap, false, returns);
-    return destModule.getFunction(funcName, funcType);
+    return destModule.getFunction(funcName);
 }
 
 } // namespace nballerina
