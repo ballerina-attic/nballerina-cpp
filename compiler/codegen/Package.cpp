@@ -208,8 +208,7 @@ void Package::storeValueInBalAsciiString(llvm::IRBuilder<> &builder, llvm::Value
 
     // struct third element - char array data
     auto *utf = builder.CreateStructGEP(balString, 2, "data");
-    auto *loadUtf = builder.CreateLoad(utf, "_temp");
-    builder.CreateStore(builder.CreateLoad(loadUtf, "__temp"), value);
+    builder.CreateStore(value, utf);
 }
 
 } // namespace nballerina

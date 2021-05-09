@@ -77,10 +77,10 @@ void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builde
         globalStringValue->setAlignment(llvm::Align(1));
         auto *valueRef = builder.CreateInBoundsGEP(
             globalStringValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}), "simple");
-        auto *type = CodeGenUtils::getLLVMTypeOfType(typeTag, module);
+        auto *type = llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(typeTag, module), 0);
         auto *allocaType = builder.CreateAlloca(type);
-        getPackageMutableRef().storeValueInBalAsciiString(builder, valueRef, stringValue, allocaType);
-        constRef = builder.CreateLoad(allocaType, "bal_string_temp");
+        getPackageMutableRef().storeValueInBalAsciiString(builder, valueRef, stringValue, builder.CreateLoad(allocaType));
+        constRef = builder.CreateLoad(builder.CreateLoad(allocaType), "bal_string");
         break;
     }
     case TYPE_TAG_NIL: {
