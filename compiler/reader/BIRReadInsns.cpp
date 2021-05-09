@@ -33,6 +33,7 @@
 #include "bir/TypeDescInsn.h"
 #include "bir/TypeTestInsn.h"
 #include "bir/UnaryOpInsn.h"
+#include <iostream>
 
 namespace nballerina {
 
@@ -146,8 +147,8 @@ void BIRReadInsn::readInsn(BasicBlock &basicBlock, Parser &reader, ConstantPoolS
         break;
     }
     default:
+        std::cerr << "Unsupported Instruction type: " << insnKind << std::endl;
         abort();
-        break;
     }
 }
 
@@ -238,7 +239,7 @@ void BIRReadInsn::ReadConstLoadInsn(BasicBlock &currentBB, Parser &reader, Const
         return;
     }
     default: {
-        // add an error msg
+        std::cerr << "Unsupported type tag" << std::endl;
         abort();
     }
     }
