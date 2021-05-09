@@ -16,7 +16,7 @@
  * under the License.
  */
 
-#include "CodeGenUtils.h"
+#include "codegen/CodeGenUtils.h"
 
 namespace nballerina {
 
@@ -58,11 +58,14 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
             return type;
         }
         return llvm::StructType::create(
-            context, llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
+            context,
+            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
             "struct.smtPtr");
     }
-    default:
+    case TYPE_TAG_TYPEDESC:
         return llvm::Type::getInt64Ty(context);
+    default:
+        llvm_unreachable("Invalid type");
     }
 }
 
@@ -165,72 +168,6 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
         llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
                                 llvm::ArrayRef<llvm::Type *>({lhsRef->getType(), rhsRef->getType()}), false);
     return module.getOrInsertFunction("is_same_type", funcType);
-}
-
-// Splitting Basicblock after 'is_same_type()' function call and
-// based on is_same_type() function result, crating branch condition using
-// splitBB Basicblock (ifBB) and abortBB(elseBB).
-// In IfBB we are doing casing and from ElseBB Aborting.
-void CodeGenUtils::injectAbortCall(llvm::Module &module, llvm::IRBuilder<> &builder, const std::string &functionName) {
-    const char *isSameTypeChar = "is_same_type";
-    auto *llvmFunction = module.getFunction(functionName);
-    for (auto &bBlock : *llvmFunction) {
-        for (llvm::BasicBlock::iterator I = bBlock.begin(); I != bBlock.end(); ++I) {
-            auto *callInst = llvm::dyn_cast<llvm::CallInst>(&*I);
-            if (callInst == nullptr) {
-                continue;
-            }
-            size_t totalOperands = callInst->getNumOperands();
-            const char *insnName = callInst->getOperand(totalOperands - 1)->getName().data();
-            if (strcmp(insnName, isSameTypeChar) != 0) {
-                continue;
-            }
-            std::advance(I, 1);
-            llvm::Instruction *compInsn = &*I;
-            // Splitting BasicBlock.
-            llvm::BasicBlock *splitBB = bBlock.splitBasicBlock(++I, bBlock.getName() + ".split");
-            llvm::BasicBlock::iterator ILoc = bBlock.end();
-            llvm::Instruction &lastInsn = *--ILoc;
-            // branch intruction to the split BB is creating in BB2 (last BB)
-            // basicblock, removing from BB2 and insert this branch instruction
-            // into BB0(split original BB).
-            lastInsn.eraseFromParent();
-            // Creating abortBB (elseBB).
-            llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "abortBB");
-
-            // Creating Branch condition using if and else BB's.
-            llvm::Instruction *compInsnRef = builder.CreateCondBr(compInsn, splitBB, elseBB);
-
-            // branch to abortBB instruction is generating in last(e.g bb2 BB)
-            // basicblock. here, moving from bb2 to bb0.split basicblock.
-            compInsnRef->removeFromParent();
-            bBlock.getInstList().push_back(compInsnRef);
-
-            // get the last instruction from splitBB.
-            llvm::BasicBlock::iterator SI = splitBB->end();
-            assert(SI != splitBB->begin());
-            auto &newBBLastInsn = *--SI;
-            llvm::BasicBlock *elseBBSucc = newBBLastInsn.getSuccessor(0);
-
-            // creating branch to else basicblock.
-            llvm::Instruction *brInsn = builder.CreateBr(elseBBSucc);
-            brInsn->removeFromParent();
-
-            // generate LLVMFunction call to Abort from elseLLVMBB(abortBB).
-            auto abortFunc = CodeGenUtils::getAbortFunc(module);
-            auto *abortFuncCallInsn = builder.CreateCall(abortFunc);
-            abortFuncCallInsn->removeFromParent();
-
-            // Inserting Abort Functioncall instruction into elseLLVMBB(abortBB).
-            elseBB->getInstList().push_back(abortFuncCallInsn);
-            elseBB->getInstList().push_back(brInsn);
-
-            // Inserting elseLLVMBB (abort BB) after splitBB (bb0.split)
-            // basicblock.
-            splitBB->getParent()->getBasicBlockList().insertAfter(splitBB->getIterator(), elseBB);
-            break;
-        }
-    }
 }
 
 } // namespace nballerina

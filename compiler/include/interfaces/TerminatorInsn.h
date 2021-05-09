@@ -16,21 +16,27 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __TERMINATORINSN__H__
+#define __TERMINATORINSN__H__
 
-#include "bir/Location.h"
+#include "interfaces/AbstractInstruction.h"
+#include "interfaces/Translatable.h"
+#include <string>
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+class TerminatorInsn : public AbstractInstruction, virtual public TranslatableInterface {
+  protected:
+    std::string thenBBID;
+    InstructionKind kind;
+    TerminatorInsn(class Operand lhs, class BasicBlock &currentBB, std::string thenBBID)
+        : AbstractInstruction(std::move(lhs), currentBB), thenBBID(std::move(thenBBID)),
+          kind(INSTRUCTION_NOT_AN_INSTRUCTION) {}
 
   public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    virtual ~TerminatorInsn() = default;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__TERMINATORINSN__H__

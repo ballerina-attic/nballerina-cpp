@@ -16,21 +16,19 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __OPERAND__H__
+#define __OPERAND__H__
 
-#include "bir/Location.h"
+#include "interfaces/AbstractVariable.h"
+#include <string>
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
-
+class Operand : public AbstractVariable {
   public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    Operand(std::string name, VarKind kind) : AbstractVariable(std::move(name), kind) {}
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__OPERAND__H__

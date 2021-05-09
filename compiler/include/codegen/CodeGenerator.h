@@ -16,21 +16,23 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __CODEGENERATOR__H__
+#define __CODEGENERATOR__H__
 
-#include "bir/Location.h"
+#include "interfaces/Translatable.h"
+#include <string>
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+class CodeGenerator {
+  private:
+    CodeGenerator() = default;
 
   public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    ~CodeGenerator() = default;
+    static int generateLLVMIR(class Package &translatableObj, const std::string &outFileName);
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__CODEGENERATOR__H__

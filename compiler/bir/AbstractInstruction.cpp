@@ -16,21 +16,15 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
-#include "bir/Location.h"
+#include "interfaces/AbstractInstruction.h"
+#include "bir/BasicBlock.h"
+#include "bir/Function.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+AbstractInstruction::AbstractInstruction(Operand lOp, BasicBlock &parentBB)
+    : parentBB(parentBB), lhsOp(std::move(lOp)) {}
 
-  public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
-};
+const Function &AbstractInstruction::getFunctionRef() const { return parentBB.getParentFunctionRef(); }
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

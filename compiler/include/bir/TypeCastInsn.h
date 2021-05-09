@@ -16,21 +16,25 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __TYPECASTINSN__H__
+#define __TYPECASTINSN__H__
 
-#include "bir/Location.h"
+#include "interfaces/NonTerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+class Operand;
+
+class TypeCastInsn : public NonTerminatorInsn, public Translatable<TypeCastInsn> {
+  private:
+    Operand rhsOp;
 
   public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    TypeCastInsn(Operand lhs, BasicBlock &currentBB, Operand rhsOp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhsOp)) {}
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__TYPECASTINSN__H__

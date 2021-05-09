@@ -16,21 +16,28 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __STRUCTUREINSN__H__
+#define __STRUCTUREINSN__H__
 
-#include "bir/Location.h"
+#include "interfaces/NonTerminatorInsn.h"
+#include <vector>
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+class Operand;
+class MapConstruct;
+
+class StructureInsn : public NonTerminatorInsn, public Translatable<StructureInsn> {
+  private:
+    std::vector<MapConstruct> initValues;
 
   public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    StructureInsn(Operand lhs, BasicBlock &currentBB) : NonTerminatorInsn(std::move(lhs), currentBB) {}
+    StructureInsn(Operand lhs, BasicBlock &currentBB, std::vector<MapConstruct> initValues)
+        : NonTerminatorInsn(std::move(lhs), currentBB), initValues(std::move(initValues)) {}
+    friend class NonTerminatorInsnCodeGen;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__STRUCTUREINSN__H__
