@@ -22,6 +22,9 @@
 #include "bir/Types.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 #include <string>
 
 namespace nballerina {
@@ -47,6 +50,8 @@ class CodeGenUtils {
     static llvm::FunctionCallee getArrayLoadFunc(llvm::Module &module, TypeTag memberTypeTag);
     static llvm::FunctionCallee getBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
     static llvm::FunctionCallee getIsSameTypeFunc(llvm::Module &module, llvm::Value *lhs, llvm::Value *rhs);
+    static void replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule);
+    static std::unique_ptr<llvm::Module> parseLLFile(llvm::LLVMContext &mContext);
 };
 
 } // namespace nballerina

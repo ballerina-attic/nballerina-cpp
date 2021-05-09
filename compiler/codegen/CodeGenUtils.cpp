@@ -170,4 +170,45 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
     return module.getOrInsertFunction("is_same_type", funcType);
 }
 
+std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mContext){
+    llvm::SMDiagnostic Err;
+    //reading fun.ll for testing
+    std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile("../fun.ll", Err, mContext);
+
+	if (!srcModule)
+	{
+		Err.print("Open Module file error", llvm::errs());
+		return NULL;
+	}
+	llvm::Module* M = srcModule.get();
+	if (!M)
+	{
+		llvm::errs() << ": error loading file \n";
+		return NULL;
+	}
+   
+    return srcModule;
+}
+
+void CodeGenUtils::replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule ){
+    
+
+    llvm::Function *srcFunc = srcModule->getFunction(funcName);
+    
+    llvm::FunctionType *FT = srcFunc->getFunctionType();
+    llvm::Function *destFunc = llvm::Function::Create(FT, srcFunc->getLinkage(), srcFunc->getName(), &destModule);
+
+    llvm::ValueToValueMapTy valuemap;
+    auto destArgs = destFunc->arg_begin();
+    auto srcArgs = srcFunc->arg_begin();
+    for (auto FArgsEnd = srcFunc->arg_end(); srcArgs != FArgsEnd; ++destArgs, ++srcArgs) {
+        valuemap[&*srcArgs] = &*destArgs;
+    }
+
+    llvm::SmallVector<llvm::ReturnInst*, 8> returns;
+
+    llvm::CloneFunctionInto(destFunc, srcFunc , valuemap, false, returns);
+    return;
+}
+
 } // namespace nballerina
