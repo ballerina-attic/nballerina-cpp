@@ -50,7 +50,7 @@ class CodeGenUtils {
     static llvm::FunctionCallee getArrayLoadFunc(llvm::Module &module, TypeTag memberTypeTag);
     static llvm::FunctionCallee getBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
     static llvm::FunctionCallee getIsSameTypeFunc(llvm::Module &module, llvm::Value *lhs, llvm::Value *rhs);
-    static void replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule);
+    static llvm::FunctionCallee replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule);
     static std::unique_ptr<llvm::Module> parseLLFile(llvm::LLVMContext &mContext);
 };
 

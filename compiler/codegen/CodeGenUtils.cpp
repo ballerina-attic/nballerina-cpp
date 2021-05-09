@@ -190,13 +190,13 @@ std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mCont
     return srcModule;
 }
 
-void CodeGenUtils::replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule ){
+llvm::FunctionCallee CodeGenUtils::replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule ){
     
 
     llvm::Function *srcFunc = srcModule->getFunction(funcName);
     
-    llvm::FunctionType *FT = srcFunc->getFunctionType();
-    llvm::Function *destFunc = llvm::Function::Create(FT, srcFunc->getLinkage(), srcFunc->getName(), &destModule);
+    llvm::FunctionType *funcType = srcFunc->getFunctionType();
+    llvm::Function *destFunc = llvm::Function::Create(funcType, srcFunc->getLinkage(), srcFunc->getName(), &destModule);
 
     llvm::ValueToValueMapTy valuemap;
     auto destArgs = destFunc->arg_begin();
@@ -208,7 +208,7 @@ void CodeGenUtils::replaceProtoFunc(std::string funcName, llvm::Module &destModu
     llvm::SmallVector<llvm::ReturnInst*, 8> returns;
 
     llvm::CloneFunctionInto(destFunc, srcFunc , valuemap, false, returns);
-    return;
+    return destModule.getFunction(funcName, funcType);
 }
 
 } // namespace nballerina
