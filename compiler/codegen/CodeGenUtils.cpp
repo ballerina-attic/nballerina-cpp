@@ -17,6 +17,7 @@
  */
 
 #include "codegen/CodeGenUtils.h"
+#include "codegen/config.h"
 
 namespace nballerina {
 
@@ -173,7 +174,7 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
 std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mContext){
     llvm::SMDiagnostic Err;
     //reading fun.ll for testing
-    std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile("../fun.ll", Err, mContext);
+    std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile(LLFilePath, Err, mContext);
 
 	if (!srcModule)
 	{

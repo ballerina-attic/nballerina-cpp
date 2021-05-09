@@ -13,3 +13,10 @@ add_subdirectory(compiler)
 
 # Add LIT tests
 add_subdirectory(test)
+
+# tell CMake to generate config.h
+configure_file (
+  "${PROJECT_SOURCE_DIR}/common/config.h.in"
+  "${PROJECT_SOURCE_DIR}/compiler/include/codegen/config.h"
+ )
+ 

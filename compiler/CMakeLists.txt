@@ -38,7 +38,7 @@ set_target_properties( nballerinacc
 add_dependencies(nballerinacc libballerina_rt)
 
 # Find and like LLVM static libs
-llvm_map_components_to_libnames(llvm_libs codegen)
+llvm_map_components_to_libnames(llvm_libs codegen irreader)
 target_link_libraries(nballerinacc PRIVATE ${llvm_libs})
 
 # Use C++17 standard
