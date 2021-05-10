@@ -175,7 +175,6 @@ std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mCont
     llvm::SMDiagnostic Err;
     //reading fun.ll for testing
     std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile(LLFilePath, Err, mContext);
-
 	if (!srcModule)
 	{
 		Err.print("Open Module file error", llvm::errs());
@@ -187,29 +186,30 @@ std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mCont
 		llvm::errs() << ": error loading file \n";
 		return NULL;
 	}
-   
     return srcModule;
 }
 
 llvm::FunctionCallee CodeGenUtils::replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule ){
-    
-
+    auto destFunc = destModule.getFunction(funcName);
+    if (destFunc != NULL){
+        return destFunc;
+    }
     llvm::Function *srcFunc = srcModule->getFunction(funcName);
-    
     llvm::FunctionType *funcType = srcFunc->getFunctionType();
-    llvm::Function *destFunc = llvm::Function::Create(funcType, srcFunc->getLinkage(), srcFunc->getName(), &destModule);
-
+    destFunc = llvm::Function::Create(funcType, srcFunc->getLinkage(), funcName, &destModule);
+    for (auto curFunc = srcModule->getFunctionList().begin(), 
+            endFunc = srcModule->getFunctionList().end(); 
+            curFunc != endFunc; ++curFunc) {
+            destModule.getOrInsertFunction(curFunc->getName(), curFunc->getFunctionType());
+    }
     llvm::ValueToValueMapTy valuemap;
     auto destArgs = destFunc->arg_begin();
     auto srcArgs = srcFunc->arg_begin();
     for (auto FArgsEnd = srcFunc->arg_end(); srcArgs != FArgsEnd; ++destArgs, ++srcArgs) {
         valuemap[&*srcArgs] = &*destArgs;
     }
-
     llvm::SmallVector<llvm::ReturnInst*, 8> returns;
-
     llvm::CloneFunctionInto(destFunc, srcFunc , valuemap, false, returns);
     return destModule.getFunction(funcName);
 }
-
 } // namespace nballerina
