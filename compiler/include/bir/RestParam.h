@@ -26,7 +26,6 @@ namespace nballerina {
 class RestParam {
   public:
     RestParam() = default;
-    ~RestParam() = default;
 };
 
 } // namespace nballerina

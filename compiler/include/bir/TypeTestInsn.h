@@ -26,9 +26,7 @@ namespace nballerina {
 class TypeTestInsn : public NonTerminatorInsn, public Translatable<TypeTestInsn> {
 
   public:
-    TypeTestInsn() = delete;
-    TypeTestInsn(const class Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
-    ~TypeTestInsn() = default;
+    TypeTestInsn(class Operand lhs, BasicBlock &currentBB) : NonTerminatorInsn(std::move(lhs), currentBB) {}
     friend class NonTerminatorInsnCodeGen;
 };
 

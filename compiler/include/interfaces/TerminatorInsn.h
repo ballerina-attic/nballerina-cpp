@@ -26,20 +26,15 @@
 namespace nballerina {
 
 class TerminatorInsn : public AbstractInstruction, virtual public TranslatableInterface {
-  private:
-    std::string thenBBID;
-
   protected:
+    std::string thenBBID;
     InstructionKind kind;
+    TerminatorInsn(class Operand lhs, class BasicBlock &currentBB, std::string thenBBID)
+        : AbstractInstruction(std::move(lhs), currentBB), thenBBID(std::move(thenBBID)),
+          kind(INSTRUCTION_NOT_AN_INSTRUCTION) {}
 
   public:
-    TerminatorInsn() = delete;
-    TerminatorInsn(const class Operand &lhs, class BasicBlock &currentBB, std::string thenBBID)
-        : AbstractInstruction(lhs, currentBB), thenBBID(std::move(thenBBID)), kind(INSTRUCTION_NOT_AN_INSTRUCTION) {}
     virtual ~TerminatorInsn() = default;
-
-    const std::string &getNextBBID() const { return thenBBID; }
-    InstructionKind getInstKind() const { return kind; }
 };
 
 } // namespace nballerina

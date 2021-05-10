@@ -25,8 +25,7 @@ namespace nballerina {
 
 class TypeDescInsn : public NonTerminatorInsn, public Translatable<TypeDescInsn> {
   public:
-    TypeDescInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB){};
-    ~TypeDescInsn() = default;
+    TypeDescInsn(Operand lhs, BasicBlock &currentBB) : NonTerminatorInsn(std::move(lhs), currentBB){};
     friend class NonTerminatorInsnCodeGen;
 };
 

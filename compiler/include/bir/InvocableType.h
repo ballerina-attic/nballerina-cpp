@@ -34,10 +34,8 @@ class InvocableType {
     std::optional<Type> restType;
 
   public:
-    InvocableType() = delete;
-    InvocableType(std::vector<Type> paramTy, const Type &restTy, const Type &retTy);
-    InvocableType(std::vector<Type> paramTy, const Type &retTy);
-    ~InvocableType() = default;
+    InvocableType(std::vector<Type> paramTy, Type restTy, Type retTy);
+    InvocableType(std::vector<Type> paramTy, Type retTy);
 };
 
 } // namespace nballerina

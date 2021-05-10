@@ -33,10 +33,7 @@ class MapConstruct {
         Operand expr;
 
       public:
-        SpreadField() = delete;
-        SpreadField(const Operand &expr) : expr(expr) {}
-        ~SpreadField() = default;
-
+        SpreadField(Operand expr) : expr(std::move(expr)) {}
         const Operand &getExpr() const { return expr; }
     };
     class KeyValue {
@@ -45,10 +42,7 @@ class MapConstruct {
         Operand valueOp;
 
       public:
-        KeyValue() = delete;
-        KeyValue(const Operand &key, const Operand &value) : keyOp(key), valueOp(value) {}
-        ~KeyValue() = default;
-
+        KeyValue(Operand key, Operand value) : keyOp(std::move(key)), valueOp(std::move(value)) {}
         const Operand &getKey() const { return keyOp; }
         const Operand &getValue() const { return valueOp; }
     };
@@ -58,10 +52,8 @@ class MapConstruct {
     std::variant<KeyValue, SpreadField> initValueStruct;
 
   public:
-    MapConstruct() = delete;
-    MapConstruct(KeyValue initVal) : kind(Key_Value_Kind), initValueStruct(initVal) {}
-    MapConstruct(SpreadField initVal) : kind(Spread_Field_Kind), initValueStruct(initVal) {}
-    virtual ~MapConstruct() = default;
+    MapConstruct(KeyValue initVal) : kind(Key_Value_Kind), initValueStruct(std::move(initVal)) {}
+    MapConstruct(SpreadField initVal) : kind(Spread_Field_Kind), initValueStruct(std::move(initVal)) {}
     MapConstrctBodyKind getKind() const { return kind; }
     const std::variant<KeyValue, SpreadField> &getInitValStruct() const { return initValueStruct; }
 };
@@ -72,10 +64,8 @@ class MapStoreInsn : public NonTerminatorInsn, public Translatable<MapStoreInsn>
     Operand rhsOp;
 
   public:
-    MapStoreInsn() = delete;
-    MapStoreInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
-        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
-    ~MapStoreInsn() = default;
+    MapStoreInsn(Operand lhs, BasicBlock &currentBB, Operand KOp, Operand ROp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), keyOp(std::move(KOp)), rhsOp(std::move(ROp)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 
@@ -85,10 +75,8 @@ class MapLoadInsn : public NonTerminatorInsn, public Translatable<MapLoadInsn> {
     Operand rhsOp;
 
   public:
-    MapLoadInsn() = delete;
-    MapLoadInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &KOp, const Operand &ROp)
-        : NonTerminatorInsn(lhs, currentBB), keyOp(KOp), rhsOp(ROp) {}
-    ~MapLoadInsn() = default;
+    MapLoadInsn(Operand lhs, BasicBlock &currentBB, Operand KOp, Operand ROp)
+        : NonTerminatorInsn(std::move(lhs), currentBB), keyOp(std::move(KOp)), rhsOp(std::move(ROp)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 } // namespace nballerina

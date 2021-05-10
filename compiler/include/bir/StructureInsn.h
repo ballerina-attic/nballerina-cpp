@@ -32,11 +32,9 @@ class StructureInsn : public NonTerminatorInsn, public Translatable<StructureIns
     std::vector<MapConstruct> initValues;
 
   public:
-    StructureInsn() = delete;
-    StructureInsn(const Operand &lhs, BasicBlock &currentBB) : NonTerminatorInsn(lhs, currentBB) {}
-    StructureInsn(const Operand &lhs, BasicBlock &currentBB, std::vector<MapConstruct> initValues)
-        : NonTerminatorInsn(lhs, currentBB), initValues(std::move(initValues)) {}
-    ~StructureInsn() = default;
+    StructureInsn(Operand lhs, BasicBlock &currentBB) : NonTerminatorInsn(std::move(lhs), currentBB) {}
+    StructureInsn(Operand lhs, BasicBlock &currentBB, std::vector<MapConstruct> initValues)
+        : NonTerminatorInsn(std::move(lhs), currentBB), initValues(std::move(initValues)) {}
     friend class NonTerminatorInsnCodeGen;
 };
 

@@ -21,9 +21,8 @@
 
 #include "bir/Function.h"
 #include "bir/Variable.h"
-#include <map>
-#include <memory>
 #include <string>
+#include <vector>
 
 namespace nballerina {
 
@@ -34,29 +33,22 @@ class Package {
     std::string name;
     std::string version;
     std::string sourceFileName;
-    std::map<std::string, Variable> globalVars;
-    std::map<std::string, std::shared_ptr<Function>> functionLookUp;
+    std::vector<Variable> globalVars;
+    std::vector<Function> functions;
 
   public:
     Package() = default;
-    virtual ~Package() = default;
     Package(const Package &) = delete;
-    Package(Package &&obj) noexcept = delete;
-    Package &operator=(const Package &obj) = delete;
-    Package &operator=(Package &&obj) noexcept = delete;
+    Package(Package &&) noexcept = delete;
+    Package &operator=(const Package &) = delete;
+    Package &operator=(Package &&) noexcept = delete;
 
     std::string getModuleName() const;
     const Function &getFunction(const std::string &name) const;
     const Variable &getGlobalVariable(const std::string &name) const;
 
-    void setOrgName(std::string orgName);
-    void setPackageName(std::string pkgName);
-    void setVersion(std::string verName);
-    void setSrcFileName(std::string srcFileName);
-    void insertGlobalVar(const Variable &var);
-    void insertFunction(const std::shared_ptr<Function> &function);
-
     friend class PackageCodeGen;
+    friend class BIRReader;
 };
 
 } // namespace nballerina
