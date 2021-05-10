@@ -304,7 +304,6 @@ void ShapeCpInfo::read(Parser &reader) {
                 [[maybe_unused]] int8_t tmp = reader.readU1();
             }
         }
-
         break;
     }
     case TYPE_TAG_NIL:
