@@ -39,8 +39,8 @@ pub mod dynamic_array {
         values: [T],
     }
 
-    impl<T: Copy> DynamicBalArray<T> {
-        pub fn new(size: i64) -> DynamicBalArray<T> {
+    impl<T:Copy> DynamicBalArray<T> {
+        pub fn new(size: i64, header: i64) -> DynamicBalArray<T> {
             let size_t = if size > 0 { size } else { 8 };
             let layout = DynamicBalArray::<T>::get_layout(size_t);
             let raw_ptr;
