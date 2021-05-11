@@ -23,7 +23,6 @@
 
 typedef struct DynamicArray {
     uint64_t header;
-    void *values;
 } DynamicArray;
 
 typedef struct DynamicBalArray {
@@ -34,5 +33,10 @@ typedef struct DynamicBalArray {
     DynamicArray *array;
 } DynamicBalArray;
 
+void *getItemAt(DynamicBalArray *array_ptr, int64_t index);
+
 int64_t array_load_int(DynamicBalArray *arry_ptr, int64_t index);
+
+// Debugging only
+void array_print(DynamicBalArray *ptr);
 #endif //!__BALARRAY__H__
