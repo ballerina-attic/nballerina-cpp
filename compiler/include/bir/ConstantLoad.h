@@ -32,7 +32,6 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
     std::variant<int64_t, double, bool, int8_t, std::string> value;
 
   public:
-    ConstantLoadInsn() = delete;
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int8_t byteVal)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_BYTE), value(byteVal) {}
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int64_t intVal)
@@ -45,7 +44,6 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_NIL) {}
-    ~ConstantLoadInsn() = default;
     friend class NonTerminatorInsnCodeGen;
 };
 
