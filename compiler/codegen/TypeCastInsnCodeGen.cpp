@@ -63,6 +63,10 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
         auto *lhsLoad = builder.CreateLoad(lhsOpRef);
         auto *castResult = builder.CreateFPToSI(rhsLoad, lhsLoad->getType(), "");
         builder.CreateStore(castResult, lhsOpRef);
+    } else if (lhsTypeTag == TYPE_TAG_ARRAY && rhsTypeTag == TYPE_TAG_ARRAY) {
+        auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, builder);
+        builder.CreateStore(rhsVarOpRef, lhsOpRef);
+        return;
     } else {
         builder.CreateBitCast(rhsOpRef, lhsTypeRef, "data_cast");
     }

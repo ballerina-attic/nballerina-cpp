@@ -34,22 +34,40 @@ void *getItemAt(DynamicBalArray *array_ptr, int64_t index) {
     }
     uint64_t header = array_ptr->header;
     uint64_t header_type = header & 3;
+    uint64_t* base_ptr = &(array_ptr->array->header) + 1;
     if (header_type == 0) {
-        uint8_t *ptr = (uint8_t *)&(array_ptr->array->header) + (index + 1);
-        return ptr;
+        uint8_t* ptr = (uint8_t*) base_ptr;
+        return ptr + index;
     } else if (header_type == 1) {
-        uint16_t *ptr = (uint16_t *)&(array_ptr->array->header) + (index + 1);
-        return ptr;
+        uint16_t* ptr = (uint16_t*) base_ptr;
+        return ptr + index;
     } else if (header_type == 2) {
-        uint32_t *ptr = (uint32_t *)&(array_ptr->array->header) + (index + 1);
-        return ptr;
+        uint32_t* ptr = (uint32_t*) base_ptr;
+        return ptr + index;
     } else {
-        uint64_t *ptr = (uint64_t *)&(array_ptr->array->header) + (index + 1);
-        return ptr;
+        uint64_t* ptr = (uint64_t*) base_ptr;
+        return ptr + index;
+    }
+}
+
+int64_t castPointerToInteger(DynamicBalArray *array_ptr, void *ptr) {
+    uint64_t header = array_ptr->header;
+    uint64_t header_type = header & 3;
+    if (header_type == 0) {
+        uint8_t value = *(uint8_t *)ptr;
+        return value;
+    } else if (header_type == 1) {
+        uint16_t value = *(uint16_t *)ptr;
+        return value;
+    } else if (header_type == 2) {
+        uint32_t value = *(uint32_t *)ptr;
+        return value;
+    } else {
+        uint64_t value = *(uint64_t *)ptr;
+        return value;
     }
 }
 
 int64_t array_load_int(DynamicBalArray *array_ptr, int64_t index) {
-    int64_t *val_ptr = getItemAt(array_ptr, index);
-    return *val_ptr;
+    return castPointerToInteger(array_ptr, getItemAt(array_ptr, index));
 }
