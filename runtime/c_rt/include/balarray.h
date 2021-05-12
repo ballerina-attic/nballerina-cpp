@@ -18,6 +18,7 @@
 #ifndef __BALARRAY__H__
 #define __BALARRAY__H__
 
+#include "include/smtptr.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -37,9 +38,13 @@ void *getItemAt(DynamicBalArray *array_ptr, int64_t index);
 
 int64_t castPointerToValue(DynamicBalArray *array_ptr, void *ptr);
 
+SmtPtr* castPointerToSmtPtr(DynamicBalArray *array_ptr, void *ptr);
+
 int64_t array_load_int(DynamicBalArray *array_ptr, int64_t index);
 
 int8_t array_load_byte(DynamicBalArray *array_ptr, int64_t index);
+
+SmtPtr* array_load_any(DynamicBalArray *array_ptr, int64_t index); 
 
 // Debugging only
 void array_print(DynamicBalArray *ptr);
