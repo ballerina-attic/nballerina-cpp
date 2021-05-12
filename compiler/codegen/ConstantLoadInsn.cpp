@@ -70,17 +70,12 @@ void ConstantLoadInsn::translate(llvm::Module &module, llvm::IRBuilder<> &builde
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
         std::string stringValue = std::get<std::string>(value);
-        llvm::Constant *llvmConst = llvm::ConstantDataArray::getString(module.getContext(), stringValue);
-        auto *globalStringValue = new llvm::GlobalVariable(module, llvmConst->getType(), false,
-                                                           llvm::GlobalValue::PrivateLinkage, llvmConst, ".str");
-        globalStringValue->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-        globalStringValue->setAlignment(llvm::Align(1));
-        auto *valueRef = builder.CreateInBoundsGEP(
-            globalStringValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}), "simple");
-        auto *type = llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(typeTag, module), 0);
-        auto *allocaType = builder.CreateAlloca(type);
-        getPackageMutableRef().storeValueInBalAsciiString(builder, valueRef, stringValue, builder.CreateLoad(allocaType));
-        constRef = builder.CreateLoad(builder.CreateLoad(allocaType), "bal_string");
+	auto *header = llvm::ConstantInt::get(builder.getInt64Ty(), 0b000110, 0);
+	auto *size = llvm::ConstantInt::get(builder.getInt64Ty(), stringValue.length(), 0);
+        auto *string = llvm::ConstantDataArray::getString(module.getContext(), stringValue, false);
+	llvm::ArrayRef<llvm::Constant *> elements = {header, size, string};
+	auto *structType = static_cast<llvm::StructType *> (CodeGenUtils::getLLVMTypeOfType(typeTag, module));
+	constRef = llvm::ConstantStruct::get(structType, elements);
         break;
     }
     case TYPE_TAG_NIL: {
