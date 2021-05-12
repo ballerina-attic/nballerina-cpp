@@ -47,7 +47,7 @@ TEST(balmapTest1, crtTest) {
 TEST(balmapTest2, crtTest) {
 
     auto *myMap = bal_map_create();
-    const size_t iters = 10000;
+    const size_t iters = 100000;
     BalString bstrings[iters];
 
     for (auto i = 0; i < iters; i++) {

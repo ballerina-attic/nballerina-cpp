@@ -21,62 +21,112 @@
 #include <stdio.h>
 
 static const size_t INITIAL_SIZE = 8;
+static const float LOAD_FACTOR = 0.6f;
+static const size_t HASH_TABLE_MIN_SIZE = 8;
 
-static void bal_map_init(BalMapPtr map, size_t min_capacity) {
+static void bal_map_init_hashtable(BalMapPtr map, size_t min_capacity) {
     map->used = 0;
-    size_t n = INITIAL_SIZE;
-    while (n <= min_capacity) {
+    size_t n = HASH_TABLE_MIN_SIZE;
+    while ((size_t)(n * LOAD_FACTOR) < min_capacity) {
         n <<= 1;
         if (n == 0) {
             fprintf(stderr, "Capacity overflow!\n");
             abort();
         }
     }
-    map->capacity = n;
+    map->capacity = (size_t)(n * LOAD_FACTOR);
     map->n_entries = n;
-    map->entries = zalloc(n, sizeof(BalHashEntry));
+    map->entries = zalloc(map->n_entries, sizeof(BalHashEntry));
 }
 
 BalMapPtr bal_map_create(void) {
     BalMapPtr map = (BalMapPtr)alloc_value(sizeof(BalMap));
-    bal_map_init(map, INITIAL_SIZE);
+    bal_map_init_hashtable(map, INITIAL_SIZE);
     map->header.tag = HEADER_TAG_MAPPING;
     return map;
 }
 
-static void bal_map_grow(BalMapPtr map) {
-    size_t newCapacity = map->capacity << 1;
-    if (newCapacity == 0) {
-        fprintf(stderr, "Capacity overflow!\n");
+static void bal_map_grow_hashtable(BalMapPtr map, size_t new_size) {
+    BalMap nMap;
+    if (new_size <= map->used) {
+        fprintf(stderr, "Map shrinking is not supported!\n");
         abort();
     }
-    map->entries = re_alloc(map->entries, sizeof(BalHashEntry), newCapacity);
-    map->capacity = newCapacity;
-    map->n_entries = newCapacity;
+    bal_map_init_hashtable(&nMap, new_size);
+
+    BalHashEntry *entries = map->entries;
+    size_t n = map->n_entries;
+    for (size_t i = 0; i < n; i++) {
+        if (entries[i].key != 0) {
+            bal_map_insert(&nMap, entries[i].key, entries[i].value);
+        }
+    }
+    map->used = nMap.used;
+    map->capacity = nMap.capacity;
+    map->n_entries = nMap.n_entries;
+    map->entries = nMap.entries;
+}
+
+static void bal_map_insert_with_hash(BalMapPtr map, BalStringPtr key, BalValue value, unsigned long hash) {
+    size_t i = hash & (map->n_entries - 1);
+    if (i >= map->n_entries) {
+        fprintf(stderr, "Unexpected hashing failure!\n");
+        abort();
+    }
+
+    BalHashEntry *entries = map->entries;
+    for (;;) {
+        if (entries[i].key == 0) {
+            break;
+        }
+        if (bal_string_equals(key, entries[i].key)) {
+            entries[i].value = value;
+            return;
+        }
+        if (i > 0) {
+            --i;
+        } else {
+            i = map->n_entries - 1;
+        }
+    }
+    entries[i].value = value;
+    entries[i].key = key;
+    map->used += 1;
+    if (map->used >= map->capacity) {
+        bal_map_grow_hashtable(map, map->used + 1);
+    }
 }
 
 void bal_map_insert(BalMapPtr map, BalStringPtr key, BalValue value) {
-    size_t currentUsed = map->used;
+    bal_map_insert_with_hash(map, key, value, bal_string_hash(key));
+}
+
+static bool bal_map_lookup_with_hash(BalMapPtr map, BalStringPtr key, BalValue *outValue, unsigned long hash) {
+    size_t i = hash & (map->n_entries - 1);
+    if (i >= map->n_entries) {
+        fprintf(stderr, "Unexpected hashing failure!\n");
+        abort();
+    }
+
     BalHashEntry *entries = map->entries;
-    entries[currentUsed].key = key;
-    entries[currentUsed].value = value;
-    map->used++;
-    if (map->used >= map->capacity) {
-        bal_map_grow(map);
+    for (;;) {
+        if (entries[i].key == 0) {
+            return false;
+        }
+        if (bal_string_equals(key, entries[i].key)) {
+            *outValue = entries[i].value;
+            return true;
+        }
+        if (i > 0) {
+            --i;
+        } else {
+            i = map->n_entries - 1;
+        }
     }
 }
 
-bool bal_map_lookup(BalMapPtr ptr, BalStringPtr key, BalValue *outValue) {
-    bool retVal = false;
-    size_t used = ptr->used;
-    for (size_t i = 0; i < used; ++i) {
-        if (compareBString(ptr->entries[i].key, key)) {
-            retVal = true;
-            *outValue = ptr->entries[i].value;
-            break;
-        }
-    }
-    return retVal;
+bool bal_map_lookup(BalMapPtr map, BalStringPtr key, BalValue *outValue) {
+    return bal_map_lookup_with_hash(map, key, outValue, bal_string_hash(key));
 }
 
 void map_spread_field_init(BalMapPtr target, BalMapPtr src) {
@@ -87,25 +137,13 @@ void map_spread_field_init(BalMapPtr target, BalMapPtr src) {
         fprintf(stderr, "Capacity overflow!\n");
         abort(); // abort if size_t overflows
     }
-
     size_t newUsed = srcUsed + targetUsed;
-    if (newUsed > target->capacity) {
-        size_t newCapacity = target->capacity;
-        while (newUsed > newCapacity) {
-            newCapacity <<= 1;
-            if (newCapacity == 0) {
-                fprintf(stderr, "Capacity overflow!\n");
-                abort();
-            }
-        }
-        target->entries = re_alloc(target->entries, sizeof(BalHashEntry), newCapacity);
-        target->capacity = newCapacity;
-        target->n_entries = newCapacity;
-    }
+    bal_map_grow_hashtable(target, newUsed);
 
+    BalHashEntry *entries = src->entries;
     for (size_t i = 0; i < srcUsed; i++) {
-        target->entries[targetUsed + i].value = src->entries[i].value;
-        target->entries[targetUsed + i].key = src->entries[i].key;
+        if (entries[i].key != 0) {
+            bal_map_insert(target, entries[i].key, entries[i].value);
+        }
     }
-    target->used = newUsed;
 }

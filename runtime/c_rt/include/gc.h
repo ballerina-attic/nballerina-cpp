@@ -51,17 +51,4 @@ static void *zalloc(size_t n_members, size_t member_size) {
     return mem;
 }
 
-static void *re_alloc(void *ptr, size_t member_size, size_t n_members) {
-    if (member_size >= (SIZE_MAX / n_members)){
-        fprintf(stderr, "Memory allocation failed \n");
-        abort();
-    }
-    void *mem = realloc(ptr, n_members*member_size);
-    if (mem == NULL) {
-        fprintf(stderr, "Memory allocation failed \n");
-        abort();
-    }
-    return mem;
-}
-
 #endif //!__GC__H__

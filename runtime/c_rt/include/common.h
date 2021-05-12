@@ -45,9 +45,19 @@ typedef struct {
 } BalString, *BalStringPtr;
 
 // Static functions
-inline static bool compareBString(BalStringPtr str1, BalStringPtr str2) {
+inline static bool bal_string_equals(BalStringPtr str1, BalStringPtr str2) {
     return strcmp(str1->value, str2->value) == 0;
 }
 
+// DJB2 hash function
+static unsigned long bal_string_hash(BalStringPtr s) {
+    unsigned long hash = 5381;
+    size_t n = strlen(s->value);
+    const char *p = s->value;
+    while (n-- > 0) {
+        hash = hash * 33 + (unsigned char)*p++;
+    }
+    return hash;
+}
 
 #endif //!__COMMON__H__
