@@ -145,7 +145,7 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
 
 llvm::FunctionCallee CodeGenUtils::getNewMapInitFunc(llvm::Module &module) {
     auto *funcType = llvm::FunctionType::get(getLLVMTypeOfType(TYPE_TAG_MAP, module), false);
-    return module.getOrInsertFunction("map_new", funcType);
+    return module.getOrInsertFunction("bal_map_create", funcType);
 }
 
 llvm::FunctionCallee CodeGenUtils::getMapLoadFunc(llvm::Module &module) {
@@ -155,7 +155,7 @@ llvm::FunctionCallee CodeGenUtils::getMapLoadFunc(llvm::Module &module) {
                                       getLLVMTypeOfType(TYPE_TAG_STRING, module),
                                       llvm::PointerType::get(getLLVMTypeOfType(TYPE_TAG_INT, module), 0)}),
         false);
-    return module.getOrInsertFunction("map_load", funcType);
+    return module.getOrInsertFunction("bal_map_lookup", funcType);
 }
 
 llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
@@ -164,7 +164,7 @@ llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
     auto *mapType = getLLVMTypeOfType(TYPE_TAG_MAP, module);
     auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
                                              llvm::ArrayRef<llvm::Type *>({mapType, keyType, memberType}), false);
-    return module.getOrInsertFunction("map_store", funcType);
+    return module.getOrInsertFunction("bal_map_insert", funcType);
 }
 
 } // namespace nballerina

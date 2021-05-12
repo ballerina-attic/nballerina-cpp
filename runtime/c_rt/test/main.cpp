@@ -22,24 +22,48 @@ extern "C" {
 #include <gtest/gtest.h>
 
 TEST(balmapTest1, crtTest) {
-    auto *myMap = map_new();
-    BString bstring1 = {.value = "1"};
-    map_store(myMap, &bstring1, 42);
-    BString bstring2 = {.value = "2"};
-    map_store(myMap, &bstring2, 43);
-    BString bstring3 = {.value = "3"};
-    map_store(myMap, &bstring3, 44);
-    BString bstring4 = {.value = "4"};
-    map_store(myMap, &bstring4, 45);
-    BString bstring5 = {.value = "5"};
-    map_store(myMap, &bstring5, 46);
-    BString bstring6 = {.value = "6"};
-    map_store(myMap, &bstring6, 47);
+    auto *myMap = bal_map_create();
+    BalString bstring1 = {.value = "1"};
+    bal_map_insert(myMap, &bstring1, 42);
+    BalString bstring2 = {.value = "2"};
+    bal_map_insert(myMap, &bstring2, 43);
+    BalString bstring3 = {.value = "3"};
+    bal_map_insert(myMap, &bstring3, 44);
+    BalString bstring4 = {.value = "4"};
+    bal_map_insert(myMap, &bstring4, 45);
+    BalString bstring5 = {.value = "5"};
+    bal_map_insert(myMap, &bstring5, 46);
+    BalString bstring6 = {.value = "6"};
+    bal_map_insert(myMap, &bstring6, 47);
 
     BalValue outVal = 0;
-    BString bstringFind = {.value = "4"};
-    bool ret = map_load(myMap, &bstringFind, &outVal);
+    BalString bstringFind = {.value = "4"};
+    bool ret = bal_map_lookup(myMap, &bstringFind, &outVal);
 
     ASSERT_EQ(ret, true);
     ASSERT_EQ(outVal, 45);
+}
+
+TEST(balmapTest2, crtTest) {
+
+    auto *myMap = bal_map_create();
+    const size_t iters = 10000;
+    BalString bstrings[iters];
+
+    for (auto i = 0; i < iters; i++) {
+        auto *str = new char[8];
+        sprintf(str, "%i", (int)i);
+        bstrings[i].value = str;
+        bal_map_insert(myMap, &bstrings[i], (BalValue)i);
+    }
+
+    for (auto i = 0; i < iters; i++) {
+        auto *str = new char[8];
+        sprintf(str, "%i", (int)i);
+        bstrings[i].value = str;
+        BalValue outVal = 0;
+        bool ret = bal_map_lookup(myMap, &bstrings[i], &outVal);
+        ASSERT_EQ(ret, true);
+        ASSERT_EQ(outVal, i);
+    }
 }

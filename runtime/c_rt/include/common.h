@@ -16,34 +16,38 @@
  * under the License.
  */
 
-#ifndef __BALMAP__H__
-#define __BALMAP__H__
+#ifndef __COMMON__H__
+#define __COMMON__H__
 
-#include "include/common.h"
 #include <stdbool.h>
-#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+#define HEADER_TAG_UNINIT 0
+#define HEADER_TAG_INT 1
+#define HEADER_TAG_STRING 2
+#define HEADER_TAG_LIST 3
+#define HEADER_TAG_MAPPING 4
+
+// Types
 
 typedef struct {
-    BalStringPtr key;
-    BalValue value;
-} BalHashEntry;
+    uint8_t tag;
+    uint8_t gc_reserved;
+    uint16_t spare1;
+    uint32_t spare2;
+} BalHeader, *BalHeaderPtr;
+
+typedef uint64_t BalValue;
 
 typedef struct {
-    BalHeader header;
-    // how many of entries are used
-    size_t used;
-    // used must be < capacity
-    // capacity = LOAD_FACTOR * n_entries
-    size_t capacity;
-    // always a power of 2
-    // length of entries array
-    size_t n_entries;
-    BalHashEntry *entries;
-} BalMap, *BalMapPtr;
+    const char *value;
+} BalString, *BalStringPtr;
 
-BalMapPtr bal_map_create(void);
-void bal_map_insert(BalMapPtr map, BalStringPtr key, BalValue value);
-bool bal_map_lookup(BalMapPtr map, BalStringPtr key, BalValue *outValue);
-void map_spread_field_init(BalMapPtr target, BalMapPtr src);
+// Static functions
+inline static bool compareBString(BalStringPtr str1, BalStringPtr str2) {
+    return strcmp(str1->value, str2->value) == 0;
+}
 
-#endif //!__BALMAP__H__
+
+#endif //!__COMMON__H__
