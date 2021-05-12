@@ -16,21 +16,20 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
-#include "bir/Location.h"
+#include "bir/BasicBlock.h"
+#include "bir/Function.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+BasicBlock::BasicBlock(std::string pid, Function *parentFunc)
+    : id(std::move(pid)), parentFunction(parentFunc), terminator(nullptr) {}
 
-  public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
-};
+const std::string &BasicBlock::getId() const { return id; }
+TerminatorInsn *BasicBlock::getTerminatorInsnPtr() const { return terminator.get(); }
+
+const Function &BasicBlock::getParentFunctionRef() const { return *parentFunction; }
+
+void BasicBlock::setTerminatorInsn(std::unique_ptr<TerminatorInsn> insn) { terminator = std::move(insn); }
+void BasicBlock::addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn) { instructions.push_back(std::move(insn)); }
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

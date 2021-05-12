@@ -16,21 +16,19 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __RETURNINSN__H__
+#define __RETURNINSN__H__
 
-#include "bir/Location.h"
+#include "interfaces/TerminatorInsn.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
-
+class ReturnInsn : public TerminatorInsn, public Translatable<ReturnInsn> {
   public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    ReturnInsn(class BasicBlock &currentBB) : TerminatorInsn(Operand("", NOT_A_KIND), currentBB, "") {}
+    friend class TerminatorInsnCodeGen;
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__RETURNINSN__H__

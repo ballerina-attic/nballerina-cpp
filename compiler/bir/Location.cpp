@@ -16,21 +16,17 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
-
 #include "bir/Location.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+Location::Location(std::string name, int sline, int scol, int eline, int ecol)
+    : fileName(std::move(name)), sLine(sline), sCol(scol), eLine(eline), eCol(ecol) {}
 
-  public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
-};
+const std::string &Location::getFileName() const { return fileName; }
+int Location::getStartLineNum() const { return sLine; }
+int Location::getStartColumnNum() const { return sCol; }
+int Location::getEndLineNum() const { return eLine; }
+int Location::getEndColumnNum() const { return eCol; }
 
 } // namespace nballerina
-
-#endif //!__DEBUGGABLE__H__

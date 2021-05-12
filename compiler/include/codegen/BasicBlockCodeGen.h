@@ -16,21 +16,25 @@
  * under the License.
  */
 
-#ifndef __DEBUGGABLE__H__
-#define __DEBUGGABLE__H__
+#ifndef __BASICBLOCKCODEGEN__H__
+#define __BASICBLOCKCODEGEN__H__
 
-#include "bir/Location.h"
+#include "codegen/FunctionCodeGen.h"
 
 namespace nballerina {
 
-class Debuggable {
-    Location pos;
+class BasicBlockCodeGen {
+  private:
+    FunctionCodeGen &functionGenerator;
+    PackageCodeGen &moduleGenerator;
 
   public:
-    const Location &getLocation() const { return pos; };
-    void setLocation(Location newPos) { pos = std::move(newPos); };
+    BasicBlockCodeGen() = delete;
+    BasicBlockCodeGen(FunctionCodeGen &functionGenerator, PackageCodeGen &moduleGenerator);
+    ~BasicBlockCodeGen() = default;
+    void visit(class BasicBlock &obj, llvm::IRBuilder<> &builder);
 };
 
 } // namespace nballerina
 
-#endif //!__DEBUGGABLE__H__
+#endif //!__BASICBLOCKCODEGEN__H__
