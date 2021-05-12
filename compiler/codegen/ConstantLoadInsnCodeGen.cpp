@@ -46,12 +46,12 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
     }
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
-        std::string stringValue = std::get<std::string>(value);
+        std::string stringValue = std::get<std::string>(obj.value);
 	auto *header = llvm::ConstantInt::get(builder.getInt64Ty(), 0b000110, 0);
 	auto *size = llvm::ConstantInt::get(builder.getInt64Ty(), stringValue.length(), 0);
-        auto *string = llvm::ConstantDataArray::getString(module.getContext(), stringValue, false);
+        auto *string = llvm::ConstantDataArray::getString(moduleGenerator.getModule().getContext(), stringValue, false);
 	llvm::ArrayRef<llvm::Constant *> elements = {header, size, string};
-	auto *structType = static_cast<llvm::StructType *> (CodeGenUtils::getLLVMTypeOfType(typeTag, module));
+	auto *structType = static_cast<llvm::StructType *> (CodeGenUtils::getLLVMTypeOfType(obj.typeTag, moduleGenerator.getModule()));
 	constRef = llvm::ConstantStruct::get(structType, elements);
         break;
     }
