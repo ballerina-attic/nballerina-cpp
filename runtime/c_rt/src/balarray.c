@@ -72,21 +72,19 @@ int64_t castPointerToValue(DynamicBalArray *array_ptr, void *ptr) {
 SmtPtr *castPointerToSmtPtr(DynamicBalArray *array_ptr, void *ptr) {
     uint64_t header = array_ptr->header;
     uint64_t header_type = header & 3;
-    int64_t value = *(uint64_t *)ptr;
-    return getSmtPtrFromInt(value);
-    // if (header_type == 0) {
-    //     uint8_t value = *(uint8_t *)ptr;
-    //     return value;
-    // } else if (header_type == 1) {
-    //     uint16_t value = *(uint16_t *)ptr;
-    //     return value;
-    // } else if (header_type == 2) {
-    //     uint32_t value = *(uint32_t *)ptr;
-    //     return value;
-    // } else {
-    //     uint64_t value = *(uint64_t *)ptr;
-    //     return value;
-    // }
+    if (header_type == 0) {
+        uint8_t value = *(uint8_t *)ptr;
+        return getSmtPtrFromByte(value);
+    } else if (header_type == 1) {
+        fprintf(stderr, "%s", "Underlying type not supported\n");
+        abort();
+    } else if (header_type == 2) {
+        fprintf(stderr, "%s", "Underlying type not supported\n");
+        abort();
+    } else {
+        int64_t value = *(uint64_t *)ptr;
+        return getSmtPtrFromInt(value);
+    }
 }
 
 int64_t array_load_int(DynamicBalArray *array_ptr, int64_t index) {

@@ -36,6 +36,18 @@ SmtPtr *getSmtPtrFromInt(int64_t value) {
     return ptr;
 }
 
+
+SmtPtr *getSmtPtrFromByte(int8_t value) {
+    SmtPtr *ptr = (SmtPtr *)gc_alloc(sizeof(SmtPtr));
+    char* type = (char*)gc_alloc(sizeof(char)*4);
+    strcpy(type, "__Y\0");
+    ptr->inherent_type_ptr = type;
+    int8_t* val_ptr = (int8_t*)gc_alloc(sizeof(int8_t));
+    *val_ptr = value;
+    ptr->value_ptr = val_ptr;
+    return ptr;
+}
+
 void smt_ptrPrint(SmtPtr *ptr) {
     printf("pointer: %p\n", ptr);
     printf("value ptr: %p\n", ptr->value_ptr);

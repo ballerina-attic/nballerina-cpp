@@ -45,6 +45,7 @@ pub enum BalType {
     String = 'S' as u32,
     Array = 'A' as u32,
     Any = 'X' as u32,
+    Byte = 'Y' as u32
 }
 
 // Compute total elements present in the data structure

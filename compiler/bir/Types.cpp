@@ -69,6 +69,9 @@ std::string_view Type::typeStringMangleName(const Type &type) {
     case TYPE_TAG_INT: {
         return "__I";
     }
+    case TYPE_TAG_BYTE: {
+        return "__Y";
+    }
     case TYPE_TAG_FLOAT: {
         return "__F";
     }

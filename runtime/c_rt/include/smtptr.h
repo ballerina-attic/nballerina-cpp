@@ -27,11 +27,13 @@
 static void *gc_alloc(size_t size);
 
 typedef struct SmtPtr {
-    void* inherent_type_ptr;
-    void* value_ptr;
+    void *inherent_type_ptr;
+    void *value_ptr;
 } SmtPtr;
 
 SmtPtr *getSmtPtrFromInt(int64_t value);
+
+SmtPtr *getSmtPtrFromByte(int8_t value);
 
 // Debugging only
 void smt_ptrPrint(SmtPtr *ptr);

@@ -59,7 +59,6 @@ pub extern "C" fn is_same_type(src_type: *const c_char, dest_type: *const c_char
     //Conversion to rust strings
     let source: String = source_cstr.to_str().unwrap().to_owned();
     let destination: String = dest_cstr.to_str().unwrap().to_owned();
-
     debug_assert!(&source[..2] == "__" && &destination[..2] == "__");
     debug_assert!(source.len() > 2 && destination.len() > 2);
 
