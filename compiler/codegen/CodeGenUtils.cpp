@@ -18,6 +18,10 @@
 
 #include "codegen/CodeGenUtils.h"
 #include "codegen/config.h"
+#include <iostream>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
 namespace nballerina {
 
@@ -171,45 +175,35 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
     return module.getOrInsertFunction("is_same_type", funcType);
 }
 
-std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mContext){
+std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mContext, const std::string &fileName) {
     llvm::SMDiagnostic Err;
-    //reading fun.ll for testing
-    std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile(LLFilePath, Err, mContext);
-	if (!srcModule)
-	{
-		Err.print("Open Module file error", llvm::errs());
-		return NULL;
-	}
-	llvm::Module* M = srcModule.get();
-	if (!M)
-	{
-		llvm::errs() << ": error loading file \n";
-		return NULL;
-	}
+    std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile(LL_FILE_PATH + fileName, Err, mContext);
+    if (!srcModule) {
+        std::cerr << "Error opening ll file" << std::endl;
+        abort();
+    }
+    llvm::Module *M = srcModule.get();
+    if (!M) {
+        std::cerr << "Error loading module from ll file" << std::endl;
+        abort();
+    }
     return srcModule;
 }
 
-llvm::FunctionCallee CodeGenUtils::replaceProtoFunc(std::string funcName, llvm::Module &destModule, llvm::Module* srcModule ){
-    auto destFunc = destModule.getFunction(funcName);
-    if (destFunc != NULL){
-        return destFunc;
+llvm::FunctionCallee CodeGenUtils::replaceProtoFunc(const std::string &funcName, llvm::Module &destModule,
+                                                    llvm::Module &srcModule) {
+    for (const auto &func : srcModule.getFunctionList()) {
+        destModule.getOrInsertFunction(func.getName(), func.getFunctionType());
     }
-    llvm::Function *srcFunc = srcModule->getFunction(funcName);
-    llvm::FunctionType *funcType = srcFunc->getFunctionType();
-    destFunc = llvm::Function::Create(funcType, srcFunc->getLinkage(), funcName, &destModule);
-    for (auto curFunc = srcModule->getFunctionList().begin(), 
-            endFunc = srcModule->getFunctionList().end(); 
-            curFunc != endFunc; ++curFunc) {
-            destModule.getOrInsertFunction(curFunc->getName(), curFunc->getFunctionType());
-    }
+    llvm::Function *destFunc = destModule.getFunction(funcName);
+    llvm::Function *srcFunc = srcModule.getFunction(funcName);
     llvm::ValueToValueMapTy valuemap;
-    auto destArgs = destFunc->arg_begin();
-    auto srcArgs = srcFunc->arg_begin();
-    for (auto FArgsEnd = srcFunc->arg_end(); srcArgs != FArgsEnd; ++destArgs, ++srcArgs) {
-        valuemap[&*srcArgs] = &*destArgs;
+    for (auto srcArgs = srcFunc->arg_begin(), destArgs = destFunc->arg_begin(); srcArgs != srcFunc->arg_end();
+         ++destArgs, ++srcArgs) {
+        valuemap[srcArgs] = destArgs;
     }
-    llvm::SmallVector<llvm::ReturnInst*, 8> returns;
-    llvm::CloneFunctionInto(destFunc, srcFunc , valuemap, false, returns);
-    return destModule.getFunction(funcName);
+    llvm::SmallVector<llvm::ReturnInst *, 0> returns;
+    llvm::CloneFunctionInto(destFunc, srcFunc, valuemap, false, returns);
+    return destFunc;
 }
 } // namespace nballerina

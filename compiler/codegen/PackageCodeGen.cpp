@@ -21,12 +21,13 @@
 #include "bir/Package.h"
 #include "codegen/CodeGenUtils.h"
 #include "codegen/FunctionCodeGen.h"
+#include "codegen/InlinePregeneratedFunctions.h"
 #include <iostream>
 
 namespace nballerina {
 
 PackageCodeGen::PackageCodeGen(llvm::Module &module)
-    : module(module), globalStrTable(nullptr), globalStrTable2(nullptr) {}
+    : module(module), globalStrTable(nullptr), globalStrTable2(nullptr), srcMod(nullptr) {}
 
 llvm::Module &PackageCodeGen::getModule() { return module; }
 
@@ -90,6 +91,8 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
         auto *bitCastRes = builder.CreateBitCast(globalStrTable2, charPtrType, "");
         globalStrTable->setInitializer(llvm::dyn_cast<llvm::Constant>(bitCastRes));
     }
+
+    InlinePregeneratedFunctions::patch(module, srcMod);
 }
 
 void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,

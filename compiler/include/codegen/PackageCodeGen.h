@@ -34,6 +34,7 @@ class PackageCodeGen {
     llvm::GlobalVariable *globalStrTable;
     llvm::GlobalVariable *globalStrTable2;
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
+    std::unique_ptr<llvm::Module> srcMod;
     std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
     void applyStringOffsetRelocations(llvm::IRBuilder<> &builder);
 
@@ -43,6 +44,7 @@ class PackageCodeGen {
     ~PackageCodeGen() = default;
 
     llvm::Module &getModule();
+    std::unique_ptr<llvm::Module> &getSrcModule();
     void storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
                                  llvm::Value *smartStruct);
     llvm::Value *addToStringTable(std::string_view newString, llvm::IRBuilder<> &builder);

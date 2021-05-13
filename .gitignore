@@ -25,6 +25,7 @@ hs_err_pid*
 # C++ ignore list
 build/
 Prerequisites
+compiler/include/codegen/config.h
 *.d
 
 # Compiled Object files

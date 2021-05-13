@@ -19,9 +19,9 @@
 #include "codegen/CodeGenerator.h"
 #include "bir/Package.h"
 #include "codegen/PackageCodeGen.h"
+#include <iostream>
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
-#include <iostream>
 #include <sstream>
 
 namespace nballerina {
