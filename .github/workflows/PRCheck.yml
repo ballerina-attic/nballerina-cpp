@@ -13,8 +13,14 @@ jobs:
       - name: Install utils
         run: | 
           sudo apt update
-          sudo apt install -y build-essential llvm-11-dev lld-11 cmake cargo python3-pip
+          sudo apt install -y build-essential llvm-11-dev lld-11 cmake python3-pip
           pip3 install lit filecheck
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: 1.49.0
+            override: true
 
       - name: Install JRE 11
         uses: actions/setup-java@v1
