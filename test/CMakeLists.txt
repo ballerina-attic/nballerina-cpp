@@ -13,4 +13,4 @@ add_custom_target(check
 add_custom_target(check_lto
   COMMENT "Check if Link Time Optimization is working"
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/test"
-  COMMAND python3 check_lto.py)
+  COMMAND ${PYTHON_EXE} check_lto.py)
