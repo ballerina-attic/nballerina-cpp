@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 
 include_directories(.)
 
-add_library( ballerina_crt STATIC src/balmap.c )
+add_library( ballerina_crt STATIC src/balmap.c src/lto.c)
 
 set(CMAKE_CXX_FLAGS "-fuse-ld=lld-11")
 set(LTO_FLAGS --target=x86_64-unknown-linux-gnu -flto=thin -Wno-override-module)
