@@ -138,4 +138,32 @@ void Type::checkMapSupport(TypeTag typeTag) {
     }
 }
 
+bool Type::checkArrayCastSupport(TypeTag destination, TypeTag source) {
+    if (destination == TYPE_TAG_ANY || source == TYPE_TAG_ANY) {
+        return true;
+    }
+    switch (source) {
+    case TYPE_TAG_BYTE:
+        switch (destination) {
+        case TYPE_TAG_INT:
+        case TYPE_TAG_BYTE:
+            return true;
+        default:
+            return false;
+        }
+    case TYPE_TAG_INT:
+        switch (destination) {
+        case TYPE_TAG_INT:
+            return true;
+        case TYPE_TAG_BYTE:
+            // TODO: check if the source is constant when constant arrays are implemented
+            return false;
+        default:
+            return false;
+        }
+    default:
+        throw "Array cast check between unkown types";
+    }
+}
+
 } // namespace nballerina

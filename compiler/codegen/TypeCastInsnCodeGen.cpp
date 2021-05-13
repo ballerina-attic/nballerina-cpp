@@ -64,9 +64,13 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
         auto *castResult = builder.CreateFPToSI(rhsLoad, lhsLoad->getType(), "");
         builder.CreateStore(castResult, lhsOpRef);
     } else if (lhsTypeTag == TYPE_TAG_ARRAY && rhsTypeTag == TYPE_TAG_ARRAY) {
-        auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, builder);
-        builder.CreateStore(rhsVarOpRef, lhsOpRef);
-        return;
+        if (Type::checkArrayCastSupport(lhsType.getMemberTypeTag(), rhsType.getMemberTypeTag())) {
+            auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, builder);
+            builder.CreateStore(rhsVarOpRef, lhsOpRef);
+            return;
+        } else {
+            throw std::runtime_error("Invalid array cast");
+        }
     } else {
         builder.CreateBitCast(rhsOpRef, lhsTypeRef, "data_cast");
     }
