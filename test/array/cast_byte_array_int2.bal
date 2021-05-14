@@ -2,13 +2,13 @@
 
 public function print_string(string val) = external;
 
-public function print_byte(byte val) = external;
+public function print_integer(int val) = external;
 
 public function main() {
-    int[] i = [3];
+    byte[] i = [3];
     i[2] = 10;
-    byte[] j = <byte[]>i;
+    int[] j = i;
     print_string("RESULT=");
-    print_byte(j[2]);
+    print_integer(j[2]);
 }
 // CHECK: RESULT=10
