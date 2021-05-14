@@ -22,6 +22,7 @@
 #include "bir/FunctionParam.h"
 #include "codegen/BasicBlockCodeGen.h"
 #include "codegen/CodeGenUtils.h"
+#include <llvm/IR/Verifier.h>
 
 namespace nballerina {
 
@@ -101,5 +102,10 @@ void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
         BasicBlockCodeGen generator(*this, parentGenerator);
         generator.visit(bb, builder);
     }
+
+    if (llvm::verifyFunction(*llvmFunction, &llvm::outs())) {
+        llvm_unreachable("LLVM function verification failed");
+    };
 }
+
 } // namespace nballerina
