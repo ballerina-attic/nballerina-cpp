@@ -108,5 +108,9 @@ pub mod dynamic_array {
                 self.length = index + 1;
             }
         }
+
+        pub fn get_header(&mut self) -> i64 {
+            return self.header;
+        }
     }
 }

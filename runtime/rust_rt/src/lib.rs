@@ -21,6 +21,7 @@
 mod type_checker;
 pub use type_checker::BalType;
 
+use std::convert::TryFrom;
 use std::ffi::c_void;
 use std::ffi::CStr;
 use std::io::{self, Write};
@@ -97,14 +98,14 @@ pub extern "C" fn print_boolean(num8: i8) {
 
 #[no_mangle]
 pub extern "C" fn array_init_int(size: i64) -> *mut DynamicBalArray<i64> {
-    let array: Box<DynamicBalArray<i64>> = Box::new(DynamicBalArray::<i64>::new(size,3));
+    let array: Box<DynamicBalArray<i64>> = Box::new(DynamicBalArray::<i64>::new(size, 3));
     let array_pointer = Box::into_raw(array);
     return array_pointer as *mut DynamicBalArray<i64>;
 }
 
 #[no_mangle]
 pub extern "C" fn array_init_byte(size: i64) -> *mut DynamicBalArray<i64> {
-    let array: Box<DynamicBalArray<i8>> = Box::new(DynamicBalArray::<i8>::new(size,0));
+    let array: Box<DynamicBalArray<i8>> = Box::new(DynamicBalArray::<i8>::new(size, 0));
     let array_pointer = Box::into_raw(array);
     return array_pointer as *mut DynamicBalArray<i64>;
 }
@@ -148,8 +149,20 @@ pub extern "C" fn array_init_anydata(size: i32) -> *mut Vec<*mut c_void> {
 #[no_mangle]
 pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64, ref_ptr: i64) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
-    arr.set_element(index, ref_ptr);
-    mem::forget(arr);
+    let type_header = arr.get_header() & 3;
+    if type_header == 3 {
+        arr.set_element(index, ref_ptr);
+        mem::forget(arr);
+    } else if type_header == 0 {
+        if ref_ptr < 0 || ref_ptr > 255 {
+            panic!("{} value is incompatible with byte arrays", ref_ptr);
+        }
+        let new_arr_ptr: *mut DynamicBalArray<i8> = arr_ptr as *mut DynamicBalArray<i8>;
+        mem::forget(arr);
+        let mut new_arr = unsafe { Box::from_raw(new_arr_ptr) };
+        new_arr.set_element(index, i8::try_from(ref_ptr).unwrap());
+        mem::forget(new_arr);
+    }
 }
 
 // #[no_mangle]
@@ -162,9 +175,21 @@ pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64
 
 #[no_mangle]
 pub extern "C" fn array_store_byte(arr_ptr: *mut DynamicBalArray<i8>, index: i64, ref_ptr: i8) {
+    if ref_ptr < 0 {
+        panic!("{} value is incompatible with byte arrays", ref_ptr);
+    }
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
-    arr.set_element(index, ref_ptr);
-    mem::forget(arr);
+    let type_header = arr.get_header() & 3;
+    if type_header == 0 {
+        arr.set_element(index, ref_ptr);
+        mem::forget(arr);
+    } else if type_header == 3 {
+        let new_arr_ptr: *mut DynamicBalArray<i64> = arr_ptr as *mut DynamicBalArray<i64>;
+        mem::forget(arr);
+        let mut new_arr = unsafe { Box::from_raw(new_arr_ptr) };
+        new_arr.set_element(index, i64::try_from(ref_ptr).unwrap());
+        mem::forget(new_arr);
+    }
 }
 
 // #[no_mangle]
