@@ -21,7 +21,7 @@
 #include "bir/Package.h"
 #include "codegen/CodeGenUtils.h"
 #include "codegen/FunctionCodeGen.h"
-#include <iostream>
+#include <llvm/IR/Verifier.h>
 
 namespace nballerina {
 
@@ -90,6 +90,10 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
         auto *bitCastRes = builder.CreateBitCast(globalStrTable2, charPtrType, "");
         globalStrTable->setInitializer(llvm::dyn_cast<llvm::Constant>(bitCastRes));
     }
+
+    if (llvm::verifyModule(module, &llvm::outs())) {
+        llvm_unreachable("LLVM module verification failed");
+    };
 }
 
 void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
