@@ -36,6 +36,7 @@ class PackageCodeGen {
     std::unique_ptr<llvm::StringTableBuilder> strBuilder;
     std::map<std::string, std::vector<llvm::Value *>> structElementStoreInst;
     void applyStringOffsetRelocations(llvm::IRBuilder<> &builder);
+    llvm::Function *getIntToAnyCast(llvm::Module &module, llvm::IRBuilder<> &builder);
 
   public:
     PackageCodeGen() = delete;

@@ -49,8 +49,8 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_MAP:
     case TYPE_TAG_ARRAY:
     case TYPE_TAG_NIL:
-        return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_ANY:
+        return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_UNION:
     case TYPE_TAG_ANYDATA: {
         auto *type = module.getTypeByName("struct.smtPtr");

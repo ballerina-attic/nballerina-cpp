@@ -32,6 +32,7 @@ class NonTerminatorInsnCodeGen
     PackageCodeGen &moduleGenerator;
     void mapInitTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::IRBuilder<> &builder);
     void mapCreateTranslate(class StructureInsn &obj, const class Variable &lhsVar, llvm::IRBuilder<> &builder);
+    llvm::Function *getAnyToIntCast(llvm::Module &module, llvm::IRBuilder<> &builder);
 
   public:
     NonTerminatorInsnCodeGen() = delete;

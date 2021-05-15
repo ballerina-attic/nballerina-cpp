@@ -38,6 +38,7 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
     auto lhsTypeTag = lhsType.getTypeTag();
     const auto &rhsType = rhsVar.getType();
     auto rhsTypeTag = rhsType.getTypeTag();
+    auto &module = moduleGenerator.getModule();
 
     if (Type::isSmartStructType(rhsTypeTag)) {
         if (Type::isSmartStructType(lhsTypeTag)) {
@@ -45,44 +46,17 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
             builder.CreateStore(rhsVarOpRef, lhsOpRef);
             return;
         }
-        // GEP of last type of smart pointer(original type of any variable(smart pointer))
-        auto *inherentTypeStringPtr = builder.CreateStructGEP(rhsOpRef, 0, "inherentTypeName");
-        auto *inherentTypeStringVal = builder.CreateLoad(inherentTypeStringPtr);
-        auto *dataPtr = builder.CreateStructGEP(rhsOpRef, 1, "data");
-        auto *dataVal = builder.CreateLoad(dataPtr);
-
-        // get the mangled name of the lhs type and store it to string builder table.
-        std::string_view lhsTypeName = Type::typeStringMangleName(lhsType);
-        auto *lhsGep = moduleGenerator.addToStringTable(lhsTypeName, builder);
-
-        // call is_same_type rust function to check LHS and RHS type are same or not.
-        auto &module = moduleGenerator.getModule();
-        auto isSameTypeFunc = CodeGenUtils::getIsSameTypeFunc(module, lhsGep, inherentTypeStringVal);
-        auto *sameTypeResult =
-            builder.CreateCall(isSameTypeFunc, llvm::ArrayRef<llvm::Value *>({lhsGep, inherentTypeStringVal}));
-        auto *compareVal = builder.CreateIsNotNull(sameTypeResult);
-
-        // creating branch condition using is_same_type() function result.
-        auto *functionVal = functionGenerator.getFunctionValue();
-        auto &context = module.getContext();
-        auto *ifBB = llvm::BasicBlock::Create(context, "bb.ok", functionVal);
-        auto *elseBB = llvm::BasicBlock::Create(context, "bb.abort", functionVal);
-        builder.CreateCondBr(compareVal, ifBB, elseBB);
-
-        // if comparison failed
-        builder.SetInsertPoint(elseBB);
-        auto abortFunc = CodeGenUtils::getAbortFunc(module);
-        auto *abortCall = builder.CreateCall(abortFunc);
-        abortCall->addAttribute(~0U, llvm::Attribute::NoReturn);
-        abortCall->addAttribute(~0U, llvm::Attribute::NoUnwind);
-        builder.CreateUnreachable();
-
-        // if comparison is successful
-        builder.SetInsertPoint(ifBB);
-        auto *castResult = builder.CreateBitCast(dataVal, lhsTypeRef, obj.lhsOp.getName());
-        auto *castLoad = builder.CreateLoad(castResult);
-        builder.CreateStore(castLoad, lhsOpRef);
-
+        // call the any_to_int function to typecast from any to int type.
+        std::vector<llvm::Value *> paramValues;
+        paramValues.reserve(1);
+        llvm::LoadInst *rhsValueRef = builder.CreateLoad(rhsOpRef, "");
+        paramValues.push_back(rhsValueRef);
+        auto *namedFuncRef = module.getFunction("any_to_int");
+        if (namedFuncRef == nullptr) {
+            namedFuncRef = getAnyToIntCast(module, builder);
+        }
+        auto *callResult = builder.CreateCall(namedFuncRef, paramValues, "call");
+        builder.CreateStore(callResult, lhsOpRef);
     } else if (Type::isSmartStructType(lhsTypeTag)) {
         moduleGenerator.storeValueInSmartStruct(builder, rhsOpRef, rhsType, lhsOpRef);
     } else if (lhsTypeTag == TYPE_TAG_INT && rhsTypeTag == TYPE_TAG_FLOAT) {
@@ -93,6 +67,150 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
     } else {
         builder.CreateBitCast(rhsOpRef, lhsTypeRef, "data_cast");
     }
+}
+
+llvm::Function *NonTerminatorInsnCodeGen::getAnyToIntCast(llvm::Module &module, llvm::IRBuilder<> &builder) {
+
+    // create new any_to_int function
+    std::vector<llvm::Type *> paramTypes;
+    paramTypes.reserve(1);
+    paramTypes.push_back(builder.getInt8PtrTy());
+    auto *funcType = llvm::FunctionType::get(builder.getInt64Ty(), paramTypes, false);
+    auto *newFunc = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, "any_to_int", module);
+
+    llvm::BasicBlock *entryBB = llvm::BasicBlock::Create(module.getContext(), "entry");
+
+    // create alloca of local variables
+    auto *localVarRef1 = builder.CreateAlloca(builder.getInt64Ty(), nullptr, "");
+    auto *localVarRef2 = builder.CreateAlloca(builder.getInt8PtrTy(), nullptr, "");
+    auto *localVarRef3 = builder.CreateAlloca(llvm::Type::getInt64PtrTy(module.getContext()), nullptr, "");
+    localVarRef1->removeFromParent();
+    localVarRef2->removeFromParent();
+    localVarRef3->removeFromParent();
+    // insert alloca insns to entry BB
+    entryBB->getInstList().push_back(localVarRef1);
+    entryBB->getInstList().push_back(localVarRef2);
+    entryBB->getInstList().push_back(localVarRef3);
+
+    llvm::Value *funcArg = &newFunc->arg_begin()[0];
+    funcArg->setName("a");
+
+    llvm::StoreInst *storeInputIntValue = builder.CreateStore(funcArg, localVarRef2);
+    storeInputIntValue->removeFromParent();
+    entryBB->getInstList().push_back(storeInputIntValue);
+
+    llvm::LoadInst *valueLoad = builder.CreateLoad(localVarRef2, "");
+    valueLoad->removeFromParent();
+    entryBB->getInstList().push_back(valueLoad);
+
+    auto *ptrToIntCast = llvm::dyn_cast<llvm::Instruction>(builder.CreatePtrToInt(valueLoad, builder.getInt64Ty(), ""));
+    ptrToIntCast->removeFromParent();
+    entryBB->getInstList().push_back(ptrToIntCast);
+
+    auto *constOneValue = llvm::ConstantInt::get(builder.getInt64Ty(), 1);
+    llvm::Instruction *andInsn = llvm::BinaryOperator::CreateAnd(ptrToIntCast, constOneValue);
+    entryBB->getInstList().push_back(andInsn);
+
+    auto *constZeroValue = llvm::ConstantInt::get(builder.getInt64Ty(), 0);
+    llvm::Instruction *ifReturn = new llvm::ICmpInst(llvm::CmpInst::Predicate::ICMP_NE, andInsn, constZeroValue, "");
+    entryBB->getInstList().push_back(ifReturn);
+
+    // create if BB
+    llvm::BasicBlock *ifBB = llvm::BasicBlock::Create(module.getContext(), "if.then");
+    // create else BB
+    llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "if.else");
+    // Creating Branch condition using if and else BB's.
+    auto *condBr = builder.CreateCondBr(ifReturn, ifBB, elseBB);
+    condBr->removeFromParent();
+    entryBB->getInstList().push_back(condBr);
+
+    llvm::BinaryOperator *shrInsn = llvm::BinaryOperator::CreateAShr(ptrToIntCast, constOneValue);
+    ifBB->getInstList().push_back(shrInsn);
+
+    llvm::StoreInst *storeValueToBalValue = builder.CreateStore(shrInsn, localVarRef1);
+    storeValueToBalValue->removeFromParent();
+    ifBB->getInstList().push_back(storeValueToBalValue);
+
+    llvm::BasicBlock *retBB = llvm::BasicBlock::Create(module.getContext(), "return");
+    // creating branch of the if basicblock.
+    llvm::Instruction *brInsn = builder.CreateBr(retBB);
+    brInsn->removeFromParent();
+    ifBB->getInstList().push_back(brInsn);
+
+    auto *constTagMask = llvm::ConstantInt::get(builder.getInt64Ty(), 0b11);
+    llvm::Instruction *andInsnElseBB = llvm::BinaryOperator::CreateAnd(ptrToIntCast, constTagMask);
+    elseBB->getInstList().push_back(andInsnElseBB);
+
+    auto *compareResult = llvm::dyn_cast<llvm::Instruction>(
+        builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, andInsnElseBB, constZeroValue, ""));
+    compareResult->removeFromParent();
+    elseBB->getInstList().push_back(compareResult);
+
+    // create if BB in else BB
+    llvm::BasicBlock *elseIfBB = llvm::BasicBlock::Create(module.getContext(), "if.then2");
+    // create else BB in else BB
+    llvm::BasicBlock *elseElseBB = llvm::BasicBlock::Create(module.getContext(), "if.else2");
+
+    auto *elseCondBr = builder.CreateCondBr(compareResult, elseIfBB, elseElseBB);
+    elseCondBr->removeFromParent();
+    elseBB->getInstList().push_back(elseCondBr);
+
+    // insert all new basic blocks into any_to_int new function
+    newFunc->getBasicBlockList().push_back(entryBB);
+    newFunc->getBasicBlockList().push_back(ifBB);
+    newFunc->getBasicBlockList().push_back(elseBB);
+    newFunc->getBasicBlockList().push_back(elseIfBB);
+    newFunc->getBasicBlockList().push_back(elseElseBB);
+    newFunc->getBasicBlockList().push_back(retBB);
+
+    auto *constByteValue = llvm::ConstantInt::get(builder.getInt64Ty(), 1);
+    llvm::BinaryOperator *addResult = llvm::BinaryOperator::CreateAdd(ptrToIntCast, constByteValue, "");
+    elseIfBB->getInstList().push_back(addResult);
+
+    auto *intToPtrCast = llvm::dyn_cast<llvm::Instruction>(
+        builder.CreateIntToPtr(addResult, llvm::Type::getInt64PtrTy(module.getContext())));
+    intToPtrCast->removeFromParent();
+    elseIfBB->getInstList().push_back(intToPtrCast);
+
+    llvm::StoreInst *storeResult = builder.CreateStore(intToPtrCast, localVarRef3);
+    storeResult->removeFromParent();
+    elseIfBB->getInstList().push_back(storeResult);
+
+    llvm::LoadInst *locVarRefLoad = builder.CreateLoad(localVarRef3, "");
+    locVarRefLoad->removeFromParent();
+    elseIfBB->getInstList().push_back(locVarRefLoad);
+
+    llvm::LoadInst *locVarRefLoadLoad = builder.CreateLoad(locVarRefLoad, "");
+    locVarRefLoadLoad->removeFromParent();
+    elseIfBB->getInstList().push_back(locVarRefLoadLoad);
+
+    llvm::StoreInst *storeValueToIntValue = builder.CreateStore(locVarRefLoadLoad, localVarRef1);
+    storeValueToIntValue->removeFromParent();
+    elseIfBB->getInstList().push_back(storeValueToIntValue);
+
+    llvm::Instruction *elseIfBBBrInsn = builder.CreateBr(retBB);
+    elseIfBBBrInsn->removeFromParent();
+    elseIfBB->getInstList().push_back(elseIfBBBrInsn);
+
+    // abort call
+    auto abortFunc = CodeGenUtils::getAbortFunc(module);
+    auto *abortFuncCallInsn = builder.CreateCall(abortFunc);
+    abortFuncCallInsn->removeFromParent();
+
+    elseElseBB->getInstList().push_back(abortFuncCallInsn);
+
+    llvm::Instruction *elseElseBBBrInsn = builder.CreateBr(retBB);
+    elseElseBBBrInsn->removeFromParent();
+    elseElseBB->getInstList().push_back(elseElseBBBrInsn);
+
+    llvm::LoadInst *retValueRef = builder.CreateLoad(localVarRef1, "");
+    retValueRef->removeFromParent();
+    retBB->getInstList().push_back(retValueRef);
+
+    llvm::Instruction *retValue = builder.CreateRet(retValueRef);
+    retValue->removeFromParent();
+    retBB->getInstList().push_back(retValue);
+    return newFunc;
 }
 
 } // namespace nballerina
