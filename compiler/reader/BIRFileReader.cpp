@@ -22,7 +22,7 @@
 
 namespace nballerina {
 
-BIRFileReader::BIRFileReader(std::string FileName) { is.open(FileName, std::ifstream::binary); }
+BIRFileReader::BIRFileReader(const std::string &FileName) { is.open(FileName, std::ifstream::binary); }
 
 std::shared_ptr<Package> BIRFileReader::deserialize(const std::string &FileName) {
     // Open File

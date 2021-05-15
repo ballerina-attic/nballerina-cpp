@@ -29,7 +29,7 @@ namespace nballerina {
 class BIRFileReader : public Parser {
   private:
     std::ifstream is;
-    BIRFileReader(std::string FileName);
+    BIRFileReader(const std::string &FileName);
 
     uint8_t readU1() override;
     int16_t readS2be() override;
