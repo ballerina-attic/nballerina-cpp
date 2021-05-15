@@ -16,13 +16,11 @@
  * under the License.
  */
 
-#include "BIRReader.h"
 #include "bir/Package.h"
 #include "codegen/CodeGenerator.h"
+#include "reader/BIRFileReader.h"
 #include <iostream>
 #include <string>
-
-nballerina::BIRReader nballerina::BIRReader::reader;
 
 std::string removeExtension(const std::string &path) {
     size_t pos = path.find_last_of("\\/.");
@@ -60,9 +58,7 @@ int main(int argc, char **argv) {
         outFileName = outFileName + ".ll";
     }
 
-    nballerina::BIRReader::reader.setFileStream(inFileName);
-
-    auto birPackage = nballerina::BIRReader::reader.deserialize();
+    auto birPackage = nballerina::BIRFileReader::deserialize(inFileName);
 
     // Codegen
     return nballerina::CodeGenerator::generateLLVMIR(*birPackage, outFileName);
