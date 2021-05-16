@@ -61,14 +61,16 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
 
         // Create constant elements initializer of balAsciiString members
         llvm::ArrayRef<llvm::Constant *> elements = {header, size, static_cast<llvm::Constant *>(valueRef)};
-        auto *structType = static_cast<llvm::StructType *> (CodeGenUtils::getLLVMTypeOfType(obj.typeTag,
-         moduleGenerator.getModule()));
+        auto *structType = static_cast<llvm::StructType *>(
+            CodeGenUtils::getLLVMTypeOfTypeStruct(obj.typeTag, moduleGenerator.getModule()));
 
         // Create constant struct object of balAsciiString
         auto *constStruct = llvm::ConstantStruct::get(structType, elements);
         auto *globalStruct = new llvm::GlobalVariable(moduleGenerator.getModule(), structType, true,
                                                       llvm::GlobalValue::PrivateLinkage, constStruct, "bal_string");
-        constRef = builder.CreateLoad(globalStruct);
+        auto *ptr = new llvm::GlobalVariable(moduleGenerator.getModule(), llvm::PointerType::get(structType, 0), true,
+                                             llvm::GlobalValue::PrivateLinkage, globalStruct, "ptr");
+        constRef = builder.CreateLoad(ptr);
         break;
     }
     case TYPE_TAG_NIL: {

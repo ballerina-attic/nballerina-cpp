@@ -35,6 +35,7 @@ class CodeGenUtils {
 
     static llvm::Type *getLLVMTypeOfType(const Type &type, llvm::Module &module);
     static llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module);
+    static llvm::Type *getLLVMTypeOfTypeStruct(TypeTag typeTag, llvm::Module &module);
     static llvm::Value *getGlobalNilVar(llvm::Module &module);
     static llvm::FunctionCallee getAbortFunc(llvm::Module &module);
     static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module, TypeTag memTypeTag);
