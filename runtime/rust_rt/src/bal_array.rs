@@ -25,7 +25,7 @@ pub mod dynamic_array {
     use std::mem;
 
     #[repr(C)]
-    pub struct DynamicBalArray<T: Copy> {
+    pub struct DynamicBalArray<T:Copy> {
         header: i64,
         inherent_type: BalType,
         length: i64,   // largest index of an element stored in the array + 1
@@ -34,7 +34,7 @@ pub mod dynamic_array {
     }
 
     #[repr(C)]
-    struct DynamicArray<T: Copy> {
+    struct DynamicArray<T:Copy> {
         header: u64,
         values: [T],
     }

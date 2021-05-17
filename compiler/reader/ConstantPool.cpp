@@ -459,15 +459,14 @@ int64_t ConstantPoolSet::getIntCp(int32_t index) {
     return intCp->getValue();
 }
 
-
 // Search byte from the constant pool based on index
 uint8_t ConstantPoolSet::getByteCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BYTE);
     auto *byteCp = static_cast<ByteCpInfo *>(poolEntry);
     int32_t value = byteCp->getValue();
-    assert(value>=0 && value<=255);
-    return (uint8_t) value;
+    assert(value >= 0 && value <= 255);
+    return (uint8_t)value;
 }
 
 // Search float from the constant pool based on index

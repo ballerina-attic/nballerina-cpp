@@ -42,9 +42,11 @@ void NonTerminatorInsnCodeGen::visit(ArrayLoadInsn &obj, llvm::IRBuilder<> &buil
 
     auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
     auto *rhsOpTempRef = functionGenerator.createTempVal(obj.rhsOp, builder);
+    auto *bitCastRhsOpTempRef = builder.CreateBitCast(
+        rhsOpTempRef, builder.getInt8PtrTy(), "");
     auto *keyOpTempRef = functionGenerator.createTempVal(obj.keyOp, builder);
     auto *valueInArrayPointer =
-        builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({rhsOpTempRef, keyOpTempRef}));
+        builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({bitCastRhsOpTempRef, keyOpTempRef}));
 
     if (!Type::isBalValueType(lhsOpTypeTag)) {
         builder.CreateStore(valueInArrayPointer, lhsOpRef);
@@ -61,9 +63,11 @@ void NonTerminatorInsnCodeGen::visit(ArrayStoreInsn &obj, llvm::IRBuilder<> &bui
     auto *memVal = Type::isBalValueType(rhsOpTypeTag) ? functionGenerator.getLocalOrGlobalVal(obj.rhsOp)
                                                       : functionGenerator.createTempVal(obj.rhsOp, builder);
     auto *lhsOpTempRef = builder.CreateLoad(lhsOpRef);
+    auto *bitCastLhsOpTempRef = builder.CreateBitCast(
+        lhsOpTempRef, builder.getInt8PtrTy(), "");
     auto *keyOpTempRef = functionGenerator.createTempVal(obj.keyOp, builder);
 
-    builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({lhsOpTempRef, keyOpTempRef, memVal}));
+    builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({bitCastLhsOpTempRef, keyOpTempRef, memVal}));
 }
 
 } // namespace nballerina
