@@ -102,8 +102,9 @@ void bal_map_insert(BalMapPtr map, BalStringPtr key, BalValue value) {
 }
 
 static bool bal_map_lookup_with_hash(BalMapPtr map, BalStringPtr key, BalValue *outValue, unsigned long hash) {
-    size_t i = hash & (map->n_entries - 1);
-    if (i >= map->n_entries) {
+    size_t n_entries = map->n_entries;
+    size_t i = hash & (n_entries - 1);
+    if (i >= n_entries) {
         fprintf(stderr, "Unexpected hashing failure!\n");
         abort();
     }
@@ -120,7 +121,7 @@ static bool bal_map_lookup_with_hash(BalMapPtr map, BalStringPtr key, BalValue *
         if (i > 0) {
             --i;
         } else {
-            i = map->n_entries - 1;
+            i = n_entries - 1;
         }
     }
 }
