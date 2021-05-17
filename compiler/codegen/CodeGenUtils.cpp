@@ -180,21 +180,6 @@ llvm::FunctionCallee CodeGenUtils::getArrayLoadFunc(llvm::Module &module, TypeTa
     return module.getOrInsertFunction(arrayTypeFuncName, funcType);
 }
 
-llvm::FunctionCallee CodeGenUtils::getMapLoadFunc(llvm::Module &module, TypeTag memTypeTag) {
-    auto *funcType = llvm::FunctionType::get(
-        llvm::Type::getInt8Ty(module.getContext()),
-        llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
-                                      CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_CHAR_STRING, module),
-                                      llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(memTypeTag, module), 0)}),
-        false);
-    return module.getOrInsertFunction("map_load_" + Type::getNameOfType(memTypeTag), funcType);
-}
-
-llvm::FunctionCallee CodeGenUtils::getNewMapInitFunc(llvm::Module &module, TypeTag memTypeTag) {
-    auto *funcType = llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()), false);
-    return module.getOrInsertFunction("map_new_" + Type::getNameOfType(memTypeTag), funcType);
-}
-
 llvm::FunctionCallee CodeGenUtils::getMapSpreadFieldInitFunc(llvm::Module &module) {
     auto *funcType =
         llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
