@@ -103,9 +103,7 @@ void FunctionCodeGen::visit(Function &obj, llvm::IRBuilder<> &builder) {
         generator.visit(bb, builder);
     }
 
-    if (llvm::verifyFunction(*llvmFunction, &llvm::outs())) {
-        llvm_unreachable("LLVM function verification failed");
-    };
+    assert(!llvm::verifyFunction(*llvmFunction, &llvm::outs()));
 }
 
 } // namespace nballerina

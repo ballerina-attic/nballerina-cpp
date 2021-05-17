@@ -91,9 +91,7 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
         globalStrTable->setInitializer(llvm::dyn_cast<llvm::Constant>(bitCastRes));
     }
 
-    if (llvm::verifyModule(module, &llvm::outs())) {
-        llvm_unreachable("LLVM module verification failed");
-    };
+    assert(!llvm::verifyModule(module, &llvm::outs()));
 }
 
 void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
