@@ -37,10 +37,7 @@ class CodeGenUtils {
     static llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module);
     static llvm::Value *getGlobalNilVar(llvm::Module &module);
     static llvm::FunctionCallee getAbortFunc(llvm::Module &module);
-    static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module, TypeTag memTypeTag);
     static llvm::FunctionCallee getMapSpreadFieldInitFunc(llvm::Module &module);
-    static llvm::FunctionCallee getMapStoreFunc(llvm::Module &module, TypeTag memTypeTag);
-    static llvm::FunctionCallee getMapLoadFunc(llvm::Module &module, TypeTag memTypeTag);
     static llvm::FunctionCallee getStringInitFunc(llvm::Module &module);
     static llvm::FunctionCallee getArrayStoreFunc(llvm::Module &module, TypeTag memberTypeTag);
     static llvm::FunctionCallee getArrayInitFunc(llvm::Module &module, TypeTag memberTypeTag);
@@ -49,6 +46,9 @@ class CodeGenUtils {
     static llvm::FunctionCallee getIsSameTypeFunc(llvm::Module &module, llvm::Value *lhs, llvm::Value *rhs);
     static llvm::FunctionCallee replaceProtoFunc(const std::string &funcName, llvm::Module &destModule, llvm::Module &srcModule);
     static std::unique_ptr<llvm::Module> parseLLFile(llvm::LLVMContext &mContext,const std::string &fileName);
+    static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module);
+    static llvm::FunctionCallee getMapLoadFunc(llvm::Module &module);
+    static llvm::FunctionCallee getMapStoreFunc(llvm::Module &module);
 };
 
 } // namespace nballerina

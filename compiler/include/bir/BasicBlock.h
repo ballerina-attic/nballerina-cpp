@@ -52,7 +52,7 @@ class BasicBlock : public Debuggable {
     void addNonTermInsn(std::unique_ptr<NonTerminatorInsn> insn);
 
     friend class BasicBlockCodeGen;
-    friend class BIRReader;
+    friend class BIRReadBasicBlock;
 };
 
 } // namespace nballerina
