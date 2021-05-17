@@ -27,6 +27,7 @@
 namespace nballerina {
 
 class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantLoadInsn> {
+
   private:
     TypeTag typeTag;
     std::variant<int64_t, double, bool, int8_t, std::string> value;
@@ -44,6 +45,32 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_STRING), value(std::move(str)) {}
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_NIL) {}
+
+    static std::unique_ptr<ConstantLoadInsn> createIntConstLoad(Operand lhs, BasicBlock &currentBB, int64_t intVal) {
+        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, intVal);
+    }
+
+    static std::unique_ptr<ConstantLoadInsn> createByteConstLoad(Operand lhs, BasicBlock &currentBB, int8_t byteVal) {
+        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, byteVal);
+    }
+
+    static std::unique_ptr<ConstantLoadInsn> createFloatConstLoad(Operand lhs, BasicBlock &currentBB,
+                                                                  double doubleVal) {
+        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, doubleVal);
+    }
+
+    static std::unique_ptr<ConstantLoadInsn> createBoolConstLoad(Operand lhs, BasicBlock &currentBB, bool boolVal) {
+        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, boolVal);
+    }
+
+    static std::unique_ptr<ConstantLoadInsn> createStringConstLoad(Operand lhs, BasicBlock &currentBB,
+                                                                   std::string str) {
+        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, str);
+    }
+
+    static std::unique_ptr<ConstantLoadInsn> createNullConstLoad(Operand lhs, BasicBlock &currentBB) {
+        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB);
+    }
     friend class NonTerminatorInsnCodeGen;
 };
 
