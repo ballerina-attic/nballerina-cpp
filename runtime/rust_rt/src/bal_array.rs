@@ -53,7 +53,7 @@ pub mod dynamic_array {
             let dynamic_array =
                 std::ptr::slice_from_raw_parts_mut(raw_ptr, layout.size()) as *mut DynamicArray<T>;
             return DynamicBalArray {
-                header: 0,
+                header: header,
                 inherent_type: BalType::Int,
                 length: 0,
                 capacity: size_t,
