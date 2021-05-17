@@ -50,18 +50,9 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_ARRAY:
     case TYPE_TAG_NIL:
     case TYPE_TAG_ANY:
-        return llvm::Type::getInt8PtrTy(context);
+    case TYPE_TAG_ANYDATA:
     case TYPE_TAG_UNION:
-    case TYPE_TAG_ANYDATA: {
-        auto *type = module.getTypeByName("struct.smtPtr");
-        if (type != nullptr) {
-            return type;
-        }
-        return llvm::StructType::create(
-            context,
-            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
-            "struct.smtPtr");
-    }
+        return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_TYPEDESC:
         return llvm::Type::getInt64Ty(context);
     default:
