@@ -18,14 +18,17 @@
  */
 
 // Rust Library
-
 mod type_checker;
+pub use type_checker::BalType;
 
 use std::ffi::c_void;
 use std::ffi::CStr;
 use std::io::{self, Write};
 use std::mem;
 use std::os::raw::c_char;
+
+mod bal_array;
+pub use bal_array::dynamic_array::DynamicBalArray;
 
 pub struct BString {
     value: &'static str,
@@ -104,12 +107,10 @@ pub extern "C" fn print_boolean(num8: i8) {
 }
 
 #[no_mangle]
-pub extern "C" fn array_init_int(size: i64) -> *mut Vec<i64> {
-    let size_t = if size > 0 { size } else { 8 };
-    let size_t = size_t as usize;
-    let foo: Box<Vec<i64>> = Box::new(Vec::with_capacity(size_t));
-    let vec_pointer = Box::into_raw(foo);
-    return vec_pointer as *mut Vec<i64>;
+pub extern "C" fn array_init_int(size: i64) -> *mut DynamicBalArray {
+    let array: Box<DynamicBalArray> = Box::new(DynamicBalArray::new(size));
+    let array_pointer = Box::into_raw(array);
+    return array_pointer as *mut DynamicBalArray;
 }
 
 #[no_mangle]
@@ -149,26 +150,18 @@ pub extern "C" fn array_init_anydata(size: i32) -> *mut Vec<*mut c_void> {
 }
 
 #[no_mangle]
-pub extern "C" fn array_store_int(arr_ptr: *mut Vec<i64>, index: i64, ref_ptr: i64) {
+pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray, index: i64, ref_ptr: i64) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
-    let index_n = index as usize;
-    let len = index_n + 1;
-    if arr.len() < len {
-        arr.resize(len, 0);
-    }
-    arr[index_n] = ref_ptr;
+    arr.set_element(index, ref_ptr);
     mem::forget(arr);
 }
 
 #[no_mangle]
-pub extern "C" fn array_load_int(arr_ptr: *mut Vec<i64>, index: i64) -> i64 {
+pub extern "C" fn array_load_int(arr_ptr: *mut DynamicBalArray, index: i64) -> i64 {
     let arr = unsafe { Box::from_raw(arr_ptr) };
-    let index_n = index as usize;
-    // check the out of bounds.
-    assert!(arr.len() > index_n);
-    let return_val = arr[index_n];
+    let value = arr.get_element(index);
     mem::forget(arr);
-    return return_val;
+    return value;
 }
 
 #[no_mangle]
