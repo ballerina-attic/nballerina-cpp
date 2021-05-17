@@ -25,7 +25,7 @@ pub mod dynamic_array {
     use std::mem;
 
     #[repr(C)]
-    pub struct DynamicBalArray<T:Copy> {
+    pub struct DynamicBalArray<T: Copy> {
         header: i64,
         inherent_type: BalType,
         length: i64,   // largest index of an element stored in the array + 1
@@ -34,30 +34,31 @@ pub mod dynamic_array {
     }
 
     #[repr(C)]
-    struct DynamicArray<T:Copy> {
+    struct DynamicArray<T: Copy> {
         header: u64,
         values: [T],
     }
 
-    impl<T:Copy> DynamicBalArray<T> {
+    impl<T: Copy> DynamicBalArray<T> {
         pub fn new(size: i64) -> DynamicBalArray<T> {
             let size_t = if size > 0 { size } else { 8 };
             let layout = DynamicBalArray::<T>::get_layout(size_t);
+            let raw_ptr;
             unsafe {
-                let raw_ptr = alloc_zeroed(layout);
-                if raw_ptr.is_null() {
-                    panic!("Array initialization failed");
-                }
-                let dynamic_array =
-                    std::ptr::slice_from_raw_parts_mut(raw_ptr, layout.size()) as *mut DynamicArray<T>;
-                return DynamicBalArray {
-                    header: 0,
-                    inherent_type: BalType::Int,
-                    length: 0,
-                    capacity: size_t,
-                    array: dynamic_array,
-                };
+                raw_ptr = alloc_zeroed(layout);
             }
+            if raw_ptr.is_null() {
+                panic!("Array initialization failed");
+            }
+            let dynamic_array =
+                std::ptr::slice_from_raw_parts_mut(raw_ptr, layout.size()) as *mut DynamicArray<T>;
+            return DynamicBalArray {
+                header: 0,
+                inherent_type: BalType::Int,
+                length: 0,
+                capacity: size_t,
+                array: dynamic_array,
+            };
         }
 
         fn get_layout(capacity: i64) -> Layout {
@@ -99,12 +100,6 @@ pub mod dynamic_array {
                 self.grow_array(self.capacity, new_size);
                 let old_capacity = self.capacity;
                 self.capacity = new_size;
-                // TODO: fix explicit filling of array with default value
-                // if new_size > old_capacity {
-                //     for i in old_capacity..new_size {
-                //         self.set_element(i, 0);
-                //     }
-                // }
             }
             unsafe {
                 (*self.array).values[usize::try_from(index).unwrap()] = value;
