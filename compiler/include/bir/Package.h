@@ -48,7 +48,8 @@ class Package {
     const Variable &getGlobalVariable(const std::string &name) const;
 
     friend class PackageCodeGen;
-    friend class BIRReader;
+    friend class BIRReadPackage;
+    friend class BIRReadFunction;
 };
 
 } // namespace nballerina

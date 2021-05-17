@@ -1,7 +1,7 @@
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CARGO_CMD cargo build --verbose)
 else ()
-    set(CARGO_CMD cargo build --release --verbose)
+    set(CARGO_CMD cargo build --release)
 endif ()
 
 # Flags to enable C++/Rust LTO
@@ -16,7 +16,7 @@ add_custom_target(libballerina_rt
 # Add seperate (optional) target to generate header file for runtime lib using cbindgen
 add_custom_target(runtime_header
   COMMENT "Generate C header file for runtime lib"
-  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/runtime"
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/runtime/rust_rt"
   COMMAND cbindgen --config cbindgen.toml --crate BallerinaRT --output include/ballerina_rt.h
   DEPENDS libballerina_rt)
 

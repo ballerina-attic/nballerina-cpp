@@ -13,10 +13,14 @@ jobs:
       - name: Install utils
         run: | 
           sudo apt update
-          sudo apt install -y build-essential llvm-11-dev lld-11 cmake cargo python3-pip
-          cargo install cbindgen
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          sudo apt install -y build-essential llvm-11-dev lld-11 cmake python3-pip libgtest-dev
           pip3 install lit filecheck
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: 1.49.0
+            override: true
 
       - name: Install JRE 11
         uses: actions/setup-java@v1
@@ -30,12 +34,8 @@ jobs:
 
       - name: Build nballerinacc
         run: | 
-          cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-11 -DCMAKE_C_COMPILER=clang-11 -DSKIP_BIR_GEN=ON -S . -B build/
           cmake --build ./build/ -- -j
-      
-      - name: Build runtime header
-        run: | 
-          cmake --build ./build/ -t runtime_header
       
       - name: Setup Ballerina pack
         run: |
@@ -51,3 +51,12 @@ jobs:
         run: | 
           cmake --build ./build/ -t check
         working-directory: ./
+
+      - name: Build nballerinacc with Sanitizers ON
+        run: | 
+          cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_ANALYSE=OFF -S . -B build/
+          cmake --build ./build/ -- -j
+
+      - name: Run LIT tests with Sanitizers ON
+        run: | 
+          cmake --build ./build/ -t check
