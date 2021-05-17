@@ -39,14 +39,17 @@ pub struct BString {
 #[repr(C)]
 pub struct BalAsciiString {
     header: u64,
-    n_bytes: i64,
-    bytes: &'static[char],
+    n_bytes: u64,
+    bytes: *const u8,
 }
 
 #[no_mangle]
 pub extern "C" fn print_string(ascii_ptr: *const BalAsciiString) {
     assert!(!ascii_ptr.is_null());
-    print!("{:?}", unsafe { (*ascii_ptr).bytes });
+    let ptr = unsafe { (*ascii_ptr).bytes };
+    for i in 0..unsafe { (*ascii_ptr).n_bytes } {
+        print!("{}", unsafe { *ptr.offset(i as isize) } as char);
+    }
     io::stdout().flush().unwrap();
 }
 
