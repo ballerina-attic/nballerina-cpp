@@ -25,10 +25,12 @@
 namespace nballerina {
 
 class InlinePregeneratedFunctions {
+  private:
+    std::unique_ptr<llvm::Module> srcMod;
 
   public:
-
-    static void patch(llvm::Module &mod, std::unique_ptr<llvm::Module> &srcMod);
+    InlinePregeneratedFunctions();
+    void patch(llvm::Module &mod);
 };
 
 } // namespace nballerina

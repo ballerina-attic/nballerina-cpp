@@ -1,6 +1,6 @@
 // config.h is an automatically generated header file. Use "runtime/common/config.h.in" to add/edit configuration
 // parameters.
-#ifndef LL_PATH_CONFIG
+#ifndef LL_FILE_PATH
 #define LL_FILE_PATH "@PROJECT_SOURCE_DIR@/runtime/common/"
 
 #endif

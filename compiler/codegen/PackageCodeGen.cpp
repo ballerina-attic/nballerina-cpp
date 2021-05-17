@@ -27,7 +27,7 @@
 namespace nballerina {
 
 PackageCodeGen::PackageCodeGen(llvm::Module &module)
-    : module(module), globalStrTable(nullptr), globalStrTable2(nullptr), srcMod(nullptr) {}
+    : module(module), globalStrTable(nullptr), globalStrTable2(nullptr) {}
 
 llvm::Module &PackageCodeGen::getModule() { return module; }
 
@@ -92,7 +92,8 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
         globalStrTable->setInitializer(llvm::dyn_cast<llvm::Constant>(bitCastRes));
     }
 
-    InlinePregeneratedFunctions::patch(module, srcMod);
+    InlinePregeneratedFunctions functionDefiner;
+    functionDefiner.patch(module);
 }
 
 void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,

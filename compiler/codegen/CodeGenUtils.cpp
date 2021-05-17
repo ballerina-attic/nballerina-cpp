@@ -178,15 +178,11 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
 std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mContext, const std::string &fileName) {
     llvm::SMDiagnostic Err;
     std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile(LL_FILE_PATH + fileName, Err, mContext);
-    if (!srcModule) {
+    if (srcModule.get() == nullptr) {
         std::cerr << "Error opening ll file" << std::endl;
         abort();
     }
-    llvm::Module *M = srcModule.get();
-    if (!M) {
-        std::cerr << "Error loading module from ll file" << std::endl;
-        abort();
-    }
+
     return srcModule;
 }
 

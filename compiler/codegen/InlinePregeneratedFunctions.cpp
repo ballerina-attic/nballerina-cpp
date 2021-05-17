@@ -21,8 +21,10 @@
 
 namespace nballerina {
 
+InlinePregeneratedFunctions::InlinePregeneratedFunctions() : srcMod(nullptr) {}
+
 // inject addx function
-void InlinePregeneratedFunctions::patch(llvm::Module &mod, std::unique_ptr<llvm::Module> &srcMod) {
+void InlinePregeneratedFunctions::patch(llvm::Module &mod) {
     const std::string addFuncName = "addx";
     const std::string addSrcFile = "addx.ll";
     auto addxFunc = mod.getFunction(addFuncName);
