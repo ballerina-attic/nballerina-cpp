@@ -35,20 +35,6 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(const Type &type, llvm::Module &modu
     return getLLVMTypeOfType(type.getTypeTag(), module);
 }
 
-llvm::Type *CodeGenUtils::getLLVMTypeOfTypeStruct(TypeTag typeTag, llvm::Module &module) {
-    assert(typeTag == TYPE_TAG_CHAR_STRING || typeTag == TYPE_TAG_STRING);
-    auto &context = module.getContext();
-    auto *type = module.getTypeByName("struct.balAsciiString");
-    if (type != nullptr) {
-        return type;
-    }
-    return llvm::StructType::create(
-        context,
-        llvm::ArrayRef<llvm::Type *>(
-            {llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
-        "struct.balAsciiString");
-}
-
 llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module) {
     auto &context = module.getContext();
     switch (typeTag) {
@@ -169,7 +155,7 @@ llvm::FunctionCallee CodeGenUtils::getMapLoadFunc(llvm::Module &module, TypeTag 
     auto *funcType = llvm::FunctionType::get(
         llvm::Type::getInt8Ty(module.getContext()),
         llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
-                                      llvm::Type::getInt8PtrTy(module.getContext()),
+                                      CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_CHAR_STRING, module),
                                       llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(memTypeTag, module), 0)}),
         false);
     return module.getOrInsertFunction("map_load_" + Type::getNameOfType(memTypeTag), funcType);

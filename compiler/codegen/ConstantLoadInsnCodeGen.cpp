@@ -46,6 +46,8 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
     }
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
+        auto &module = moduleGenerator.getModule();
+        auto &context = module.getContext();
         std::string stringValue = std::get<std::string>(obj.value);
         // Header, Length and String
         const unsigned int HEADER = 0b000110;
@@ -61,8 +63,19 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
 
         // Create constant elements initializer of balAsciiString members
         llvm::ArrayRef<llvm::Constant *> elements = {header, size, static_cast<llvm::Constant *>(valueRef)};
-        auto *structType = static_cast<llvm::StructType *>(
-            CodeGenUtils::getLLVMTypeOfTypeStruct(obj.typeTag, moduleGenerator.getModule()));
+
+        // Fetch or create llvm::StructType
+        auto *type = module.getTypeByName("struct.balAsciiString");
+        llvm::StructType *structType = nullptr;
+        if (type != nullptr) {
+            structType = type;
+        } else {
+            structType = llvm::StructType::create(
+                context,
+                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context),
+                                              llvm::Type::getInt8PtrTy(context)}),
+                "struct.balAsciiString");
+        }
 
         // Create constant struct object of balAsciiString
         auto *constStruct = llvm::ConstantStruct::get(structType, elements);
