@@ -384,7 +384,7 @@ void FloatCpInfo::read(Parser &reader) { value = reader.readS8bef(); }
 
 ByteCpInfo::ByteCpInfo() { setTag(TAG_ENUM_CP_ENTRY_BYTE); }
 
-void ByteCpInfo::read(Parser &reader) { value = reader.readU1(); }
+void ByteCpInfo::read(Parser &reader) { value = reader.readS4be(); }
 
 void ConstantPoolSet::read(Parser &reader) {
 
@@ -457,6 +457,15 @@ int64_t ConstantPoolSet::getIntCp(int32_t index) {
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER);
     auto *intCp = static_cast<IntCpInfo *>(poolEntry);
     return intCp->getValue();
+}
+
+
+// Search byte from the constant pool based on index
+int64_t ConstantPoolSet::getByteCp(int32_t index) {
+    ConstantPoolEntry *poolEntry = getEntry(index);
+    assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BYTE);
+    auto *byteCp = static_cast<ByteCpInfo *>(poolEntry);
+    return byteCp->getValue();
 }
 
 // Search float from the constant pool based on index

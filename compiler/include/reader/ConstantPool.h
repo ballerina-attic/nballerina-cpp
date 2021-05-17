@@ -210,6 +210,7 @@ class ConstantPoolSet {
     ConstantPoolEntry *getEntry(int index) { return poolEntries[index].get(); }
     std::string getStringCp(int32_t index);
     int64_t getIntCp(int32_t index);
+    int64_t getByteCp(int32_t index);
     Type getTypeCp(int32_t index, bool voidToInt);
     double getFloatCp(int32_t index);
     bool getBooleanCp(int32_t index);
