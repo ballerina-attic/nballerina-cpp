@@ -17,20 +17,15 @@
  */
 
 #include "include/smtptr.h"
+#include "include/gc.h"
 #include <stdio.h>
 
-// Placeholder for GC allocator
-static void *gc_alloc(size_t size) {
-    void *retVal = malloc(size);
-    return retVal;
-}
-
 SmtPtr *getSmtPtrFromInt(int64_t value) {
-    SmtPtr *ptr = (SmtPtr *)gc_alloc(sizeof(SmtPtr));
-    char* type = (char*)gc_alloc(sizeof(char)*4);
+    SmtPtr *ptr = ALLOC_FIXED_VALUE(SmtPtr);
+    char* type = (char*)alloc_array(4,sizeof(char));
     strcpy(type, "__I\0");
     ptr->inherent_type_ptr = type;
-    int64_t* val_ptr = (int64_t*)gc_alloc(sizeof(int64_t));
+    int64_t* val_ptr = ALLOC_FIXED_VALUE(int64_t);
     *val_ptr = value;
     ptr->value_ptr = val_ptr;
     return ptr;
@@ -38,11 +33,11 @@ SmtPtr *getSmtPtrFromInt(int64_t value) {
 
 
 SmtPtr *getSmtPtrFromByte(int8_t value) {
-    SmtPtr *ptr = (SmtPtr *)gc_alloc(sizeof(SmtPtr));
-    char* type = (char*)gc_alloc(sizeof(char)*4);
+    SmtPtr *ptr = ALLOC_FIXED_VALUE(SmtPtr);
+    char* type = (char*)alloc_array(4,sizeof(char));
     strcpy(type, "__Y\0");
     ptr->inherent_type_ptr = type;
-    int8_t* val_ptr = (int8_t*)gc_alloc(sizeof(int8_t));
+    int64_t* val_ptr = ALLOC_FIXED_VALUE(int64_t);
     *val_ptr = value;
     ptr->value_ptr = val_ptr;
     return ptr;

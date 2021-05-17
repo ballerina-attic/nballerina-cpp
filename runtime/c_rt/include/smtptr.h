@@ -23,9 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Placeholder for GC allocator
-static void *gc_alloc(size_t size);
-
 typedef struct SmtPtr {
     void *inherent_type_ptr;
     void *value_ptr;

@@ -98,7 +98,6 @@ pub mod dynamic_array {
                 let repeat = (index / (self.capacity * GROWTH_FACTOR)) + 1;
                 let new_size = self.capacity * GROWTH_FACTOR * repeat;
                 self.grow_array(self.capacity, new_size);
-                let old_capacity = self.capacity;
                 self.capacity = new_size;
             }
             unsafe {
