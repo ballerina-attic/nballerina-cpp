@@ -57,7 +57,7 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_ARRAY: {
         // TODO: remove this once other array types are supported
         /*
-           Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+           Runtime implements this type only for int and byte arrays. Other arrays are still of the type Int8PtrTy.
            Though LLVM ir generated assume all array types to be this type it will be silently ignored by the
            runtime.
         */
@@ -115,7 +115,7 @@ llvm::FunctionCallee CodeGenUtils::getArrayInitFunc(llvm::Module &module, TypeTa
     const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
     // TODO: remove this once other array types are supported
     /*
-        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        Runtime implements this type only for int and byte arrays. Other arrays are still of the type Int8PtrTy.
         This difference is silently ignored by the runtime.
     */
     auto *funcType =
@@ -128,7 +128,7 @@ llvm::FunctionCallee CodeGenUtils::getArrayStoreFunc(llvm::Module &module, TypeT
     const auto arrayTypeFuncName = "array_store_" + Type::getNameOfType(memberTypeTag);
     // TODO: remove this once other array types are supported
     /*
-        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        Runtime implements this type only for int and byte arrays. Other arrays are still of the type Int8PtrTy.
         This difference is silently ignored by the runtime.
     */
     llvm::Type *memType = Type::isBalValueType(memberTypeTag)
@@ -150,7 +150,8 @@ llvm::FunctionCallee CodeGenUtils::getArrayLoadFunc(llvm::Module &module, TypeTa
                                   : CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module);
     // TODO: remove this once other array types are supported
     /*
-        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        Runtime implements this type only for int and byte    case TYPE_TAG_BYTE:
+        return "byte"; arrays. Other arrays are still of the type Int8PtrTy.
         This difference is silently ignored by the runtime.
     */
     auto *funcType =

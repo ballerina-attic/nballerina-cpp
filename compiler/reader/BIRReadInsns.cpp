@@ -205,13 +205,20 @@ void BIRReadInsn::ReadConstLoadInsn(BasicBlock &currentBB, Parser &reader, Const
     case TYPE_TAG_SIGNED8_INT:
     case TYPE_TAG_SIGNED16_INT:
     case TYPE_TAG_SIGNED32_INT:
-    case TYPE_TAG_DECIMAL:
-    case TYPE_TAG_BYTE: {
+    case TYPE_TAG_DECIMAL:{
         int32_t valueCpIndex = reader.readS4be();
         currentBB.addNonTermInsn(
             std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, (int64_t)cp.getIntCp(valueCpIndex)));
         return;
     }
+
+    case TYPE_TAG_BYTE: {
+        int32_t valueCpIndex = reader.readS4be();
+        currentBB.addNonTermInsn(
+            std::make_unique<ConstantLoadInsn>(std::move(lhsOp), currentBB, (int8_t)cp.getByteCp(valueCpIndex)));
+        return;
+    }
+
     case TYPE_TAG_BOOLEAN: {
         uint8_t boolean_constant = reader.readU1();
         if (boolean_constant == 0) {
