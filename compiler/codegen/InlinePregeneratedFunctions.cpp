@@ -28,8 +28,8 @@ void InlinePregeneratedFunctions::patch(llvm::Module &mod) {
     const std::string addFuncName = "addx";
     const std::string addSrcFile = "addx.ll";
     auto addxFunc = mod.getFunction(addFuncName);
-    if (addxFunc) {
-        if (!srcMod) {
+    if (addxFunc!=nullptr) {
+        if (srcMod==nullptr) {
             srcMod = CodeGenUtils::parseLLFile(mod.getContext(), addSrcFile);
         }
         CodeGenUtils::replaceProtoFunc(addFuncName, mod, *srcMod.get());

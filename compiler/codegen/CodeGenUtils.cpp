@@ -179,7 +179,7 @@ std::unique_ptr<llvm::Module> CodeGenUtils::parseLLFile(llvm::LLVMContext &mCont
     llvm::SMDiagnostic Err;
     std::unique_ptr<llvm::Module> srcModule = llvm::parseIRFile(LL_FILE_PATH + fileName, Err, mContext);
     if (srcModule.get() == nullptr) {
-        std::cerr << "Error opening ll file" << std::endl;
+        std::cerr << Err.getMessage().str() << std::endl;
         abort();
     }
 
@@ -192,7 +192,15 @@ llvm::FunctionCallee CodeGenUtils::replaceProtoFunc(const std::string &funcName,
         destModule.getOrInsertFunction(func.getName(), func.getFunctionType());
     }
     llvm::Function *destFunc = destModule.getFunction(funcName);
+    if (destFunc==nullptr){
+        std::cerr << funcName+" function not declared in module" << std::endl;
+        abort();
+    }
     llvm::Function *srcFunc = srcModule.getFunction(funcName);
+    if (srcFunc==nullptr){
+        std::cerr << funcName+" function not declared in source ll file" << std::endl;
+        abort();
+    }
     llvm::ValueToValueMapTy valuemap;
     for (auto srcArgs = srcFunc->arg_begin(), destArgs = destFunc->arg_begin(); srcArgs != srcFunc->arg_end();
          ++destArgs, ++srcArgs) {
