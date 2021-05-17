@@ -14,5 +14,11 @@ public function main() {
     byte a = arr1[index1];
     print_string("RESULT=");
     print_byte(a);
+    print_string("RESULT=");
+    print_byte(arr1[0]);
+    print_string("RESULT=");
+    print_byte(arr1[2]);
 }
 // CHECK: RESULT=10
+// CHECK: RESULT=1
+// CHECK: RESULT=0
