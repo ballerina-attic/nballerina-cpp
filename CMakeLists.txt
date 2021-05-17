@@ -5,8 +5,9 @@ endif()
 
 project(nballerina VERSION 0.0.1 LANGUAGES CXX)
 
-# Add runtime project
-add_subdirectory(runtime)
+# Add runtime projects
+add_subdirectory(runtime/rust_rt)
+add_subdirectory(runtime/c_rt)
 
 # Add compiler
 add_subdirectory(compiler)

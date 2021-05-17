@@ -16,26 +16,23 @@
  * under the License.
  */
 
-#ifndef __UNARYOPINSN__H__
-#define __UNARYOPINSN__H__
+#ifndef __BIRREADPACKAGE__H__
+#define __BIRREADPACKAGE__H__
 
-#include "interfaces/NonTerminatorInsn.h"
+#include "bir/Package.h"
+#include "interfaces/Parser.h"
+#include "reader/ConstantPool.h"
+#include <memory>
 
 namespace nballerina {
-
-class Operand;
-
-class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
+class BIRReadPackage {
   private:
-    Operand rhsOp;
-    InstructionKind kind;
+    static void readGlobalVar(Package &birPackage, Parser &reader, ConstantPoolSet &cp);
 
   public:
-    UnaryOpInsn(Operand lhs, BasicBlock &currentBB, Operand rhs, InstructionKind kind)
-        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhs)), kind(kind) {}
-    friend class NonTerminatorInsnCodeGen;
+    static std::shared_ptr<Package> readModule(Parser &reader, ConstantPoolSet &cp);
 };
 
 } // namespace nballerina
 
-#endif //!__UNARYOPINSN__H__
+#endif //!__BIRREADPACKAGE__H__

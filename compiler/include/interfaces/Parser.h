@@ -16,26 +16,25 @@
  * under the License.
  */
 
-#ifndef __UNARYOPINSN__H__
-#define __UNARYOPINSN__H__
+#ifndef __PARSER__H__
+#define __PARSER__H__
 
-#include "interfaces/NonTerminatorInsn.h"
+#include <cstdint>
+#include <ios>
 
 namespace nballerina {
 
-class Operand;
-
-class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
-  private:
-    Operand rhsOp;
-    InstructionKind kind;
-
+class Parser {
   public:
-    UnaryOpInsn(Operand lhs, BasicBlock &currentBB, Operand rhs, InstructionKind kind)
-        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhs)), kind(kind) {}
-    friend class NonTerminatorInsnCodeGen;
+    virtual uint8_t readU1() = 0;
+    virtual int16_t readS2be() = 0;
+    virtual int32_t readS4be() = 0;
+    virtual int64_t readS8be() = 0;
+    virtual double readS8bef() = 0;
+    virtual void readChars(char *outBuff, std::streamsize length) = 0;
+    virtual void ignore(std::streamsize length) = 0;
 };
 
 } // namespace nballerina
 
-#endif //!__UNARYOPINSN__H__
+#endif //!__PARSER__H__

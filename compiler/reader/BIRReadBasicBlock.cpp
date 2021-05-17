@@ -16,26 +16,24 @@
  * under the License.
  */
 
-#ifndef __UNARYOPINSN__H__
-#define __UNARYOPINSN__H__
-
-#include "interfaces/NonTerminatorInsn.h"
+#include "reader/BIRReadBasicBlock.h"
+#include "reader/BIRReadInsns.h"
 
 namespace nballerina {
 
-class Operand;
+void BIRReadBasicBlock::readBasicBlock(Function &birFunction, Parser &reader, ConstantPoolSet &cp, bool ignore) {
+    int32_t nameCpIndex = reader.readS4be();
+    birFunction.basicBlocks.emplace_back(cp.getStringCp(nameCpIndex), &birFunction);
+    auto &basicBlock = birFunction.basicBlocks.back();
 
-class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
-  private:
-    Operand rhsOp;
-    InstructionKind kind;
-
-  public:
-    UnaryOpInsn(Operand lhs, BasicBlock &currentBB, Operand rhs, InstructionKind kind)
-        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhs)), kind(kind) {}
-    friend class NonTerminatorInsnCodeGen;
-};
+    int32_t insnCount = reader.readS4be();
+    basicBlock.instructions.reserve(insnCount);
+    for (auto i = 0; i < insnCount; i++) {
+        BIRReadInsn::readInsn(basicBlock, reader, cp);
+    }
+    if (ignore) {
+        birFunction.basicBlocks.pop_back();
+    }
+}
 
 } // namespace nballerina
-
-#endif //!__UNARYOPINSN__H__

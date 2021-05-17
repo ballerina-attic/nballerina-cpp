@@ -23,6 +23,7 @@
 #include "codegen/FunctionCodeGen.h"
 #include "codegen/InlinePregeneratedFunctions.h"
 #include <iostream>
+#include <llvm/IR/Verifier.h>
 
 namespace nballerina {
 
@@ -94,6 +95,7 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
 
     InlinePregeneratedFunctions functionDefiner;
     functionDefiner.patch(module);
+    assert(!llvm::verifyModule(module, &llvm::outs()));
 }
 
 void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,

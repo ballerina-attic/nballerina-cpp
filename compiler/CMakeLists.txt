@@ -24,7 +24,11 @@ ${PROJECT_SOURCE_DIR}/compiler/codegen/*.cpp
 file(GLOB BIR
 ${PROJECT_SOURCE_DIR}/compiler/bir/*.cpp
 )
-add_executable(nballerinacc ${SOURCES} ${CODEGEN} ${BIR})
+file(GLOB READER
+${PROJECT_SOURCE_DIR}/compiler/reader/*.cpp
+)
+
+add_executable(nballerinacc ${SOURCES} ${CODEGEN} ${BIR} ${READER})
 
 # Output to root of build directory
 set_target_properties( nballerinacc
@@ -35,7 +39,7 @@ set_target_properties( nballerinacc
 )
 
 # We want to build nballerinacc after the Runtime
-add_dependencies(nballerinacc libballerina_rt)
+add_dependencies(nballerinacc libballerina_rt ballerina_crt)
 
 # Find and like LLVM static libs
 llvm_map_components_to_libnames(llvm_libs codegen irreader)
@@ -87,12 +91,6 @@ if(DEBUG_MODE)
     endif()
 else()
     # Enable Link time optimizations for Release builds
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT result OUTPUT output)
-    if(result)
-        set(TARGET nballerinacc CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-        message(STATUS "LTO is enabled")
-    else()
-        message(SEND_ERROR "LTO is not supported: ${output}")
-    endif()
+    set(TARGET nballerinacc CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    message(STATUS "LTO is enabled")
 endif()
