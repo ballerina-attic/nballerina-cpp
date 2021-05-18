@@ -30,9 +30,8 @@ void NonTerminatorInsnCodeGen::visit(MapStoreInsn &obj, llvm::IRBuilder<> &build
     const auto &lhsVar = obj.getFunctionRef().getLocalOrGlobalVariable(obj.lhsOp);
     auto memberTypeTag = lhsVar.getType().getMemberTypeTag();
     Type::checkMapSupport(memberTypeTag);
-    llvm::Value *mapValue = Type::isSmartStructType(memberTypeTag)
-                                ? functionGenerator.getLocalOrGlobalVal(obj.rhsOp)
-                                : functionGenerator.createTempVal(obj.rhsOp, builder);
+    llvm::Value *mapValue = Type::isBalValueType(memberTypeTag) ? functionGenerator.getLocalOrGlobalVal(obj.rhsOp)
+                                                                : functionGenerator.createTempVal(obj.rhsOp, builder);
     builder.CreateCall(CodeGenUtils::getMapStoreFunc(moduleGenerator.getModule(), memberTypeTag),
                        llvm::ArrayRef<llvm::Value *>({functionGenerator.createTempVal(obj.lhsOp, builder),
                                                       functionGenerator.createTempVal(obj.keyOp, builder), mapValue}));
@@ -52,14 +51,14 @@ void NonTerminatorInsnCodeGen::visit(MapLoadInsn &obj, llvm::IRBuilder<> &builde
         builder.CreateCall(mapLoadFunction, llvm::ArrayRef<llvm::Value *>({rhsTemp, keyTemp, outParam}));
     // TODO check retVal and branch
     // if retVal is true
-    if (Type::isSmartStructType(memTypeTag)) {
+    if (Type::isBalValueType(memTypeTag)) {
         auto *outParamTemp = builder.CreateLoad(outParam);
         builder.CreateStore(outParamTemp, lhs);
     } else {
-        moduleGenerator.storeValueInSmartStruct(builder, outParam, Type(memTypeTag, ""), lhs);
+        moduleGenerator.createBalValue(builder, outParam, Type(memTypeTag, ""), lhs);
     }
     // else
-    // moduleGenerator.storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
+    // moduleGenerator.createBalValue(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
     // ""), lhs);
 }
 

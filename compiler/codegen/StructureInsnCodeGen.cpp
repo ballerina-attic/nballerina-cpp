@@ -59,7 +59,7 @@ void NonTerminatorInsnCodeGen::mapInitTranslate(StructureInsn &obj, const Variab
         }
         // For Key_Value_Kind
         const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
-        llvm::Value *mapValue = Type::isSmartStructType(memTypeTag)
+        llvm::Value *mapValue = Type::isBalValueType(memTypeTag)
                                     ? functionGenerator.getLocalOrGlobalVal(keyVal.getValue())
                                     : functionGenerator.createTempVal(keyVal.getValue(), builder);
         builder.CreateCall(mapStoreFunc, llvm::ArrayRef<llvm::Value *>(

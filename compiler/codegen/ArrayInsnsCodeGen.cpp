@@ -16,12 +16,12 @@
  * under the License.
  */
 
-#include "codegen/NonTerminatorInsnCodeGen.h"
 #include "bir/ArrayInstructions.h"
 #include "bir/Function.h"
 #include "bir/Types.h"
 #include "bir/Variable.h"
 #include "codegen/CodeGenUtils.h"
+#include "codegen/NonTerminatorInsnCodeGen.h"
 #include <string>
 
 namespace nballerina {
@@ -46,7 +46,7 @@ void NonTerminatorInsnCodeGen::visit(ArrayLoadInsn &obj, llvm::IRBuilder<> &buil
     auto *valueInArrayPointer =
         builder.CreateCall(ArrayLoadFunc, llvm::ArrayRef<llvm::Value *>({rhsOpTempRef, keyOpTempRef}));
 
-    if (!Type::isSmartStructType(lhsOpTypeTag)) {
+    if (!Type::isBalValueType(lhsOpTypeTag)) {
         builder.CreateStore(valueInArrayPointer, lhsOpRef);
         return;
     }
@@ -58,8 +58,8 @@ void NonTerminatorInsnCodeGen::visit(ArrayStoreInsn &obj, llvm::IRBuilder<> &bui
     const auto &rhsOpTypeTag = obj.getFunctionRef().getLocalOrGlobalVariable(obj.rhsOp).getType().getTypeTag();
     auto ArrayLoadFunc = CodeGenUtils::getArrayStoreFunc(moduleGenerator.getModule(), rhsOpTypeTag);
     auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
-    auto *memVal = Type::isSmartStructType(rhsOpTypeTag) ? functionGenerator.getLocalOrGlobalVal(obj.rhsOp)
-                                                         : functionGenerator.createTempVal(obj.rhsOp, builder);
+    auto *memVal = Type::isBalValueType(rhsOpTypeTag) ? functionGenerator.getLocalOrGlobalVal(obj.rhsOp)
+                                                      : functionGenerator.createTempVal(obj.rhsOp, builder);
     auto *lhsOpTempRef = builder.CreateLoad(lhsOpRef);
     auto *keyOpTempRef = functionGenerator.createTempVal(obj.keyOp, builder);
 
