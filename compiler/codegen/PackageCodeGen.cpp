@@ -21,7 +21,7 @@
 #include "bir/Package.h"
 #include "codegen/CodeGenUtils.h"
 #include "codegen/FunctionCodeGen.h"
-#include <iostream>
+#include <llvm/IR/Verifier.h>
 
 namespace nballerina {
 
@@ -46,8 +46,7 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
     globalStrTable->setAlignment(llvm::Align(4));
 
     // iterate over all global variables and translate
-    for (auto const &it : obj.globalVars) {
-        auto const &globVar = it.second;
+    for (auto const &globVar : obj.globalVars) {
         auto *varTyperef = CodeGenUtils::getLLVMTypeOfType(globVar.getType(), module);
         llvm::Constant *initValue = llvm::Constant::getNullValue(varTyperef);
         auto *gVar = new llvm::GlobalVariable(module, varTyperef, false, llvm::GlobalValue::ExternalLinkage, initValue,
@@ -57,28 +56,28 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
 
     // iterating over each function, first create function definition
     // (without function body) and adding to Module.
-    for (const auto &function : obj.functionLookUp) {
-        auto numParams = function.second->getNumParams();
+    for (const auto &function : obj.functions) {
+        auto numParams = function.getNumParams();
         std::vector<llvm::Type *> paramTypes;
         paramTypes.reserve(numParams);
-        for (const auto &funcParam : function.second->getParams()) {
+        for (const auto &funcParam : function.getParams()) {
             paramTypes.push_back(CodeGenUtils::getLLVMTypeOfType(funcParam.getType(), module));
         }
 
-        bool isVarArg = static_cast<bool>(function.second->getRestParam());
+        bool isVarArg = static_cast<bool>(function.getRestParam());
         auto *funcType =
-            llvm::FunctionType::get(FunctionCodeGen::getRetValType(*function.second, module), paramTypes, isVarArg);
+            llvm::FunctionType::get(FunctionCodeGen::getRetValType(function, module), paramTypes, isVarArg);
 
-        llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, function.second->getName(), module);
+        llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, function.getName(), module);
     }
 
     // iterating over each function translate the function body
-    for (auto &function : obj.functionLookUp) {
-        if (function.second->isExternalFunction()) {
+    for (auto &function : obj.functions) {
+        if (function.isExternalFunction()) {
             continue;
         }
         FunctionCodeGen funcGenerator(*this);
-        funcGenerator.visit(*function.second, builder);
+        funcGenerator.visit(function, builder);
     }
 
     // This Api will finalize the string table builder if table size is not zero
@@ -91,6 +90,8 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
         auto *bitCastRes = builder.CreateBitCast(globalStrTable2, charPtrType, "");
         globalStrTable->setInitializer(llvm::dyn_cast<llvm::Constant>(bitCastRes));
     }
+
+    assert(!llvm::verifyModule(module, &llvm::outs()));
 }
 
 void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,

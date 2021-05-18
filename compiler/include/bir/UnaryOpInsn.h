@@ -31,11 +31,8 @@ class UnaryOpInsn : public NonTerminatorInsn, public Translatable<UnaryOpInsn> {
     InstructionKind kind;
 
   public:
-    UnaryOpInsn() = delete;
-    UnaryOpInsn(const Operand &lhs, BasicBlock &currentBB, const Operand &rhs)
-        : NonTerminatorInsn(lhs, currentBB), rhsOp(rhs) {}
-    ~UnaryOpInsn() = default;
-    void setInstKind(InstructionKind kind) { this->kind = kind; }
+    UnaryOpInsn(Operand lhs, BasicBlock &currentBB, Operand rhs, InstructionKind kind)
+        : NonTerminatorInsn(std::move(lhs), currentBB), rhsOp(std::move(rhs)), kind(kind) {}
     friend class NonTerminatorInsnCodeGen;
 };
 

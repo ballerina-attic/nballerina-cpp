@@ -126,7 +126,6 @@ bool Type::isBoxValueSupport(TypeTag typeTag) {
 void Type::checkMapSupport(TypeTag typeTag) {
     switch (typeTag) {
     case TYPE_TAG_INT:
-    case TYPE_TAG_ANYDATA:
         return;
     default:
         std::string msg = "Map of " + Type::getNameOfType(typeTag) + " is not currently supported";

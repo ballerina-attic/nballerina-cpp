@@ -36,13 +36,16 @@ enum VarKind {
 };
 
 class AbstractVariable {
-  private:
+  protected:
     std::string name;
     VarKind kind;
+    AbstractVariable(std::string name, VarKind kind) : name(std::move(name)), kind(kind) {}
+    AbstractVariable(const AbstractVariable &) = delete;
+    AbstractVariable(AbstractVariable &&) noexcept = default;
+    AbstractVariable &operator=(const AbstractVariable &) = delete;
+    AbstractVariable &operator=(AbstractVariable &&) noexcept = default;
 
   public:
-    AbstractVariable() = delete;
-    AbstractVariable(std::string name, VarKind kind) : name(std::move(name)), kind(kind) {}
     virtual ~AbstractVariable() = default;
 
     VarKind getKind() const { return kind; }

@@ -24,13 +24,11 @@
 
 namespace nballerina {
 
-// Forward Declaration
-class Operand;
-
 class NonTerminatorInsn : public AbstractInstruction, virtual public TranslatableInterface {
+  protected:
+    NonTerminatorInsn(Operand lOp, BasicBlock &currentBB) : AbstractInstruction(std::move(lOp), currentBB) {}
+
   public:
-    NonTerminatorInsn() = delete;
-    NonTerminatorInsn(const Operand &lOp, BasicBlock &currentBB) : AbstractInstruction(lOp, currentBB) {}
     virtual ~NonTerminatorInsn() = default;
 };
 
