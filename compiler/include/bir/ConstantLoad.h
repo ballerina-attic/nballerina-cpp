@@ -30,10 +30,10 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
 
   private:
     TypeTag typeTag;
-    std::variant<int64_t, double, bool, int8_t, std::string> value;
+    std::variant<int64_t, double, bool, uint8_t, std::string> value;
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int64_t intVal)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_INT), value(intVal) {}
-    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int8_t byteVal)
+    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, uint8_t byteVal)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_BYTE), value(byteVal) {}
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, double doubleVal)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_FLOAT), value(doubleVal) {}
@@ -49,7 +49,7 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
         return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB, intVal));
     }
 
-    static std::unique_ptr<ConstantLoadInsn> createByteConstLoad(Operand lhs, BasicBlock &currentBB, int8_t byteVal) {
+    static std::unique_ptr<ConstantLoadInsn> createByteConstLoad(Operand lhs, BasicBlock &currentBB, uint8_t byteVal) {
         return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB, byteVal));
     }
 

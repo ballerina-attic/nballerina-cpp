@@ -215,7 +215,7 @@ void BIRReadInsn::ReadConstLoadInsn(BasicBlock &currentBB, Parser &reader, Const
     case TYPE_TAG_BYTE: {
         int32_t valueCpIndex = reader.readS4be();
         currentBB.addNonTermInsn(
-            ConstantLoadInsn::createByteConstLoad(std::move(lhsOp), currentBB, (int8_t)cp.getByteCp(valueCpIndex)));
+            ConstantLoadInsn::createByteConstLoad(std::move(lhsOp), currentBB, cp.getByteCp(valueCpIndex)));
         return;
     }
 
