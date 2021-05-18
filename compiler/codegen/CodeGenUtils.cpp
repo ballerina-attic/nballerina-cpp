@@ -350,9 +350,8 @@ llvm::Value *CodeGenUtils::createBalValue(llvm::Module &module, llvm::IRBuilder<
 
     if (valueType.getTypeTag() == TYPE_TAG_INT) {
         // call the created int_to_any function
-        auto *inputValueRef = llvm::dyn_cast<llvm::Instruction>(builder.CreateLoad(value, ""));
         auto *namedFuncRef = CodeGenUtils::getIntToAnyFunction(module);
-        return builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({inputValueRef}));
+        return builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({builder.CreateLoad(value, "")}));
     } else {
         llvm_unreachable("unsupported type");
     }
