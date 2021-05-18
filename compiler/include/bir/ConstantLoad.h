@@ -31,12 +31,10 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
   private:
     TypeTag typeTag;
     std::variant<int64_t, double, bool, int8_t, std::string> value;
-
-  public:
-    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int8_t byteVal)
-        : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_BYTE), value(byteVal) {}
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int64_t intVal)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_INT), value(intVal) {}
+    ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, int8_t byteVal)
+        : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_BYTE), value(byteVal) {}
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, double doubleVal)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_FLOAT), value(doubleVal) {}
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB, bool boolVal)
@@ -46,30 +44,31 @@ class ConstantLoadInsn : public NonTerminatorInsn, public Translatable<ConstantL
     ConstantLoadInsn(Operand lhs, BasicBlock &currentBB)
         : NonTerminatorInsn(std::move(lhs), currentBB), typeTag(TYPE_TAG_NIL) {}
 
+  public:
     static std::unique_ptr<ConstantLoadInsn> createIntConstLoad(Operand lhs, BasicBlock &currentBB, int64_t intVal) {
-        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, intVal);
+        return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB, intVal));
     }
 
     static std::unique_ptr<ConstantLoadInsn> createByteConstLoad(Operand lhs, BasicBlock &currentBB, int8_t byteVal) {
-        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, byteVal);
+        return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB, byteVal));
     }
 
     static std::unique_ptr<ConstantLoadInsn> createFloatConstLoad(Operand lhs, BasicBlock &currentBB,
                                                                   double doubleVal) {
-        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, doubleVal);
+        return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB, doubleVal));
     }
 
     static std::unique_ptr<ConstantLoadInsn> createBoolConstLoad(Operand lhs, BasicBlock &currentBB, bool boolVal) {
-        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, boolVal);
+        return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB, boolVal));
     }
 
     static std::unique_ptr<ConstantLoadInsn> createStringConstLoad(Operand lhs, BasicBlock &currentBB,
                                                                    std::string str) {
-        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB, str);
+        return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB, str));
     }
 
     static std::unique_ptr<ConstantLoadInsn> createNullConstLoad(Operand lhs, BasicBlock &currentBB) {
-        return std::make_unique<ConstantLoadInsn>(std::move(lhs), currentBB);
+        return std::unique_ptr<ConstantLoadInsn>(new ConstantLoadInsn(std::move(lhs), currentBB));
     }
     friend class NonTerminatorInsnCodeGen;
 };
