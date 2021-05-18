@@ -36,7 +36,7 @@ pub const ARRAY_SIZE_MSB_INDEX: usize = 3;
 
 #[derive(Debug, PartialEq, FromPrimitive)]
 #[repr(u32)]
-enum BalType {
+pub enum BalType {
     Nil = 'N' as u32,
     Boolean = 'B' as u32,
     Int = 'I' as u32,
