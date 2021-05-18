@@ -46,7 +46,7 @@ then
   exit 1
 fi
 
-clang-11 -flto=thin -fuse-ld=lld-11 -L../../runtime/$4/ -lballerina_rt -lpthread -ldl -o $filename.out -O3 $filename.o 2>lld_err.log
+clang-11 -flto=thin -fuse-ld=lld-11 -L../../runtime/rust_rt/$4/ -L../../runtime/c_rt/ -lballerina_rt -lballerina_crt -lpthread -ldl -o $filename.out -O3 $filename.o 2>lld_err.log
 if [ -s ./lld_err.log ]
 then
   echo "Linker error/warning. Error msg: "

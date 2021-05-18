@@ -34,19 +34,16 @@ void NonTerminatorInsnCodeGen::mapCreateTranslate(StructureInsn &obj, const Vari
     const auto &mapType = lhsVar.getType();
     TypeTag memberTypeTag = mapType.getMemberTypeTag();
     Type::checkMapSupport(memberTypeTag);
-
-    auto newMapIntFunc = CodeGenUtils::getNewMapInitFunc(moduleGenerator.getModule(), memberTypeTag);
+    auto newMapIntFunc = CodeGenUtils::getNewMapInitFunc(moduleGenerator.getModule());
     auto *newMapIntRef = builder.CreateCall(newMapIntFunc);
     builder.CreateStore(newMapIntRef, lhsOpRef);
 }
 
 void NonTerminatorInsnCodeGen::mapInitTranslate(StructureInsn &obj, const Variable &lhsVar,
                                                 llvm::IRBuilder<> &builder) {
-
     TypeTag memTypeTag = lhsVar.getType().getMemberTypeTag();
     Type::checkMapSupport(memTypeTag);
-
-    auto mapStoreFunc = CodeGenUtils::getMapStoreFunc(moduleGenerator.getModule(), memTypeTag);
+    auto mapStoreFunc = CodeGenUtils::getMapStoreFunc(moduleGenerator.getModule());
     auto mapSpreadFieldFunc = CodeGenUtils::getMapSpreadFieldInitFunc(moduleGenerator.getModule());
     for (const auto &initValue : obj.initValues) {
         const auto &initstruct = initValue.getInitValStruct();
@@ -59,9 +56,7 @@ void NonTerminatorInsnCodeGen::mapInitTranslate(StructureInsn &obj, const Variab
         }
         // For Key_Value_Kind
         const auto &keyVal = std::get<MapConstruct::KeyValue>(initstruct);
-        llvm::Value *mapValue = Type::isBalValueType(memTypeTag)
-                                    ? functionGenerator.getLocalOrGlobalVal(keyVal.getValue())
-                                    : functionGenerator.createTempVal(keyVal.getValue(), builder);
+        llvm::Value *mapValue = functionGenerator.createTempVal(keyVal.getValue(), builder);
         builder.CreateCall(mapStoreFunc, llvm::ArrayRef<llvm::Value *>(
                                              {functionGenerator.createTempVal(obj.lhsOp, builder),
                                               functionGenerator.createTempVal(keyVal.getKey(), builder), mapValue}));

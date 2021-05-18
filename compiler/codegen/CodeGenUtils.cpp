@@ -47,29 +47,43 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
-    case TYPE_TAG_ARRAY:
     case TYPE_TAG_NIL:
     case TYPE_TAG_ANY:
     case TYPE_TAG_ANYDATA:
     case TYPE_TAG_UNION:
         return llvm::Type::getInt8PtrTy(context);
+    case TYPE_TAG_ARRAY: {
+        // TODO: remove this once other array types are supported
+        /*
+           Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+           Though LLVM ir generated assume all array types to be this type it will be silently ignored by the
+           runtime.
+        */
+        auto *dynamicBalArrayType = module.getTypeByName("struct.dynamicBalArray");
+
+        if (dynamicBalArrayType != nullptr) {
+            return llvm::PointerType::getUnqual(dynamicBalArrayType);
+        }
+
+        assert(module.getTypeByName("struct.dynamicArray") == nullptr);
+
+        auto *dynamicArrayType = llvm::StructType::create(
+            context,
+            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64PtrTy(context)}),
+            "struct.dynamicArray");
+        dynamicBalArrayType = llvm::StructType::create(
+            context,
+            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context),
+                                          llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context),
+                                          llvm::PointerType::getUnqual(dynamicArrayType)}),
+            "struct.dynamicBalArray");
+        return llvm::PointerType::getUnqual(dynamicBalArrayType);
+    }
     case TYPE_TAG_TYPEDESC:
         return llvm::Type::getInt64Ty(context);
     default:
         llvm_unreachable("Invalid type");
     }
-}
-
-llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module, TypeTag typeTag) {
-    const std::string funcName = "map_store_" + Type::getNameOfType(typeTag);
-    llvm::Type *memberType = Type::isBalValueType(typeTag)
-                                 ? llvm::PointerType::get(getLLVMTypeOfType(typeTag, module), 0)
-                                 : getLLVMTypeOfType(typeTag, module);
-    auto *keyType = getLLVMTypeOfType(TYPE_TAG_STRING, module);
-    auto *mapType = getLLVMTypeOfType(TYPE_TAG_MAP, module);
-    auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
-                                             llvm::ArrayRef<llvm::Type *>({mapType, keyType, memberType}), false);
-    return module.getOrInsertFunction(funcName, funcType);
 }
 
 llvm::FunctionCallee CodeGenUtils::getStringInitFunc(llvm::Module &module) {
@@ -97,20 +111,30 @@ llvm::FunctionCallee CodeGenUtils::getAbortFunc(llvm::Module &module) {
 
 llvm::FunctionCallee CodeGenUtils::getArrayInitFunc(llvm::Module &module, TypeTag memberTypeTag) {
     const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
+    // TODO: remove this once other array types are supported
+    /*
+        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        This difference is silently ignored by the runtime.
+    */
     auto *funcType =
-        llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()),
+        llvm::FunctionType::get(CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_ARRAY, module),
                                 llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(module.getContext())}), false);
     return module.getOrInsertFunction(arrayTypeFuncName, funcType);
 }
 
 llvm::FunctionCallee CodeGenUtils::getArrayStoreFunc(llvm::Module &module, TypeTag memberTypeTag) {
     const auto arrayTypeFuncName = "array_store_" + Type::getNameOfType(memberTypeTag);
+    // TODO: remove this once other array types are supported
+    /*
+        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        This difference is silently ignored by the runtime.
+    */
     llvm::Type *memType = Type::isBalValueType(memberTypeTag)
                               ? llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module), 0)
                               : CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module);
     auto *funcType =
         llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
-                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_ARRAY, module),
                                                               llvm::Type::getInt64Ty(module.getContext()), memType}),
                                 false);
     return module.getOrInsertFunction(arrayTypeFuncName, funcType);
@@ -122,27 +146,17 @@ llvm::FunctionCallee CodeGenUtils::getArrayLoadFunc(llvm::Module &module, TypeTa
     llvm::Type *funcRetType = Type::isBalValueType(memberTypeTag)
                                   ? llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module), 0)
                                   : CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module);
+    // TODO: remove this once other array types are supported
+    /*
+        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        This difference is silently ignored by the runtime.
+    */
     auto *funcType =
         llvm::FunctionType::get(funcRetType,
-                                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
+                                llvm::ArrayRef<llvm::Type *>({CodeGenUtils::getLLVMTypeOfType(TYPE_TAG_ARRAY, module),
                                                               llvm::Type::getInt64Ty(module.getContext())}),
                                 false);
     return module.getOrInsertFunction(arrayTypeFuncName, funcType);
-}
-
-llvm::FunctionCallee CodeGenUtils::getMapLoadFunc(llvm::Module &module, TypeTag memTypeTag) {
-    auto *funcType = llvm::FunctionType::get(
-        llvm::Type::getInt8Ty(module.getContext()),
-        llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(module.getContext()),
-                                      llvm::Type::getInt8PtrTy(module.getContext()),
-                                      llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(memTypeTag, module), 0)}),
-        false);
-    return module.getOrInsertFunction("map_load_" + Type::getNameOfType(memTypeTag), funcType);
-}
-
-llvm::FunctionCallee CodeGenUtils::getNewMapInitFunc(llvm::Module &module, TypeTag memTypeTag) {
-    auto *funcType = llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()), false);
-    return module.getOrInsertFunction("map_new_" + Type::getNameOfType(memTypeTag), funcType);
 }
 
 llvm::FunctionCallee CodeGenUtils::getMapSpreadFieldInitFunc(llvm::Module &module) {
@@ -321,6 +335,30 @@ llvm::Function *CodeGenUtils::createAnyToIntFunction(llvm::Module &module, llvm:
 
     builder.SetInsertPoint(currBB);
     return newFunc;
+}
+
+llvm::FunctionCallee CodeGenUtils::getNewMapInitFunc(llvm::Module &module) {
+    auto *funcType = llvm::FunctionType::get(getLLVMTypeOfType(TYPE_TAG_MAP, module), false);
+    return module.getOrInsertFunction("bal_map_create", funcType);
+}
+
+llvm::FunctionCallee CodeGenUtils::getMapLoadFunc(llvm::Module &module) {
+    auto *funcType = llvm::FunctionType::get(
+        llvm::Type::getInt8Ty(module.getContext()),
+        llvm::ArrayRef<llvm::Type *>({getLLVMTypeOfType(TYPE_TAG_MAP, module),
+                                      getLLVMTypeOfType(TYPE_TAG_STRING, module),
+                                      llvm::PointerType::get(getLLVMTypeOfType(TYPE_TAG_INT, module), 0)}),
+        false);
+    return module.getOrInsertFunction("bal_map_lookup", funcType);
+}
+
+llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
+    llvm::Type *memberType = getLLVMTypeOfType(TYPE_TAG_INT, module);
+    auto *keyType = getLLVMTypeOfType(TYPE_TAG_STRING, module);
+    auto *mapType = getLLVMTypeOfType(TYPE_TAG_MAP, module);
+    auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
+                                             llvm::ArrayRef<llvm::Type *>({mapType, keyType, memberType}), false);
+    return module.getOrInsertFunction("bal_map_insert", funcType);
 }
 
 } // namespace nballerina
