@@ -43,7 +43,6 @@ class PackageCodeGen {
     ~PackageCodeGen() = default;
 
     llvm::Module &getModule();
-    void createBalValue(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType, llvm::Value *balValue);
     llvm::Value *addToStringTable(std::string_view newString, llvm::IRBuilder<> &builder);
 
     void visit(class Package &obj, llvm::IRBuilder<> &builder);

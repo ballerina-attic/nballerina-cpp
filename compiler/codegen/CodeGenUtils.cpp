@@ -161,26 +161,30 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
     return module.getOrInsertFunction("is_same_type", funcType);
 }
 
-llvm::Function *CodeGenUtils::createIntToAnyFunction(llvm::Module &module, llvm::IRBuilder<> &builder,
-                                                     llvm::BasicBlock *currBB) {
-
-    const std::string functionName = "int_to_any";
-    auto *newFunc = module.getFunction(functionName);
+llvm::Function *CodeGenUtils::getIntToAnyFunction(llvm::Module &module) {
+    auto *newFunc = module.getFunction("int_to_any");
     if (newFunc != nullptr) {
         return newFunc;
     }
+    return createIntToAnyFunction(module);
+}
+
+llvm::Function *CodeGenUtils::createIntToAnyFunction(llvm::Module &module) {
+
+    auto builder = llvm::IRBuilder<>(module.getContext());
+    const std::string functionName = "int_to_any";
     // create new int_to_any function
     auto *funcType =
         llvm::FunctionType::get(builder.getInt8PtrTy(), llvm::ArrayRef<llvm::Type *>({builder.getInt64Ty()}), false);
-    newFunc = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, functionName, module);
+    auto *newFunc = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, functionName, module);
 
     llvm::BasicBlock *entryBB = llvm::BasicBlock::Create(module.getContext(), "entry", newFunc);
     builder.SetInsertPoint(entryBB);
     // create alloca of local variables in new function
-    auto *localVarRef1 = builder.CreateAlloca(builder.getInt8PtrTy(), nullptr, "");
-    auto *localVarRef2 = builder.CreateAlloca(builder.getInt64Ty(), nullptr, "");
-    auto *localVarRef3 = builder.CreateAlloca(builder.getInt8PtrTy(), nullptr, "");
-    auto *localVarRef4 = builder.CreateAlloca(llvm::Type::getInt64PtrTy(module.getContext()), nullptr, "");
+    auto *localVarRef1 = builder.CreateAlloca(builder.getInt8PtrTy());
+    auto *localVarRef2 = builder.CreateAlloca(builder.getInt64Ty());
+    auto *localVarRef3 = builder.CreateAlloca(builder.getInt8PtrTy());
+    auto *localVarRef4 = builder.CreateAlloca(llvm::Type::getInt64PtrTy(module.getContext()));
     auto &funcArg = newFunc->arg_begin()[0];
     funcArg.setName("a");
     // creating instructions for entry BB in new function
@@ -235,29 +239,34 @@ llvm::Function *CodeGenUtils::createIntToAnyFunction(llvm::Module &module, llvm:
     builder.SetInsertPoint(retBB);
     builder.CreateRet(builder.CreateLoad(localVarRef1, ""));
 
-    builder.SetInsertPoint(currBB);
     return newFunc;
 }
 
-llvm::Function *CodeGenUtils::createAnyToIntFunction(llvm::Module &module, llvm::IRBuilder<> &builder,
-                                                     llvm::BasicBlock *currBB) {
+llvm::Function *CodeGenUtils::getAnyToIntFunction(llvm::Module &module) {
 
-    const std::string functionName = "any_to_int";
-    auto *newFunc = module.getFunction(functionName);
+    auto *newFunc = module.getFunction("any_to_int");
     if (newFunc != nullptr) {
         return newFunc;
     }
+    return createAnyToIntFunction(module);
+}
+
+llvm::Function *CodeGenUtils::createAnyToIntFunction(llvm::Module &module) {
+
+    auto builder = llvm::IRBuilder<>(module.getContext());
+    const std::string functionName = "any_to_int";
+
     // create new any_to_int function
     auto *funcType =
         llvm::FunctionType::get(builder.getInt64Ty(), llvm::ArrayRef<llvm::Type *>({builder.getInt8PtrTy()}), false);
-    newFunc = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, functionName, module);
+    auto *newFunc = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, functionName, module);
 
     llvm::BasicBlock *entryBB = llvm::BasicBlock::Create(module.getContext(), "entry", newFunc);
     builder.SetInsertPoint(entryBB);
     // create alloca of local variables
-    auto *localVarRef1 = builder.CreateAlloca(builder.getInt64Ty(), nullptr, "");
-    auto *localVarRef2 = builder.CreateAlloca(builder.getInt8PtrTy(), nullptr, "");
-    auto *localVarRef3 = builder.CreateAlloca(llvm::Type::getInt64PtrTy(module.getContext()), nullptr, "");
+    auto *localVarRef1 = builder.CreateAlloca(builder.getInt64Ty());
+    auto *localVarRef2 = builder.CreateAlloca(builder.getInt8PtrTy());
+    auto *localVarRef3 = builder.CreateAlloca(llvm::Type::getInt64PtrTy(module.getContext()));
     auto &funcArg = newFunc->arg_begin()[0];
     funcArg.setName("a");
 
@@ -319,8 +328,20 @@ llvm::Function *CodeGenUtils::createAnyToIntFunction(llvm::Module &module, llvm:
     builder.SetInsertPoint(retBB);
     builder.CreateRet(builder.CreateLoad(localVarRef1, ""));
 
-    builder.SetInsertPoint(currBB);
     return newFunc;
+}
+
+llvm::Value *CodeGenUtils::createBalValue(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                          const Type &valueType) {
+
+    if (valueType.getTypeTag() == TYPE_TAG_INT) {
+        // call the created int_to_any function
+        auto *inputValueRef = llvm::dyn_cast<llvm::Instruction>(builder.CreateLoad(value, ""));
+        auto *namedFuncRef = CodeGenUtils::getIntToAnyFunction(module);
+        return builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({inputValueRef}));
+    } else {
+        llvm_unreachable("unsupported type");
+    }
 }
 
 } // namespace nballerina

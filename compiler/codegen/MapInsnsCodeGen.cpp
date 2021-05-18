@@ -55,7 +55,9 @@ void NonTerminatorInsnCodeGen::visit(MapLoadInsn &obj, llvm::IRBuilder<> &builde
         auto *outParamTemp = builder.CreateLoad(outParam);
         builder.CreateStore(outParamTemp, lhs);
     } else {
-        moduleGenerator.createBalValue(builder, outParam, Type(memTypeTag, ""), lhs);
+        auto *balValue =
+            CodeGenUtils::createBalValue(moduleGenerator.getModule(), builder, outParam, Type(memTypeTag, ""));
+        builder.CreateStore(balValue, lhs);
     }
     // else
     // moduleGenerator.createBalValue(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,

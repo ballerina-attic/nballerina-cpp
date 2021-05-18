@@ -49,14 +49,15 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
         if (lhsTypeTag == TYPE_TAG_INT) {
             // call the any_to_int function to typecast from any to int type.
             auto *rhsValueRef = llvm::dyn_cast<llvm::Instruction>(builder.CreateLoad(rhsOpRef, ""));
-            auto *namedFuncRef = CodeGenUtils::createAnyToIntFunction(module, builder, rhsValueRef->getParent());
+            auto *namedFuncRef = CodeGenUtils::getAnyToIntFunction(module);
             auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({rhsValueRef}));
             builder.CreateStore(callResult, lhsOpRef);
         } else {
-            llvm_unreachable("Invalid type");
+            llvm_unreachable("unsupported type");
         }
     } else if (Type::isBalValueType(lhsTypeTag) && rhsTypeTag == TYPE_TAG_INT) {
-        moduleGenerator.createBalValue(builder, rhsOpRef, rhsType, lhsOpRef);
+        auto *balValue = CodeGenUtils::createBalValue(module, builder, rhsOpRef, rhsType);
+        builder.CreateStore(balValue, lhsOpRef);
     } else if (lhsTypeTag == TYPE_TAG_INT && rhsTypeTag == TYPE_TAG_FLOAT) {
         auto *rhsLoad = builder.CreateLoad(rhsOpRef);
         auto *lhsLoad = builder.CreateLoad(lhsOpRef);

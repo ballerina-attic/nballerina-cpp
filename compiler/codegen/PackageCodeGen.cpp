@@ -92,16 +92,6 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
     }
 }
 
-void PackageCodeGen::createBalValue(llvm::IRBuilder<> &builder, llvm::Value *value,
-                                    [[maybe_unused]] const Type &valueType, llvm::Value *balValue) {
-
-    // call the created int_to_any function
-    auto *inputValueRef = llvm::dyn_cast<llvm::Instruction>(builder.CreateLoad(value, ""));
-    auto *namedFuncRef = CodeGenUtils::createIntToAnyFunction(module, builder, inputValueRef->getParent());
-    auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({inputValueRef}));
-    builder.CreateStore(callResult, balValue);
-}
-
 llvm::Value *PackageCodeGen::addToStringTable(std::string_view newString, llvm::IRBuilder<> &builder) {
     if (!strBuilder->contains(newString.data())) {
         strBuilder->add(newString.data());

@@ -29,6 +29,8 @@ namespace nballerina {
 class CodeGenUtils {
   private:
     CodeGenUtils() = default;
+    static llvm::Function *createIntToAnyFunction(llvm::Module &module);
+    static llvm::Function *createAnyToIntFunction(llvm::Module &module);
 
   public:
     ~CodeGenUtils() = default;
@@ -47,10 +49,10 @@ class CodeGenUtils {
     static llvm::FunctionCallee getArrayLoadFunc(llvm::Module &module, TypeTag memberTypeTag);
     static llvm::FunctionCallee getBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
     static llvm::FunctionCallee getIsSameTypeFunc(llvm::Module &module, llvm::Value *lhs, llvm::Value *rhs);
-    static llvm::Function *createIntToAnyFunction(llvm::Module &module, llvm::IRBuilder<> &builder,
-                                                  llvm::BasicBlock *currBB);
-    static llvm::Function *createAnyToIntFunction(llvm::Module &module, llvm::IRBuilder<> &builder,
-                                                  llvm::BasicBlock *currBB);
+    static llvm::Function *getIntToAnyFunction(llvm::Module &module);
+    static llvm::Function *getAnyToIntFunction(llvm::Module &module);
+    static llvm::Value *createBalValue(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                       const Type &valueType);
 };
 
 } // namespace nballerina
