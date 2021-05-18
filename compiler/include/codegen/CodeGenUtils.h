@@ -39,10 +39,7 @@ class CodeGenUtils {
     static llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module);
     static llvm::Value *getGlobalNilVar(llvm::Module &module);
     static llvm::FunctionCallee getAbortFunc(llvm::Module &module);
-    static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module, TypeTag memTypeTag);
     static llvm::FunctionCallee getMapSpreadFieldInitFunc(llvm::Module &module);
-    static llvm::FunctionCallee getMapStoreFunc(llvm::Module &module, TypeTag memTypeTag);
-    static llvm::FunctionCallee getMapLoadFunc(llvm::Module &module, TypeTag memTypeTag);
     static llvm::FunctionCallee getStringInitFunc(llvm::Module &module);
     static llvm::FunctionCallee getArrayStoreFunc(llvm::Module &module, TypeTag memberTypeTag);
     static llvm::FunctionCallee getArrayInitFunc(llvm::Module &module, TypeTag memberTypeTag);
@@ -53,6 +50,13 @@ class CodeGenUtils {
     static llvm::Function *getAnyToIntFunction(llvm::Module &module);
     static llvm::Value *createBalValue(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
                                        const Type &valueType);
+    static llvm::Function *createIntToAnyFunction(llvm::Module &module, llvm::IRBuilder<> &builder,
+                                                  llvm::BasicBlock *currBB);
+    static llvm::Function *createAnyToIntFunction(llvm::Module &module, llvm::IRBuilder<> &builder,
+                                                  llvm::BasicBlock *currBB);
+    static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module);
+    static llvm::FunctionCallee getMapLoadFunc(llvm::Module &module);
+    static llvm::FunctionCallee getMapStoreFunc(llvm::Module &module);
 };
 
 } // namespace nballerina
