@@ -41,6 +41,8 @@ typedef struct {
 typedef uint64_t BalValue;
 
 typedef struct {
+    uint64_t header;
+    uint64_t n_bytes;
     const char *value;
 } BalString, *BalStringPtr;
 

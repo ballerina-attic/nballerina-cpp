@@ -62,7 +62,7 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
             globalValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}), "simple");
 
         // Create constant elements initializer of balAsciiString members
-        llvm::ArrayRef<llvm::Constant *> elements = {header, size, static_cast<llvm::Constant *>(valueRef)};
+        std::vector<llvm::Constant *> elements = {header, size, llvm::dyn_cast<llvm::Constant>(valueRef)};
 
         // Fetch or create llvm::StructType
         auto *type = module.getTypeByName("struct.balAsciiString");
