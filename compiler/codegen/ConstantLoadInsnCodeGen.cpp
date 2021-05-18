@@ -41,7 +41,7 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
         break;
     }
     case TYPE_TAG_BYTE: {
-        constRef = builder.getInt8(std::get<int8_t>(obj.value));
+        constRef = builder.getInt8(std::get<uint8_t>(obj.value));
         break;
     }
     case TYPE_TAG_BOOLEAN: {
