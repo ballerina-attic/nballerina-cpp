@@ -47,16 +47,20 @@ std::shared_ptr<Package> BIRReadPackage::readModule(Parser &reader, ConstantPool
     switch (poolEntry->getTag()) {
     case ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_PACKAGE: {
         auto *packageEntry = dynamic_cast<PackageCpInfo *>(poolEntry);
+        assert(packageEntry);
         poolEntry = cp.getEntry(packageEntry->getOrgIndex());
         auto *stringCp = dynamic_cast<StringCpInfo *>(poolEntry);
+        assert(stringCp);
         birPackage->org = stringCp->getValue();
 
         poolEntry = cp.getEntry(packageEntry->getNameIndex());
         stringCp = dynamic_cast<StringCpInfo *>(poolEntry);
+        assert(stringCp);
         birPackage->name = stringCp->getValue();
 
         poolEntry = cp.getEntry(packageEntry->getVersionIndex());
         stringCp = dynamic_cast<StringCpInfo *>(poolEntry);
+        assert(stringCp);
         birPackage->version = stringCp->getValue();
         break;
     }

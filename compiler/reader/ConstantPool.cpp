@@ -448,6 +448,7 @@ std::string ConstantPoolSet::getStringCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_STRING);
     auto *stringCp = dynamic_cast<StringCpInfo *>(poolEntry);
+    assert(stringCp);
     return stringCp->getValue();
 }
 
@@ -456,6 +457,7 @@ int64_t ConstantPoolSet::getIntCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_INTEGER);
     auto *intCp = dynamic_cast<IntCpInfo *>(poolEntry);
+    assert(intCp);
     return intCp->getValue();
 }
 
@@ -464,6 +466,7 @@ double ConstantPoolSet::getFloatCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_FLOAT);
     auto *floatCp = dynamic_cast<FloatCpInfo *>(poolEntry);
+    assert(floatCp);
     return floatCp->getValue();
 }
 
@@ -472,6 +475,7 @@ bool ConstantPoolSet::getBooleanCp(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BOOLEAN);
     auto *booleanCp = dynamic_cast<BooleanCpInfo *>(poolEntry);
+    assert(booleanCp);
     return (booleanCp->getValue() != 0u);
 }
 
@@ -481,6 +485,7 @@ Type ConstantPoolSet::getTypeCp(int32_t index, bool voidToInt) {
 
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     auto *shapeCp = dynamic_cast<ShapeCpInfo *>(poolEntry);
+    assert(shapeCp);
 
     std::string name = getStringCp(shapeCp->getNameIndex());
     // if name is empty, create a random name anon-<5-digits>
@@ -498,6 +503,7 @@ Type ConstantPoolSet::getTypeCp(int32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getConstraintTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         auto *typeShapeCp = dynamic_cast<ShapeCpInfo *>(shapeEntry);
+        assert(typeShapeCp);
         return Type(type, name, Type::MapType{typeShapeCp->getTypeTag()});
     }
 
@@ -506,6 +512,7 @@ Type ConstantPoolSet::getTypeCp(int32_t index, bool voidToInt) {
         ConstantPoolEntry *shapeEntry = getEntry(shapeCp->getElementTypeCpIndex());
         assert(shapeEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
         auto *memberShapeCp = dynamic_cast<ShapeCpInfo *>(shapeEntry);
+        assert(memberShapeCp);
         return Type(type, name,
                     Type::ArrayType{memberShapeCp->getTypeTag(), (int)shapeCp->getSize(), shapeCp->getState()});
     }
@@ -518,6 +525,7 @@ TypeTag ConstantPoolSet::getTypeTag(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     auto *shapeCp = dynamic_cast<ShapeCpInfo *>(poolEntry);
+    assert(shapeCp);
     return shapeCp->getTypeTag();
 }
 
@@ -527,6 +535,7 @@ InvocableType ConstantPoolSet::getInvocableType(int32_t index) {
     ConstantPoolEntry *poolEntry = getEntry(index);
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_SHAPE);
     auto *shapeCp = dynamic_cast<ShapeCpInfo *>(poolEntry);
+    assert(shapeCp);
     auto paramCount = shapeCp->getParamCount();
     std::vector<Type> paramTypes;
     paramTypes.reserve(paramCount);
