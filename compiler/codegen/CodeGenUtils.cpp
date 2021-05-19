@@ -201,51 +201,70 @@ llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
 }
 
 llvm::Function *CodeGenUtils::getBoolToAnyFunction(llvm::Module &module) {
-    auto *newFunc = module.getFunction("bool_to_any");
-    if (newFunc != nullptr) {
-        return newFunc;
+    auto *func = module.getFunction("bool_to_any");
+    if (func != nullptr) {
+        return func;
     } else {
         auto builder = llvm::IRBuilder<>(module.getContext());
 
         std::vector<llvm::Type *> arg_types = {llvm::Type::getInt1Ty(module.getContext())};
-        llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()), arg_types, false);
-        llvm::Function *func =
-            llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "bool_to_any", module);
+        llvm::FunctionType *ftype =
+            llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()), arg_types, false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "bool_to_any", module);
+        llvm::Argument *arg0 = func->arg_begin();
+
         llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
-
         builder.SetInsertPoint(bb);
-        //llvm::Argument *arg0 = func->arg_begin();
-        //llvm::Value *result = builder.CreateNot(arg0, "result");
 
+        llvm::Value *cond = builder.CreateICmpEQ(arg0, builder.getInt1(true));
+        llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(module.getContext(), "then", func);
+        llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(module.getContext(), "else", func);
+        builder.CreateCondBr(cond, ThenBB, ElseBB);
+
+        builder.SetInsertPoint(ThenBB);
         auto *constTrueAny = llvm::ConstantInt::get(builder.getInt8Ty(), 14);
-        auto *intToPtrCast = builder.CreateIntToPtr(constTrueAny, builder.getInt8PtrTy());
+        auto *anyTruePtr = builder.CreateIntToPtr(constTrueAny, builder.getInt8PtrTy());
+        builder.CreateRet(anyTruePtr);
 
-        builder.CreateRet(intToPtrCast);
+        builder.SetInsertPoint(ElseBB);
+        auto *constFalseAny = llvm::ConstantInt::get(builder.getInt8Ty(), 6);
+        auto *anyFalsePtr = builder.CreateIntToPtr(constFalseAny, builder.getInt8PtrTy());
+        builder.CreateRet(anyFalsePtr);
 
         return func;
     }
 }
 
 llvm::Function *CodeGenUtils::getAnyToBoolFunction(llvm::Module &module) {
-    auto *newFunc = module.getFunction("any_to_bool");
-    if (newFunc != nullptr) {
-        return newFunc;
+    auto *func = module.getFunction("any_to_bool");
+    if (func != nullptr) {
+        return func;
     } else {
         auto builder = llvm::IRBuilder<>(module.getContext());
 
         std::vector<llvm::Type *> arg_types = {llvm::Type::getInt8PtrTy(module.getContext())};
-        llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getInt1Ty(module.getContext()), arg_types, false);
-        llvm::Function *func =
-            llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "any_to_bool", module);
+        llvm::FunctionType *ftype =
+            llvm::FunctionType::get(llvm::Type::getInt1Ty(module.getContext()), arg_types, false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "any_to_bool", module);
+        llvm::Argument *arg0 = func->arg_begin();
+
         llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
-
         builder.SetInsertPoint(bb);
-        //llvm::Argument *arg0 = func->arg_begin();
-        //llvm::Value *result = builder.CreateNot(arg0, "result");
 
-        auto *constTrue = llvm::ConstantInt::get(builder.getInt1Ty(), 1);
+        auto *argVal = builder.CreatePtrToInt(arg0, builder.getInt8Ty());
 
+        llvm::Value *cond = builder.CreateICmpEQ(argVal, builder.getInt8(14));
+        llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(module.getContext(), "then", func);
+        llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(module.getContext(), "else", func);
+        builder.CreateCondBr(cond, ThenBB, ElseBB);
+
+        builder.SetInsertPoint(ThenBB);
+        auto *constTrue = llvm::ConstantInt::get(builder.getInt1Ty(), true);
         builder.CreateRet(constTrue);
+
+        builder.SetInsertPoint(ElseBB);
+        auto *constFalse = llvm::ConstantInt::get(builder.getInt1Ty(), false);
+        builder.CreateRet(constFalse);
 
         return func;
     }
