@@ -17,6 +17,7 @@
  */
 
 #include "codegen/CodeGenUtils.h"
+#include <iostream>
 
 namespace nballerina {
 
@@ -48,19 +49,10 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
     case TYPE_TAG_STRING:
     case TYPE_TAG_MAP:
     case TYPE_TAG_NIL:
-        return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_ANY:
     case TYPE_TAG_UNION:
-    case TYPE_TAG_ANYDATA: {
-        auto *type = module.getTypeByName("struct.smtPtr");
-        if (type != nullptr) {
-            return type;
-        }
-        return llvm::StructType::create(
-            context,
-            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
-            "struct.smtPtr");
-    }
+    case TYPE_TAG_ANYDATA:
+        return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_ARRAY: {
         // TODO: remove this once other array types are supported
         /*
@@ -206,6 +198,57 @@ llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
     auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
                                              llvm::ArrayRef<llvm::Type *>({mapType, keyType, memberType}), false);
     return module.getOrInsertFunction("bal_map_insert", funcType);
+}
+
+llvm::Function *CodeGenUtils::getBoolToAnyFunction(llvm::Module &module) {
+    auto *newFunc = module.getFunction("bool_to_any");
+    if (newFunc != nullptr) {
+        return newFunc;
+    } else {
+        auto builder = llvm::IRBuilder<>(module.getContext());
+
+        std::vector<llvm::Type *> arg_types = {llvm::Type::getInt1Ty(module.getContext())};
+        llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()), arg_types, false);
+        llvm::Function *func =
+            llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "bool_to_any", module);
+        llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
+
+        builder.SetInsertPoint(bb);
+        //llvm::Argument *arg0 = func->arg_begin();
+        //llvm::Value *result = builder.CreateNot(arg0, "result");
+
+        auto *constTrueAny = llvm::ConstantInt::get(builder.getInt8Ty(), 14);
+        auto *intToPtrCast = builder.CreateIntToPtr(constTrueAny, builder.getInt8PtrTy());
+
+        builder.CreateRet(intToPtrCast);
+
+        return func;
+    }
+}
+
+llvm::Function *CodeGenUtils::getAnyToBoolFunction(llvm::Module &module) {
+    auto *newFunc = module.getFunction("any_to_bool");
+    if (newFunc != nullptr) {
+        return newFunc;
+    } else {
+        auto builder = llvm::IRBuilder<>(module.getContext());
+
+        std::vector<llvm::Type *> arg_types = {llvm::Type::getInt8PtrTy(module.getContext())};
+        llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getInt1Ty(module.getContext()), arg_types, false);
+        llvm::Function *func =
+            llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "any_to_bool", module);
+        llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
+
+        builder.SetInsertPoint(bb);
+        //llvm::Argument *arg0 = func->arg_begin();
+        //llvm::Value *result = builder.CreateNot(arg0, "result");
+
+        auto *constTrue = llvm::ConstantInt::get(builder.getInt1Ty(), 1);
+
+        builder.CreateRet(constTrue);
+
+        return func;
+    }
 }
 
 } // namespace nballerina

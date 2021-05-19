@@ -47,6 +47,8 @@ class CodeGenUtils {
     static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module);
     static llvm::FunctionCallee getMapLoadFunc(llvm::Module &module);
     static llvm::FunctionCallee getMapStoreFunc(llvm::Module &module);
+    static llvm::Function* getBoolToAnyFunction(llvm::Module &module);
+    static llvm::Function* getAnyToBoolFunction(llvm::Module &module);
 };
 
 } // namespace nballerina
