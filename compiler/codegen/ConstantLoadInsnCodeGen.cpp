@@ -81,9 +81,7 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
         auto *constStruct = llvm::ConstantStruct::get(structType, elements);
         auto *globalStruct = new llvm::GlobalVariable(moduleGenerator.getModule(), structType, true,
                                                       llvm::GlobalValue::PrivateLinkage, constStruct, "bal_string");
-        auto *ptr = new llvm::GlobalVariable(moduleGenerator.getModule(), llvm::PointerType::get(structType, 0), true,
-                                             llvm::GlobalValue::PrivateLinkage, globalStruct, "ptr");
-        constRef = builder.CreateLoad(ptr);
+	constRef = globalStruct;
         break;
     }
     case TYPE_TAG_NIL: {

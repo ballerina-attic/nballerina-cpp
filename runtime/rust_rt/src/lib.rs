@@ -37,29 +37,14 @@ pub struct BalAsciiString {
     value: *const u8,
 }
 
-// Get str from *const u8
-fn get_str(key: *const u8) -> &'static str {
-    return unsafe { CStr::from_ptr(key as *const i8) }.to_str().unwrap()
-}
-
 #[no_mangle]
 pub extern "C" fn print_string(ascii_ptr: *const BalAsciiString) {
     assert!(!ascii_ptr.is_null());
     let ptr = unsafe { (*ascii_ptr).value };
-    for i in 0..unsafe { (*ascii_ptr).n_bytes } {
-        print!("{}", unsafe { *ptr.offset(i as isize) } as char);
-    }
+    assert!(!ptr.is_null());
+    let _string: &str = unsafe { CStr::from_ptr(ptr as *const i8) }.to_str().unwrap();
+    print!("{}", _string);
     io::stdout().flush().unwrap();
-}
-
-#[no_mangle]
-pub extern "C" fn deinit_string(ptr: *mut BalAsciiString) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        Box::from_raw(ptr);
-    }
 }
 
 // To check whether typecast is possible from source to destination
