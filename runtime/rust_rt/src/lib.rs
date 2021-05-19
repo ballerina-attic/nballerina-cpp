@@ -42,7 +42,8 @@ pub extern "C" fn print_string(ascii_ptr: *const BalAsciiString) {
     assert!(!ascii_ptr.is_null());
     let ptr = unsafe { (*ascii_ptr).value };
     assert!(!ptr.is_null());
-    let _string: &str = unsafe { CStr::from_ptr(ptr as *const i8) }.to_str().unwrap();
+    let _slice = unsafe { std::slice::from_raw_parts(ptr, (*ascii_ptr).n_bytes as usize) };
+    let _string: &str = std::str::from_utf8(_slice).unwrap();
     print!("{}", _string);
     io::stdout().flush().unwrap();
 }

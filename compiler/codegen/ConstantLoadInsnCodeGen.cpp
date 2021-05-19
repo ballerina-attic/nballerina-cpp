@@ -47,7 +47,6 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
         auto &module = moduleGenerator.getModule();
-        auto &context = module.getContext();
         std::string stringValue = std::get<std::string>(obj.value);
         // Header, Length and String
         const unsigned int HEADER = 0b000110;
@@ -59,29 +58,16 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
         auto *globalValue = new llvm::GlobalVariable(moduleGenerator.getModule(), string->getType(), true,
                                                      llvm::GlobalValue::PrivateLinkage, string, ".str");
         auto *valueRef = builder.CreateInBoundsGEP(
-            globalValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}), "simple");
+            globalValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}));
 
         // Create constant elements initializer of balAsciiString members
         std::vector<llvm::Constant *> elements = {header, size, llvm::dyn_cast<llvm::Constant>(valueRef)};
 
-        // Fetch or create llvm::StructType
-        auto *type = module.getTypeByName("struct.balAsciiString");
-        llvm::StructType *structType = nullptr;
-        if (type != nullptr) {
-            structType = type;
-        } else {
-            structType = llvm::StructType::create(
-                context,
-                llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context),
-                                              llvm::Type::getInt8PtrTy(context)}),
-                "struct.balAsciiString");
-        }
-
         // Create constant struct object of balAsciiString
+        auto *structType = CodeGenUtils::getStringStructType(module);
         auto *constStruct = llvm::ConstantStruct::get(structType, elements);
-        auto *globalStruct = new llvm::GlobalVariable(moduleGenerator.getModule(), structType, true,
-                                                      llvm::GlobalValue::PrivateLinkage, constStruct, "bal_string");
-	constRef = globalStruct;
+        constRef = new llvm::GlobalVariable(moduleGenerator.getModule(), structType, true,
+                                            llvm::GlobalValue::PrivateLinkage, constStruct, "bal_string");
         break;
     }
     case TYPE_TAG_NIL: {

@@ -33,6 +33,7 @@ class CodeGenUtils {
   public:
     ~CodeGenUtils() = default;
 
+    static llvm::StructType *getStringStructType(llvm::Module &module);
     static llvm::Type *getLLVMTypeOfType(const Type &type, llvm::Module &module);
     static llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module);
     static llvm::Value *getGlobalNilVar(llvm::Module &module);
