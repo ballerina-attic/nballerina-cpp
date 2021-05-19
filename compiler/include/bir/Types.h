@@ -106,7 +106,7 @@ class Type {
     TypeTag getMemberTypeTag() const;
     static std::string getNameOfType(TypeTag typeTag);
     static std::string_view typeStringMangleName(const Type &type);
-    static bool isSmartStructType(TypeTag typeTag);
+    static bool isBalValueType(TypeTag typeTag);
     static bool isBoxValueSupport(TypeTag typeTag);
     static void checkMapSupport(TypeTag typeTag);
 };
