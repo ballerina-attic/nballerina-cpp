@@ -52,5 +52,5 @@ if elapsed_t['rust']/elapsed_t['native'] > 10:
     sys.exit(-1)
 
 if elapsed_t['c']/elapsed_t['native'] > 10:
-    print('LTO is not inlining Rust runtime functions!')
+    print('LTO is not inlining C runtime functions!')
     sys.exit(-1)
