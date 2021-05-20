@@ -52,6 +52,10 @@ jobs:
           cmake --build ./build/ -t check
         working-directory: ./
 
+      - name: Run LTO checks
+        run: |
+          cmake --build ./build/ -t check_lto
+
       - name: Build nballerinacc with Sanitizers ON
         run: | 
           cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_ANALYSE=OFF -S . -B build/
@@ -60,3 +64,4 @@ jobs:
       - name: Run LIT tests with Sanitizers ON
         run: | 
           cmake --build ./build/ -t check
+      

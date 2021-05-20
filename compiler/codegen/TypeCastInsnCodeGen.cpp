@@ -40,8 +40,8 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
     auto rhsTypeTag = rhsType.getTypeTag();
     auto &module = moduleGenerator.getModule();
 
-    if (Type::isSmartStructType(rhsTypeTag)) {
-        if (Type::isSmartStructType(lhsTypeTag)) {
+    if (Type::isBalValueType(rhsTypeTag)) {
+        if (Type::isBalValueType(lhsTypeTag)) {
             auto *rhsVarOpRef = functionGenerator.createTempVal(obj.rhsOp, builder);
             builder.CreateStore(rhsVarOpRef, lhsOpRef);
             return;
@@ -51,20 +51,23 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
             auto *namedFuncRef = CodeGenUtils::getAnyToBoolFunction(module);
             auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({rhsValueRef}));
             builder.CreateStore(callResult, lhsOpRef);
-        } else {
-            llvm_unreachable("unsupported type");
-        }
-
-    } else if (Type::isSmartStructType(lhsTypeTag)) {
-        if (rhsTypeTag == TYPE_TAG_BOOLEAN) {
+        } else if (lhsTypeTag == TYPE_TAG_INT) {
+            // call the any_to_int function to typecast from any to int type.
             auto *rhsValueRef = llvm::dyn_cast<llvm::Instruction>(builder.CreateLoad(rhsOpRef, ""));
-            auto *namedFuncRef = CodeGenUtils::getBoolToAnyFunction(module);
+            auto *namedFuncRef = CodeGenUtils::getAnyToIntFunction(module);
             auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({rhsValueRef}));
             builder.CreateStore(callResult, lhsOpRef);
         } else {
             llvm_unreachable("unsupported type");
         }
-
+    } else if (Type::isBalValueType(lhsTypeTag) && rhsTypeTag == TYPE_TAG_BOOLEAN) {
+        auto *rhsValueRef = llvm::dyn_cast<llvm::Instruction>(builder.CreateLoad(rhsOpRef, ""));
+        auto *namedFuncRef = CodeGenUtils::getBoolToAnyFunction(module);
+        auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({rhsValueRef}));
+        builder.CreateStore(callResult, lhsOpRef);
+    } else if (Type::isBalValueType(lhsTypeTag) && rhsTypeTag == TYPE_TAG_INT) {
+        auto *balValue = CodeGenUtils::createBalValue(module, builder, rhsOpRef, rhsType);
+        builder.CreateStore(balValue, lhsOpRef);
     } else if (lhsTypeTag == TYPE_TAG_INT && rhsTypeTag == TYPE_TAG_FLOAT) {
         auto *rhsLoad = builder.CreateLoad(rhsOpRef);
         auto *lhsLoad = builder.CreateLoad(lhsOpRef);
@@ -74,5 +77,4 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
         builder.CreateBitCast(rhsOpRef, lhsTypeRef, "data_cast");
     }
 }
-
 } // namespace nballerina

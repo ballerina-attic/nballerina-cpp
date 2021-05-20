@@ -94,28 +94,6 @@ void PackageCodeGen::visit(Package &obj, llvm::IRBuilder<> &builder) {
     assert(!llvm::verifyModule(module, &llvm::outs()));
 }
 
-void PackageCodeGen::storeValueInSmartStruct(llvm::IRBuilder<> &builder, llvm::Value *value, const Type &valueType,
-                                             llvm::Value *smartStruct) {
-
-    // struct first element original type
-    auto valueTypeName = Type::typeStringMangleName(valueType);
-    auto *lhsGep = addToStringTable(valueTypeName, builder);
-
-    auto *bitCastLhsGep = builder.CreateBitCast(lhsGep, builder.getInt8PtrTy(), "");
-    auto *inherentTypeIdx = builder.CreateStructGEP(smartStruct, 0, "inherentTypeName");
-    builder.CreateStore(bitCastLhsGep, inherentTypeIdx);
-
-    // struct second element void pointer data.
-    auto *valueIndx = builder.CreateStructGEP(smartStruct, 1, "data");
-    if (Type::isBoxValueSupport(valueType.getTypeTag())) {
-        auto *valueTemp = builder.CreateLoad(value, "_temp");
-        auto boxValFunc = CodeGenUtils::getBoxValueFunc(module, valueTemp->getType(), valueType.getTypeTag());
-        value = builder.CreateCall(boxValFunc, llvm::ArrayRef<llvm::Value *>({valueTemp}), "call");
-    }
-    auto *bitCastRes = builder.CreateBitCast(value, builder.getInt8PtrTy(), "");
-    builder.CreateStore(bitCastRes, valueIndx);
-}
-
 llvm::Value *PackageCodeGen::addToStringTable(std::string_view newString, llvm::IRBuilder<> &builder) {
     if (!strBuilder->contains(newString.data())) {
         strBuilder->add(newString.data());

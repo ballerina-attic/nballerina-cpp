@@ -51,10 +51,11 @@ void NonTerminatorInsnCodeGen::visit(MapLoadInsn &obj, llvm::IRBuilder<> &builde
 
     // TODO check retVal and branch
     // if retVal is true
-    moduleGenerator.storeValueInSmartStruct(builder, outParam, Type(memTypeTag, ""), lhs);
+    auto *balValue = CodeGenUtils::createBalValue(moduleGenerator.getModule(), builder, outParam, Type(memTypeTag, ""));
+    builder.CreateStore(balValue, lhs);
 
     // else
-    // moduleGenerator.storeValueInSmartStruct(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
+    // moduleGenerator.createBalValue(modRef, getPackageRef().getGlobalNilVar(), Type(TYPE_TAG_NIL,
     // ""), lhs);
 }
 
