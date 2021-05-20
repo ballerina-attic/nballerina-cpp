@@ -165,14 +165,6 @@ pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64
     }
 }
 
-// #[no_mangle]
-// pub extern "C" fn array_load_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64) -> i64 {
-//     let arr = unsafe { Box::from_raw(arr_ptr) };
-//     let value = arr.get_element(index);
-//     mem::forget(arr);
-//     return value;
-// }
-
 #[no_mangle]
 pub extern "C" fn array_store_byte(arr_ptr: *mut DynamicBalArray<i8>, index: i64, ref_ptr: i8) {
     if ref_ptr < 0 {
@@ -191,14 +183,6 @@ pub extern "C" fn array_store_byte(arr_ptr: *mut DynamicBalArray<i8>, index: i64
         mem::forget(new_arr);
     }
 }
-
-// #[no_mangle]
-// pub extern "C" fn array_load_byte(arr_ptr: *mut DynamicBalArray<i8>, index: i64) -> i8 {
-//     let arr = unsafe { Box::from_raw(arr_ptr) };
-//     let value = arr.get_element(index);
-//     mem::forget(arr);
-//     return value;
-// }
 
 #[no_mangle]
 pub extern "C" fn array_store_float(arr_ptr: *mut Vec<f64>, index: i64, ref_ptr: f64) {
