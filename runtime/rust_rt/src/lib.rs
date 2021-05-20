@@ -30,6 +30,7 @@ use std::os::raw::c_char;
 
 mod bal_array;
 pub use bal_array::dynamic_array::DynamicBalArray;
+pub use bal_array::dynamic_array::ArrayHeader;
 
 #[repr(C)]
 pub struct BalAsciiString {
@@ -98,14 +99,14 @@ pub extern "C" fn print_boolean(num8: i8) {
 
 #[no_mangle]
 pub extern "C" fn array_init_int(size: i64) -> *mut DynamicBalArray<i64> {
-    let array: Box<DynamicBalArray<i64>> = Box::new(DynamicBalArray::<i64>::new(size, 3));
+    let array: Box<DynamicBalArray<i64>> = Box::new(DynamicBalArray::<i64>::new(size, ArrayHeader::Int));
     let array_pointer = Box::into_raw(array);
     return array_pointer as *mut DynamicBalArray<i64>;
 }
 
 #[no_mangle]
 pub extern "C" fn array_init_byte(size: i64) -> *mut DynamicBalArray<i64> {
-    let array: Box<DynamicBalArray<i8>> = Box::new(DynamicBalArray::<i8>::new(size, 0));
+    let array: Box<DynamicBalArray<u8>> = Box::new(DynamicBalArray::<u8>::new(size, ArrayHeader::Byte));
     let array_pointer = Box::into_raw(array);
     return array_pointer as *mut DynamicBalArray<i64>;
 }
@@ -157,19 +158,16 @@ pub extern "C" fn array_store_int(arr_ptr: *mut DynamicBalArray<i64>, index: i64
         if ref_ptr < 0 || ref_ptr > 255 {
             panic!("{} value is incompatible with byte arrays", ref_ptr);
         }
-        let new_arr_ptr: *mut DynamicBalArray<i8> = arr_ptr as *mut DynamicBalArray<i8>;
+        let new_arr_ptr: *mut DynamicBalArray<u8> = arr_ptr as *mut DynamicBalArray<u8>;
         mem::forget(arr);
         let mut new_arr = unsafe { Box::from_raw(new_arr_ptr) };
-        new_arr.set_element(index, i8::try_from(ref_ptr).unwrap());
+        new_arr.set_element(index, u8::try_from(ref_ptr).unwrap());
         mem::forget(new_arr);
     }
 }
 
 #[no_mangle]
-pub extern "C" fn array_store_byte(arr_ptr: *mut DynamicBalArray<i8>, index: i64, ref_ptr: i8) {
-    if ref_ptr < 0 {
-        panic!("{} value is incompatible with byte arrays", ref_ptr);
-    }
+pub extern "C" fn array_store_byte(arr_ptr: *mut DynamicBalArray<u8>, index: i64, ref_ptr: u8) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let type_header = arr.get_header() & 3;
     if type_header == 0 {

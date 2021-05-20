@@ -138,13 +138,13 @@ void Type::checkMapSupport(TypeTag typeTag) {
     }
 }
 
-bool Type::checkArrayCastSupport(TypeTag destination, TypeTag source) {
-    if (destination == TYPE_TAG_ANY || source == TYPE_TAG_ANY) {
+bool Type::checkArrayCastSupport(TypeTag destMemberType, TypeTag srcMemberType) {
+    if (destMemberType == TYPE_TAG_ANY || srcMemberType == TYPE_TAG_ANY) {
         return true;
     }
-    switch (source) {
+    switch (srcMemberType) {
     case TYPE_TAG_BYTE:
-        switch (destination) {
+        switch (destMemberType) {
         case TYPE_TAG_INT:
         case TYPE_TAG_BYTE:
             return true;
@@ -152,11 +152,11 @@ bool Type::checkArrayCastSupport(TypeTag destination, TypeTag source) {
             return false;
         }
     case TYPE_TAG_INT:
-        switch (destination) {
+        switch (destMemberType) {
         case TYPE_TAG_INT:
             return true;
         case TYPE_TAG_BYTE:
-            // TODO: check if the source is constant when constant arrays are implemented
+            // TODO: check if the srcMemberType is constant when constant arrays are implemented
             return false;
         default:
             return false;

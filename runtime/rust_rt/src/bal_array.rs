@@ -25,7 +25,7 @@ pub mod dynamic_array {
     use std::mem;
 
     #[repr(C)]
-    pub struct DynamicBalArray<T:Copy> {
+    pub struct DynamicBalArray<T: Copy> {
         header: i64,
         inherent_type: BalType,
         length: i64,   // largest index of an element stored in the array + 1
@@ -34,13 +34,18 @@ pub mod dynamic_array {
     }
 
     #[repr(C)]
-    struct DynamicArray<T:Copy> {
+    struct DynamicArray<T: Copy> {
         header: u64,
         values: [T],
     }
 
-    impl<T:Copy> DynamicBalArray<T> {
-        pub fn new(size: i64, header: i64) -> DynamicBalArray<T> {
+    pub enum ArrayHeader {
+        Int = 3,
+        Byte = 0,
+    }
+
+    impl<T: Copy> DynamicBalArray<T> {
+        pub fn new(size: i64, header: ArrayHeader) -> DynamicBalArray<T> {
             let size_t = if size > 0 { size } else { 8 };
             let layout = DynamicBalArray::<T>::get_layout(size_t);
             let raw_ptr;
@@ -53,7 +58,7 @@ pub mod dynamic_array {
             let dynamic_array =
                 std::ptr::slice_from_raw_parts_mut(raw_ptr, layout.size()) as *mut DynamicArray<T>;
             return DynamicBalArray {
-                header: header,
+                header: header as i64,
                 inherent_type: BalType::Int,
                 length: 0,
                 capacity: size_t,

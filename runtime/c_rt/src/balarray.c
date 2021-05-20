@@ -35,7 +35,7 @@ void *getItemAt(DynamicBalArray *array_ptr, int64_t index) {
     uint64_t header = array_ptr->header;
     uint64_t header_type = header & 3;
     uint64_t *base_ptr = &(array_ptr->array->header) + 1;
-    if (header_type == 0) {
+    if (header_type == BYTE) {
         uint8_t *ptr = (uint8_t *)base_ptr;
         return ptr + index;
     } else if (header_type == 1) {
@@ -53,7 +53,7 @@ void *getItemAt(DynamicBalArray *array_ptr, int64_t index) {
 int64_t castPointerToValue(DynamicBalArray *array_ptr, void *ptr) {
     uint64_t header = array_ptr->header;
     uint64_t header_type = header & 3;
-    if (header_type == 0) {
+    if (header_type == BYTE) {
         uint8_t value = *(uint8_t *)ptr;
         return value;
     } else if (header_type == 1) {

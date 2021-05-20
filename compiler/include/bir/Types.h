@@ -109,7 +109,7 @@ class Type {
     static bool isBalValueType(TypeTag typeTag);
     static bool isBoxValueSupport(TypeTag typeTag);
     static void checkMapSupport(TypeTag typeTag);
-    static bool checkArrayCastSupport(TypeTag destination, TypeTag source);
+    static bool checkArrayCastSupport(TypeTag destMemberType, TypeTag srcMemberType);
 };
 
 } // namespace nballerina

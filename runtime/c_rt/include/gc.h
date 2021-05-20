@@ -31,17 +31,6 @@
 #define aligned_alloc(a, n) _aligned_malloc(n, a)
 #endif
 
-#define ALLOC_FIXED_VALUE(T) ((T *)alloc_value(sizeof(T)))
-
-void *alloc_array(size_t n_members, size_t member_size) {
-    void *mem = calloc(n_members, member_size);
-    if (mem == NULL) {
-        fprintf(stderr, "Memory allocation failed \n");
-        abort();
-    }
-    return mem;
-}
-
 static BalHeader *alloc_value(size_t n_bytes) {
     void *mem = aligned_alloc(8, n_bytes);
     if (mem == NULL) {

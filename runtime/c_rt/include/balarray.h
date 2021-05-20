@@ -25,6 +25,13 @@ typedef struct DynamicArray {
     uint64_t header;
 } DynamicArray;
 
+//FIXME: once data types with 16 and 32 bytes implemented update this
+enum ArrayHeader
+{
+   INTEGER = 3,
+   BYTE = 0 
+};
+
 typedef struct DynamicBalArray {
     uint64_t header;
     uint32_t inherent_type;
@@ -32,10 +39,6 @@ typedef struct DynamicBalArray {
     uint64_t capacity;
     DynamicArray *array;
 } DynamicBalArray;
-
-void *getItemAt(DynamicBalArray *array_ptr, int64_t index);
-
-int64_t castPointerToValue(DynamicBalArray *array_ptr, void *ptr);
 
 int64_t array_load_int(DynamicBalArray *array_ptr, int64_t index);
 

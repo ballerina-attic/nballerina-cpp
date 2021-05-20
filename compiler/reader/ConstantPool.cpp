@@ -465,7 +465,7 @@ uint8_t ConstantPoolSet::getByteCp(int32_t index) {
     assert(poolEntry->getTag() == ConstantPoolEntry::tagEnum::TAG_ENUM_CP_ENTRY_BYTE);
     auto *byteCp = static_cast<ByteCpInfo *>(poolEntry);
     int32_t value = byteCp->getValue();
-    assert(value >= 0 && value <= 255);
+    assert(value >= 0 && value <= UINT8_MAX);
     return (uint8_t)value;
 }
 
