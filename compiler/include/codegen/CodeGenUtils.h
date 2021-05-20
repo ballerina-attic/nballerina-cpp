@@ -29,6 +29,9 @@ namespace nballerina {
 class CodeGenUtils {
   private:
     CodeGenUtils() = default;
+    static llvm::Function *createIntToAnyFunction(llvm::Module &module);
+    static llvm::Function *createAnyToIntFunction(llvm::Module &module);
+    static llvm::Function *getIntToAnyFunction(llvm::Module &module);
 
   public:
     ~CodeGenUtils() = default;
@@ -46,6 +49,9 @@ class CodeGenUtils {
     static llvm::FunctionCallee getIsSameTypeFunc(llvm::Module &module, llvm::Value *lhs, llvm::Value *rhs);
     static llvm::FunctionCallee replaceProtoFunc(const std::string &funcName, llvm::Module &destModule, llvm::Module &srcModule);
     static std::unique_ptr<llvm::Module> parseLLFile(llvm::LLVMContext &mContext,const std::string &fileName);
+    static llvm::Function *getAnyToIntFunction(llvm::Module &module);
+    static llvm::Value *createBalValue(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                       const Type &valueType);
     static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module);
     static llvm::FunctionCallee getMapLoadFunc(llvm::Module &module);
     static llvm::FunctionCallee getMapStoreFunc(llvm::Module &module);

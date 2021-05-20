@@ -350,3 +350,8 @@ pub extern "C" fn unbox_bal_bool(ptr: *mut f64) {
         Box::from_raw(ptr);
     }
 }
+
+#[no_mangle]
+pub extern "C" fn echo_rust(val: i64) -> i64 {
+    val
+}
