@@ -38,7 +38,12 @@ void NonTerminatorInsnCodeGen::visit(ArrayInsn &obj, llvm::IRBuilder<> &builder)
 
 void NonTerminatorInsnCodeGen::visit(ArrayLoadInsn &obj, llvm::IRBuilder<> &builder) {
     const auto &lhsOpTypeTag = obj.getFunctionRef().getLocalOrGlobalVariable(obj.lhsOp).getType().getTypeTag();
-    auto ArrayLoadFunc = CodeGenUtils::getArrayLoadFunc(moduleGenerator.getModule(), lhsOpTypeTag);
+    llvm::FunctionCallee ArrayLoadFunc;
+    if (lhsOpTypeTag == TYPE_TAG_ANY) {
+        ArrayLoadFunc = CodeGenUtils::getArrayLoadFunc(moduleGenerator.getModule(), TYPE_TAG_INT);
+    } else {
+        ArrayLoadFunc = CodeGenUtils::getArrayLoadFunc(moduleGenerator.getModule(), lhsOpTypeTag);
+    }
 
     auto *lhsOpRef = functionGenerator.getLocalOrGlobalVal(obj.lhsOp);
     auto *rhsOpTempRef = functionGenerator.createTempVal(obj.rhsOp, builder);
@@ -50,8 +55,17 @@ void NonTerminatorInsnCodeGen::visit(ArrayLoadInsn &obj, llvm::IRBuilder<> &buil
         builder.CreateStore(valueInArrayPointer, lhsOpRef);
         return;
     }
-    auto *smtPtrArrElement = builder.CreateLoad(valueInArrayPointer);
-    builder.CreateStore(smtPtrArrElement, lhsOpRef);
+
+    if (lhsOpTypeTag == TYPE_TAG_ANY) {
+        auto &module = moduleGenerator.getModule();
+        auto *namedFuncRef = CodeGenUtils::getIntToAnyFunction(module);
+        auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({valueInArrayPointer}));
+        builder.CreateStore(callResult, lhsOpRef);
+    } else {
+        // FIXME: move this to above block once anydata type arrays are implemented in new array type
+        auto *smtPtrArrElement = builder.CreateLoad(valueInArrayPointer);
+        builder.CreateStore(smtPtrArrElement, lhsOpRef);
+    }
 }
 
 void NonTerminatorInsnCodeGen::visit(ArrayStoreInsn &obj, llvm::IRBuilder<> &builder) {
