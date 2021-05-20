@@ -17,7 +17,6 @@
  */
 
 #include "codegen/CodeGenUtils.h"
-#include <iostream>
 
 namespace nballerina {
 
@@ -382,17 +381,16 @@ llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
     return module.getOrInsertFunction("bal_map_insert", funcType);
 }
 
-llvm::Function *CodeGenUtils::getBoolToAnyFunction(llvm::Module &module) {
-    auto *func = module.getFunction("bool_to_any");
+llvm::Function *CodeGenUtils::getBoolToAnyFunc(llvm::Module &module) {
+    const std::string functionName = "bool_to_any";
+    auto *func = module.getFunction(functionName);
     if (func != nullptr) {
         return func;
     } else {
         auto builder = llvm::IRBuilder<>(module.getContext());
-
-        std::vector<llvm::Type *> arg_types = {llvm::Type::getInt1Ty(module.getContext())};
-        llvm::FunctionType *ftype =
-            llvm::FunctionType::get(llvm::Type::getInt8PtrTy(module.getContext()), arg_types, false);
-        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "bool_to_any", module);
+        auto *ftype =
+            llvm::FunctionType::get(builder.getInt8PtrTy(), llvm::ArrayRef<llvm::Type *>({builder.getInt1Ty()}), false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, functionName, module);
         llvm::Argument *arg0 = func->arg_begin();
 
         llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
@@ -417,17 +415,16 @@ llvm::Function *CodeGenUtils::getBoolToAnyFunction(llvm::Module &module) {
     }
 }
 
-llvm::Function *CodeGenUtils::getAnyToBoolFunction(llvm::Module &module) {
-    auto *func = module.getFunction("any_to_bool");
+llvm::Function *CodeGenUtils::getAnyToBoolFunc(llvm::Module &module) {
+    const std::string functionName = "any_to_bool";
+    auto *func = module.getFunction(functionName);
     if (func != nullptr) {
         return func;
     } else {
         auto builder = llvm::IRBuilder<>(module.getContext());
-
-        std::vector<llvm::Type *> arg_types = {llvm::Type::getInt8PtrTy(module.getContext())};
-        llvm::FunctionType *ftype =
-            llvm::FunctionType::get(llvm::Type::getInt1Ty(module.getContext()), arg_types, false);
-        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, "any_to_bool", module);
+        auto *ftype =
+            llvm::FunctionType::get(builder.getInt1Ty(), llvm::ArrayRef<llvm::Type *>({builder.getInt8PtrTy()}), false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, functionName, module);
         llvm::Argument *arg0 = func->arg_begin();
 
         llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);

@@ -5,10 +5,16 @@ public function print_string(string val) = external;
 public function print_boolean(boolean val) = external;
 
 public function main() {
-    boolean a = true;
+    boolean a = false;
+    boolean b = true;
     any a1 = a;
+    any b1 = b;
     boolean a11 = <boolean>a1;
+    boolean b11 = <boolean>b1;
+
     print_string("RESULT=");
-    print_boolean(a11);
+    if (b11) {
+        print_boolean(a11);
+    }
 }
-// CHECK: RESULT=true
+// CHECK: RESULT=false
