@@ -30,38 +30,22 @@ use std::os::raw::c_char;
 mod bal_array;
 pub use bal_array::dynamic_array::DynamicBalArray;
 
-pub struct BString {
-    value: &'static str,
-}
-
-// Return a pointer to struct containing heap allocated string
-#[no_mangle]
-pub extern "C" fn new_string(c_string: *const u8, size: usize) -> *mut BString {
-    assert!(!c_string.is_null());
-    let slice = unsafe { std::slice::from_raw_parts(c_string, size) };
-    let string = std::str::from_utf8(slice);
-    let opaque = BString {
-        value: string.unwrap(),
-    };
-    let opaque_ptr = Box::into_raw(Box::new(opaque));
-    return opaque_ptr;
+#[repr(C)]
+pub struct BalAsciiString {
+    header: u64,
+    n_bytes: u64,
+    value: *const u8,
 }
 
 #[no_mangle]
-pub extern "C" fn print_string(opaque_ptr: *mut BString) {
-    assert!(!opaque_ptr.is_null());
-    print!("{}", unsafe { (*opaque_ptr).value });
+pub extern "C" fn print_string(ascii_ptr: *const BalAsciiString) {
+    assert!(!ascii_ptr.is_null());
+    let ptr = unsafe { (*ascii_ptr).value };
+    assert!(!ptr.is_null());
+    let _slice = unsafe { std::slice::from_raw_parts(ptr, (*ascii_ptr).n_bytes as usize) };
+    let _string: &str = std::str::from_utf8(_slice).unwrap();
+    print!("{}", _string);
     io::stdout().flush().unwrap();
-}
-
-#[no_mangle]
-pub extern "C" fn deinit_string(ptr: *mut BString) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        Box::from_raw(ptr);
-    }
 }
 
 // To check whether typecast is possible from source to destination
@@ -145,12 +129,12 @@ pub extern "C" fn array_init_bool(size: i64) -> *mut Vec<bool> {
 }
 
 #[no_mangle]
-pub extern "C" fn array_init_string(size: i64) -> *mut Vec<*mut BString> {
+pub extern "C" fn array_init_string(size: i64) -> *mut Vec<*mut BalAsciiString> {
     let size_t = if size > 0 { size } else { 8 };
     let size_t = size_t as usize;
-    let foo: Box<Vec<*mut BString>> = Box::new(Vec::with_capacity(size_t));
+    let foo: Box<Vec<*mut BalAsciiString>> = Box::new(Vec::with_capacity(size_t));
     let vec_pointer = Box::into_raw(foo);
-    return vec_pointer as *mut Vec<*mut BString>;
+    return vec_pointer as *mut Vec<*mut BalAsciiString>;
 }
 
 #[no_mangle]
@@ -267,24 +251,24 @@ pub extern "C" fn array_load_bool(arr_ptr: *mut Vec<bool>, index: i64) -> bool {
 
 #[no_mangle]
 pub extern "C" fn array_store_string(
-    arr_ptr: *mut Vec<*mut BString>,
+    arr_ptr: *mut Vec<*mut BalAsciiString>,
     index: i64,
-    ref_ptr: *mut BString,
+    ref_ptr: *mut BalAsciiString,
 ) {
     let mut arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     let len = index_n + 1;
-    let emptystr = BString { value: "" };
+    let emptystr = BalAsciiString { header: 0, n_bytes: 0, value: 0 as *const u8};
     let emptystr_ptr = Box::into_raw(Box::new(emptystr));
     if arr.len() < len {
-        arr.resize(len, emptystr_ptr as *mut BString);
+        arr.resize(len, emptystr_ptr as *mut BalAsciiString);
     }
     arr[index_n] = ref_ptr;
     mem::forget(arr);
 }
 
 #[no_mangle]
-pub extern "C" fn array_load_string(arr_ptr: *mut Vec<*mut BString>, index: i64) -> *mut BString {
+pub extern "C" fn array_load_string(arr_ptr: *mut Vec<*mut BalAsciiString>, index: i64) -> *mut BalAsciiString {
     let arr = unsafe { Box::from_raw(arr_ptr) };
     let index_n = index as usize;
     // check the out of bounds.
@@ -325,7 +309,7 @@ pub extern "C" fn array_deinit_bool(ptr: *mut Vec<bool>) {
 }
 
 #[no_mangle]
-pub extern "C" fn array_deinit_string(ptr: *mut Vec<*mut BString>) {
+pub extern "C" fn array_deinit_string(ptr: *mut Vec<*mut BalAsciiString>) {
     if ptr.is_null() {
         return;
     }

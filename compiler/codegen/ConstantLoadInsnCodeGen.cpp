@@ -50,18 +50,28 @@ void NonTerminatorInsnCodeGen::visit(ConstantLoadInsn &obj, llvm::IRBuilder<> &b
     }
     case TYPE_TAG_STRING:
     case TYPE_TAG_CHAR_STRING: {
+        auto &module = moduleGenerator.getModule();
         std::string stringValue = std::get<std::string>(obj.value);
-        llvm::Module &module = moduleGenerator.getModule();
-        llvm::Constant *llvmConst = llvm::ConstantDataArray::getString(module.getContext(), stringValue);
-        auto *globalStringValue = new llvm::GlobalVariable(module, llvmConst->getType(), false,
-                                                           llvm::GlobalValue::PrivateLinkage, llvmConst, ".str");
-        globalStringValue->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-        globalStringValue->setAlignment(llvm::Align(1));
+        // Header, Length and String
+        const unsigned int HEADER = 0b000110;
+        auto *header = llvm::ConstantInt::get(builder.getInt64Ty(), HEADER, false);
+        auto *size = llvm::ConstantInt::get(builder.getInt64Ty(), stringValue.length(), false);
+        auto *string = llvm::ConstantDataArray::getString(moduleGenerator.getModule().getContext(), stringValue, false);
+
+        // Create global constant of string
+        auto *globalValue = new llvm::GlobalVariable(moduleGenerator.getModule(), string->getType(), true,
+                                                     llvm::GlobalValue::PrivateLinkage, string, ".str");
         auto *valueRef = builder.CreateInBoundsGEP(
-            globalStringValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}), "simple");
-        auto addedStringRef = CodeGenUtils::getStringInitFunc(module);
-        constRef = builder.CreateCall(
-            addedStringRef, llvm::ArrayRef<llvm::Value *>({valueRef, builder.getInt64(stringValue.length())}));
+            globalValue, llvm::ArrayRef<llvm::Value *>({builder.getInt64(0), builder.getInt64(0)}));
+
+        // Create constant elements initializer of balAsciiString members
+        std::vector<llvm::Constant *> elements = {header, size, llvm::dyn_cast<llvm::Constant>(valueRef)};
+
+        // Create constant struct object of balAsciiString
+        auto *structType = CodeGenUtils::getStringStructType(module);
+        auto *constStruct = llvm::ConstantStruct::get(structType, elements);
+        constRef = new llvm::GlobalVariable(moduleGenerator.getModule(), structType, true,
+                                            llvm::GlobalValue::PrivateLinkage, constStruct, "bal_string");
         break;
     }
     case TYPE_TAG_NIL: {

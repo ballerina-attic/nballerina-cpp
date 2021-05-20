@@ -35,6 +35,19 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(const Type &type, llvm::Module &modu
     return getLLVMTypeOfType(type.getTypeTag(), module);
 }
 
+llvm::StructType *CodeGenUtils::getStringStructType(llvm::Module &module) {
+    auto &context = module.getContext();
+    auto *type = module.getTypeByName("struct.balAsciiString");
+    if (type != nullptr) {
+        return type;
+    }
+    return llvm::StructType::create(
+        context,
+        llvm::ArrayRef<llvm::Type *>(
+            {llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
+        "struct.balAsciiString");
+}
+
 llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module) {
     auto &context = module.getContext();
     switch (typeTag) {
@@ -48,6 +61,7 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
         return llvm::Type::getInt8Ty(context);
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
+        return llvm::PointerType::get(getStringStructType(module), 0);
     case TYPE_TAG_MAP:
     case TYPE_TAG_NIL:
     case TYPE_TAG_ANY:
