@@ -12,9 +12,11 @@ public function main() {
     boolean a11 = <boolean>a1;
     boolean b11 = <boolean>b1;
 
-    print_string("RESULT=");
-    if (b11) {
-        print_boolean(a11);
-    }
+    print_string("RESULT="); 
+	print_boolean(a11);
+	print_string("RESULT="); 
+	print_boolean(b11);
+
 }
 // CHECK: RESULT=false
+// CHECK: RESULT=true
