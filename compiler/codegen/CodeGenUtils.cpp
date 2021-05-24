@@ -398,4 +398,72 @@ llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
     return module.getOrInsertFunction("bal_map_insert", funcType);
 }
 
+llvm::Function *CodeGenUtils::getBoolToAnyFunc(llvm::Module &module) {
+    const std::string functionName = "bool_to_any";
+    auto *func = module.getFunction(functionName);
+    if (func != nullptr) {
+        return func;
+    } else {
+        auto builder = llvm::IRBuilder<>(module.getContext());
+        auto *ftype =
+            llvm::FunctionType::get(builder.getInt8PtrTy(), llvm::ArrayRef<llvm::Type *>({builder.getInt1Ty()}), false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, functionName, module);
+        llvm::Argument *arg0 = func->arg_begin();
+
+        llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
+        builder.SetInsertPoint(bb);
+
+        llvm::Value *cond = builder.CreateICmpEQ(arg0, builder.getInt1(true));
+        llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(module.getContext(), "then", func);
+        llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(module.getContext(), "else", func);
+        builder.CreateCondBr(cond, ThenBB, ElseBB);
+
+        builder.SetInsertPoint(ThenBB);
+        auto *constTrueAny = llvm::ConstantInt::get(builder.getInt8Ty(), 14);
+        auto *anyTruePtr = builder.CreateIntToPtr(constTrueAny, builder.getInt8PtrTy());
+        builder.CreateRet(anyTruePtr);
+
+        builder.SetInsertPoint(ElseBB);
+        auto *constFalseAny = llvm::ConstantInt::get(builder.getInt8Ty(), 6);
+        auto *anyFalsePtr = builder.CreateIntToPtr(constFalseAny, builder.getInt8PtrTy());
+        builder.CreateRet(anyFalsePtr);
+
+        return func;
+    }
+}
+
+llvm::Function *CodeGenUtils::getAnyToBoolFunc(llvm::Module &module) {
+    const std::string functionName = "any_to_bool";
+    auto *func = module.getFunction(functionName);
+    if (func != nullptr) {
+        return func;
+    } else {
+        auto builder = llvm::IRBuilder<>(module.getContext());
+        auto *ftype =
+            llvm::FunctionType::get(builder.getInt1Ty(), llvm::ArrayRef<llvm::Type *>({builder.getInt8PtrTy()}), false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, functionName, module);
+        llvm::Argument *arg0 = func->arg_begin();
+
+        llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
+        builder.SetInsertPoint(bb);
+
+        auto *argVal = builder.CreatePtrToInt(arg0, builder.getInt8Ty());
+
+        llvm::Value *cond = builder.CreateICmpEQ(argVal, builder.getInt8(14));
+        llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(module.getContext(), "then", func);
+        llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(module.getContext(), "else", func);
+        builder.CreateCondBr(cond, ThenBB, ElseBB);
+
+        builder.SetInsertPoint(ThenBB);
+        auto *constTrue = llvm::ConstantInt::get(builder.getInt1Ty(), true);
+        builder.CreateRet(constTrue);
+
+        builder.SetInsertPoint(ElseBB);
+        auto *constFalse = llvm::ConstantInt::get(builder.getInt1Ty(), false);
+        builder.CreateRet(constFalse);
+
+        return func;
+    }
+}
+
 } // namespace nballerina

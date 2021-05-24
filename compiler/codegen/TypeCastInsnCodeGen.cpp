@@ -46,7 +46,12 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
             builder.CreateStore(rhsVarOpRef, lhsOpRef);
             return;
         }
-        if (lhsTypeTag == TYPE_TAG_INT) {
+        if (lhsTypeTag == TYPE_TAG_BOOLEAN) {
+            auto *rhsValueRef = builder.CreateLoad(rhsOpRef, "");
+            auto *namedFuncRef = CodeGenUtils::getAnyToBoolFunc(module);
+            auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({rhsValueRef}));
+            builder.CreateStore(callResult, lhsOpRef);
+        } else if (lhsTypeTag == TYPE_TAG_INT) {
             // call the any_to_int function to typecast from any to int type.
             auto *rhsValueRef = llvm::dyn_cast<llvm::Instruction>(builder.CreateLoad(rhsOpRef, ""));
             auto *namedFuncRef = CodeGenUtils::getAnyToIntFunction(module);
@@ -55,6 +60,11 @@ void NonTerminatorInsnCodeGen::visit(class TypeCastInsn &obj, llvm::IRBuilder<> 
         } else {
             llvm_unreachable("unsupported type");
         }
+    } else if (Type::isBalValueType(lhsTypeTag) && rhsTypeTag == TYPE_TAG_BOOLEAN) {
+        auto *rhsValueRef = builder.CreateLoad(rhsOpRef, "");
+        auto *namedFuncRef = CodeGenUtils::getBoolToAnyFunc(module);
+        auto *callResult = builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({rhsValueRef}));
+        builder.CreateStore(callResult, lhsOpRef);
     } else if (Type::isBalValueType(lhsTypeTag) && rhsTypeTag == TYPE_TAG_INT) {
         auto *balValue = CodeGenUtils::createBalValue(module, builder, rhsOpRef, rhsType);
         builder.CreateStore(balValue, lhsOpRef);
