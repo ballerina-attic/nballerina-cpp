@@ -23,21 +23,21 @@ extern "C" {
 
 TEST(balmapTest1, crtTest) {
     auto *myMap = bal_map_create();
-    BalString bstring1 = {.value = "1"};
+    BalString bstring1 = {.header = 1, .n_bytes = 1, .value = "1"};
     bal_map_insert(myMap, &bstring1, 42);
-    BalString bstring2 = {.value = "2"};
+    BalString bstring2 = {.header = 1, .n_bytes = 1, .value = "2"};
     bal_map_insert(myMap, &bstring2, 43);
-    BalString bstring3 = {.value = "3"};
+    BalString bstring3 = {.header = 1, .n_bytes = 1, .value = "3"};
     bal_map_insert(myMap, &bstring3, 44);
-    BalString bstring4 = {.value = "4"};
+    BalString bstring4 = {.header = 1, .n_bytes = 1, .value = "4"};
     bal_map_insert(myMap, &bstring4, 45);
-    BalString bstring5 = {.value = "5"};
+    BalString bstring5 = {.header = 1, .n_bytes = 1, .value = "5"};
     bal_map_insert(myMap, &bstring5, 46);
-    BalString bstring6 = {.value = "6"};
+    BalString bstring6 = {.header = 1, .n_bytes = 1, .value = "6"};
     bal_map_insert(myMap, &bstring6, 47);
 
     BalValue outVal = 0;
-    BalString bstringFind = {.value = "4"};
+    BalString bstringFind = {.header = 1, .n_bytes = 1, .value = "4"};
     bool ret = bal_map_lookup(myMap, &bstringFind, &outVal);
 
     ASSERT_EQ(ret, true);
@@ -53,6 +53,8 @@ TEST(balmapTest2, crtTest) {
     for (auto i = 0; i < iters; i++) {
         auto *str = new char[8];
         sprintf(str, "%i", (int)i);
+	bstrings[i].header = 1;
+	bstrings[i].n_bytes = strlen(str);
         bstrings[i].value = str;
         bal_map_insert(myMap, &bstrings[i], (BalValue)i);
     }
@@ -60,6 +62,8 @@ TEST(balmapTest2, crtTest) {
     for (auto i = 0; i < iters; i++) {
         auto *str = new char[8];
         sprintf(str, "%i", (int)i);
+        bstrings[i].header = 1;
+        bstrings[i].n_bytes = strlen(str);
         bstrings[i].value = str;
         BalValue outVal = 0;
         bool ret = bal_map_lookup(myMap, &bstrings[i], &outVal);

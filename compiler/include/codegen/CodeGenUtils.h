@@ -29,10 +29,14 @@ namespace nballerina {
 class CodeGenUtils {
   private:
     CodeGenUtils() = default;
+    static llvm::Function *createIntToAnyFunction(llvm::Module &module);
+    static llvm::Function *createAnyToIntFunction(llvm::Module &module);
+    static llvm::Function *getIntToAnyFunction(llvm::Module &module);
 
   public:
     ~CodeGenUtils() = default;
 
+    static llvm::StructType *getStringStructType(llvm::Module &module);
     static llvm::Type *getLLVMTypeOfType(const Type &type, llvm::Module &module);
     static llvm::Type *getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module);
     static llvm::Value *getGlobalNilVar(llvm::Module &module);
@@ -44,9 +48,14 @@ class CodeGenUtils {
     static llvm::FunctionCallee getArrayLoadFunc(llvm::Module &module, TypeTag memberTypeTag);
     static llvm::FunctionCallee getBoxValueFunc(llvm::Module &module, llvm::Type *paramType, TypeTag typeTag);
     static llvm::FunctionCallee getIsSameTypeFunc(llvm::Module &module, llvm::Value *lhs, llvm::Value *rhs);
+    static llvm::Function *getAnyToIntFunction(llvm::Module &module);
+    static llvm::Value *createBalValue(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                       const Type &valueType);
     static llvm::FunctionCallee getNewMapInitFunc(llvm::Module &module);
     static llvm::FunctionCallee getMapLoadFunc(llvm::Module &module);
     static llvm::FunctionCallee getMapStoreFunc(llvm::Module &module);
+    static llvm::Function *getBoolToAnyFunc(llvm::Module &module);
+    static llvm::Function *getAnyToBoolFunc(llvm::Module &module);
 };
 
 } // namespace nballerina

@@ -42,6 +42,11 @@ This will build:
         cmake --build ./build/ -t runtime_header
 3. The generated header will be at : runtime/include/ballerina_rt.h
 
+### Check whether LTO is inlining runtime functions
+1. Execute command
+
+        cmake --build ./build/ -t check_lto
+
 
 ## Building from source in MacOSX 10.15.0
 ### Prerequisites

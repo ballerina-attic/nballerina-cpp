@@ -35,6 +35,19 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(const Type &type, llvm::Module &modu
     return getLLVMTypeOfType(type.getTypeTag(), module);
 }
 
+llvm::StructType *CodeGenUtils::getStringStructType(llvm::Module &module) {
+    auto &context = module.getContext();
+    auto *type = module.getTypeByName("struct.balAsciiString");
+    if (type != nullptr) {
+        return type;
+    }
+    return llvm::StructType::create(
+        context,
+        llvm::ArrayRef<llvm::Type *>(
+            {llvm::Type::getInt64Ty(context), llvm::Type::getInt64Ty(context), llvm::Type::getInt8PtrTy(context)}),
+        "struct.balAsciiString");
+}
+
 llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &module) {
     auto &context = module.getContext();
     switch (typeTag) {
@@ -44,27 +57,21 @@ llvm::Type *CodeGenUtils::getLLVMTypeOfType(TypeTag typeTag, llvm::Module &modul
         return llvm::Type::getDoubleTy(context);
     case TYPE_TAG_BOOLEAN:
         return llvm::Type::getInt1Ty(context);
+    case TYPE_TAG_BYTE:
+        return llvm::Type::getInt8Ty(context);
     case TYPE_TAG_CHAR_STRING:
     case TYPE_TAG_STRING:
+        return llvm::PointerType::get(getStringStructType(module), 0);
     case TYPE_TAG_MAP:
     case TYPE_TAG_NIL:
-        return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_ANY:
+    case TYPE_TAG_ANYDATA:
     case TYPE_TAG_UNION:
-    case TYPE_TAG_ANYDATA: {
-        auto *type = module.getTypeByName("struct.smtPtr");
-        if (type != nullptr) {
-            return type;
-        }
-        return llvm::StructType::create(
-            context,
-            llvm::ArrayRef<llvm::Type *>({llvm::Type::getInt8PtrTy(context), llvm::Type::getInt8PtrTy(context)}),
-            "struct.smtPtr");
-    }
+        return llvm::Type::getInt8PtrTy(context);
     case TYPE_TAG_ARRAY: {
         // TODO: remove this once other array types are supported
         /*
-           Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+           Runtime implements this type only for int and byte arrays. Other arrays are still of the type Int8PtrTy.
            Though LLVM ir generated assume all array types to be this type it will be silently ignored by the
            runtime.
         */
@@ -122,7 +129,7 @@ llvm::FunctionCallee CodeGenUtils::getArrayInitFunc(llvm::Module &module, TypeTa
     const auto arrayTypeFuncName = "array_init_" + Type::getNameOfType(memberTypeTag);
     // TODO: remove this once other array types are supported
     /*
-        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        Runtime implements this type only for int and byte arrays. Other arrays are still of the type Int8PtrTy.
         This difference is silently ignored by the runtime.
     */
     auto *funcType =
@@ -135,10 +142,10 @@ llvm::FunctionCallee CodeGenUtils::getArrayStoreFunc(llvm::Module &module, TypeT
     const auto arrayTypeFuncName = "array_store_" + Type::getNameOfType(memberTypeTag);
     // TODO: remove this once other array types are supported
     /*
-        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        Runtime implements this type only for int and byte arrays. Other arrays are still of the type Int8PtrTy.
         This difference is silently ignored by the runtime.
     */
-    llvm::Type *memType = Type::isSmartStructType(memberTypeTag)
+    llvm::Type *memType = Type::isBalValueType(memberTypeTag)
                               ? llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module), 0)
                               : CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module);
     auto *funcType =
@@ -152,12 +159,13 @@ llvm::FunctionCallee CodeGenUtils::getArrayStoreFunc(llvm::Module &module, TypeT
 llvm::FunctionCallee CodeGenUtils::getArrayLoadFunc(llvm::Module &module, TypeTag memberTypeTag) {
     const auto arrayTypeFuncName = "array_load_" + Type::getNameOfType(memberTypeTag);
 
-    llvm::Type *funcRetType = Type::isSmartStructType(memberTypeTag)
+    llvm::Type *funcRetType = Type::isBalValueType(memberTypeTag)
                                   ? llvm::PointerType::get(CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module), 0)
                                   : CodeGenUtils::getLLVMTypeOfType(memberTypeTag, module);
     // TODO: remove this once other array types are supported
     /*
-        Runtime implements this type only for int arrays. Other arrays are still of the type Int8PtrTy.
+        Runtime implements this type only for int and byte    case TYPE_TAG_BYTE:
+        return "byte"; arrays. Other arrays are still of the type Int8PtrTy.
         This difference is silently ignored by the runtime.
     */
     auto *funcType =
@@ -184,6 +192,188 @@ llvm::FunctionCallee CodeGenUtils::getIsSameTypeFunc(llvm::Module &module, llvm:
     return module.getOrInsertFunction("is_same_type", funcType);
 }
 
+llvm::Function *CodeGenUtils::getIntToAnyFunction(llvm::Module &module) {
+    auto *newFunc = module.getFunction("int_to_any");
+    if (newFunc != nullptr) {
+        return newFunc;
+    }
+    return createIntToAnyFunction(module);
+}
+
+llvm::Function *CodeGenUtils::createIntToAnyFunction(llvm::Module &module) {
+
+    auto builder = llvm::IRBuilder<>(module.getContext());
+    const std::string functionName = "int_to_any";
+    // create new int_to_any function
+    auto *funcType =
+        llvm::FunctionType::get(builder.getInt8PtrTy(), llvm::ArrayRef<llvm::Type *>({builder.getInt64Ty()}), false);
+    auto *newFunc = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, functionName, module);
+
+    llvm::BasicBlock *entryBB = llvm::BasicBlock::Create(module.getContext(), "entry", newFunc);
+    builder.SetInsertPoint(entryBB);
+    // create alloca of local variables in new function
+    auto *localVarRef1 = builder.CreateAlloca(builder.getInt8PtrTy());
+    auto *localVarRef2 = builder.CreateAlloca(builder.getInt64Ty());
+    auto *localVarRef3 = builder.CreateAlloca(builder.getInt8PtrTy());
+    auto *localVarRef4 = builder.CreateAlloca(llvm::Type::getInt64PtrTy(module.getContext()));
+    auto &funcArg = newFunc->arg_begin()[0];
+    funcArg.setName("a");
+    // creating instructions for entry BB in new function
+    builder.CreateStore(&funcArg, localVarRef2);
+    llvm::LoadInst *valueLoad = builder.CreateLoad(localVarRef2, "");
+    auto *constIntValue = llvm::ConstantInt::get(builder.getInt64Ty(), 0x3FFFFFFFFFFFFFFF);
+    auto *compWithPositiveVal = new llvm::ICmpInst(llvm::CmpInst::Predicate::ICMP_SGE, constIntValue, valueLoad, "");
+    entryBB->getInstList().push_back(compWithPositiveVal);
+
+    llvm::BasicBlock *ifBBEntry = llvm::BasicBlock::Create(module.getContext(), "lhs.true", newFunc);
+    llvm::BasicBlock *ifBB = llvm::BasicBlock::Create(module.getContext(), "if.then", newFunc);
+    llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "if.else", newFunc);
+    builder.CreateCondBr(compWithPositiveVal, ifBBEntry, elseBB);
+
+    builder.SetInsertPoint(ifBBEntry);
+    auto *constIntNegValue = llvm::ConstantInt::get(builder.getInt64Ty(), -0x4000000000000000);
+    auto *compWithNegVal = new llvm::ICmpInst(llvm::CmpInst::Predicate::ICMP_SGE, valueLoad, constIntNegValue, "");
+    ifBBEntry->getInstList().push_back(compWithNegVal);
+    builder.CreateCondBr(compWithNegVal, ifBB, elseBB);
+
+    builder.SetInsertPoint(ifBB);
+    auto *constShlValue = llvm::ConstantInt::get(builder.getInt64Ty(), 1);
+    llvm::BinaryOperator *shlInsn = llvm::BinaryOperator::CreateShl(valueLoad, constShlValue);
+    shlInsn->setHasNoSignedWrap();
+    llvm::BasicBlock *retBB = llvm::BasicBlock::Create(module.getContext(), "return", newFunc);
+    llvm::BinaryOperator *orInsn = llvm::BinaryOperator::CreateOr(shlInsn, constShlValue);
+    ifBB->getInstList().push_back(shlInsn);
+    ifBB->getInstList().push_back(orInsn);
+    auto *intToPtrCast = builder.CreateIntToPtr(orInsn, builder.getInt8PtrTy());
+    builder.CreateStore(intToPtrCast, localVarRef1);
+    // creating branch of the if basicblock.
+    builder.CreateBr(retBB);
+
+    builder.SetInsertPoint(elseBB);
+    // generate elseBB instructions
+    // here, adding balValueSize (8) and headerSize(1) "8 + 1 = 9" and loading that addition result.
+    auto *addResult = llvm::ConstantInt::get(builder.getInt64Ty(), 8 + 1);
+    llvm::Instruction *mallocInsn = llvm::CallInst::CreateMalloc(elseBB, builder.getInt64Ty(), builder.getInt8Ty(),
+                                                                 addResult, nullptr, nullptr, "");
+    elseBB->getInstList().push_back(mallocInsn);
+    builder.CreateStore(mallocInsn, localVarRef3);
+    llvm::LoadInst *mallocResLoad = builder.CreateLoad(localVarRef3, "");
+    auto *headerSize = llvm::ConstantInt::get(builder.getInt64Ty(), 1);
+    auto *gepOfMalloc =
+        builder.CreateInBoundsGEP(builder.getInt8Ty(), mallocResLoad, llvm::ArrayRef<llvm::Value *>({headerSize}), "");
+    auto *bitCastOfGEPMalloc = builder.CreateBitCast(gepOfMalloc, llvm::Type::getInt64PtrTy(module.getContext()), "");
+    builder.CreateStore(bitCastOfGEPMalloc, localVarRef4);
+    builder.CreateStore(builder.CreateLoad(localVarRef2, ""), builder.CreateLoad(localVarRef4, ""));
+    builder.CreateStore(builder.CreateLoad(localVarRef3, ""), localVarRef1);
+    builder.CreateBr(retBB);
+
+    builder.SetInsertPoint(retBB);
+    builder.CreateRet(builder.CreateLoad(localVarRef1, ""));
+
+    return newFunc;
+}
+
+llvm::Function *CodeGenUtils::getAnyToIntFunction(llvm::Module &module) {
+
+    auto *newFunc = module.getFunction("any_to_int");
+    if (newFunc != nullptr) {
+        return newFunc;
+    }
+    return createAnyToIntFunction(module);
+}
+
+llvm::Function *CodeGenUtils::createAnyToIntFunction(llvm::Module &module) {
+
+    auto builder = llvm::IRBuilder<>(module.getContext());
+    const std::string functionName = "any_to_int";
+
+    // create new any_to_int function
+    auto *funcType =
+        llvm::FunctionType::get(builder.getInt64Ty(), llvm::ArrayRef<llvm::Type *>({builder.getInt8PtrTy()}), false);
+    auto *newFunc = llvm::Function::Create(funcType, llvm::GlobalValue::ExternalLinkage, functionName, module);
+
+    llvm::BasicBlock *entryBB = llvm::BasicBlock::Create(module.getContext(), "entry", newFunc);
+    builder.SetInsertPoint(entryBB);
+    // create alloca of local variables
+    auto *localVarRef1 = builder.CreateAlloca(builder.getInt64Ty());
+    auto *localVarRef2 = builder.CreateAlloca(builder.getInt8PtrTy());
+    auto *localVarRef3 = builder.CreateAlloca(llvm::Type::getInt64PtrTy(module.getContext()));
+    auto &funcArg = newFunc->arg_begin()[0];
+    funcArg.setName("a");
+
+    builder.CreateStore(&funcArg, localVarRef2);
+    llvm::LoadInst *valueLoad = builder.CreateLoad(localVarRef2, "");
+    auto *ptrToIntCast = builder.CreatePtrToInt(valueLoad, builder.getInt64Ty(), "");
+    auto *constOneValue = llvm::ConstantInt::get(builder.getInt64Ty(), 1);
+    llvm::Instruction *andInsn = llvm::BinaryOperator::CreateAnd(ptrToIntCast, constOneValue);
+    entryBB->getInstList().push_back(andInsn);
+    auto *constZeroValue = llvm::ConstantInt::get(builder.getInt64Ty(), 0);
+    llvm::Instruction *ifReturn = new llvm::ICmpInst(llvm::CmpInst::Predicate::ICMP_NE, andInsn, constZeroValue, "");
+    entryBB->getInstList().push_back(ifReturn);
+
+    // create if BB
+    llvm::BasicBlock *ifBB = llvm::BasicBlock::Create(module.getContext(), "if.then", newFunc);
+    // create else BB
+    llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(module.getContext(), "if.else", newFunc);
+    // Creating Branch condition using if and else BB's.
+    builder.CreateCondBr(ifReturn, ifBB, elseBB);
+
+    builder.SetInsertPoint(ifBB);
+    llvm::BinaryOperator *shrInsn = llvm::BinaryOperator::CreateAShr(ptrToIntCast, constOneValue);
+    ifBB->getInstList().push_back(shrInsn);
+    llvm::StoreInst *storeValueToBalValue = builder.CreateStore(shrInsn, localVarRef1);
+    ifBB->getInstList().push_back(storeValueToBalValue);
+    // create if BB in else BB
+    llvm::BasicBlock *elseIfBB = llvm::BasicBlock::Create(module.getContext(), "if.then2", newFunc);
+    // create else BB in else BB
+    llvm::BasicBlock *elseElseBB = llvm::BasicBlock::Create(module.getContext(), "if.else2", newFunc);
+    // create return BB
+    llvm::BasicBlock *retBB = llvm::BasicBlock::Create(module.getContext(), "return", newFunc);
+    // creating branch of the if basicblock.
+    builder.CreateBr(retBB);
+
+    builder.SetInsertPoint(elseBB);
+    auto *constTagMask = llvm::ConstantInt::get(builder.getInt64Ty(), 0b11);
+    llvm::Instruction *andInsnElseBB = llvm::BinaryOperator::CreateAnd(ptrToIntCast, constTagMask);
+    elseBB->getInstList().push_back(andInsnElseBB);
+    auto *compareResult = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, andInsnElseBB, constZeroValue, "");
+    builder.CreateCondBr(compareResult, elseIfBB, elseElseBB);
+
+    builder.SetInsertPoint(elseIfBB);
+    auto *constByteValue = llvm::ConstantInt::get(builder.getInt64Ty(), 1);
+    llvm::BinaryOperator *addResult = llvm::BinaryOperator::CreateAdd(ptrToIntCast, constByteValue, "");
+    elseIfBB->getInstList().push_back(addResult);
+    auto *intToPtrCast = builder.CreateIntToPtr(addResult, llvm::Type::getInt64PtrTy(module.getContext()));
+    builder.CreateStore(intToPtrCast, localVarRef3);
+    llvm::LoadInst *locVarRefLoad = builder.CreateLoad(builder.CreateLoad(localVarRef3, ""), "");
+    builder.CreateStore(locVarRefLoad, localVarRef1);
+    builder.CreateBr(retBB);
+
+    // abort call
+    builder.SetInsertPoint(elseElseBB);
+    auto *abortCall = builder.CreateCall(getAbortFunc(module));
+    abortCall->addAttribute(~0U, llvm::Attribute::NoReturn);
+    abortCall->addAttribute(~0U, llvm::Attribute::NoUnwind);
+    builder.CreateUnreachable();
+
+    builder.SetInsertPoint(retBB);
+    builder.CreateRet(builder.CreateLoad(localVarRef1, ""));
+
+    return newFunc;
+}
+
+llvm::Value *CodeGenUtils::createBalValue(llvm::Module &module, llvm::IRBuilder<> &builder, llvm::Value *value,
+                                          const Type &valueType) {
+
+    if (valueType.getTypeTag() == TYPE_TAG_INT) {
+        // call the created int_to_any function
+        auto *namedFuncRef = CodeGenUtils::getIntToAnyFunction(module);
+        return builder.CreateCall(namedFuncRef, llvm::ArrayRef<llvm::Value *>({builder.CreateLoad(value, "")}));
+    } else {
+        llvm_unreachable("unsupported type");
+    }
+}
+
 llvm::FunctionCallee CodeGenUtils::getNewMapInitFunc(llvm::Module &module) {
     auto *funcType = llvm::FunctionType::get(getLLVMTypeOfType(TYPE_TAG_MAP, module), false);
     return module.getOrInsertFunction("bal_map_create", funcType);
@@ -206,6 +396,74 @@ llvm::FunctionCallee CodeGenUtils::getMapStoreFunc(llvm::Module &module) {
     auto *funcType = llvm::FunctionType::get(llvm::Type::getVoidTy(module.getContext()),
                                              llvm::ArrayRef<llvm::Type *>({mapType, keyType, memberType}), false);
     return module.getOrInsertFunction("bal_map_insert", funcType);
+}
+
+llvm::Function *CodeGenUtils::getBoolToAnyFunc(llvm::Module &module) {
+    const std::string functionName = "bool_to_any";
+    auto *func = module.getFunction(functionName);
+    if (func != nullptr) {
+        return func;
+    } else {
+        auto builder = llvm::IRBuilder<>(module.getContext());
+        auto *ftype =
+            llvm::FunctionType::get(builder.getInt8PtrTy(), llvm::ArrayRef<llvm::Type *>({builder.getInt1Ty()}), false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, functionName, module);
+        llvm::Argument *arg0 = func->arg_begin();
+
+        llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
+        builder.SetInsertPoint(bb);
+
+        llvm::Value *cond = builder.CreateICmpEQ(arg0, builder.getInt1(true));
+        llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(module.getContext(), "then", func);
+        llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(module.getContext(), "else", func);
+        builder.CreateCondBr(cond, ThenBB, ElseBB);
+
+        builder.SetInsertPoint(ThenBB);
+        auto *constTrueAny = llvm::ConstantInt::get(builder.getInt8Ty(), 14);
+        auto *anyTruePtr = builder.CreateIntToPtr(constTrueAny, builder.getInt8PtrTy());
+        builder.CreateRet(anyTruePtr);
+
+        builder.SetInsertPoint(ElseBB);
+        auto *constFalseAny = llvm::ConstantInt::get(builder.getInt8Ty(), 6);
+        auto *anyFalsePtr = builder.CreateIntToPtr(constFalseAny, builder.getInt8PtrTy());
+        builder.CreateRet(anyFalsePtr);
+
+        return func;
+    }
+}
+
+llvm::Function *CodeGenUtils::getAnyToBoolFunc(llvm::Module &module) {
+    const std::string functionName = "any_to_bool";
+    auto *func = module.getFunction(functionName);
+    if (func != nullptr) {
+        return func;
+    } else {
+        auto builder = llvm::IRBuilder<>(module.getContext());
+        auto *ftype =
+            llvm::FunctionType::get(builder.getInt1Ty(), llvm::ArrayRef<llvm::Type *>({builder.getInt8PtrTy()}), false);
+        func = llvm::Function::Create(ftype, llvm::GlobalValue::LinkageTypes::ExternalLinkage, functionName, module);
+        llvm::Argument *arg0 = func->arg_begin();
+
+        llvm::BasicBlock *bb = llvm::BasicBlock::Create(module.getContext(), "entry", func);
+        builder.SetInsertPoint(bb);
+
+        auto *argVal = builder.CreatePtrToInt(arg0, builder.getInt8Ty());
+
+        llvm::Value *cond = builder.CreateICmpEQ(argVal, builder.getInt8(14));
+        llvm::BasicBlock *ThenBB = llvm::BasicBlock::Create(module.getContext(), "then", func);
+        llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(module.getContext(), "else", func);
+        builder.CreateCondBr(cond, ThenBB, ElseBB);
+
+        builder.SetInsertPoint(ThenBB);
+        auto *constTrue = llvm::ConstantInt::get(builder.getInt1Ty(), true);
+        builder.CreateRet(constTrue);
+
+        builder.SetInsertPoint(ElseBB);
+        auto *constFalse = llvm::ConstantInt::get(builder.getInt1Ty(), false);
+        builder.CreateRet(constFalse);
+
+        return func;
+    }
 }
 
 } // namespace nballerina
