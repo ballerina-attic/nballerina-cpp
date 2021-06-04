@@ -11,7 +11,8 @@ set(RUST_FLAGS "-Clinker-plugin-lto" "-Clinker=clang-11" "-Clink-arg=-fuse-ld=ll
 add_custom_target(libballerina_rt
   COMMENT "Generate static runtime lib"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR} RUSTFLAGS="${RUST_FLAGS}" ${CARGO_CMD})
+  RUSTFLAGS "${RUST_FLAGS}"
+  ${CARGO_CMD})
 
 # Add seperate (optional) target to generate header file for runtime lib using cbindgen
 add_custom_target(runtime_header
