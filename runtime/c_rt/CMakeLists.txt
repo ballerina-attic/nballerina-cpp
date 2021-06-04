@@ -6,7 +6,7 @@ include_directories(.)
 add_library( ballerina_crt STATIC src/balmap.c src/lto.c)
 
 set(CMAKE_CXX_FLAGS "-fuse-ld=lld-11")
-set(LTO_FLAGS --target=x86_64-unknown-linux-gnu -flto=thin -Wno-override-module)
+set(LTO_FLAGS --target=x86_64-unknown-linux-gnu -flto=thin)
 target_compile_options(ballerina_crt PUBLIC "$<$<CONFIG:DEBUG>:${LTO_FLAGS}>")
 target_compile_options(ballerina_crt PUBLIC "$<$<CONFIG:RELEASE>:${LTO_FLAGS}>")
 
