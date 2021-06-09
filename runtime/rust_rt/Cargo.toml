@@ -14,3 +14,6 @@ crate-type = ["staticlib"]
 num = "0.3"
 num-traits = "0.2"
 num-derive = "0.3"
+
+[build]
+target-dir = "${CMAKE_CURRENT_BINARY_DIR}\runtime"

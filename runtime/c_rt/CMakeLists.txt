@@ -13,7 +13,7 @@ target_compile_options(ballerina_crt PUBLIC "$<$<CONFIG:RELEASE>:${LTO_FLAGS}>")
 include(GoogleTest)
 add_executable(check_crt test/main.cpp)
 target_link_libraries(check_crt ballerina_crt gtest_main gtest pthread )
-set(TESTAPP_FLAGS -Wno-unused-command-line-argument)
+#set(TESTAPP_FLAGS -Wno-unused-command-line-argument)
 target_compile_options(check_crt PUBLIC "$<$<CONFIG:DEBUG>:${TESTAPP_FLAGS}>")
 target_compile_options(check_crt PUBLIC "$<$<CONFIG:RELEASE>:${TESTAPP_FLAGS}>")
 
