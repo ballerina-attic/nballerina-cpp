@@ -7,6 +7,11 @@ endif ()
 # Flags to enable C++/Rust LTO
 set(RUST_FLAGS "-Clinker-plugin-lto" "-Clinker=clang-11" "-Clink-arg=-fuse-ld=lld-11")
 
+# Flag to check whether it is UNIX based system
+if (UNIX)
+    set(COMMAND CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR})
+endif ()
+
 # Add cargo build instructions for Rust based runtime
 add_custom_target(libballerina_rt
   COMMENT "Generate static runtime lib"
